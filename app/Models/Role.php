@@ -7,6 +7,14 @@ use Override;
 
 class Role extends Model
 {
+
+const STUDENT = 'STUDENT';
+const TEACHER = 'TEACHER';
+const COUNSELOR = 'COUNSELOR';
+const SECRETARY = 'SECRETARY';
+const ADVISOR = 'ADVISOR';
+const SUPER_ADMIN = 'SUPER_ADMIN';
+const PARENT = 'PARENT';
     
 protected $guarded = [
 ];

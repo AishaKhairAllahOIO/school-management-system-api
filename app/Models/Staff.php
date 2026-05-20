@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth;
+
 use Override;
 
-class Staff extends Model
+class Staff extends Model 
 {
     protected $table = 'staff';
     protected $guarded = []; 

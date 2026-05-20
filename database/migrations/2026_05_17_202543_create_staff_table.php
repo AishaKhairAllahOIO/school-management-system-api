@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('staff', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
-            $table->string('first_name')->nullable();
-            $table->string('last_name')->nullable();
-            $table->string('phone_number',10)->nullable();
-            $table->date('birth_date')->nullable();
-            $table->date('hire_date')->nullable();
-            $table->char('gender',1)->nullable();
+           // $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('phone_number',10);
+            $table->date('birth_date');
+            $table->date('hire_date');
+            $table->char('gender',1);
             $table->string('personale_photo')->nullable();
+            $table->string('address')->nullable();
             $table->timestamps();
         });
     }

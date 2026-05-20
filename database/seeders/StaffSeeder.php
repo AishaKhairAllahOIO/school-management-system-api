@@ -21,6 +21,7 @@ class StaffSeeder extends Seeder
           SystemAccess::create([
           'email'=>'shahdeslim0@gmail.com',
           'password'=> bcrypt('123456789'),
+         // 'is_active'=> false,
          
         ]);
     }

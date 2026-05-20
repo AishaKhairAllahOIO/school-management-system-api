@@ -67,7 +67,7 @@ class SystemAccessController extends Controller
             return $this->errorResponse('فشل التحقق', 500);
         }
     }
-
+//jjjj
     public function resetPassword(SystemAccessResetPasswordRequest $request, SystemAccessService $service)
     {
         try {

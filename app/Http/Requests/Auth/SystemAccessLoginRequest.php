@@ -25,7 +25,6 @@ class SystemAccessLoginRequest extends FormRequest
         return [
             'email'=> 'required|string',
             'password'=> 'required|string',
-            'remember_me'=> 'nullable|boolean',
         ];
     }
     public function messages(){

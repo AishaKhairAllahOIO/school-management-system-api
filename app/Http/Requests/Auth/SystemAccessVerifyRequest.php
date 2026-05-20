@@ -25,6 +25,7 @@ class SystemAccessVerifyRequest extends FormRequest
         return [
           'email'=>'required|email',
           'otp' => 'required|string|size:6',
+          'remember_me'=> 'nullable|boolean',
         ];
     }
 }

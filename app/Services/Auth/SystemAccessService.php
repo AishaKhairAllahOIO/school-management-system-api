@@ -33,12 +33,17 @@ class SystemAccessService
     public function verifyOtp(array $data):array
     {
       $access=SystemAccess::where('email', $data['email'])->first();
+
+      if (!$access) {
+        throw ValidationException::withMessages(['email' => 'User not found.']);
+    }
       $cacheOtp=Cache::get('otp'.$access->email);
       if (!$cacheOtp || $cacheOtp !== $data['otp'])
         {
           throw ValidationException::withMessages(['incorrect otp']);
         }
         Cache::forget('otp'.$access->email);
+
         $tokenExpiration = !empty($data['remember_me']) ? now()->addMonth(1) : now()->addHours(24);
         $token = $access->createToken('system_token',['*'],$tokenExpiration)->plainTextToken;
 

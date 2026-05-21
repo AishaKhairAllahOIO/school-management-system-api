@@ -36,10 +36,11 @@ class SystemAccessController extends Controller
                 'user'  => new SystemAccessResource($access['data']),
                 'token' => $access['token']
             ];
-            return $this->successResponse($responseData, 'تم تسجيل الدخول بنجاح', 200);
+         return $this->successResponse($responseData, 'تم تسجيل الدخول بنجاح', 200);
         } catch (ValidationException $e) {
-            return $this->errorResponse($e->getMessage(), 422);
-        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 422,$e->errors());
+         } 
+         catch (Exception $e) {
             return $this->errorResponse('فشل التحقق من الكود', 500);
         }
     }

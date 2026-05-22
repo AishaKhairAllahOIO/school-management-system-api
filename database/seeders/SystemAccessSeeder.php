@@ -23,7 +23,6 @@ class SystemAccessSeeder extends Seeder
           'staff_id'=>4,
           'email'=>'shahdeslim0@gmail.com',
           'password'=> bcrypt('123456789'),
-         // 'is_active'=> false,
          
         ]);
     }

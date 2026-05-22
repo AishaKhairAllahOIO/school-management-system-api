@@ -22,10 +22,10 @@ class SystemAccessController extends Controller
             $service->login($request->validated());
             return $this->successResponse(null, 'تم إرسال كود التحقق بنجاح', 200);
         } catch (ValidationException $e) {
-            return $this->errorResponse($e->getMessage(), 422);
+            return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ في عملية تسجيل الدخول', 500);
-        }
+    return $this->errorResponse('حدث خطأ في عملية تسجيل الدخول', 500, ['exception_message' => $e->getMessage()]);
+}
     }
 
     public function verifyOtp(SystemAccessVerifyRequest $request, SystemAccessService $service)
@@ -51,7 +51,7 @@ class SystemAccessController extends Controller
             $tempToken=$service->forgotPassword($request->validated());
             return $this->successResponse($tempToken, 'تم إرسال كود استعادة كلمة المرور لبريدك', 200);
         } catch (ValidationException $e) {
-            return $this->errorResponse($e->getMessage(), 422);
+            return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء معالجة طلبك', 500);
         }
@@ -63,19 +63,21 @@ class SystemAccessController extends Controller
             $token = $service->verifyOtpForPassword($request->validated());
             return $this->successResponse($token, 'تم التحقق بنجاح، يمكنك تعيين كلمة المرور الآن', 200);
         } catch (ValidationException $e) {
-            return $this->errorResponse($e->getMessage(), 422);
+            return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
             return $this->errorResponse('فشل التحقق', 500);
         }
     }
-//jjjj
+
+
+
     public function resetPassword(SystemAccessResetPasswordRequest $request, SystemAccessService $service)
     {
         try {
             $service->resetPassword($request->validated());
             return $this->successResponse(null, 'تم تغيير كلمة المرور بنجاح', 200);
         } catch (ValidationException $e) {
-            return $this->errorResponse($e->getMessage(), 422);
+            return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
             return $this->errorResponse('فشل تحديث كلمة المرور', 500);
         }

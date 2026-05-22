@@ -16,13 +16,11 @@ class SystemAccessService
 {
     $access = SystemAccess::where('email', $data['email'])->first();
 
-    // تعديل: تحديد المفتاح 'email' لكي يظهر الخطأ تحت حقل الإيميل عند الفرونت إند
     if (!$access || !Hash::check($data['password'], $access->password)) {
         throw ValidationException::withMessages([
             'email' => 'البريد الإلكتروني أو كلمة المرور غير صالحة.'
         ]);
     }
-
     if (!$access->is_active) {
         throw ValidationException::withMessages([
             'email' => 'هذا الحساب معطل، يرجى مراجعة الإدارة.'
@@ -30,24 +28,19 @@ class SystemAccessService
     }
 
     $otp = (string)random_int(100000, 999999);
-    
-    // حفظ الـ OTP في الكاش
     Cache::put('otp' . $access->email, $otp, now()->addMinutes(10));
 
-    // تنبيه: السطر التالي هو المشتبه به الأول في إحداث الخطأ 500 (بسبب إعدادات الـ Mail في ملف .env)
     Mail::to($access->email)->send(new sendOtp($otp));
 }
 
 public function verifyOtp(array $data): array
 {
-    // تأمين الحساب: جلب المستخدم والتأكد من وجوده لعدم ضرب خطأ 500 إذا كان الإيميل خاطئاً
     $access = SystemAccess::where('email', $data['email'])->first();
     if (!$access) {
         throw ValidationException::withMessages([
             'email' => 'المستخدم غير موجود في النظام.'
         ]);
     }
-
     $cacheOtp = Cache::get('otp' . $data['email']);
 //     dd([
 //     'In_Cache' => $cacheOtp,
@@ -62,11 +55,9 @@ public function verifyOtp(array $data): array
         ]);
     }
 
-    // توليد التوكن
     $tokenExpiration = !empty($data['remember_me']) ? now()->addMonth(1) : now()->addHours(24);
     $token = $access->createToken('system_token', ['*'], $tokenExpiration)->plainTextToken;
 
-    // مسح الكاش في نهاية العملية تماماً بعد نجاح التوكن
     Cache::forget('otp' . $access->email);
 
     return [
@@ -77,19 +68,23 @@ public function verifyOtp(array $data): array
 
 public function forgotPassword(array $data)
 {
-  $access=SystemAccess::where('email', $data['email'])->first();
-  if (!$access) {
-    throw ValidationException::withMessages(['المسخدم غير موجود']);
-  }
+    $access = SystemAccess::where('email', $data['email'])->first();
+    if (!$access) {
+        throw ValidationException::withMessages(['المسخدم غير موجود']);
+    }
 
-  $otp=(string)random_int(100000,999999);
-  $expiresAt = time() + 60; 
-  Cache::put('reset_otp'.$access->email,$otp,now()->addMinute(10));
+    if (Cache::has('otp_resend_lock' . $access->email)) {
+        throw ValidationException::withMessages([
+            'email' => 'يرجى الانتظار دقيقة قبل طلب إعادة إرسال الرمز مجدداً.'
+        ]);
+    }
+    $otp = (string)random_int(100000, 999999);
+    Cache::put('reset_otp' . $access->email, $otp, now()->addMinutes(10));
 
-  Cache::put('otp_resend_lock' .$access->email, true, now()->addMinute());
-
-  Mail::to($data['email'])->send(new SendOtp($otp));
-  return ['remaining_time' => 60];
+    Cache::put('otp_resend_lock' . $access->email, true, now()->addMinute());
+    Mail::to($data['email'])->send(new SendOtp($otp));
+    
+    return ['remaining_time' => 60];
 }
 
 public function verifyOtpForPassword(array $data)
@@ -108,6 +103,7 @@ public function verifyOtpForPassword(array $data)
     return ['temp_token' => $tempToken];
  
 }
+
 public function resetPassword(array $data)
 {
   $cachtToken=Cache::get('reset_token'.$data['email']);

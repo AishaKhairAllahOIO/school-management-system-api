@@ -30,8 +30,5 @@ class Staff extends Model
     {
         return $this->belongsTo(Role::class);
     }
-    public function serviceStaffProfile()
-    {
-        return $this->hasOne(ServiceStaffProfile::class,'staff_id');
-    }
+   
 }

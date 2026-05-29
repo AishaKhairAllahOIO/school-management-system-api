@@ -10,70 +10,56 @@ class StaffSeeder extends Seeder
 {
     public function run(): void
     {
-        $staffMembers = [
-            [
-                'first_name' => 'فادي', 'last_name' => 'الحسن', 'father_name' => 'أيمن', 'mother_name' => 'سلوى',
-                'phone' => '0931111111', 'birth' => '2010' . '-04-15', 'birth_place' => 'دمشق', 'hire' => '2024-09-01',
-                'gender' => 'male', 'nationality' => 'syrian', 'address' => 'دمشق - التجارة', 'role' => 'STUDENT'
-            ],
-            [
-                'first_name' => 'أحمد', 'last_name' => 'المنصور', 'father_name' => 'محمود', 'mother_name' => 'فاطمة',
-                'phone' => '0933111222', 'birth' => '1988-05-12', 'birth_place' => 'دمشق', 'hire' => '2018-09-01',
-                'gender' => 'male', 'nationality' => 'syrian', 'address' => 'دمشق - الميدان', 'role' => 'TEACHER'
-            ],
-            [
-                'first_name' => 'سامر', 'last_name' => 'الخطيب', 'father_name' => 'يسار', 'mother_name' => 'هند',
-                'phone' => '0932222222', 'birth' => '1978-10-05', 'birth_place' => 'حلب', 'hire' => '2024-09-01',
-                'gender' => 'male', 'nationality' => 'syrian', 'address' => 'دمشق - الشعلان', 'role' => 'PARENT'
-            ],
-            [
-                'first_name' => 'رنا', 'last_name' => 'الحمصي', 'father_name' => 'محمد', 'mother_name' => 'عائشة',
-                'phone' => '0944333444', 'birth' => '1994-11-20', 'birth_place' => 'حمص', 'hire' => '2021-02-15',
-                'gender' => 'female', 'nationality' => 'syrian', 'address' => 'حمص - المحطة', 'role' => 'SECRETARY'
-            ],
-            [
-                'first_name' => 'حسام', 'last_name' => 'الدين', 'father_name' => 'عمر', 'mother_name' => 'ندى',
-                'phone' => '0955666777', 'birth' => '1982-03-14', 'birth_place' => 'اللاذقية', 'hire' => '2017-10-01',
-                'gender' => 'male', 'nationality' => 'syrian', 'address' => 'اللاذقية - المشروع الأول', 'role' => 'SUPERVISOR'
-            ],
-            [
-                'first_name' => 'منى', 'last_name' => 'سعيد', 'father_name' => 'تيسير', 'mother_name' => 'سعاد',
-                'phone' => '0988777666', 'birth' => '1989-08-30', 'birth_place' => 'طرطوس', 'hire' => '2020-05-05',
-                'gender' => 'female', 'nationality' => 'syrian', 'address' => 'دمشق - مشروع دمر', 'role' => 'COUNSELOR'
-            ],
-            [
-                'first_name' => 'خالد', 'last_name' => 'العبيد', 'father_name' => 'صالح', 'mother_name' => 'مريم',
-                'phone' => '0955555666', 'birth' => '1980-02-01', 'birth_place' => 'حلب', 'hire' => '2015-01-10',
-                'gender' => 'male', 'nationality' => 'syrian', 'address' => 'ريف دمشق - جرمانا', 'role' => 'SERVICE_STAFF'
-            ],
-            [
-                'first_name' => 'محمد', 'last_name' => 'العلي', 'father_name' => 'عبد الله', 'mother_name' => 'هناء',
-                'phone' => '0930000000', 'birth' => '1980-01-01', 'birth_place' => 'دمشق', 'hire' => '2015-01-01',
-                'gender' => 'male', 'nationality' => 'syrian', 'address' => 'دمشق - أبو رمانة', 'role' => 'SUPER_ADMIN'
-            ],
-                ];
+        // جلب معرفات الأدوار لربطها بالموظفين
+  
 
-        foreach ($staffMembers as $member) {
-            $role = Role::where('role_name', $member['role'])->first();
+        // 1. المدير العام (Super Admin)
+        Staff::create([
+            'role_id' => 1,
+            'first_name' => 'طارق', 'last_name' => 'العلي', 'father_name' => 'سعيد', 'mother_name' => 'هند',
+            'birth_date' => '1975-04-12', 'birth_place' => 'دمشق', 'gender' => 'male', 'nationality' => 'syrian',
+            'phone_number' => '0911111111', 'address' => 'المزة', 'hire_date' => '2015-09-01',
+        ]);
 
-            if ($role) {
-                Staff::create([
-                    'role_id'      => $role->id,
-                    'first_name'   => $member['first_name'],
-                    'last_name'    => $member['last_name'],
-                    'father_name'  => $member['father_name'],
-                    'mother_name'  => $member['mother_name'],
-                    'birth_date'   => $member['birth'],
-                    'birth_place'  => $member['birth_place'],
-                    'gender'       => $member['gender'],
-                    'nationality'  => $member['nationality'],
-                    'phone_number' => $member['phone'],
-                    'address'      => $member['address'],
-                    'personal_photo'    => null,
-                    'hire_date'    => $member['hire'],
-                    'record_status'=> 'active',
-                ]);
-            }
-        }
+        // 2. المدرس (Teacher)
+        Staff::create([
+            'role_id' =>2,
+            'first_name' => 'أحمد', 'last_name' => 'المحمد', 'father_name' => 'محمود', 'mother_name' => 'فاطمة',
+            'birth_date' => '1990-05-15', 'birth_place' => 'حمص', 'gender' => 'male', 'nationality' => 'syrian',
+            'phone_number' => '0922222222', 'address' => 'الوعر', 'hire_date' => '2020-09-01',
+        ]);
+
+        // 3. أمين السر (Secretary)
+        Staff::create([
+            'role_id' =>3,
+            'first_name' => 'سارة', 'last_name' => 'الخالد', 'father_name' => 'خالد', 'mother_name' => 'مريم',
+            'birth_date' => '1985-08-20', 'birth_place' => 'حلب', 'gender' => 'female', 'nationality' => 'syrian',
+            'phone_number' => '0933333333', 'address' => 'الفرقان', 'hire_date' => '2018-02-10',
+        ]);
+
+        // 4. الموجه (Supervisor)
+        Staff::create([
+            'role_id' => 4,
+            'first_name' => 'محمود', 'last_name' => 'سالم', 'father_name' => 'رضوان', 'mother_name' => 'ليلى',
+            'birth_date' => '1982-11-30', 'birth_place' => 'حماة', 'gender' => 'male', 'nationality' => 'syrian',
+            'phone_number' => '0944444444', 'address' => 'القصور', 'hire_date' => '2017-09-01',
+        ]);
+
+        // 5. المرشد النفسي (Counselor)
+        Staff::create([
+            'role_id' => 5,
+            'first_name' => 'ندى', 'last_name' => 'كريم', 'father_name' => 'مصطفى', 'mother_name' => 'سعاد',
+            'birth_date' => '1988-02-14', 'birth_place' => 'اللاذقية', 'gender' => 'female', 'nationality' => 'syrian',
+            'phone_number' => '0955555555', 'address' => 'الزراعة', 'hire_date' => '2021-08-15',
+        ]);
+
+        // 6. عامل الخدمة (Service Staff - حارس/مستخدم)
+        Staff::create([
+            'role_id' => 6,
+            'first_name' => 'عبد الله', 'last_name' => 'الزين', 'father_name' => 'حسن', 'mother_name' => 'نور',
+            'birth_date' => '1970-11-05', 'birth_place' => 'دمشق', 'gender' => 'male', 'nationality' => 'syrian',
+            'phone_number' => '0966666666', 'address' => 'الميدان', 'hire_date' => '2022-01-01',
+            'employee_type' => 'حارس أمن',
+        ]);
     }
 }

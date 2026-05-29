@@ -28,7 +28,7 @@ return new class extends Migration
     $table->string('address')->nullable();
     $table->string('personal_photo')->nullable();
     $table->date('hire_date'); 
-    
+    $table->string('employee_type')->nullable();
     $table->enum('record_status', ['active', 'draft', 'archived', 'deleted'])->default('active');
     $table->timestamps();
     $table->softDeletes();

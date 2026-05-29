@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             StaffSeeder::class,
             SystemAccessSeeder::class,
+            AcademicProfileSeeder::class,
         ]);
         
     }

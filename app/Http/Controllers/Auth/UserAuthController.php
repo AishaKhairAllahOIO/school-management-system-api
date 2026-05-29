@@ -77,9 +77,9 @@ class UserAuthController extends Controller
             'phone_number' => $phone_number
         ], 'OTP resent successfully. Please check your SMS.', 200);
     }
-    public function logout(Request $request)
+    public function logout()
     {
-        $this->otpService->logout($request->user);
+        $this->otpService->logout();
         return $this->successResponse(null, 'Logged out successfully', 200);
     }
 

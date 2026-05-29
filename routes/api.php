@@ -20,6 +20,7 @@ Route::prefix('user')->group(function(){
     Route::post('login', [UserAuthController::class, 'login']);
     Route::post('verify-otp', [UserAuthController::class, 'verifyOtp']);
     Route::post('resend-otp', [UserAuthController::class, 'resendOtp']);
+    Route::post('forgot-password', [UserAuthController::class, 'resendOtp']);
 
     Route::middleware('auth:sanctum')->delete('/logout', [UserAuthController::class, 'logout']);
 

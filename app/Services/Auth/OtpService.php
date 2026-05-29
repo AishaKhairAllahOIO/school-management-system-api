@@ -175,11 +175,11 @@ class OtpService
             'user'  => $user,
         ];
     }
-    public function logout($user): void
+    public function logout(): void
     {
 
-        if ($user && $user->currentAccessToken()) {
-            $user->currentAccessToken()->delete();
+        if(Auth::guard('sanctum')->check()) {
+            Auth::guard('sanctum')->user()->currentAccessToken()->delete();
         }
     }
 

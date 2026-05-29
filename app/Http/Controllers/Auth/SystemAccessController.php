@@ -25,14 +25,14 @@ class SystemAccessController extends Controller
             'user'  => new SystemAccessResource($access['data']),
             'token' => $access['token']];
       return $this->successResponse($responseData,'login successful',200);
-      
-    }
 
+    }
     public function logout(SystemAccessService $service)
     {
         $service->logout();
 
         return $this->successResponse('', 'Logout successful', 200);
     }
+    
 }
 

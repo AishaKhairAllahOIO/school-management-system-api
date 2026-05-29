@@ -18,17 +18,17 @@ trait ApiResource
         return response()->json($response, $code);
     }
 
-    protected function errorResponse(string $message, int $code, $errors = null)
-    {
-        $response = [
-            'status' => false,
-            'message' => $message,
-        ];
+public function errorResponse($message = null, $code = 422, $errors = null)
+{
+    $response = [
+        'status'  => false,
+        'message' => $message,
+    ];
 
-        if (!is_null($errors)) {
-            $response['errors'] = $errors;
-        }
-
-        return response()->json($response, $code);
+    if ($errors !== null) {
+        $response['errors'] = $errors;
     }
+
+    return response()->json($response, $code);
+}
 }

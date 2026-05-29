@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('system_accesses', function (Blueprint $table) {
             $table->id();
-            // $table->foreignId('staff_id')//
-            //     ->constrained('staff') 
-            //     ->cascadeOnDelete();  
+            $table->foreignId('staff_id')//
+                ->constrained('staff') 
+                ->cascadeOnDelete();  
             $table->string('email')->unique();
             $table->string('password');
             $table->boolean('is_active')->default(true);

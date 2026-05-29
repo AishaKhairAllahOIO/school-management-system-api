@@ -12,6 +12,10 @@ Route::prefix('auth')->group(function () {
 
     Route::post('/login', [SystemAccessController::class, 'login']);
     Route::post('/verify-otp', [SystemAccessController::class, 'verifyOtp']);
+    Route::post('/password/forgot', [SystemAccessController::class, 'forgotPassword']);
+    Route::post('/password/verify-otp', [SystemAccessController::class, 'verifyPassword']);
+    Route::post('password/resend-otp', [SystemAccessController::class,'forgotPassword']);
+    Route::post('/password/reset', [SystemAccessController::class, 'resetPassword']);
     Route::middleware('auth:sanctum')->delete('/logout', [SystemAccessController::class, 'logout']);
 });
 

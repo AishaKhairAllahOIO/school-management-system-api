@@ -14,8 +14,8 @@ const COUNSELOR = 'COUNSELOR';
 const SECRETARY = 'SECRETARY';
 const ADVISOR = 'ADVISOR';
 const SUPER_ADMIN = 'SUPER_ADMIN';
-const PARENT = 'PARENT';
-    
+const GUARDIAN = 'GUARDIAN';
+
 protected $guarded = [
 ];
 public function staffs()

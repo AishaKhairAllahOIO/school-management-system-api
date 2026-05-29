@@ -15,7 +15,7 @@ class RoleSeeder extends Seeder
     {
         $roles=[
             Role::TEACHER,
-            Role::PARENT,
+            Role::GUARDIAN,
             Role::STUDENT,
             Role::SUPER_ADMIN,
             Role::ADVISOR,

@@ -12,11 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('academic_profiles', function (Blueprint $table) {
-          $table->id();
-           $table->foreignId('staff_id')->constrained()->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('staff_id')->constrained()->cascadeOnDelete();
            //$table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
-            $table->date('graduation_date');
+            $table->enum('degree', ['diploma', 'bachelor', 'master', 'phd', 'other']);
             $table->string('specialization', 100); 
+            $table->string('university'); 
+            $table->unsignedSmallInteger('graduation_year');
             $table->unsignedTinyInteger('experience_years')->default(0);          
             $table->timestamps();
         });

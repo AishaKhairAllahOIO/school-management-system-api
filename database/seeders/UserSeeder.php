@@ -16,19 +16,19 @@ class UserSeeder extends Seeder
         User::create([
             'phone_number' => '0981915237',
             'password' => bcrypt('123456789'),
-            'role_id' => 1,
+            'role_id' => 1, // Assuming role_id 1 corresponds to a valid role in the roles table
         ]);
 
          User::create([
             'phone_number' => '0960657740',
             'password' => bcrypt('123456789'),
-            'role_id' => 1,
+            'role_id' => 1, // Assuming role_id 1 corresponds to a valid role in the roles table
         ]);
 
          User::create([
             'phone_number' => '0983964422',
             'password' => bcrypt('123456789'),
-            'role_id' => 1,
+            'role_id' => 2, // Assuming role_id 1 corresponds to a valid role in the roles table
         ]);
     }
 }

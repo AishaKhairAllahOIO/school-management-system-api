@@ -27,4 +27,8 @@ class SystemAccess extends Authenticatable implements MustVerifyEmail
             'is_active' => 'boolean',
         ];
     }
+    public function staff()
+    {
+        return $this->belongsTo(Staff::class);
+    }
 }

@@ -28,5 +28,8 @@ class RoleSeeder extends Seeder
                 ['role_name'=>$role]
                 );
         }
+
     }
 }
+
+    

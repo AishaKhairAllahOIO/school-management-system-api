@@ -20,7 +20,9 @@ class RoleSeeder extends Seeder
             Role::SUPER_ADMIN,
             Role::ADVISOR,
             Role::SECRETARY,
-            Role::COUNSELOR
+            Role::COUNSELOR,
+            Role::SERVICES_STAFF,
+
         ];
 
         foreach ($roles as $role) {
@@ -29,7 +31,10 @@ class RoleSeeder extends Seeder
                 );
         }
 
+
+
+
     }
 }
 
-    
+

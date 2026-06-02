@@ -15,12 +15,13 @@ const SECRETARY = 'SECRETARY';
 const ADVISOR = 'ADVISOR';
 const SUPER_ADMIN = 'SUPER_ADMIN';
 const GUARDIAN = 'GUARDIAN';
+const SERVICES_STAFF = 'SERVICES_STAFF';
 
 protected $guarded = [
 ];
-public function staffs()
+public function users()
 {
-    return $this->hasMany(Staff::class);
+    return $this->hasMany(User::class);
 }
 
 }

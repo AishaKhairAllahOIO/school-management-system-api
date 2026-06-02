@@ -13,23 +13,13 @@ return new class extends Migration
     {
         Schema::create('staff', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
-    
-    // الحقول المشتركة لجميع البشر في النظام
-    $table->string('first_name');
-    $table->string('last_name');
-    $table->string('father_name');
-    $table->string('mother_name');
-    $table->date('birth_date');
-    $table->string('birth_place');
-    $table->enum('gender', ['male', 'female']);
-    $table->enum('nationality', ['syrian', 'lebanese', 'palestinian', 'jordanian', 'other'])->default('syrian');
-    $table->string('phone_number', 15);
-    $table->string('address')->nullable();
-    $table->string('personal_photo')->nullable();
-    $table->date('hire_date'); 
-    $table->string('employee_type')->nullable();
-    $table->enum('record_status', ['active', 'draft', 'archived', 'deleted'])->default('active');
+    $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+           //$table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
+            $table->enum('degree', ['diploma', 'bachelor', 'master', 'phd', 'other']);
+            $table->string('specialization', 100);
+            $table->string('university');
+            $table->unsignedSmallInteger('graduation_year');
+            $table->unsignedTinyInteger('experience_years')->default(0);
     $table->timestamps();
     $table->softDeletes();
         });

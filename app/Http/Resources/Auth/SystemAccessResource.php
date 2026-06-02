@@ -14,11 +14,13 @@ class SystemAccessResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+
         return [
             'id' => $this->id,
-            'role'=>$this->staff->role->role_name,
+            'role'=>$this->role->role_name,
             'email' => $this->email,
-            'is_active' => $this->is_active,
+
+            'is_active' => $this->account_status !== 'disabled'
         ];
     }
 }

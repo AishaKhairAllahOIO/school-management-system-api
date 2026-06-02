@@ -19,20 +19,9 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'phone_number',
-        'password',
-    ];
+    protected $guarded = [];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+
 
     /**
      * Get the attributes that should be cast.
@@ -46,4 +35,20 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+
+    public function student()
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    public function guardian()
+    {
+        return $this->hasOne(Guardian::class);
+    }
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
 }

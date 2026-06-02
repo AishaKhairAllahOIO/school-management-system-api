@@ -15,7 +15,7 @@ class OtpService
 {
     use ApiResource;
     private string $apiKey  = '1f8d84c2-2f74-4fc0-93b1-d0fdc94b5284';
-    private string $apiUrl  = 'http://192.168.1.104:8082/';
+    private string $apiUrl  = 'http://192.168.137.151:8082/';
     private string $appleReviewPhone = '+15555550123';
     private string $appleStaticOtp   = '12345';
 

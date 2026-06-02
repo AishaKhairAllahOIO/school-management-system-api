@@ -7,6 +7,7 @@ use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UserLoginRequest;
 use App\Http\Requests\Auth\UserVerifyRequest;
+use App\Http\Resources\Auth\UserResource;
 use App\Models\User;
 use App\Services\Auth\OtpService;
 use Illuminate\Http\Request;
@@ -51,7 +52,7 @@ class UserAuthController extends Controller
 
         return $this->successResponse([
             'token' => $result['token'],
-            'user'  => $result['user']
+            'user' => new UserResource($result['user'])
         ], 'OTP verified successfully. Authentication complete.', 200);
     }
     public function resendOtp(Request $request)

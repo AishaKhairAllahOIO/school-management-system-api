@@ -14,12 +14,12 @@ class GradeLevelSeeder extends Seeder
     public function run(): void
     {
         $grades=[
-            ['grade_name'=>'الصف السابع'],
-            ['grade_name'=>'الصف الثامن'],
-            ['grade_name'=>'الصف التاسع'],
-            ['grade_name'=>'الصف العاشر'],
-            ['grade_name'=>'الصف الحادي عشر'],
-            ['grade_name'=>'الصف الثاني عشر'],
+            ['id' => 1, 'grade_name' => 'الصف السابع'],
+            ['id' => 2, 'grade_name' => 'الصف الثامن'],
+            ['id' => 3, 'grade_name' => 'الصف التاسع'],
+            ['id' => 4, 'grade_name' => 'الصف العاشر'],
+            ['id' => 5, 'grade_name' => 'الصف الحادي عشر'],
+            ['id' => 6, 'grade_name' => 'الصف الثاني عشر'],
         ];
 
         foreach ($grades as $grade) {

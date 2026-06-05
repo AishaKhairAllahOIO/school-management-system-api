@@ -17,4 +17,10 @@ class ScheduleTimeSlot extends Model
     {
         return $this->hasMany(Subject::class);
     }
+
+    public function day()
+    {
+        return $this->belongsTo(Day::class);
+    }
+    
 }

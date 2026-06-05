@@ -20,8 +20,7 @@ class StudentSeeder extends Seeder
 
         foreach ($students as $student) {
             \App\Models\Student::updateOrCreate(
-                ['user_id' => $student->id],
-                ['user_id' => $student->id],
+                ['user_id' => $student->id,'guardian_id' => 1], // نستخدم الـ id الحقيقي للطالب من الحلقة، ونعين guardian_id ثابت (يمكن تعديله لاحقاً)
             );
         }
 

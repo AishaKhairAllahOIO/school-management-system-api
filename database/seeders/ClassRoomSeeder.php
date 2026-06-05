@@ -14,12 +14,12 @@ class ClassRoomSeeder extends Seeder
      */
     public function run(): void
     {
-        $firstGrade = GradeLevel::where('grade_name', 'الصف السابع')->first();
 
         $classRooms = [
-            ['class_number' => 'الشعبة الاولى', 'capacity' => 35, 'grade_level_id' => $firstGrade->id],
-            ['class_number' => 'الشعبة الثانية', 'capacity' => 35, 'grade_level_id' => $firstGrade->id],
-            ['class_number' => 'الشعبة الثالثة', 'capacity' => 35, 'grade_level_id' => $firstGrade->id],
+            ['class_number' => 'الشعبة الاولى', 'capacity' => 35, 'grade_level_id' => 1],
+            ['class_number' => 'الشعبة الثانية', 'capacity' => 35, 'grade_level_id' => 1],
+            ['class_number' => 'الشعبة الثالثة', 'capacity' => 35, 'grade_level_id' => 2],
+
 
         ];
 

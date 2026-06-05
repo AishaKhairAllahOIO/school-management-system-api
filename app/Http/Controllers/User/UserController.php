@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use App\ApiResource;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use UserService;
+use App\Services\User\UserService;
 
 class UserController extends Controller
 {
@@ -21,7 +21,7 @@ class UserController extends Controller
 
         $user=$request->user()->load();
 
-        $result=$this->userService->getStudentDashboard($user);
+        $result = $this->userService->getStudentDashboard($user);
 
         return $this->successResponse($result, 'تم جلب بيانات لوحة التحكم بنجاح', 200);
 

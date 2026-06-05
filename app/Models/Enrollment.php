@@ -23,6 +23,11 @@ class Enrollment extends Model
         return $this->belongsTo(GradeLevel::class);
     }
 
+    public function classRoom()
+    {
+        return $this->belongsTo(ClassRoom::class);
+    }
+
 
 
 }

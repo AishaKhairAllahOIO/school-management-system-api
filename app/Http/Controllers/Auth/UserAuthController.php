@@ -44,16 +44,19 @@ class UserAuthController extends Controller
     public function verifyOtp(UserVerifyRequest $request)
     {
 
+    $user = User::where('phone_number', $request->phone_number)->firstOrFail();
+
         $result = $this->otpService->verifyOtp($request['phone_number'], $request['otp']);
 
         if (is_string($result)) {
             return $this->errorResponse($result, 400);
         }
 
-        return $this->successResponse([
-            'token' => $result['token'],
-            'user' => new UserResource($result['user'])
-        ], 'OTP verified successfully. Authentication complete.', 200);
+        return response()->json([
+            'status'=>200,
+            'message'=>'OTP verified successfully.',
+            'data'=>$result], 200);
+
     }
     public function resendOtp(Request $request)
     {

@@ -26,10 +26,30 @@ class UserSeeder extends Seeder
             'nationality' => 'syrian',
             'gender'=>'male',
             'photo_url'=>'https://example.com/photo.jpg',
-            'role_id' => 1, // Assuming role_id 1 corresponds to a valid role in the roles table
+            'role_id' => 3, // Assuming role_id 1 corresponds to a valid role in the roles table
             'password' => bcrypt('123456789'),
 
         ]);
+
+          User::create([
+           // 'id' => 1,
+            'phone_number' => '0968661500',
+            'first_name' => 'Sara',
+            'last_name' => 'Stef',
+            'father_name' => 'Adnan Stef',
+            'mother_name' => 'Jane Doe',
+            'birth_date' => '1990-01-01',
+            'birth_place' => 'Cityville',
+            'address' => '123 Main St, Cityville',
+            'nationality' => 'syrian',
+            'gender'=>'female',
+            'photo_url'=>'https://example.com/photo.jpg',
+            'role_id' => 2, // Assuming role_id 1 corresponds to a valid role in the roles table
+            'password' => bcrypt('123456789'),
+
+        ]);
+
+
 
          User::create([
             //'id'=>2,

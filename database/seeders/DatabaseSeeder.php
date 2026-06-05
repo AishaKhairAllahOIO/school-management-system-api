@@ -17,13 +17,17 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-           $this->call([
+        $this->call([
             RoleSeeder::class,
             UserSeeder::class,
-            StaffSeeder::class,
-            StudentSeeder::class,
-            GuardianSeeder::class,
-        ]);
+            AcademicYearSeeder::class, // ضروري قبل التسجيل
+            SemesterSeeder::class,     // ضروري قبل التسجيل
+            GradeLevelSeeder::class,   // ضروري قبل التسجيل
+            ClassRoomSeeder::class,
+            StudentSeeder::class,      // ينشئ سجل الطالب في جدول الطلاب
+            EnrollmentSeeder::class,
 
+
+        ]);
     }
 }

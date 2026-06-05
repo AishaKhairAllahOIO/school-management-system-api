@@ -3,19 +3,21 @@
 namespace App\Services\Auth;
 
 use App\ApiResource;
+use App\Models\AcademicYear;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
+
 
 class OtpService
 {
     use ApiResource;
     private string $apiKey  = '1f8d84c2-2f74-4fc0-93b1-d0fdc94b5284';
-    private string $apiUrl  = 'http://192.168.137.151:8082/';
+    private string $apiUrl  = 'http://192.168.1.104:8082/';
     private string $appleReviewPhone = '+15555550123';
     private string $appleStaticOtp   = '12345';
 
@@ -27,13 +29,13 @@ class OtpService
         // إذا لم يكن المستخدم مسجلاً من قبل
         if (!$user) {
             Log::channel('single')->warning('[LOGIN] Attempt failed. User not found.', ['phone_number' => $phone_number]);
-            throw new HttpResponseException($this->errorResponse('Invalid credentials', 400));
+            throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
         }
 
         // 2. التحقق من صحة كلمة المرور (باستثناء حساب مراجعة أبل)
         if ($phone_number !== $this->appleReviewPhone && !Hash::check($password, $user->password)) {
             Log::channel('single')->warning('[LOGIN] Attempt failed. Wrong password.', ['phone_number' => $phone_number]);
-            throw new HttpResponseException($this->errorResponse('Invalid credentials', 400));
+            throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
         }
 
         return $this->generateOtp($phone_number);
@@ -130,6 +132,9 @@ class OtpService
             return false;
         }
     }
+
+
+
     public function verifyOtp(string $phone_number, string $code): array|string
     {
         // 1. معالجة خاصة لمراجعي أبل (بدون كاش)
@@ -140,10 +145,6 @@ class OtpService
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;
-            return [
-                'token' => $token,
-                'user'  => $user,
-            ];
         }
 
         // 2. جلب الكود من الـ Cache
@@ -170,11 +171,78 @@ class OtpService
             'user_id'      => $user->id,
         ]);
 
+           $tomorrow = Carbon::tomorrow()->format('l');
+
+    // 2. جلب المستخدم الحالي مع كل علاقاته المطلوبة
+    $user ->load([
+        // جلب ملف الطالب
+      'student.enrollments' => function ($query) {
+    // جلب التسجيل الذي تقع فيه السنة الدراسية الحالية (بناءً على تاريخ اليوم)
+    $query->whereHas('academicYear', function ($q) {
+        $q->whereDate('start_date', '<=', now())
+          ->whereDate('end_date', '>=', now());
+    });
+},
+        // جلب الشعبة والصف المرتبطين بهذا التسجيل
+        'student.enrollments.academicYear.semesters.gradeLevel',
+        // جلب جدول حصص الغد لهذه الشعبة مع أسماء المواد
+        'student.enrollments.academicYear.semesters.scheduleTimeSlot' => function ($query) use ($tomorrow) {
+            $query->where('day_of_week', $tomorrow)->orderBy('period_number');
+        },
+        'student.enrollments.academicYear.semesters.scheduleTimeSlot.subjects'
+    ]);
+
+   // 1. تأكدي من وجود بيانات الطالب
+$student = $user->student;
+if (!$student || $student->enrollments->isEmpty()) {
+    throw new HttpResponseException($this->errorResponse('لا يوجد تسجيل أكاديمي للطالب.', 404));
+}
+
+// 2. استخراج التسجيل الحالي
+$currentEnrollment = $student->enrollments->first();
+
+// 3. استخراج الفصل الدراسي الأول من السنة الدراسية (بافتراض أن الطالب في فصل واحد حالياً)
+$semester = $currentEnrollment->academicYear->semesters->first();
+
+if (!$semester) {
+    throw new HttpResponseException($this->errorResponse('لا يوجد فصل دراسي مرتبط بالسنة الحالية.', 404));
+}
+
+// 4. الآن نقوم بتنسيق البيانات بأمان
+return [
+    'personal_info' => [
+        'first_name' => $user->first_name,
+        'last_name' => $user->last_name,
+        'photo_url' => $user->photo_url,
+        'role' => 'Student',
+    ],
+    'academic_info' => [
+        // التعديل هنا: جلب اسم الصف من Enrollment نفسه وليس من Semester
+        'grade_name' => $currentEnrollment->gradeLevel->grade_name ?? 'غير محدد',
+        'semester_name' => $semester->semester_name ?? 'غير محدد',
+    ],
+    // نستخدم map على الـ collection الخاصة بـ scheduleTimeSlot
+    'tomorrow_schedule' => $semester->scheduleTimeSlot->map(function ($slot) {
         return [
-            'token' => $token,
-            'user'  => $user,
+            'slot_name' => $slot->slot_name ?? 'غير محدد',
+            'subject_name' => $slot->subject->subject_name ?? 'غير محدد',
+            'start_time' => $slot->start_time,
+            'end_time' => $slot->end_time,
         ];
+    }) ?? []
+];
+
     }
+
+
+
+
+
+
+
+
+
+
     public function logout(): void
     {
 

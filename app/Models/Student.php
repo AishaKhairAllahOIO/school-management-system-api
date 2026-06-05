@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Override;
 
 class Student extends Model
 {
@@ -18,5 +19,12 @@ class Student extends Model
     {
         return $this->hasOne(Parent::class);
     }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+ 
 
 }

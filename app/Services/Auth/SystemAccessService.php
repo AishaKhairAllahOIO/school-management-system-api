@@ -19,12 +19,12 @@ class SystemAccessService
 
     if (!$access || !Hash::check($data['password'], $access->password)) {
         throw ValidationException::withMessages([
-            'email' => 'البريد الإلكتروني أو كلمة المرور غير صالحة.'
+            'email' => 'Invalid email or password.'
         ]);
     }
     if ($access->account_status == 'disabled') {
         throw ValidationException::withMessages([
-            'email' => 'هذا الحساب معطل، يرجى مراجعة الإدارة.'
+            'email' =>'This account is disabled. Please contact administration.'
         ]);
     }
 
@@ -39,8 +39,7 @@ public function verifyOtp(array $data): array
     $access = User::where('email', $data['email'])->first();
     if (!$access) {
         throw ValidationException::withMessages([
-            'email' => 'المستخدم غير موجود في النظام.'
-        ]);
+         'email' => 'User not found in the system.'        ]);
     }
     $cacheOtp = Cache::get('otp' . $data['email']);
 //     dd([
@@ -52,8 +51,7 @@ public function verifyOtp(array $data): array
 // ]);
     if (!$cacheOtp || (string)$cacheOtp !==(string) $data['otp']) {
         throw ValidationException::withMessages([
-            'otp' => 'رمز التحقق غير صحيح أو انتهت صلاحيته.'
-        ]);
+'otp' => 'Invalid or expired OTP.'        ]);
     }
 
     $tokenExpiration = !empty($data['remember_me']) ? now()->addMonth(1) : now()->addHours(24);
@@ -71,13 +69,12 @@ public function forgotPassword(array $data)
 {
     $access = User::where('email', $data['email'])->first();
     if (!$access) {
-        throw ValidationException::withMessages(['المسخدم غير موجود']);
+        throw ValidationException::withMessages(['email' => 'User not found in the system.']);
     }
 
     if (Cache::has('otp_resend_lock' . $access->email)) {
         throw ValidationException::withMessages([
-            'email' => 'يرجى الانتظار دقيقة قبل طلب إعادة إرسال الرمز مجدداً.'
-        ]);
+'email' => 'Please wait a minute before requesting a new OTP.'        ]);
     }
     $otp = (string)random_int(100000, 999999);
     Cache::put('reset_otp' . $access->email, $otp, now()->addMinutes(10));
@@ -95,7 +92,7 @@ public function verifyOtpForPassword(array $data)
   if (!$cachOtp || $cachOtp !== $data['otp'])
     {
       throw ValidationException::withMessages([
-                  'otp' => 'رمز التحقق غير صحيح أو انتهت صلاحيته.'
+              'otp' => 'Invalid or expired OTP.'
 ]);
     }
     $tempToken = bin2hex(random_bytes(20));
@@ -111,7 +108,7 @@ public function resetPassword(array $data)
   if (!$cachtToken || $cachtToken !== $data['tempToken'])
     {
       throw ValidationException::withMessages([
-                 'otp' => 'رمز التحقق غير صحيح أو انتهت صلاحيته.'
+               'token' => 'Invalid or expired reset token.'
 ]);
     }
     $access = User::where('email', $data['email'])->first();

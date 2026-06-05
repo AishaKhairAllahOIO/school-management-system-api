@@ -20,11 +20,11 @@ class SystemAccessController extends Controller
     {
         try {
             $service->login($request->validated());
-            return $this->successResponse(null, 'تم إرسال كود التحقق بنجاح', 200);
+            return $this->successResponse(null,'Verification code sent successfully.', 200);
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
-    return $this->errorResponse('حدث خطأ في عملية تسجيل الدخول', 500, ['exception_message' => $e->getMessage()]);
+    return $this->errorResponse('An error occurred during login.', 500, ['exception_message' => $e->getMessage()]);
 }
     }
 
@@ -36,12 +36,12 @@ class SystemAccessController extends Controller
                 'user'  => new SystemAccessResource($access['data']),
                 'token' => $access['token']
             ];
-         return $this->successResponse($responseData, 'تم تسجيل الدخول بنجاح', 200);
+         return $this->successResponse($responseData,'Logged in successfully.', 200);
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
          } 
          catch (Exception $e) {
-            return $this->errorResponse('فشل التحقق من الكود', 500);
+            return $this->errorResponse('OTP verification failed.', 500);
         }
     }
 
@@ -49,11 +49,11 @@ class SystemAccessController extends Controller
     {
         try {
             $tempToken=$service->forgotPassword($request->validated());
-            return $this->successResponse($tempToken, 'تم إرسال كود استعادة كلمة المرور لبريدك', 200);
+            return $this->successResponse($tempToken,'Password reset code sent to your email.', 200);
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء معالجة طلبك', 500);
+            return $this->errorResponse('An error occurred while processing your request.', 500);
         }
     }
 
@@ -61,11 +61,11 @@ class SystemAccessController extends Controller
     {
         try {
             $token = $service->verifyOtpForPassword($request->validated());
-            return $this->successResponse($token, 'تم التحقق بنجاح، يمكنك تعيين كلمة المرور الآن', 200);
+            return $this->successResponse($token, 'Verified successfully. You can now reset your password.', 200);
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
-            return $this->errorResponse('فشل التحقق', 500);
+            return $this->errorResponse('Verification failed.', 500);
         }
     }
 
@@ -75,11 +75,11 @@ class SystemAccessController extends Controller
     {
         try {
             $service->resetPassword($request->validated());
-            return $this->successResponse(null, 'تم تغيير كلمة المرور بنجاح', 200);
+            return $this->successResponse(null, 'Password reset successfully.', 200);
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
-            return $this->errorResponse('فشل تحديث كلمة المرور', 500);
+            return $this->errorResponse('Failed to update password.', 500);
         }
     }
 
@@ -88,9 +88,9 @@ class SystemAccessController extends Controller
     {
         try {
             $service->logout();
-            return $this->successResponse(null, 'تم تسجيل الخروج بنجاح', 200);
+            return $this->successResponse(null, 'Logged out successfully.', 200);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تسجيل الخروج', 500);
+            return $this->errorResponse('An error occurred during logout.', 500);
         }
     }
     

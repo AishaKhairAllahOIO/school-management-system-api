@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SystemAccessController;
+use App\Http\Controllers\Setting\SchoolSettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\UserAuthController;
@@ -19,6 +20,7 @@ Route::prefix('auth')->group(function () {
     Route::middleware('auth:sanctum')->delete('/logout', [SystemAccessController::class, 'logout']);
 });
 
+
 Route::prefix('user')->group(function(){
 
     Route::post('login', [UserAuthController::class, 'login']);
@@ -28,6 +30,13 @@ Route::prefix('user')->group(function(){
 
     Route::middleware('auth:sanctum')->delete('/logout', [UserAuthController::class, 'logout']);
 
+});
+
+Route::middleware('auth:sanctum')->prefix('settings')->group(function () {
+    
+    Route::get('/general', [SchoolSettingsController::class, 'show']);
+    Route::put('/general', [SchoolSettingsController::class, 'update']);
+    
 });
 
 

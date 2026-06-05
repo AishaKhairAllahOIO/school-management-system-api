@@ -23,7 +23,7 @@ class UserLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone_number' => ['required', 'digits:10','exists:users,phone_number','starts_with:09'],
+            'phone_number' => ['required', 'digits:10','starts_with:09'],
             'password'     => ['required', 'string']
         ];
     }

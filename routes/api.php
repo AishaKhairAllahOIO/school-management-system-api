@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\SystemAccessController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\UserAuthController;
+use App\Http\Controllers\User\UserController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -26,8 +27,11 @@ Route::prefix('user')->group(function(){
     Route::post('resend-otp', [UserAuthController::class, 'resendOtp']);
     Route::post('forgot-password', [UserAuthController::class, 'resendOtp']);
 
-    Route::middleware('auth:sanctum')->delete('/logout', [UserAuthController::class, 'logout']);
+    Route::middleware('auth:sanctum')->group(function(){
+            Route::delete('logout', [UserAuthController::class, 'logout']);
+            Route::get('user-dashboard', [UserController::class, 'UserDashbourd']);
+
+    });
+
 
 });
-
-

@@ -14,16 +14,8 @@ class Staff extends Model
     protected $guarded = []; 
 
    
-    public function systemAccess()
-    {
-        return $this->hasOne(SystemAccess::class);
-    }
 
    
-    public function academicProfile()
-    {
-        return $this->hasOne(AcademicProfile::class);
-    }
 
  
     public function role()

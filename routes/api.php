@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\Setting\AcademicSettingsController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -40,8 +41,11 @@ Route::prefix('user')->group(function(){
 
 Route::middleware('auth:sanctum')->prefix('settings')->group(function () {
     
-    Route::get('/general', [SchoolSettingsController::class, 'show']);
-    Route::put('/general', [SchoolSettingsController::class, 'update']);
+    Route::get('general', [SchoolSettingsController::class, 'show']);
+    Route::put('general', [SchoolSettingsController::class, 'update']);
+    Route::get('academic', [AcademicSettingsController::class, 'show']);
+    Route::put('academic', [AcademicSettingsController::class, 'update']);
+
     
 });
 

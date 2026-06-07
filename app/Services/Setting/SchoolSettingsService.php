@@ -32,7 +32,6 @@ class SchoolSettingsService
             'working_days' => $validatedData['workingDays'],
             'opening_time' => $validatedData['openingTime'],
             'closing_time' => $validatedData['closingTime'],
-            'academic_year' => $validatedData['academicYear'],
         ];
 
         

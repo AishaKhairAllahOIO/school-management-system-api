@@ -17,4 +17,7 @@ class School extends Model
     public function images() {
         return $this->hasMany(SchoolImage::class);
     }
+    public function academicSetting() {
+        return $this->hasOne(AcademicSetting::class, 'school_id');
+    }
 }

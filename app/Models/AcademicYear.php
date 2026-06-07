@@ -25,6 +25,9 @@ class AcademicYear extends Model
     {
         return $this->hasMany(Semester::class);
     }
+    public function academicSetting() {
+    return $this->hasOne(AcademicSetting::class, 'current_academic_year_id');
+}
 
 
 }

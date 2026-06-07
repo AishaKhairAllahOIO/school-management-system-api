@@ -37,7 +37,6 @@ return new class extends Migration
             $table->json('working_days'); 
             $table->time('opening_time');
             $table->time('closing_time');
-            $table->string('academic_year');            
             $table->timestamps();
         });
     }

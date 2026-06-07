@@ -61,7 +61,7 @@ class UserAuthController extends Controller
     public function resendOtp(Request $request)
     {
         $request->validate([
-            'phone_number' => ['required', 'digits:10', 'exists:users,phone_number', 'starts_with:09']
+            'phone_number' => ['required', 'digits:10', 'starts_with:09']
         ]);
 
         $phone_number = $request->input('phone_number');

@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         User::create([
 
         // هاد هو الطالب
-        
+
            // 'id' => 1,
             'phone_number' => '0968661500',
             'first_name' => 'John',
@@ -147,5 +147,42 @@ class UserSeeder extends Seeder
 
 
                 ]);
+
+
+                User::create([
+                    // 'id'=>7,
+                    'phone_number'=>'0994416083',
+                    'first_name' => 'Ethan',
+                    'last_name' => 'Hunt',
+                    'father_name' => 'Ethan Hunt Sr.',
+                    'mother_name' => 'Julia Hunt',
+                    'birth_date' => '1985-11-19',
+                    'birth_place' => 'Spy City',
+                    'address' => '123 Mission St, Spy City',
+                    'email'=> 'nnnnahhmad@gmail.com',
+                    'password'=>bcrypt('123456789'),
+                    'nationality' => 'jordanian',
+                    'gender'=>'male',
+                    'photo_url'=>'https://example.com/photo7.jpg',
+                    'role_id'=>1, // Assuming RoleSeeder::Teacher_role_id corresponds to
+                ]);
+
+                User::create([
+                    // 'id'=>8,
+                    'phone_number'=>'0994416084',
+                    'first_name' => 'Fiona',
+                    'last_name' => 'Gallagher',
+                    'father_name' => 'Frank Gallagher',
+                    'mother_name' => 'Monica Gallagher',
+                    'birth_date' => '1992-02-14',
+                    'birth_place' => 'Shameless Town',
+                    'address' => '456 Chaos Ave, Shameless Town',
+                    'email'=>'nournour.ahmad.1284@gmail.com',
+                    'password'=>bcrypt('123456789'),
+                    'nationality'=>'other',
+                    'gender'=>'female',
+                    'photo_url'=>'https://example.com/photo8.jpg',
+                    'role_id'=>5,
+                    ]);
     }
 }

@@ -13,7 +13,7 @@ class StaffSeeder extends Seeder
         // جلب معرفات الأدوار لربطها بالموظفين
 
  Staff::create([
-                'user_id' => 1,
+                'user_id' => 7,
                 'degree' => 'bachelor',
                 'specialization' => 'الرياضيات التطبيقية',
                 'university' => 'جامعة البعث',
@@ -23,7 +23,7 @@ class StaffSeeder extends Seeder
 
 
             Staff::create([
-                'user_id' => 2,
+                'user_id' => 8,
                 'degree' => 'master',
                 'specialization' => 'مناهج وطرائق تدريس',
                 'university' => 'جامعة دمشق',
@@ -33,7 +33,7 @@ class StaffSeeder extends Seeder
 
 
             Staff::create([
-                'user_id' => 3,
+                'user_id' => 4,
                 'degree' => 'bachelor',
                 'specialization' => 'علم نفس وتوجيه إرشادي',
                 'university' => 'جامعة تشرين',

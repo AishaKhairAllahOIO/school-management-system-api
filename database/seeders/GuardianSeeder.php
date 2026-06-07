@@ -10,17 +10,22 @@ class GuardianSeeder extends Seeder
 {
     public function run(): void
     {
-        $guardians = User::whereHas('role', function ($query) {
-            $query->where('role_name', 'GUARDIAN');
-        })->get();
+        // $guardians = User::whereHas('role', function ($query) {
+        //     $query->where('role_name', 'GUARDIAN');
+        // })->get();
 
-        // 2. الدوران على كل ولي أمر
-        foreach ($guardians as $guardian) {
-            Guardian::updateOrCreate(
-                [
-                    'user_id' => $guardian->id,
-                ]
-            );
-        }
+        // // 2. الدوران على كل ولي أمر
+        // foreach ($guardians as $guardian) {
+        //     Guardian::updateOrCreate(
+        //         [
+        //             'user_id' => $guardian->id,
+        //         ]
+        //     );
+        // }
+
+         Guardian::create([
+            'user_id' => 2,// معرف المستخدم الذي يمثل ولي الأمر)
+         ]);
+
     }
 }

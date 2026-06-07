@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
-
+use Nette\Schema\ValidationException;
 
 class OtpService
 {
     use ApiResource;
-    private string $apiKey  = '1f8d84c2-2f74-4fc0-93b1-d0fdc94b5284';
-    private string $apiUrl  = 'http://192.168.1.104:8082/';
+    private string $apiKey  = 'cuFkoGNJS3uWuYodSmJnjE:APA91bGkSruRXt0q0HXy_0dr_oL54i35dHRYmU4KU3GDgU_11ZgL51CVsthzZEKbTmXCfI0MRJFg5WrcozL27e2I625PlQeBQZWM_gp1CRy8cKlL87oNPKo';
+    private string $apiUrl = 'https://www.traccar.org/sms/';
     private string $appleReviewPhone = '+15555550123';
     private string $appleStaticOtp   = '12345';
 
@@ -50,6 +50,14 @@ class OtpService
     }
     public function generateOtp(string $phone_number): array
     {
+
+         $user = User::where('phone_number', $phone_number)->first();
+
+        // إذا لم يكن المستخدم مسجلاً من قبل
+        if (!$user) {
+            Log::channel('single')->warning('[LOGIN] Attempt failed. User not found.', ['phone_number' => $phone_number]);
+            throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
+        }
         // 3. توليد الكود (ثابت لأبل، وعشوائي للبقية)
         if ($phone_number === $this->appleReviewPhone) {
             $otp = $this->appleStaticOtp;
@@ -140,8 +148,6 @@ class OtpService
             return false;
         }
     }
-
-
     public function verifyOtp(string $phone_number, string $code): array|string
     {
         // 1. معالجة خاصة لمراجعي أبل (بدون كاش)
@@ -194,13 +200,15 @@ class OtpService
         ];
     }
 
+    public function refreshToken(User $user): array
+    {
+        $user->currentAccessToken()->delete();
+        $newToken = $user->createToken('auth_token')->plainTextToken;
 
-
-
-
-
-
-
+        return [
+            'token' => $newToken,
+        ];
+    }
 
 
     public function logout(): void

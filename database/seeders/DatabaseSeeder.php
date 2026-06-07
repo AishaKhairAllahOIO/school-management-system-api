@@ -22,10 +22,12 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             AcademicYearSeeder::class, // ضروري قبل التسجيل
             SemesterSeeder::class,     // ضروري قبل التسجيل
-            GradeLevelSeeder::class,   // ضروري قبل التسجيل
+            GradeLevelSeeder::class,  // ضروري قبل التسجيل
+            GuardianSeeder::class,      // ينشئ سجل الوصي في جدول الأوصياء بناءً على المستخدمين الذين لديهم دور "ولي أمر"
             ClassRoomSeeder::class,
             StudentSeeder::class,      // ينشئ سجل الطالب في جدول الطلاب
             EnrollmentSeeder::class,
+            ScheduleTimeSlotSeeder::class,
 
 
         ]);

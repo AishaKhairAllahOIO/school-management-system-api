@@ -17,7 +17,7 @@ class Student extends Model
 
     public function guardian()
     {
-        return $this->hasOne(Parent::class);
+        return $this->belongsTo(Parent::class);
     }
 
     public function enrollments()
@@ -25,6 +25,6 @@ class Student extends Model
         return $this->hasMany(Enrollment::class);
     }
 
- 
+
 
 }

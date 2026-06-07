@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('student_id')->constrained('students')->cascadeOnDelete();
             $table->foreignId('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
             $table->foreignId('grade_level_id')->constrained('grade_levels')->cascadeOnDelete();
+            $table->foreignId('class_room_id')->constrained('class_rooms')->cascadeOnDelete();
             // there are
             $table->string('enrollment_status');//مثبت او لا حسب القسط
             $table->string('academic_result');//ناجح راسب منقول قيد الدراسة

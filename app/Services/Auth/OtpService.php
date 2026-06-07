@@ -5,6 +5,7 @@ namespace App\Services\Auth;
 use App\ApiResource;
 use App\Models\AcademicYear;
 use App\Models\User;
+use App\Services\User\UserService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +21,13 @@ class OtpService
     private string $apiUrl  = 'http://192.168.1.104:8082/';
     private string $appleReviewPhone = '+15555550123';
     private string $appleStaticOtp   = '12345';
+
+    private UserService $user_service;
+
+    public function __construct(UserService $user_service)
+    {
+        $this->user_service = $user_service;
+    }
 
     public function login(string $phone_number, string $password): array|string
     {
@@ -134,7 +142,6 @@ class OtpService
     }
 
 
-
     public function verifyOtp(string $phone_number, string $code): array|string
     {
         // 1. معالجة خاصة لمراجعي أبل (بدون كاش)
@@ -145,93 +152,46 @@ class OtpService
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;
+        } else {
+            $cachedOtp = Cache::get('otp_' . $phone_number);
+
+            if (!$cachedOtp || $cachedOtp !== $code) {
+                Log::channel('single')->warning('[OTP] Invalid or expired OTP verification attempt.', [
+                    'phone_number' => $phone_number,
+                    'code'  => $code,
+                ]);
+                throw new HttpResponseException($this->errorResponse('OTP is invalid or expired', 422));
+            }
+
+            Cache::forget('otp_' . $phone_number);
+
+            $user = User::where('phone_number', $phone_number)->firstOrFail();
+            $token = $user->createToken('auth_token')->plainTextToken;
         }
 
-        // 2. جلب الكود من الـ Cache
-        $cachedOtp = Cache::get('otp_' . $phone_number);
-
-        // 3. مطابقة الكود
-        if (!$cachedOtp || $cachedOtp !== $code) {
-            Log::channel('single')->warning('[OTP] Invalid or expired OTP verification attempt.', [
-                'phone_number' => $phone_number,
-                'code'  => $code,
-            ]);
-            throw new HttpResponseException($this->errorResponse('OTP is invalid or expired', 400));
-        }
-
-        // 4. حذف الكود من الكاش فوراً بعد استخدامه بنجاح لمرة واحدة فقط
-        Cache::forget('otp_' . $phone_number);
-
-        // 5. جلب المستخدم وتوليد التوكن (Sanctum)
-        $user = User::where('phone_number', $phone_number)->firstOrFail();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        Log::channel('single')->info('[OTP] OTP verified from Cache successfully.', [
+        Log::channel('single')->info('[OTP] OTP verified successfully.', [
             'phone_number' => $phone_number,
             'user_id'      => $user->id,
         ]);
 
-           $tomorrow = Carbon::tomorrow()->format('l');
+        if ($user->role_id == 3) {
+            $dashboardData = $this->user_service->getStudentDashboard($user);
 
-    // 2. جلب المستخدم الحالي مع كل علاقاته المطلوبة
-    $user ->load([
-        // جلب ملف الطالب
-      'student.enrollments' => function ($query) {
-    // جلب التسجيل الذي تقع فيه السنة الدراسية الحالية (بناءً على تاريخ اليوم)
-    $query->whereHas('academicYear', function ($q) {
-        $q->whereDate('start_date', '<=', now())
-          ->whereDate('end_date', '>=', now());
-    });
-},
-        // جلب الشعبة والصف المرتبطين بهذا التسجيل
-        'student.enrollments.academicYear.semesters.gradeLevel',
-        // جلب جدول حصص الغد لهذه الشعبة مع أسماء المواد
-        'student.enrollments.academicYear.semesters.scheduleTimeSlot' => function ($query) use ($tomorrow) {
-            $query->where('day_of_week', $tomorrow)->orderBy('period_number');
-        },
-        'student.enrollments.academicYear.semesters.scheduleTimeSlot.subjects'
-    ]);
+            return [
+                'token'             => $token,
+                'personal_info'     => $dashboardData['personal_info'],
+                'academic_info'     => $dashboardData['academic_info'],
+                'tomorrow_schedule' => $dashboardData['tomorrow_schedule'],
+            ];
+        }
 
-   // 1. تأكدي من وجود بيانات الطالب
-$student = $user->student;
-if (!$student || $student->enrollments->isEmpty()) {
-    throw new HttpResponseException($this->errorResponse('لا يوجد تسجيل أكاديمي للطالب.', 404));
-}
+        $guardianData = $this->user_service->getGuardianDashboard($user);
 
-// 2. استخراج التسجيل الحالي
-$currentEnrollment = $student->enrollments->first();
-
-// 3. استخراج الفصل الدراسي الأول من السنة الدراسية (بافتراض أن الطالب في فصل واحد حالياً)
-$semester = $currentEnrollment->academicYear->semesters->first();
-
-if (!$semester) {
-    throw new HttpResponseException($this->errorResponse('لا يوجد فصل دراسي مرتبط بالسنة الحالية.', 404));
-}
-
-// 4. الآن نقوم بتنسيق البيانات بأمان
-return [
-    'personal_info' => [
-        'first_name' => $user->first_name,
-        'last_name' => $user->last_name,
-        'photo_url' => $user->photo_url,
-        'role' => 'Student',
-    ],
-    'academic_info' => [
-        // التعديل هنا: جلب اسم الصف من Enrollment نفسه وليس من Semester
-        'grade_name' => $currentEnrollment->gradeLevel->grade_name ?? 'غير محدد',
-        'semester_name' => $semester->semester_name ?? 'غير محدد',
-    ],
-    // نستخدم map على الـ collection الخاصة بـ scheduleTimeSlot
-    'tomorrow_schedule' => $semester->scheduleTimeSlot->map(function ($slot) {
         return [
-            'slot_name' => $slot->slot_name ?? 'غير محدد',
-            'subject_name' => $slot->subject->subject_name ?? 'غير محدد',
-            'start_time' => $slot->start_time,
-            'end_time' => $slot->end_time,
+            'token'          => $token,
+            'personal_info'  => $guardianData['personal_info'],
+            'children_cards' => $guardianData['children_cards'],
         ];
-    }) ?? []
-];
-
     }
 
 
@@ -246,9 +206,8 @@ return [
     public function logout(): void
     {
 
-        if(Auth::guard('sanctum')->check()) {
+        if (Auth::guard('sanctum')->check()) {
             Auth::guard('sanctum')->user()->currentAccessToken()->delete();
         }
     }
-
 }

@@ -21,9 +21,9 @@ const SECOUND_TERM = 'Secound_Term';
         return $this->hasMany(ExtraService::class);
     }
 
-    public function scheduleTimeSlot()
+    public function scheduleTimeSlots()
     {
-        return $this->hasOne(ScheduleTimeSlot::class);
+        return $this->hasMany(ScheduleTimeSlot::class);
     }
 
 

@@ -13,8 +13,10 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 Route::prefix('auth')->group(function () {
 
-    Route::post('/login', [SystemAccessController::class, 'login']);
-    Route::post('/verify-otp', [SystemAccessController::class, 'verifyOtp']);
+    Route::post('/login', [SystemAccessController::class, 'loginWeb']);
+    Route::post('/verify-otp', [SystemAccessController::class, 'verifyOtpWeb']);
+    Route::post('/loginMobile', [SystemAccessController::class,'loginMobile']);
+    Route::post('/verify-otp-mobile', [SystemAccessController::class,'vertifyOtpMobile']);
     Route::post('/password/forgot', [SystemAccessController::class, 'forgotPassword']);
     Route::post('/password/verify-otp', [SystemAccessController::class, 'verifyPassword']);
     Route::post('password/resend-otp', [SystemAccessController::class,'forgotPassword']);

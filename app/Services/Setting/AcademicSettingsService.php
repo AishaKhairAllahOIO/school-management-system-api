@@ -58,18 +58,31 @@ class AcademicSettingsService
                 ]
             );
 
-            $settings->gradeScales()->delete(); 
             if (!empty($data['gradeScale'])) {
-                $gradeScalesData = collect($data['gradeScale'])->map(function ($item) {
-                    return [
-                        'grade'         => $item['grade'],
-
-                        'minimum_score' => $item['minimumScore'],
-                        'maximum_score' => $item['maximumScore'],
-                        'description'   => $item['description'] ?? null,
-                    ];
-                })->toArray();
-                $settings->gradeScales()->createMany($gradeScalesData); 
+               
+            $providedIds = collect($data['gradeScale'])->pluck('id')->filter()->toArray();
+            $settings->gradeScales()->whereNotIn('id', $providedIds)->delete(); 
+            // $scalesToDelete=$settings->gradeScales()->whereNotIn('id', $providedIds)->get(); 
+            // if($scalesToDelete->isNotEmpty()){
+            //     $idToDelete=$scalesToDelete->pluck('id')->toArray();
+            //     $isUsed=StudenGrade::whereIn('grade_scale_id', $idToDelete)->exists();
+            //     if($isUsed){
+            //         throw new Exception('Cannot delete grade scales that are currently in use.');
+            //     }
+            //     $settings->gradeScales()->whereIn('id', $idToDelete)->delete();
+            // }      
+            foreach ($data['gradeScale'] as $gradeData) {
+                    $settings->gradeScales()->updateOrCreate(
+                        ['id' => $gradeData['id'] ?? null],
+                        [
+                            'grade'        => $gradeData['grade'],
+                            'minimum_score' => $gradeData['minimumScore'],
+                            'maximum_score' => $gradeData['maximumScore'],
+                            'description'   => $gradeData['description'] ?? null,
+                        ]
+                    );
+                }
+        
             }
 
             return $settings->load(['gradeScales']); 

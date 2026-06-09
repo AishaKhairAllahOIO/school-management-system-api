@@ -9,6 +9,7 @@ use App\Http\Requests\Auth\SystemAccessLoginRequest;
 use App\Http\Requests\Auth\SystemAccessResetPasswordRequest;
 use App\Http\Requests\Auth\SystemAccessVerifyRequest;
 use App\Http\Resources\Auth\SystemAccessResource;
+use App\Http\Resources\Auth\AcademicProfileResource;
 use App\Services\Auth\SystemAccessService;
 use Illuminate\Validation\ValidationException;
 use Exception;
@@ -16,10 +17,10 @@ class SystemAccessController extends Controller
 {
     use ApiResource;
 
-    public function login(SystemAccessLoginRequest $request, SystemAccessService $service)
+    public function loginWeb(SystemAccessLoginRequest $request, SystemAccessService $service)
     {
         try {
-            $service->login($request->validated());
+            $service->loginWeb($request->validated());
             return $this->successResponse(null,'Verification code sent successfully.', 200);
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
@@ -27,11 +28,22 @@ class SystemAccessController extends Controller
     return $this->errorResponse('An error occurred during login.', 500, ['exception_message' => $e->getMessage()]);
 }
     }
-
-    public function verifyOtp(SystemAccessVerifyRequest $request, SystemAccessService $service)
+    public function loginMobile(SystemAccessForgetPasswordRequest $request, SystemAccessService $service)
     {
         try {
-            $access = $service->verifyOtp($request->validated());
+            $service->loginMobile($request->validated());
+            return $this->successResponse(null,'Verification code sent successfully.', 200);
+        } catch (ValidationException $e) {
+            return $this->errorResponse($e->getMessage(), 422,$e->errors());
+        } catch (Exception $e) {
+    return $this->errorResponse('An error occurred during login.', 500, ['exception_message' => $e->getMessage()]);
+}
+}
+
+    public function verifyOtpWeb(SystemAccessVerifyRequest $request, SystemAccessService $service)
+    {
+        try {
+            $access = $service->verifyOtpWeb($request->validated());
             $responseData = [
                 'user'  => new SystemAccessResource($access['data']),
                 'token' => $access['token']
@@ -44,6 +56,23 @@ class SystemAccessController extends Controller
             return $this->errorResponse('OTP verification failed.', 500);
         }
     }
+    public function vertifyOtpMobile(SystemAccessVerifyRequest $request,SystemAccessService $service)
+    {
+          try {
+            $access = $service->verifyOtpMobile($request->validated());
+            $responseData = [
+                'user'  => new AcademicProfileResource($access['data']),
+                'token' => $access['token']
+            ];
+         return $this->successResponse($responseData,'Logged in successfully.', 200);
+        } catch (ValidationException $e) {
+            return $this->errorResponse($e->getMessage(), 422,$e->errors());
+         } 
+         catch (Exception $e) {
+            return $this->errorResponse('OTP verification failed.', 500);
+        }
+    }
+
 
     public function forgotPassword(SystemAccessForgetPasswordRequest $request, SystemAccessService $service)
     {

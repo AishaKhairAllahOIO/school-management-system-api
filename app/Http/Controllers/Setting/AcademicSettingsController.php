@@ -34,9 +34,7 @@ class AcademicSettingsController extends Controller
             new AcademicSettingsResource($updatedSettings),
             'Academic settings updated successfully.'
         );
-           } catch (ValidationException $e) {
-            return $this->errorResponse($e->getMessage(), 422, $e->errors());
-        } catch (Exception $e) {
+           }  catch (Exception $e) {
             return $this->errorResponse('Failed to update settings.', 500, ['exception_message' => $e->getMessage()]);
         }
         }

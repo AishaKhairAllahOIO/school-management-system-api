@@ -49,7 +49,27 @@ class UserSeeder extends Seeder
             'nationality' => 'syrian',
             'gender'=>'female',
             'photo_url'=>'https://example.com/photo.jpg',
-            'role_id' => 2, // Assuming role_id 1 corresponds to a valid role in the roles table
+            'role_id' => 3, // Assuming role_id 1 corresponds to a valid role in the roles table
+            'password' => bcrypt('123456789'),
+
+        ]);
+             User::create([
+           // 'id' => 1,
+            'phone_number' => '0960657740',
+            'email'=>'arsmstaif@gmail.com',
+            'first_name' => 'Sara',
+            'last_name' => 'Stef',
+            'father_name' => 'Adnan Stef',
+            'mother_name' => 'Jane Doe',
+            'birth_date' => '1990-01-01',
+            'birth_place' => 'Cityville',
+            'address' => '123 Main St, Cityville',
+            'nationality' => 'syrian',
+            'gender'=>'female',
+            'account_status'=> 'enabled',
+            'record_status'=>'active',
+            'photo_url'=>'https://example.com/photo.jpg',
+            'role_id' => 1, // Assuming role_id 1 corresponds to a valid role in the roles table
             'password' => bcrypt('123456789'),
 
         ]);
@@ -60,8 +80,10 @@ class UserSeeder extends Seeder
 
          User::create([
             //'id'=>2,
-            'phone_number' => '0960657740',
+            'phone_number' => '0960657741',
             'email'=>'shahdeslim0@gmail.com',
+            'account_status'=> 'enabled',
+            'record_status'=>'active',
             'first_name' => 'Jane',
             'last_name' => 'Smith',
             'father_name' => 'John Smith',
@@ -125,6 +147,8 @@ class UserSeeder extends Seeder
             'photo_url' => 'https://example.com/photo5.jpg',
             'role_id' => 4, // Assuming role_id 4 corresponds to a valid role in the roles table
             'email' => 'shadooalkhateeb1234@gmail.com',
+            'account_status'=> 'enabled',
+            'record_status'=>'active',
             'password' => bcrypt('123456789'),
         ]);
 

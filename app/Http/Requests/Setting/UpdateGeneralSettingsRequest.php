@@ -4,15 +4,17 @@ namespace App\Http\Requests\Setting;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseRequest;
 
-class UpdateGeneralSettingsRequest extends FormRequest
+
+class UpdateGeneralSettingsRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -43,7 +45,6 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'workingDays.*' => 'string',
             'openingTime' => 'required|date_format:H:i',
             'closingTime' => 'required|date_format:H:i',
-            'academicYear' => 'required|string',
         ];
     }
 }

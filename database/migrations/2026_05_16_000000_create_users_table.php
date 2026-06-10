@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('email')->unique()->nullable();
-            $table->integer('phone_number')->unique();
+            $table->string('phone_number', 20)->unique();
             $table->string('password');
             $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
             $table->string('employee_type')->nullable(); // for the staff services
 
 
-            $table->enum('record_status', ['active', 'draft', 'archived', 'deleted'])->default('active');
-            $table->enum('account_status', ['enabled', 'disabled'])->default('enabled');
+            $table->enum('record_status', ['active', 'draft', 'archived', 'deleted'])->default('draft');
+            $table->enum('account_status', ['enabled', 'disabled'])->default('disabled');
 
 
             $table->string('first_name');

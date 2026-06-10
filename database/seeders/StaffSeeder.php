@@ -13,7 +13,7 @@ class StaffSeeder extends Seeder
         // جلب معرفات الأدوار لربطها بالموظفين
 
  Staff::create([
-                'user_id' => 7,
+                'user_id' => 3,
                 'degree' => 'bachelor',
                 'specialization' => 'الرياضيات التطبيقية',
                 'university' => 'جامعة البعث',

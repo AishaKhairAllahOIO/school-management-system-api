@@ -29,10 +29,10 @@ class SystemAccessLoginRequest extends FormRequest
     }
     public function messages(){
      return [
-            'email.required'    => 'البريد الإلكتروني مطلوب لدخول النظام.',
-            'email.email'       => 'يرجى إدخال بريد إلكتروني صحيح.',
-            'password.required' => 'كلمة المرور مطلوبة.',
-            'password.min'      => 'كلمة المرور يجب ألا تقل عن 8 محارف.',
+            'email.required'    => 'email is required.',
+            'email.email'       => 'Please enter a valid email address.',
+            'password.required' => 'Password is required.',
+            'password.min'      => 'Password must be at least 8 characters long.',
         ];
     }
 }

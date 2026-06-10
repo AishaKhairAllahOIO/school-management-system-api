@@ -13,13 +13,18 @@ use Illuminate\Validation\ValidationException;
 
 class SystemAccessService
 {
-  public function login(array $data)
+  public function loginWeb(array $data)
 {
     $access = User::where('email', $data['email'])->first();
 
     if (!$access || !Hash::check($data['password'], $access->password)) {
         throw ValidationException::withMessages([
             'email' => 'Invalid email or password.'
+        ]);
+    }
+    if ($access->record_status !== 'active') {
+        throw ValidationException::withMessages([
+            'email' => 'This account is no longer active.'
         ]);
     }
     if ($access->account_status == 'disabled') {
@@ -34,12 +39,40 @@ class SystemAccessService
     Mail::to($access->email)->send(new sendOtp($otp));
 }
 
-public function verifyOtp(array $data): array
+  public function loginMobile(array $data)
+{
+    $access = User::where('email', $data['email'])->first();
+
+    if (!$access) {
+        throw ValidationException::withMessages([
+            'email' => 'Invalid email '
+        ]);
+    }
+    if ($access->record_status !== 'active') {
+        throw ValidationException::withMessages([
+            'email' => 'This account is no longer active.'
+        ]);
+   }
+    if ($access->account_status == 'disabled') {
+        throw ValidationException::withMessages([
+            'email' =>'This account is disabled. Please contact administration.'
+        ]);
+    }
+
+    $otp = (string)random_int(100000, 999999);
+    Cache::put('otp' . $access->email, $otp, now()->addMinutes(10));
+
+    Mail::to($access->email)->send(new sendOtp($otp));
+}
+
+
+
+public function verifyOtpWeb(array $data): array
 {
     $access = User::where('email', $data['email'])->first();
     if (!$access) {
         throw ValidationException::withMessages([
-         'email' => 'User not found in the system.'        ]);
+         'email' => 'Invalid email.'        ]);
     }
     $cacheOtp = Cache::get('otp' . $data['email']);
 //     dd([
@@ -56,7 +89,29 @@ public function verifyOtp(array $data): array
 
     $tokenExpiration = !empty($data['remember_me']) ? now()->addMonth(1) : now()->addHours(24);
     $token = $access->createToken('system_token', ['*'], $tokenExpiration)->plainTextToken;
+   // $access->account_status='enabled';
 
+    Cache::forget('otp' . $access->email);
+
+    return [
+        'token' => $token,
+        'data'  => $access,
+    ];
+}
+public function verifyOtpMobile(array $data)
+{
+    $access = User::where('email', $data['email'])->first();
+    if (!$access) {
+        throw ValidationException::withMessages([
+         'email' => 'Invalid email.'        ]);
+    }
+    $cacheOtp = Cache::get('otp' . $data['email']);
+        if (!$cacheOtp || (string)$cacheOtp !==(string) $data['otp']) {
+        throw ValidationException::withMessages([
+'otp' => 'Invalid or expired OTP.'        ]);
+    }
+    $token = $access->createToken('system_token', ['*'], now()->addYear(1))->plainTextToken;
+    //$access->account_status='enabled';
     Cache::forget('otp' . $access->email);
 
     return [

@@ -52,7 +52,7 @@ class SystemAccessService
         throw ValidationException::withMessages([
             'email' => 'This account is no longer active.'
         ]);
-    }
+   }
     if ($access->account_status == 'disabled') {
         throw ValidationException::withMessages([
             'email' =>'This account is disabled. Please contact administration.'
@@ -89,6 +89,7 @@ public function verifyOtpWeb(array $data): array
 
     $tokenExpiration = !empty($data['remember_me']) ? now()->addMonth(1) : now()->addHours(24);
     $token = $access->createToken('system_token', ['*'], $tokenExpiration)->plainTextToken;
+   // $access->account_status='enabled';
 
     Cache::forget('otp' . $access->email);
 
@@ -110,7 +111,7 @@ public function verifyOtpMobile(array $data)
 'otp' => 'Invalid or expired OTP.'        ]);
     }
     $token = $access->createToken('system_token', ['*'], now()->addYear(1))->plainTextToken;
-
+    //$access->account_status='enabled';
     Cache::forget('otp' . $access->email);
 
     return [

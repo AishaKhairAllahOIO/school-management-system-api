@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         // هاد هو الطالب
 
            // 'id' => 1,
-            'phone_number' => '0968661500',
+            'phone_number' => '0981915237',
             'first_name' => 'John',
             'last_name' => 'Doe',
             'father_name' => 'Michael Doe',
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
 
           User::create([
            // 'id' =>2 ,
-            'phone_number' => '0981915237',
+            'phone_number' => '0968661500',
             'first_name' => 'Sara',
             'last_name' => 'Staif',
             'father_name' => 'Adnan Stef',

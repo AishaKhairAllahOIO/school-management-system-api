@@ -185,9 +185,10 @@ class OtpService
 
             return [
                 'token'             => $token,
-                'personal_info'     => $dashboardData['personal_info'],
+                'personal_info'=>$dashboardData['personal_info'],
                 'academic_info'     => $dashboardData['academic_info'],
                 'tomorrow_schedule' => $dashboardData['tomorrow_schedule'],
+
             ];
         }
 

@@ -51,17 +51,25 @@ class UserAuthController extends Controller
         if (is_string($result)) {
             return $this->errorResponse($result, 400);
         }
+        if($user->role=='STUDENT'){
 
-        return response()->json([
+     return $this->successResponse(new UserResource($user),'loged in successfuly.',200)->additional([
+    'token' => $result['token'],
+    'academic_info' => $result['academic_info'],
+    'tomorrow_schedule' => $result['tomorrow_schedule'],
+]);
+
+           }
+           return response()->json([
             'status'=>200,
-            'message'=>'OTP verified successfully.',
-            'data'=>$result], 200);
-
+            'message'=>'loged in successfuly. ',
+            'data'=>$result
+           ]);
     }
     public function resendOtp(Request $request)
     {
         $request->validate([
-            'phone_number' => ['required', 'digits:10', 'starts_with:09']
+            'phone_number' => ['required', 'digits:10', 'exists:users,phone_number', 'starts_with:09']
         ]);
 
         $phone_number = $request->input('phone_number');

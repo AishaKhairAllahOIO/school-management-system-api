@@ -5,6 +5,7 @@ use App\Http\Controllers\Setting\SchoolSettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\UserAuthController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Setting\AcademicSettingsController;
 
@@ -35,6 +36,7 @@ Route::prefix('user')->group(function(){
     Route::middleware('auth:sanctum')->group(function(){
             Route::delete('logout', [UserAuthController::class, 'logout']);
             Route::get('user-dashboard', [UserController::class, 'UserDashbourd']);
+            Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
 
     });
 
@@ -42,13 +44,13 @@ Route::prefix('user')->group(function(){
 });
 
 Route::middleware('auth:sanctum')->prefix('settings')->group(function () {
-    
+
     Route::get('general', [SchoolSettingsController::class, 'show']);
     Route::put('general', [SchoolSettingsController::class, 'update']);
     Route::get('academic', [AcademicSettingsController::class, 'show']);
     Route::put('academic', [AcademicSettingsController::class, 'update']);
 
-    
+
 });
 
 

@@ -25,7 +25,7 @@ class UserResource extends JsonResource
             'address'=>$this->address,
             'nationality'=>$this->nationality,
             'gender'=>$this->gender,
-            'photo_url' => $this->photo_url,
+            'photo_url' => url('api/user/photos/' . $this->photo_url),
             'role_id' => $this->role->role_name,
             'account_status'=>$this->account_status
         ];

@@ -131,7 +131,7 @@ class UserService
             return [
                 // ملاحظة: إذا كان الاسم والصورة في جدول users يجب كتابتها $student->user->first_name
                 'student_name'      => $student->user->first_name .' '. $student->user->father_name . ' ' . $student->user->last_name,
-                'student_photo_url' => $student->user->photo_url ?? null,
+                'student_photo_url' => url('api/user/photos/' . $student->user->photo_url),
                 'grade_name'        => $gradeName,
                 'class_number'      => $className,
             ];

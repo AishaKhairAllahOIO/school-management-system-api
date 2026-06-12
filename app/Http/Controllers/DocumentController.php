@@ -12,11 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class DocumentController extends Controller
 {
 use ApiResource;
-private DocumentService $documentService;
-    public function __construct(DocumentService $documentService)
-    {
-       $this->documentService=$documentService;
-    }
+
 
 public function showPersonalPhoto($filename)
     {

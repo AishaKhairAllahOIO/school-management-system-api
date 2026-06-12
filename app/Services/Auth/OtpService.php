@@ -7,12 +7,12 @@ use App\Models\AcademicYear;
 use App\Models\User;
 use App\Services\User\UserService;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
-use Nette\Schema\ValidationException;
 
 class OtpService
 {
@@ -31,16 +31,23 @@ class OtpService
 
     public function login(string $phone_number, string $password): array|string
     {
-        // 1. البحث عن المستخدم برقم الهاتف
         $user = User::where('phone_number', $phone_number)->first();
 
-        // إذا لم يكن المستخدم مسجلاً من قبل
         if (!$user) {
             Log::channel('single')->warning('[LOGIN] Attempt failed. User not found.', ['phone_number' => $phone_number]);
             throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
         }
+        if ($user->record_status !== 'active') {
+            throw ValidationException::withMessages([
+                'email' => 'This account is no longer active.'
+            ]);
+        }
+        if ($user->account_status == 'disabled') {
+            throw ValidationException::withMessages([
+                'email' => 'This account is disabled. Please contact administration.'
+            ]);
+        }
 
-        // 2. التحقق من صحة كلمة المرور (باستثناء حساب مراجعة أبل)
         if ($phone_number !== $this->appleReviewPhone && !Hash::check($password, $user->password)) {
             Log::channel('single')->warning('[LOGIN] Attempt failed. Wrong password.', ['phone_number' => $phone_number]);
             throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
@@ -51,7 +58,7 @@ class OtpService
     public function generateOtp(string $phone_number): array
     {
 
-         $user = User::where('phone_number', $phone_number)->first();
+        $user = User::where('phone_number', $phone_number)->first();
 
         // إذا لم يكن المستخدم مسجلاً من قبل
         if (!$user) {
@@ -150,7 +157,6 @@ class OtpService
     }
     public function verifyOtp(string $phone_number, string $code): array|string
     {
-        // 1. معالجة خاصة لمراجعي أبل (بدون كاش)
         if ($phone_number === $this->appleReviewPhone && $code === $this->appleStaticOtp) {
             $user = User::where('phone_number', $phone_number)->first();
             if (!$user) {
@@ -188,6 +194,7 @@ class OtpService
                 'personal_info'     => $dashboardData['personal_info'],
                 'academic_info'     => $dashboardData['academic_info'],
                 'tomorrow_schedule' => $dashboardData['tomorrow_schedule'],
+
             ];
         }
 
@@ -199,7 +206,6 @@ class OtpService
             'children_cards' => $guardianData['children_cards'],
         ];
     }
-
     public function refreshToken(User $user): array
     {
         $user->currentAccessToken()->delete();
@@ -209,8 +215,6 @@ class OtpService
             'token' => $newToken,
         ];
     }
-
-
     public function logout(): void
     {
 

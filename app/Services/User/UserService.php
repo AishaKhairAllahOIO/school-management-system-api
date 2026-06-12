@@ -4,6 +4,7 @@ namespace App\Services\User;
 
 
 use App\ApiResource;
+use App\Http\Resources\Auth\UserResource;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
@@ -67,9 +68,7 @@ class UserService
         return [
             // إرجاع التوكن ليتمكن التطبيق من حفظه واستخدامه في الطلبات القادمة
             'personal_info' => [
-                'name' => $user->first_name .' '. $user->father_name .' '. $user->last_name,
-                'photo_url'  => $user->photo_url,
-                'role'       => 'Student',
+                new UserResource($user)
             ],
             'academic_info' => [
                 'grade_name'    => $currentEnrollment->gradeLevel->grade_name ?? 'غير محدد',
@@ -132,7 +131,7 @@ class UserService
             return [
                 // ملاحظة: إذا كان الاسم والصورة في جدول users يجب كتابتها $student->user->first_name
                 'student_name'      => $student->user->first_name .' '. $student->user->father_name . ' ' . $student->user->last_name,
-                'student_photo_url' => $student->user->photo_url ?? null,
+                'student_photo_url' => url('api/user/photos/' . $student->user->photo_url),
                 'grade_name'        => $gradeName,
                 'class_number'      => $className,
             ];

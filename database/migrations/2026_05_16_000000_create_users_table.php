@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
             $table->string('employee_type')->nullable(); // for the staff services
 
-            
+
             $table->enum('record_status', ['active', 'draft', 'archived', 'deleted'])->default('draft');
             $table->enum('account_status', ['enabled', 'disabled'])->default('disabled');
 

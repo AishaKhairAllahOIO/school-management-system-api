@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             StudentSeeder::class,      // ينشئ سجل الطالب في جدول الطلاب
             EnrollmentSeeder::class,
             ScheduleTimeSlotSeeder::class,
+            StaffSeeder::class,
 
 
         ]);

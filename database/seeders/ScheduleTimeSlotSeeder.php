@@ -31,8 +31,8 @@ class ScheduleTimeSlotSeeder extends Seeder
         }
 
         // 2. ضمان وجود المواد الدراسية (Subjects)
-        $math = Subject::firstOrCreate(['subject_name' => 'رياضيات']);
-        $science = Subject::firstOrCreate(['subject_name' => 'فيزياء']);
+        $math = Subject::updateOrCreate(['subject_name' => 'رياضيات']);
+        $science = Subject::updateOrCreate(['subject_name' => 'فيزياء']);
 
         // 3. ضمان وجود الأوقات الدراسية (Time Slots)
         $slot1 = TimeSlot::firstOrCreate([

@@ -13,13 +13,12 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-
+        User::updateOrCreate(
         // هاد هو الطالب
 
            // 'id' => 1,
-            'phone_number' => '0968661500',
-            'first_name' => 'John',
+           [ 'phone_number' => '0968661500'],
+           [ 'first_name' => 'John',
             'last_name' => 'Doe',
             'father_name' => 'Michael Doe',
             'mother_name' => 'Jane Doe',
@@ -28,18 +27,20 @@ class UserSeeder extends Seeder
             'address' => '123 Main St, Cityville',
             'nationality' => 'syrian',
             'gender'=>'male',
+            'account_status'=> 'enabled',
+            'record_status'=>'active',
             'photo_url'=>'https://example.com/photo.jpg',
             'role_id' => 3, // Assuming role_id 1 corresponds to a valid role in the roles table
-            'password' => bcrypt('123456789'),
+            'password' => bcrypt('123456789'),]
 
-        ]);
+        );
 
         // هاد هو الولي الامر
 
-          User::create([
+          User::updateOrCreate([
            // 'id' =>2 ,
-            'phone_number' => '0981915237',
-            'first_name' => 'Sara',
+            'phone_number' => '0981915237'],
+            ['first_name' => 'Sara',
             'last_name' => 'Staif',
             'father_name' => 'Adnan Stef',
             'mother_name' => 'Jane Doe',
@@ -48,15 +49,17 @@ class UserSeeder extends Seeder
             'address' => '123 Main St, Cityville',
             'nationality' => 'syrian',
             'gender'=>'female',
+            'account_status'=> 'enabled',
+            'record_status'=>'active',
             'photo_url'=>'https://example.com/photo.jpg',
             'role_id' => 3, // Assuming role_id 1 corresponds to a valid role in the roles table
             'password' => bcrypt('123456789'),
 
         ]);
-             User::create([
+             User::updateOrCreate([
            // 'id' => 1,
-            'phone_number' => '0960657740',
-            'email'=>'arsmstaif@gmail.com',
+            'phone_number' => '0960657740'],
+           [ 'email'=>'arsmstaif@gmail.com',
             'first_name' => 'Sara',
             'last_name' => 'Stef',
             'father_name' => 'Adnan Stef',
@@ -78,10 +81,10 @@ class UserSeeder extends Seeder
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-         User::create([
+         User::updateOrCreate([
             //'id'=>2,
-            'phone_number' => '0960657741',
-            'email'=>'shahdeslim0@gmail.com',
+            'phone_number' => '0960657741'],
+           [ 'email'=>'shahdeslim0@gmail.com',
             'account_status'=> 'enabled',
             'record_status'=>'active',
             'first_name' => 'Jane',
@@ -93,14 +96,16 @@ class UserSeeder extends Seeder
             'address' => '456 Oak Ave, Townsville',
             'nationality' => 'syrian',
             'gender'=>'female',
+            
             'photo_url'=>'https://example.com/photo2.jpg',
             'role_id' => 4, // Assuming role_id 4 corresponds to a valid role in the roles table
             'password' => bcrypt('123456789'),
         ]);
 
-         User::create([
+         User::updateOrCreate([
             //'id'=>3,
-            'phone_number' => '0983964422',
+            'phone_number' => '0983964422'],
+            [
             'first_name' => 'Bob',
             'last_name' => 'Johnson',
             'father_name' => 'Robert Johnson',
@@ -110,15 +115,17 @@ class UserSeeder extends Seeder
             'address' => '789 Pine Rd, Villageburg',
             'nationality' => 'syrian',
             'gender'=>'male',
+          'account_status'=> 'enabled',
+            'record_status'=>'active',
             'photo_url'=>'https://example.com/photo3.jpg',
             'role_id' => 3, // Assuming role_id 3 corresponds to a valid role in the roles table
             'password' => bcrypt('123456789'),
         ]);
 
-        User::create([
+        User::updateOrCreate([
            // 'id'=>4,
-            'phone_number'=>'0980612500',
-            'first_name' => 'Alice',
+            'phone_number'=>'0980612501'],
+            [ 'first_name' => 'Alice',
             'last_name' => 'Williams',
             'father_name' => 'David Williams',
             'mother_name' => 'Susan Williams',
@@ -127,14 +134,17 @@ class UserSeeder extends Seeder
             'address' => '321 Elm St, Hamletville',
             'nationality' => 'syrian',
             'gender'=>'female',
+            'account_status'=> 'enabled',
+            'record_status'=>'active',
             'photo_url'=>'https://example.com/photo4.jpg',
             'role_id'=>6, // Assuming RoleSeeder::TEACHER_ROLE_ID corresponds to a valid role in the roles table
             'password'=>bcrypt('123456789'),
         ]);
 
-        User::create([
+        User::updateOrCreate([
            // 'id'=>5,
-            'phone_number'=>'0994416081',
+            'phone_number'=>'0994416081'],
+            [
             'first_name' => 'Charlie',
             'last_name' => 'Brown',
             'father_name' => 'Charles Brown Sr.',
@@ -152,9 +162,10 @@ class UserSeeder extends Seeder
             'password' => bcrypt('123456789'),
         ]);
 
-            User::create([
+            User::updateOrCreate([
             // 'id'=>6,
-                'phone_number'=>'0994416082',
+                'phone_number'=>'0994416082'],
+                [
                 'first_name' => 'Diana',
                 'last_name' => 'Prince',
                 'father_name' => 'Hippolyta Prince',
@@ -164,6 +175,8 @@ class UserSeeder extends Seeder
                 'address' => '987 Amazon St, Themyscira',
                 'nationality' => 'syrian',
                 'gender'=>'female',
+                            'account_status'=> 'enabled',
+            'record_status'=>'active',
                 'photo_url'=>'https://example.com/photo6.jpg',
                 'role_id'=>7, // Assuming RoleSeeder::STAFF_SERVICES_ROLE_ID corresponds to a valid role in the roles table
                 'employee_type' => 'security',
@@ -173,9 +186,10 @@ class UserSeeder extends Seeder
                 ]);
 
 
-                User::create([
+                User::updateOrCreate([
                     // 'id'=>7,
-                    'phone_number'=>'0994416083',
+                    'phone_number'=>'0994416083'],
+                    [
                     'first_name' => 'Ethan',
                     'last_name' => 'Hunt',
                     'father_name' => 'Ethan Hunt Sr.',
@@ -187,13 +201,16 @@ class UserSeeder extends Seeder
                     'password'=>bcrypt('123456789'),
                     'nationality' => 'jordanian',
                     'gender'=>'male',
+                                'account_status'=> 'enabled',
+            'record_status'=>'active',
                     'photo_url'=>'https://example.com/photo7.jpg',
                     'role_id'=>1, // Assuming RoleSeeder::Teacher_role_id corresponds to
                 ]);
 
-                User::create([
+                User::updateOrCreate([
                     // 'id'=>8,
-                    'phone_number'=>'0994416084',
+                    'phone_number'=>'0994416084'],
+                    [
                     'first_name' => 'Fiona',
                     'last_name' => 'Gallagher',
                     'father_name' => 'Frank Gallagher',
@@ -205,6 +222,8 @@ class UserSeeder extends Seeder
                     'password'=>bcrypt('123456789'),
                     'nationality'=>'other',
                     'gender'=>'female',
+                                'account_status'=> 'enabled',
+            'record_status'=>'active',
                     'photo_url'=>'https://example.com/photo8.jpg',
                     'role_id'=>5,
                     ]);

@@ -24,7 +24,6 @@ class UserLoginRequest extends FormRequest
     {
         return [
             'phone_number' => ['required', 'digits:10','starts_with:09'],
-            'password'     => ['required', 'string']
         ];
     }
 }

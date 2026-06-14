@@ -17,7 +17,7 @@ class SystemAccessResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'role'=>$this->role->role_name,
+            'role'=>$this->getRoleNames(),
             'email' => $this->email,
             'is_active' => $this->account_status !== 'disabled'
         ];

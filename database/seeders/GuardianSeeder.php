@@ -24,7 +24,7 @@ class GuardianSeeder extends Seeder
         // }
 
          Guardian::create([
-            'user_id' => 2,// معرف المستخدم الذي يمثل ولي الأمر)
+            'user_id' => 1,// معرف المستخدم الذي يمثل ولي الأمر)
          ]);
 
     }

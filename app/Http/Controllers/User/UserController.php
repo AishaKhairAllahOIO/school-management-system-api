@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\ApiResource;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\User\UserService;
 
@@ -12,19 +13,26 @@ class UserController extends Controller
     use ApiResource;
     protected UserService $userService;
 
-  public function __construct(UserService $userService)
+    public function __construct(UserService $userService)
     {
         $this->userService = $userService;
     }
 
-    public function UserDashbourd(Request $request){
+    public function getUserInfo(Request $request)
+    {
 
-        $user=$request->user()->load();
+        $user = $request->user();
 
-        $result = $this->userService->getStudentDashboard($user);
+        if (!$user) {
+            return $this->errorResponse('User not found.', 404);
+        }
 
-        return $this->successResponse($result, 'تم جلب بيانات لوحة التحكم بنجاح', 200);
+        if ($user->hasRole('student'))
+            $result = $this->userService->getStudent($user);
 
+        else if ($user->hasRole('guardian'))
+            $result = $this->userService->getGuardian($user);
 
+        return $this->successResponse($result, 'تم جلب بيانات لوحةالتحكم بنجاح', 200);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services\User;
 
 use App\ApiResource;
 use App\Http\Resources\Auth\UserResource;
+use App\Models\Semester;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ class UserService
 
     use ApiResource;
 
-    public function getStudentDashboard($user)
+   /* public function getStudentDashboard($user)
     {
         $student = $user->student;
         if (!$student) {
@@ -88,14 +89,60 @@ class UserService
         ];
     }
 
-    public function getGuardianDashboard($user)
+    */
+
+
+    public function getStudent($user)
+    {
+        $student = $user->student;
+
+        if (!$student) {
+            throw new HttpResponseException($this->errorResponse('هذا الحساب غير مسجل كطالب في النظام.', 404));
+        }
+
+        $currentEnrollment = $student->enrollments()
+            ->whereHas('academicYear', function ($q) {
+                $q->whereDate('start_date', '<=', now())
+                    ->whereDate('end_date', '>=', now());
+            })
+            ->with(['gradeLevel', 'classRoom'])
+            ->first();
+
+        if (!$currentEnrollment) {
+            throw new HttpResponseException($this->errorResponse('لا يوجد تسجيل أكاديمي نشط للطالب في السنة الدراسية الحالية.', 404));
+        }
+
+        $semester = Semester::where('academic_year_id', $currentEnrollment->academic_year_id)
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now())
+            ->first();
+
+        if (!$semester) {
+            $semester = Semester::where('academic_year_id', $currentEnrollment->academic_year_id)->first();
+        }
+
+        if (!$semester) {
+            throw new HttpResponseException($this->errorResponse('لا يوجد فصل دراسي معرف لهذه السنة الأكاديمية.', 404));
+        }
+
+        return [
+            'academic_info' =>
+            [
+                'grade_name'    => $currentEnrollment->gradeLevel->grade_name ?? 'غير محدد',
+                'semester_name' => $semester->semester_name ?? 'غير محدد',
+                'class_number'  => $currentEnrollment->classRoom->class_number ?? 'غير محدد',
+            ],
+        ];
+    }
+
+    public function getGuardian($user)
     {
         $guardian = $user->guardian;
+
         if (!$guardian) {
             throw new HttpResponseException($this->errorResponse('هذا الحساب غير مسجل كولي أمر في النظام.', 404));
         }
 
-        // 1. جلب الأبناء المرتبطين بولي الأمر
         $students = $guardian->students()->with(['enrollments' => function ($q) {
             $q->whereHas('academicYear', function ($q) {
                 $q->whereDate('start_date', '<=', now())
@@ -103,21 +150,18 @@ class UserService
             })->with(['gradeLevel', 'classRoom']);
         }])->get();
 
-        // 2. بناء بيانات البطاقات (Cards) لكل ابن
         $childrenCards = $students->map(function ($student) {
-            $currentEnrollment = $student->enrollments->first();
+        $currentEnrollment = $student->enrollments->first();
 
-            // قيم افتراضية في حال كان الابن غير مسجل في السنة الحالية
             $gradeName = 'غير مسجل حالياً';
             $className = 'غير محدد';
             $semesterName = 'غير محدد';
 
-            // إذا كان لديه تسجيل نشط، نقوم بجلب البيانات
             if ($currentEnrollment) {
                 $gradeName = $currentEnrollment->gradeLevel->grade_name ?? 'غير محدد';
                 $className = $currentEnrollment->classRoom->class_number ?? 'غير محدد';
 
-                $semester = \App\Models\Semester::where('academic_year_id', $currentEnrollment->academic_year_id)
+                $semester = Semester::where('academic_year_id', $currentEnrollment->academic_year_id)
                     ->whereDate('start_date', '<=', now())
                     ->whereDate('end_date', '>=', now())
                     ->first();
@@ -125,12 +169,14 @@ class UserService
                 $semesterName = $semester->semester_name ?? 'غير محدد';
             }
 
-            'user'.'student';
+            'user' . 'student';
 
             // إرجاع بيانات البطاقة الواحدة مسطحة (Flat) لتسهيل عرضها في الفرونت إند
             return [
-                // ملاحظة: إذا كان الاسم والصورة في جدول users يجب كتابتها $student->user->first_name
-                'student_name'      => $student->user->first_name .' '. $student->user->father_name . ' ' . $student->user->last_name,
+                'id' => $student->user->id,
+                'first_name'      => $student->user->first_name,
+                'father_name' => $student->user->father_name,
+                'last_name' => $student->user->last_name,
                 'student_photo_url' => url('api/user/photos/' . $student->user->photo_url),
                 'grade_name'        => $gradeName,
                 'class_number'      => $className,
@@ -138,11 +184,6 @@ class UserService
         })->toArray();
 
         return [
-            'personal_info' => [
-                'first_name' => $user->first_name,
-                'last_name'  => $user->last_name,
-                'role'       => 'Guardian',
-            ],
             'children_cards' => $childrenCards
         ];
     }

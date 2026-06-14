@@ -23,6 +23,7 @@ class UserVerifyRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'phone_number'=>['required','starts_with:09','size:10'],
             'otp' => ['required','string','size:5']
         ];
     }

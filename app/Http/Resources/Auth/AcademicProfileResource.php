@@ -16,7 +16,6 @@ class AcademicProfileResource extends JsonResource
     {
         return [
             'id'            => $this->id,
-            'role'=>$this->role->role_name,
             'full_name'     => $this->first_name . ' ' . $this->last_name,
             'father_name'   => $this->father_name,
             'mother_name'   => $this->mother_name,
@@ -26,18 +25,20 @@ class AcademicProfileResource extends JsonResource
             'nationality'   => $this->nationality,
             'address'       => $this->address,
             'photo'         => $this->photo_url,
-            
+
             'email'         => $this->email,
             'phone_number'  => $this->phone_number,
             'employee_type' => $this->employee_type,
             'is_active' => $this->account_status !== 'disabled',
             'record_status' => $this->record_status,
-            
+
             'degree'           => $this->staff?->degree,
             'specialization'   => $this->staff?->specialization,
             'university'       => $this->staff?->university,
             'graduation_year'  => $this->staff?->graduation_year,
             'experience_years' => $this->staff?->experience_years,
+
+            'role'=> $this->getRoleNames(),
         ];
     }
 }

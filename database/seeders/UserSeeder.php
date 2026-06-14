@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -13,11 +14,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-
-            // هاد هو الطالب
-
-            // 'id' => 1,
+        $user1 = User::updateOrCreate([
             'phone_number' => '0968661500',
             'first_name' => 'Nour',
             'last_name' => 'Alali_Alsaleh',
@@ -31,15 +28,11 @@ class UserSeeder extends Seeder
             'record_status' => 'active',
             'account_status' => 'enabled',
             'photo_url' => 'nour.png',
-            'role_id' => 3, // Assuming role_id 1 corresponds to a valid role in the roles table
-            'password' => bcrypt('123456789'),
-
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
+        $user1->assignRole('guardian');
 
-        // هاد هو الولي الامر
-
-        User::create([
-            // 'id' =>2 ,
+        $user2 = User::updateOrCreate([
             'phone_number' => '0981915237',
             'first_name' => 'Sara',
             'last_name' => 'Staif',
@@ -53,12 +46,12 @@ class UserSeeder extends Seeder
             'record_status' => 'active',
             'account_status' => 'enabled',
             'photo_url' => 'https://example.com/photo.jpg',
-            'role_id' => 2, // Assuming role_id 1 corresponds to a valid role in the roles table
-            'password' => bcrypt('123456789'),
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
 
         ]);
-        User::create([
-            // 'id' => 1,
+        $user2->assignRole('student');
+
+        $user3 = User::updateOrCreate([
             'phone_number' => '0960657740',
             'email' => 'arsmstaif@gmail.com',
             'first_name' => 'aisha',
@@ -73,17 +66,11 @@ class UserSeeder extends Seeder
             'account_status' => 'enabled',
             'record_status' => 'active',
             'photo_url' => 'aisha.png',
-            'role_id' => 1, // Assuming role_id 1 corresponds to a valid role in the roles table
-            'password' => bcrypt('123456789'),
-
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
+        $user3->assignRole('teacher');
 
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        User::create([
-            //'id'=>2,
+        $user4 = User::updateOrCreate([
             'phone_number' => '0960657741',
             'email' => 'shahdeslim0@gmail.com',
             'account_status' => 'enabled',
@@ -98,12 +85,11 @@ class UserSeeder extends Seeder
             'nationality' => 'syrian',
             'gender' => 'female',
             'photo_url' => 'mohammed.png',
-            'role_id' => 4, // Assuming role_id 4 corresponds to a valid role in the roles table
-            'password' => bcrypt('123456789'),
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
+        $user4->assignRole('secretary');
 
-        User::create([
-            //'id'=>3,
+        $user5 = User::updateOrCreate([
             'phone_number' => '0983964422',
             'first_name' => 'Yazan',
             'last_name' => 'Al_khalid',
@@ -117,14 +103,12 @@ class UserSeeder extends Seeder
             'record_status' => 'active',
             'gender' => 'male',
             'photo_url' => 'yazan.png',
-            'role_id' => 3, // Assuming role_id 3 corresponds to a valid role in the roles table
-            'password' => bcrypt('123456789'),
-
-
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
 
-        User::create([
-            // 'id'=>4,
+        $user5->assignRole('student');
+
+        $user6 = User::updateOrCreate([
             'phone_number' => '0980612500',
             'first_name' => 'Alice',
             'last_name' => 'Williams',
@@ -136,14 +120,14 @@ class UserSeeder extends Seeder
             'nationality' => 'syrian',
             'gender' => 'female',
             'photo_url' => 'alice.png',
-            'role_id' => 6, // Assuming RoleSeeder::TEACHER_ROLE_ID corresponds to a valid role in the roles table
-            'password' => bcrypt('123456789'),
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
             'account_status' => 'enabled',
             'record_status' => 'active',
         ]);
 
-        User::create([
-            // 'id'=>5,
+        $user6->assignRole('counselor');
+
+        $user7 = User::create([
             'phone_number' => '0994416081',
             'first_name' => 'Charlie',
             'last_name' => 'Brown',
@@ -155,15 +139,14 @@ class UserSeeder extends Seeder
             'nationality' => 'syrian',
             'gender' => 'male',
             'photo_url' => 'https://example.com/photo5.jpg',
-            'role_id' => 4, // Assuming role_id 4 corresponds to a valid role in the roles table
             'email' => 'shadooalkhateeb1234@gmail.com',
             'account_status' => 'enabled',
             'record_status' => 'active',
-            'password' => bcrypt('123456789'),
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
+        $user7->assignRole('super_admin');
 
-        User::create([
-            // 'id'=>6,
+        $user8 = User::updateOrCreate([
             'phone_number' => '0994416082',
             'first_name' => 'Diana',
             'last_name' => 'Prince',
@@ -175,18 +158,15 @@ class UserSeeder extends Seeder
             'nationality' => 'syrian',
             'gender' => 'female',
             'photo_url' => 'https://example.com/photo6.jpg',
-            'role_id' => 7, // Assuming RoleSeeder::STAFF_SERVICES_ROLE_ID corresponds to a valid role in the roles table
             'employee_type' => 'security',
-            'password' => bcrypt('123456789'),
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
             'account_status' => 'enabled',
             'record_status' => 'active',
-
-
         ]);
+        $user8->assignRole('service_staff');
 
 
-        User::create([
-            // 'id'=>7,
+        $user9 = User::updateOrCreate([
             'phone_number' => '0994416083',
             'first_name' => 'Ethan',
             'last_name' => 'Hunt',
@@ -196,17 +176,16 @@ class UserSeeder extends Seeder
             'birth_place' => 'Spy City',
             'address' => '123 Mission St, Spy City',
             'email' => 'nnnnahhmad@gmail.com',
-            'password' => bcrypt('123456789'),
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
             'nationality' => 'jordanian',
             'gender' => 'male',
             'photo_url' => 'https://example.com/photo7.jpg',
-            'role_id' => 1, // Assuming RoleSeeder::Teacher_role_id corresponds to
             'account_status' => 'enabled',
             'record_status' => 'active',
         ]);
+        $user9->assignRole('adviser');
 
-        User::create([
-            // 'id'=>8,
+        $user10 = User::updateOrCreate([
             'phone_number' => '0994416084',
             'first_name' => 'Fiona',
             'last_name' => 'Gallagher',
@@ -216,13 +195,13 @@ class UserSeeder extends Seeder
             'birth_place' => 'Shameless Town',
             'address' => '456 Chaos Ave, Shameless Town',
             'email' => 'nournour.ahmad.1284@gmail.com',
-            'password' => bcrypt('123456789'),
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
             'nationality' => 'other',
             'gender' => 'female',
             'photo_url' => 'https://example.com/photo8.jpg',
-            'role_id' => 5,
             'account_status' => 'enabled',
             'record_status' => 'active',
         ]);
+        $user10->assignRole('adviser');
     }
 }

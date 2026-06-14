@@ -10,7 +10,9 @@ use App\Http\Requests\Auth\UserVerifyRequest;
 use App\Http\Resources\Auth\UserResource;
 use App\Models\User;
 use App\Services\Auth\OtpService;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class UserAuthController extends Controller
 {
@@ -21,12 +23,11 @@ class UserAuthController extends Controller
     public function __construct(OtpService $otpService)
     {
         $this->otpService = $otpService;
-            }
-
+    }
 
     public function login(UserLoginRequest $request)
     {
-        $result = $this->otpService->login($request['phone_number'], $request['password']);
+        $result = $this->otpService->login($request['phone_number']);
 
         if (is_string($result)) {
             return $this->errorResponse($result, 400);
@@ -44,27 +45,30 @@ class UserAuthController extends Controller
     public function verifyOtp(UserVerifyRequest $request)
     {
 
-    $user = User::where('phone_number', $request->phone_number)->firstOrFail();
+        $user = User::where('phone_number', $request->phone_number)->first();
 
-        $result = $this->otpService->verifyOtp($request['phone_number'], $request['otp']);
-
-        if (is_string($result)) {
-            return $this->errorResponse($result, 400);
+        if (!$user) {
+            return $this->errorResponse('User not found. Please check the phone number.', 404);
         }
-        if($user->role=='STUDENT'){
 
-     return $this->successResponse(new UserResource($user),'loged in successfuly.',200)->additional([
-    'token' => $result['token'],
-    'academic_info' => $result['academic_info'],
-    'tomorrow_schedule' => $result['tomorrow_schedule'],
-]);
 
-           }
-           return response()->json([
-            'status'=>200,
-            'message'=>'loged in successfuly. ',
-            'data'=>$result
-           ]);
+        try {
+            $result = $this->otpService->verifyOtp($request['phone_number'], $request['otp']);
+
+            if (is_string($result)) {
+                return $this->errorResponse($result, 400);
+            }
+
+            $responseData = [
+                'user'  => new UserResource($result['data']),
+                'token' => $result['token']
+            ];
+            return $this->successResponse($responseData, 'Logged in successfully.', 200);
+        } catch (ValidationException $e) {
+            return $this->errorResponse($e->getMessage(), 422, $e->errors());
+        } catch (Exception $e) {
+            return $this->errorResponse('OTP verification failed.', 500);
+        }
     }
     public function resendOtp(Request $request)
     {
@@ -94,5 +98,4 @@ class UserAuthController extends Controller
         $this->otpService->logout();
         return $this->successResponse(null, 'Logged out successfully', 200);
     }
-
 }

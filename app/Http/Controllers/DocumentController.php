@@ -3,18 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\ApiResource;
-use App\Services\DocumentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\File;
 
 class DocumentController extends Controller
 {
+
 use ApiResource;
-
-
-public function showPersonalPhoto($filename)
+    public function showPersonalPhoto($filename)
     {
        $userAuth=Auth::guard('sanctum')->user();
        abort_if(!$userAuth,$this->errorResponse('Unauthenticated',401));

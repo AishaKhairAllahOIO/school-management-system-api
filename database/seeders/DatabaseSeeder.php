@@ -18,14 +18,14 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
-            RoleSeeder::class,
+            RolesAndPermissionsSeeder::class,
             UserSeeder::class,
-            AcademicYearSeeder::class, // ضروري قبل التسجيل
-            SemesterSeeder::class,     // ضروري قبل التسجيل
-            GradeLevelSeeder::class,  // ضروري قبل التسجيل
-            GuardianSeeder::class,      // ينشئ سجل الوصي في جدول الأوصياء بناءً على المستخدمين الذين لديهم دور "ولي أمر"
+            AcademicYearSeeder::class,
+            SemesterSeeder::class,
+            GradeLevelSeeder::class,
+            GuardianSeeder::class,
             ClassRoomSeeder::class,
-            StudentSeeder::class,      // ينشئ سجل الطالب في جدول الطلاب
+            StudentSeeder::class,
             EnrollmentSeeder::class,
             ScheduleTimeSlotSeeder::class,
 

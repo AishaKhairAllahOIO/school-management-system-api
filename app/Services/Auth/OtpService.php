@@ -29,7 +29,7 @@ class OtpService
         $this->user_service = $user_service;
     }
 
-    public function login(string $phone_number, string $password): array|string
+    public function login(string $phone_number): array|string
     {
         $user = User::where('phone_number', $phone_number)->first();
 
@@ -37,22 +37,28 @@ class OtpService
             Log::channel('single')->warning('[LOGIN] Attempt failed. User not found.', ['phone_number' => $phone_number]);
             throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
         }
+
         if ($user->record_status !== 'active') {
             throw ValidationException::withMessages([
-                'email' => 'This account is no longer active.'
-            ]);
-        }
-        if ($user->account_status == 'disabled') {
-            throw ValidationException::withMessages([
-                'email' => 'This account is disabled. Please contact administration.'
+                'record_status' => 'This account is no longer active.' // تم تعديل email إلى phone_number للدقة
             ]);
         }
 
-        if ($phone_number !== $this->appleReviewPhone && !Hash::check($password, $user->password)) {
-            Log::channel('single')->warning('[LOGIN] Attempt failed. Wrong password.', ['phone_number' => $phone_number]);
-            throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
+    if ($user->account_status == 'disabled') {
+        throw ValidationException::withMessages([
+            'account_status' => 'This account is disabled. Please contact administration.'
+        ]);
+    }
+
+
+        // التعامل مع رقم مراجعة آبل الاستثنائي
+        if ($phone_number === $this->appleReviewPhone) {
+            // إذا كان رقم آبل، قم بتوليد أو إرجاع OTP ثابت (مثلاً 1234) دون إرسال SMS فعلي
+            // مثال:
+            // return $this->generateStaticOtpForApple($phone_number);
         }
 
+        // للمستخدمين العاديين (الطبيعيين)، قم بتوليد وإرسال الـ OTP عبر Traccar SMS Gateway
         return $this->generateOtp($phone_number);
     }
     public function generateOtp(string $phone_number): array
@@ -155,9 +161,9 @@ class OtpService
             return false;
         }
     }
-    public function verifyOtp(string $phone_number, string $code): array|string
+    public function verifyOtp(string $phone_number, string $otp): array|string
     {
-        if ($phone_number === $this->appleReviewPhone && $code === $this->appleStaticOtp) {
+        if ($phone_number === $this->appleReviewPhone && $otp === $this->appleStaticOtp) {
             $user = User::where('phone_number', $phone_number)->first();
             if (!$user) {
                 throw new HttpResponseException($this->errorResponse('User not found for Apple review phone number.', 404));
@@ -167,10 +173,10 @@ class OtpService
         } else {
             $cachedOtp = Cache::get('otp_' . $phone_number);
 
-            if (!$cachedOtp || $cachedOtp !== $code) {
+            if (!$cachedOtp || $cachedOtp !== $otp) {
                 Log::channel('single')->warning('[OTP] Invalid or expired OTP verification attempt.', [
                     'phone_number' => $phone_number,
-                    'code'  => $code,
+                    'code'  => $otp,
                 ]);
                 throw new HttpResponseException($this->errorResponse('OTP is invalid or expired', 422));
             }
@@ -186,24 +192,9 @@ class OtpService
             'user_id'      => $user->id,
         ]);
 
-        if ($user->role_id == 3) {
-            $dashboardData = $this->user_service->getStudentDashboard($user);
-
-            return [
-                'token'             => $token,
-                'personal_info'     => $dashboardData['personal_info'],
-                'academic_info'     => $dashboardData['academic_info'],
-                'tomorrow_schedule' => $dashboardData['tomorrow_schedule'],
-
-            ];
-        }
-
-        $guardianData = $this->user_service->getGuardianDashboard($user);
-
         return [
-            'token'          => $token,
-            'personal_info'  => $guardianData['personal_info'],
-            'children_cards' => $guardianData['children_cards'],
+            'data' => $user,
+            'token' => $token,
         ];
     }
     public function refreshToken(User $user): array

@@ -17,14 +17,13 @@ class StudentSeeder extends Seeder
 
 
     Student::create([
-        'user_id'=>1,
+        'user_id'=>5,
         'guardian_id'=>1,
         'connect_number'=>'0981915237'
-
     ]);
 
     Student::create([
-        'user_id'=>5,
+        'user_id'=>2,
         'guardian_id'=>1,
         'connect_number'=>'0981915237'
     ]);

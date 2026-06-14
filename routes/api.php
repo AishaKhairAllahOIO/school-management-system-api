@@ -35,8 +35,8 @@ Route::prefix('user')->group(function(){
 
     Route::middleware('auth:sanctum')->group(function(){
             Route::delete('logout', [UserAuthController::class, 'logout']);
-            Route::get('user-dashboard', [UserController::class, 'UserDashbourd']);
-            Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
+            Route::get('/photos/{filename}',[ DocumentController::class,'showPersonalPhoto']);
+            Route::get('/get-user-data',[UserController::class,'getUserInfo']);
 
     });
 

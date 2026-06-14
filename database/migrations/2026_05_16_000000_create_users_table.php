@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('phone_number', 20)->unique();
             $table->string('password');
-            $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
+           // $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
             $table->string('employee_type')->nullable(); // for the staff services
 
 

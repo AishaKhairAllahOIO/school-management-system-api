@@ -17,18 +17,19 @@ class UserResource extends JsonResource
         return [
             'id' => $this->id,
             'phone_number' => $this->phone_number,
-            'name' => $this->first_name .' '.  $this->last_name,
-            'father_name'=>$this->father_name,
-            'mother_name'=>$this->mother_name,
-            'birth_date'=>$this->birth_date,
-            'birth_place'=>$this->birth_place,
-            'address'=>$this->address,
-            'nationality'=>$this->nationality,
-            'gender'=>$this->gender,
-            'photo_url' => url('api/user/photos/' . $this->photo_url),
-            'role_id' => $this->role->role_name,
-            'account_status'=>$this->account_status
+            'first_name' => $this->first_name,
+            'last_name' =>  $this->last_name,
+            'father_name' => $this->father_name,
+            'mother_name' => $this->mother_name,
+            'birth_date' => $this->birth_date,
+            'birth_place' => $this->birth_place,
+            'address' => $this->address,
+            'nationality' => $this->nationality,
+            'gender' => $this->gender,
+            'photo_url' => $this->photo_url ? url('api/user/photos/' . $this->photo_url) : null,
+            'account_status' => $this->account_status,
+            'record_status'=> $this->record_status,
+            'roles' => $this->getRoleNames(),
         ];
     }
-
 }

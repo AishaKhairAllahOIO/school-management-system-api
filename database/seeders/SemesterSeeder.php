@@ -10,14 +10,14 @@ class SemesterSeeder extends Seeder
 {
     public function run(): void
     {
-        Semester::create([
+        Semester::updateOrCreate([
             'semester_name' => Semester::FIRST_TERM,
             'start_date' => '2025-09-01',
             'end_date' => '2026-01-15',
             'academic_year_id' => 1
         ]);
 
-        Semester::create([
+        Semester::updateOrCreate([
             'semester_name' => Semester::SECOUND_TERM,
             'start_date' => '2026-01-20',
             'end_date' => '2026-06-30',

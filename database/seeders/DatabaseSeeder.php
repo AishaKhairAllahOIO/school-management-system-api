@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             StudentSeeder::class,
             EnrollmentSeeder::class,
             ScheduleTimeSlotSeeder::class,
+            StaffSeeder::class,
 
 
         ]);

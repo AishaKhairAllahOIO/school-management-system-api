@@ -11,327 +11,136 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        // ─── مسح الـ Cache أولاً (ضروري مع Spatie) ──────────────────────
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // ─── تعريف جميع الصلاحيات مقسّمة بالموديول ──────────────────────
         $permissions = [
-
-            // ═══════════════════════════════════════════
-            // MODULE 1: Authentication & Profile
-            // ═══════════════════════════════════════════
+            // 1. نظام المصادقة والحسابات الأساسية
             'auth' => [
-                'login',
-                'logout',
-                'reset_password',
-                'view_own_profile',
-                'edit_own_profile'
+                'login', 'logout', 'reset_password', 
+                'view_own_profile', 'edit_own_profile',
+                'account:toggle_status', 'record:toggle_status'
             ],
-
-            // ═══════════════════════════════════════════
-            // MODULE 2: Student Management
-            // ═══════════════════════════════════════════
+            // 1.1 تهيئة النظام
+            'school_setup' => [
+                'school:initialize',      
+                'school:update_info',     
+                'academic_year:manage',   
+            ],
+            'access_control' => [
+            'role:create', 'role:edit', 'role:delete', 'role:view',
+            'permission:view', 'permission:assign_to_role'
+], 
+            // 2. إدارة الطلاب والتسجيل
             'students' => [
-                'create_student',
-                'edit_student',
-                'delete_student',
-                'change_student_account_status',
-                'change_student_recourd_status',
-                'view_students_by_class',
-                'view_students_by_section',
-                'view_student_profile',
-                'search_student',
-                'filter_students_alphabetically',
-                'transfer_student_between_sections',
-                'promote_students_to_next_grade',
-                'view_children_list',          // Guardian
+                'student:create', 'student:edit', 'student:delete',
+                'student:view_by_class', 'student:view_by_section', 'student:view_profile',
+                'student:search', 'student:filter', 'student:transfer', 'student:promote',
+                'student:view_children' 
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 3: Teacher Management
-            // ═══════════════════════════════════════════
-            'teachers' => [
-                'create_teacher',
-                'edit_teacher',
-                'delete_teacher',
-                'change_teacher_account_status',
-                'change_teacher_recourd_status',
-                'view_teachers_list',
-                'view_teacher_profile',
-                'search_teacher',
-                'filter_teachers_by_subject_or_class',
-                'assign_teacher_to_section',
-                'assign_teacher_to_subject',
+            // 3. إدارة الكوادر
+            'users_management' => [
+                'teacher:create', 'teacher:edit', 'teacher:delete', 'teacher:view', 'teacher:assign_section', 'teacher:assign_subject',
+                'adviser:create', 'adviser:edit', 'adviser:delete', 'adviser:view', 'adviser:assign_class',
+                'secretary:create', 'secretary:edit', 'secretary:delete', 'secretary:view',
+                'service_staff:create', 'service_staff:edit', 'service_staff:delete', 'service_staff:view',
+                'counselor:create', 'counselor:edit', 'counselor:delete', 'counselor:view'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 4: Adviser Management
-            // ═══════════════════════════════════════════
-            'advisers' => [
-                'create_adviser',
-                'edit_adviser',
-                'delete_adviser',
-                'change_adviser_account_status',
-                'change_adviser_recourd_status',
-                'view_advisers_list',
-                'view_adviser_profile',
-                'search_adviser',
-                'assign_adviser_to_class',
-            ],
-
-            // ═══════════════════════════════════════════
-            // MODULE 5: Secretary Management
-            // ═══════════════════════════════════════════
-            'secretaries' => [
-                'create_secretary',
-                'edit_secretary',
-                'delete_secretary',
-                'change_secretary_account_status',
-                'change_secretary_recourd_status',
-                'view_secretary_profile',
-            ],
-
-            // ═══════════════════════════════════════════
-            // MODULE 6: Service & Educational Staff
-            // ═══════════════════════════════════════════
-            'staff' => [
-                'create_service_staff',
-                'edit_service_staff',
-                'delete_service_staff',
-                'view_service_staff_list',
-                'view_service_staff_profile',
-                'create_educational_staff',
-                'edit_educational_staff',
-                'delete_educational_staff',
-                'disable_educational_staff',
-                'view_educational_staff_list',
-                'view_educational_staff_profile',
-            ],
-
-            // ═══════════════════════════════════════════
-            // MODULE 7: Attendance
-            // ═══════════════════════════════════════════
+            // 4. نظام الحضور والغياب
             'attendance' => [
-                'create_student_attendance',
-                'edit_student_attendance',
-                'view_student_attendance',
-                'create_teacher_attendance',
-                'edit_teacher_attendance',
-                'view_teacher_attendance',
-                'create_adviser_attendance',
-                'edit_adviser_attendance',
-                'view_adviser_attendance',
-                'create_secretary_attendance',
-                'edit_secretary_attendance',
-                'view_secretary_attendance',
-                'create_service_staff_attendance',
-                'edit_service_staff_attendance',
-                'view_service_staff_attendance',
-                'create_educational_staff_attendance',
-                'edit_educational_staff_attendance',
-                'view_educational_staff_attendance',
-                'set_absence_limit',
+                'attendance_student:create', 'attendance_student:edit', 'attendance_student:view', 'attendance:set_limit',
+                'attendance_teacher:create', 'attendance_teacher:edit', 'attendance_teacher:view',
+                'attendance_adviser:create', 'attendance_adviser:edit', 'attendance_adviser:view',
+                'attendance_secretary:create', 'attendance_secretary:edit', 'attendance_secretary:view',
+                'attendance_service:create', 'attendance_service:edit', 'attendance_service:view',
+                'attendance_counselor:create', 'attendance_counselor:edit', 'attendance_counselor:view'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 8: Grades & Assignments
-            // ═══════════════════════════════════════════
-            'grades' => [
-                'create_grades',
-                'edit_grades',
-                'delete_grades',
-                'view_grades',
-                'submit_grades_to_adviser',
-                'create_assignment',
-                'edit_assignment',
-                'delete_assignment',
-                'view_assignments',
-                'view_top_students',
+            // 5. نظام العلامات والتقييمات
+            'academic_records' => [
+                'mark:create', 'mark:edit', 'mark:delete', 'mark:view','mark:publish', 'mark:submit_to_adviser',
+                'evaluation:create', 'evaluation:edit', 'evaluation:delete', 'evaluation:view', 'evaluation:submit_to_adviser',
+                'view_top_students'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 9: Evaluations
-            // ═══════════════════════════════════════════
-            'evaluations' => [
-                'create_student_evaluation',
-                'edit_student_evaluation',
-                'delete_student_evaluation',
-                'view_student_evaluation',
-                'submit_evaluation_to_adviser',
+            // 6. نظام الوظائف
+            'homework' => [
+                'homework:create', 'homework:edit', 'homework:delete', 'homework:view'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 10: Fees & Payments
-            // ═══════════════════════════════════════════
-            'fees' => [
-                'set_annual_fees_per_class',
-                'edit_annual_fees',
-                'view_annual_fees',
-                'set_installment_policy',
-                'edit_installment_policy',
-                'view_installment_policy',
-                'create_payment',
-                'edit_payment',
-                'delete_payment',
-                'view_payment_records',
-                'view_remaining_fees',
-                'send_payment_delay_notification',
+            // 7. الرسوم المالية
+            'finance' => [
+                'fee:set', 'fee:edit', 'fee:view',
+                'installment:set_policy', 'installment:edit_policy', 'installment:view_policy',
+                'payment:create', 'payment:edit', 'payment:delete', 'payment:view_records', 'payment:view_remaining'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 11: Salaries
-            // ═══════════════════════════════════════════
+            // 8. الرواتب والأجور
             'salaries' => [
-                'set_teacher_salary',
-                'create_teacher_salary',
-                'edit_teacher_salary',
-                'delete_teacher_salary',
-                'view_teacher_salary_records',
-                'set_adviser_salary',
-                'create_adviser_salary',
-                'edit_adviser_salary',
-                'delete_adviser_salary',
-                'view_adviser_salary_records',
-                'set_secretary_salary',
-                'create_secretary_salary',
-                'delete_secretary_salary',
-                'view_secretary_salary_records',
-                'set_service_staff_salary',
-                'create_service_staff_salary',
-                'edit_service_staff_salary',
-                'delete_service_staff_salary',
-                'view_service_staff_salary_records',
-                'set_educational_staff_salary',
-                'create_educational_staff_salary',
-                'edit_educational_staff_salary',
-                'delete_educational_staff_salary',
-                'view_educational_staff_salary_records',
-                'view_counselor_salary_records',
-                'apply_salary_deduction_admin_staff',
-                'apply_salary_deduction_service_staff',
-                'apply_salary_deduction_educational_staff',
-                'apply_salary_deduction_teachers',
+                'salary_teacher:set', 'salary_teacher:create', 'salary_teacher:edit', 'salary_teacher:delete', 'salary_teacher:view',
+                'salary_adviser:set', 'salary_adviser:create', 'salary_adviser:edit', 'salary_adviser:delete', 'salary_adviser:view',
+                'salary_secretary:set', 'salary_secretary:create', 'salary_secretary:delete', 'salary_secretary:view',
+                'salary_service:set', 'salary_service:create', 'salary_service:edit', 'salary_service:delete', 'salary_service:view',
+                'salary_counselor:set', 'salary_counselor:create', 'salary_counselor:edit', 'salary_counselor:delete', 'salary_counselor:view',
+                'salary:view_own' 
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 12: Leave Management
-            // ═══════════════════════════════════════════
+            // 9. الإجازات 
             'leaves' => [
-                'set_leave_quota_admin_staff',
-                'edit_leave_quota_admin_staff',
-                'set_leave_quota_service_staff',
-                'edit_leave_quota_service_staff',
-                'set_leave_quota_educational_staff',
-                'edit_leave_quota_educational_staff',
-                'set_leave_quota_teachers',
-                'edit_leave_quota_teachers',
-                'set_annual_holidays',
+                'leave_admin:set_quota', 'leave_admin:edit_quota', 'leave_admin:apply_deduction', 
+                'leave_service:set_quota', 'leave_service:edit_quota', 'leave_service:apply_deduction',
+                'leave_counselor:set_quota', 'leave_counselor:edit_quota', 'leave_counselor:apply_deduction',
+                'leave_teacher:set_quota', 'leave_teacher:edit_quota', 'leave_teacher:apply_deduction',
+                'leave:set_annual_holidays'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 13: Schedules
-            // ═══════════════════════════════════════════
+            // 10. الهيكلية والجداول الدراسية (تم توحيد عرض البرنامج الشخصي)
             'schedules' => [
-                'create_school_sections',
-                'set_section_capacity',
-                'create_student_schedule',
-                'create_teacher_schedule',
-                'create_exam_schedule',
-                'view_own_work_schedule',
-                'view_student_schedule',
-                'view_exam_schedule',
+                'section:create', 'section:set_capacity', 'section:config_numbers',
+                'schedule_student:create', 'schedule_student:view',
+                'schedule_teacher:create', 
+                'schedule:view_own', // توحيد اسم الصلاحية للموظفين
+                'schedule_exam:create', 'schedule_exam:view'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 14: Subjects
-            // ═══════════════════════════════════════════
+            // 11. المواد الدراسية
             'subjects' => [
-                'create_subject',
-                'edit_subject',
-                'delete_subject',
-                'view_subjects',
-                'assign_subject_to_class',
+                'subject:create', 'subject:edit', 'subject:delete', 'subject:view', 'subject:assign_to_class'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 15: Announcements & Notifications
-            // ═══════════════════════════════════════════
+            // 12. الإعلانات والتنبيهات
             'notifications' => [
-                'create_announcement',
-                'edit_announcement',
-                'delete_announcement',
-                'view_announcements',
-                'send_absence_alert_to_guardian',
-                'send_payment_alert_to_guardian',
-                'receive_system_notifications',
+                'announcement:create', 'announcement:edit', 'announcement:delete', 'announcement:view',
+                'alert_absence:send', 'alert_payment:send', 'notification:system_receive'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 16: School Rules
-            // ═══════════════════════════════════════════
-            'rules' => [
-                'create_school_rule',
-                'edit_school_rule',
-                'delete_school_rule',
-                'view_school_rules',
+            // 13. القوانين والأنشطة والتقارير
+            'school_rules' => [
+                'rule:create', 'rule:edit', 'rule:delete', 'rule:view',
+                'activity:create', 'activity:view',
+                'report:generate', 'report_financial:view', 'report_attendance:view', 'report_grades:view', 'report_performance:view'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 17: Activities
-            // ═══════════════════════════════════════════
-            'activities' => [
-                'create_activity',
-                'view_activities',
-            ],
-
-            // ═══════════════════════════════════════════
-            // MODULE 18: Reports
-            // ═══════════════════════════════════════════
-            'reports' => [
-                'generate_reports',
-                'view_financial_reports',
-                'view_attendance_reports',
-                'view_grades_reports',
-                'view_subject_performance_reports',
-            ],
-
-            // ═══════════════════════════════════════════
-            // MODULE 19: Counseling Appointments
-            // ═══════════════════════════════════════════
+            // 14. الاستشارات
             'counseling' => [
-                'set_available_counseling_times',
-                'view_appointment_requests',
-                'approve_appointment_request',
-                'reject_appointment_request',
-                'view_student_appointments',
-                'delete_appointment',
-                'change_counselor_account_status',
-                'change_counselor_recourd_status',
-                'send_appointment_cancellation_notice',
-                'record_session_status',
-                'book_appointment',
-                'cancel_appointment',
-                'view_own_appointments',
+                'counseling:set_times', 'counseling:view_requests', 'counseling:approve', 'counseling:reject',
+                'counseling:view_appointments', 'counseling:delete', 'counseling:cancel_notice', 'counseling:record_status',
+                'counseling:book', 'counseling:cancel', 'counseling:view_own'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 20: Complaints
-            // ═══════════════════════════════════════════
+            // 15. الشكاوى
             'complaints' => [
-                'submit_complaint_to_adviser',
-                'view_complaints',
+                'complaint:submit_to_adviser', 'complaint:view'
             ],
 
-            // ═══════════════════════════════════════════
-            // MODULE 21: AI & Productivity Tools
-            // ═══════════════════════════════════════════
+            // 16. أدوات الذكاء الاصطناعي
             'tools' => [
-                'use_ai_assistant',
-                'use_todo_list',
-            ],
+                'tool:ai_assistant', 'tool:todo_list'
+            ]
         ];
 
-        // ─── إنشاء جميع الصلاحيات في قاعدة البيانات ─────────────────────
+        // 1. إنشاء الصلاحيات
         foreach ($permissions as $module => $modulePermissions) {
             foreach ($modulePermissions as $permission) {
                 Permission::firstOrCreate(
@@ -341,440 +150,94 @@ class RolesAndPermissionsSeeder extends Seeder
             }
         }
 
-        $this->command->info('✅ تم إنشاء جميع الصلاحيات بنجاح');
-
         // ═══════════════════════════════════════════════════════════════════
-        // إنشاء الأدوار وربط الصلاحيات بها
+        // 2. ربط الصلاحيات بالأدوار
         // ═══════════════════════════════════════════════════════════════════
 
-        // ─────────────────────────────────────────
         // ROLE 1: Super Admin
-        // ─────────────────────────────────────────
-        $superAdmin = Role::firstOrCreate(
-            ['name' => 'super_admin'],
-            ['guard_name' => 'sanctum']
-        );
+        $superAdmin = Role::firstOrCreate(['name' => 'super_admin'], ['guard_name' => 'sanctum']);
+        $superAdmin->syncPermissions(Permission::whereNotIn('name', [
+            'counseling:book', 'counseling:cancel', 'counseling:view_own', 'tool:ai_assistant', 'tool:todo_list'
+        ])->pluck('name'));
 
-        $superAdmin->syncPermissions([
-            // Auth
-            'login',
-            'logout',
-            'reset_password',
-            'view_own_profile',
-            'edit_own_profile',
-            // Students
-            'create_student',
-            'edit_student',
-            'delete_student',
-            'change_student_account_status',
-            'change_student_recourd_status',
-            'view_students_by_class',
-            'view_students_by_section',
-            'view_student_profile',
-            'search_student',
-            'filter_students_alphabetically',
-            'transfer_student_between_sections',
-            'promote_students_to_next_grade',
-            // Teachers
-            'create_teacher',
-            'edit_teacher',
-            'delete_teacher',
-            'change_teacher_account_status',
-            'change_teacher_recourd_status',
-            'view_teachers_list',
-            'view_teacher_profile',
-            'search_teacher',
-            'filter_teachers_by_subject_or_class',
-            'assign_teacher_to_section',
-            'assign_teacher_to_subject',
-            // Advisers
-            'create_adviser',
-            'edit_adviser',
-            'delete_adviser',
-            'change_adviser_account_status',
-            'change_adviser_recourd_status',
-            'view_advisers_list',
-            'view_adviser_profile',
-            'search_adviser',
-            'assign_adviser_to_class',
-            // Secretaries
-            'create_secretary',
-            'edit_secretary',
-            'delete_secretary',
-            'change_secretary_account_status',
-            'change_secretary_recourd_status',
-            'view_secretary_profile',
-            // Staff
-            'create_service_staff',
-            'edit_service_staff',
-            'delete_service_staff',
-            'view_service_staff_list',
-            'view_service_staff_profile',
-            'create_educational_staff',
-            'edit_educational_staff',
-            'delete_educational_staff',
-            'disable_educational_staff',
-            'view_educational_staff_list',
-            'view_educational_staff_profile',
-            // Attendance
-            'create_student_attendance',
-            'edit_student_attendance',
-            'view_student_attendance',
-            'create_teacher_attendance',
-            'edit_teacher_attendance',
-            'view_teacher_attendance',
-            'create_adviser_attendance',
-            'edit_adviser_attendance',
-            'view_adviser_attendance',
-            'create_secretary_attendance',
-            'edit_secretary_attendance',
-            'view_secretary_attendance',
-            'create_service_staff_attendance',
-            'edit_service_staff_attendance',
-            'view_service_staff_attendance',
-            'create_educational_staff_attendance',
-            'edit_educational_staff_attendance',
-            'view_educational_staff_attendance',
-            'set_absence_limit',
-            // Grades
-            'view_grades',
-            'view_top_students',
-            // Fees
-            'set_annual_fees_per_class',
-            'edit_annual_fees',
-            'view_annual_fees',
-            'set_installment_policy',
-            'edit_installment_policy',
-            'view_installment_policy',
-            'create_payment',
-            'edit_payment',
-            'delete_payment',
-            'view_payment_records',
-            'view_remaining_fees',
-            'send_payment_delay_notification',
-            // Salaries
-            'set_teacher_salary',
-            'create_teacher_salary',
-            'edit_teacher_salary',
-            'delete_teacher_salary',
-            'view_teacher_salary_records',
-            'set_adviser_salary',
-            'create_adviser_salary',
-            'edit_adviser_salary',
-            'delete_adviser_salary',
-            'view_adviser_salary_records',
-            'set_secretary_salary',
-            'create_secretary_salary',
-            'delete_secretary_salary',
-            'view_secretary_salary_records',
-            'set_service_staff_salary',
-            'create_service_staff_salary',
-            'edit_service_staff_salary',
-            'delete_service_staff_salary',
-            'view_service_staff_salary_records',
-            'set_educational_staff_salary',
-            'create_educational_staff_salary',
-            'edit_educational_staff_salary',
-            'delete_educational_staff_salary',
-            'view_educational_staff_salary_records',
-            'apply_salary_deduction_admin_staff',
-            'apply_salary_deduction_service_staff',
-            'apply_salary_deduction_educational_staff',
-            'apply_salary_deduction_teachers',
-            // Leaves
-            'set_leave_quota_admin_staff',
-            'edit_leave_quota_admin_staff',
-            'set_leave_quota_service_staff',
-            'edit_leave_quota_service_staff',
-            'set_leave_quota_educational_staff',
-            'edit_leave_quota_educational_staff',
-            'set_leave_quota_teachers',
-            'edit_leave_quota_teachers',
-            'set_annual_holidays',
-            // Schedules
-            'create_school_sections',
-            'set_section_capacity',
-            'create_student_schedule',
-            'create_teacher_schedule',
-            'create_exam_schedule',
-            // Subjects
-            'create_subject',
-            'edit_subject',
-            'delete_subject',
-            'view_subjects',
-            'assign_subject_to_class',
-            // Notifications
-            'create_announcement',
-            'edit_announcement',
-            'delete_announcement',
-            'view_announcements',
-            'send_absence_alert_to_guardian',
-            'send_payment_alert_to_guardian',
-            'receive_system_notifications',
-            // Rules
-            'create_school_rule',
-            'edit_school_rule',
-            'delete_school_rule',
-            'view_school_rules',
-            // Activities
-            'create_activity',
-            'view_activities',
-            // Reports
-            'generate_reports',
-            'view_financial_reports',
-            'view_attendance_reports',
-            'view_grades_reports',
-            'view_subject_performance_reports',
-            // Complaints
-            'view_complaints',
-        ]);
-
-        // ─────────────────────────────────────────
-        // ROLE 2: Teacher
-        // ─────────────────────────────────────────
-        $teacher = Role::firstOrCreate(
-            ['name' => 'teacher'],
-            ['guard_name' => 'sanctum']
-        );
-
+        // ROLE 2: Teacher (تمت إضافة الغياب الفعلي والشكاوى وبرنامج الدوام)
+        $teacher = Role::firstOrCreate(['name' => 'teacher'], ['guard_name' => 'sanctum']);
         $teacher->syncPermissions([
-            // Auth
-            'login',
-            'logout',
-            'view_own_profile',
-            'edit_own_profile',
-            // Students (view only)
-            'view_students_by_class',
-            'view_students_by_section',
-            'view_student_profile',
-            // Attendance
-            'view_student_attendance',
-            'view_teacher_attendance',
-            // Grades
-            'create_grades',
-            'edit_grades',
-            'delete_grades',
-            'view_grades',
-            'submit_grades_to_adviser',
-            'create_assignment',
-            'edit_assignment',
-            'delete_assignment',
-            'view_assignments',
-            'view_top_students',
-            // Evaluations
-            'create_student_evaluation',
-            'edit_student_evaluation',
-            'delete_student_evaluation',
-            'view_student_evaluation',
-            'submit_evaluation_to_adviser',
-            // Salaries (view own)
-            'view_teacher_salary_records',
-            // Schedules
-            'view_own_work_schedule',
-            'view_exam_schedule',
-            // Subjects
-            'view_subjects',
-            // Notifications
-            'view_announcements',
-            'receive_system_notifications',
+            'login', 'logout', 'view_own_profile', 'edit_own_profile',
+            'student:view_by_class', 'student:view_by_section', 'student:view_profile',
+            'attendance_student:create', 'attendance_student:edit', 'attendance_student:view', 'attendance_teacher:view',
+            'mark:create', 'mark:edit', 'mark:delete', 'mark:view', 'mark:submit_to_adviser',
+            'homework:create', 'homework:edit', 'homework:delete', 'homework:view',
+            'evaluation:create', 'evaluation:edit', 'evaluation:delete', 'evaluation:view', 'evaluation:submit_to_adviser',
+            'salary:view_own', 'schedule:view_own', 'schedule_exam:view', 'subject:view',
+            'announcement:view', 'notification:system_receive', 'rule:view', 'complaint:submit_to_adviser'
         ]);
 
-        // ─────────────────────────────────────────
         // ROLE 3: Secretary
-        // ─────────────────────────────────────────
-        $secretary = Role::firstOrCreate(
-            ['name' => 'secretary'],
-            ['guard_name' => 'sanctum']
-        );
-
+        $secretary = Role::firstOrCreate(['name' => 'secretary'], ['guard_name' => 'sanctum']);
         $secretary->syncPermissions([
-            // Auth
-            'login',
-            'logout',
-            'reset_password',
-            'view_own_profile',
-            'edit_own_profile',
-            // Schedules
-            'view_own_work_schedule',
-            // Notifications
-            'receive_system_notifications',
-
+            'login', 'logout', 'reset_password', 'view_own_profile', 'edit_own_profile',
+            'student:create', 'student:edit', 'student:delete', 'student:view_by_class', 
+            'student:view_by_section', 'student:view_profile', 'student:search', 
+            'student:filter', 'student:transfer', 'student:promote',
+            'teacher:create', 'teacher:edit', 'teacher:view',
+            'adviser:create', 'adviser:edit', 'adviser:view',
+            'service_staff:create', 'service_staff:edit', 'service_staff:view',
+            'counselor:create', 'counselor:edit', 'counselor:view',
+            'salary_teacher:set', 'salary_teacher:create', 'salary_teacher:edit', 'salary_teacher:delete', 'salary_teacher:view',
+            'salary_adviser:set', 'salary_adviser:create', 'salary_adviser:edit', 'salary_adviser:delete', 'salary_adviser:view',
+            'salary_secretary:set', 'salary_secretary:create', 'salary_secretary:delete', 'salary_secretary:view',
+            'salary_service:set', 'salary_service:create', 'salary_service:edit', 'salary_service:delete', 'salary_service:view',
+            'salary_counselor:set', 'salary_counselor:create', 'salary_counselor:edit', 'salary_counselor:delete', 'salary_counselor:view',
+            'salary:view_own',
+            'schedule_student:view', 'schedule_exam:view', 'schedule:view_own',
+            'notification:system_receive'
         ]);
 
-        // ─────────────────────────────────────────
-        // ROLE 4: Adviser
-        // ─────────────────────────────────────────
-        $adviser = Role::firstOrCreate(
-            ['name' => 'adviser'],
-            ['guard_name' => 'sanctum']
-        );
-
+        // ROLE 4: Adviser (تم إصلاح خطأ السلسلة الفارغة وتعديل جدول الدوام)
+        $adviser = Role::firstOrCreate(['name' => 'adviser'], ['guard_name' => 'sanctum']);
         $adviser->syncPermissions([
-            // Auth
-            'login',
-            'logout',
-            'reset_password',
-            'view_own_profile',
-            'edit_own_profile',
-            // Students
-            'view_students_by_class',
-            'view_students_by_section',
-            'view_student_profile',
-            // Attendance
-            'view_student_attendance',
-            // Grades
-            'view_grades',
-            'view_top_students',
-            'view_student_evaluation',
-            // Schedules
-            'view_own_work_schedule',
-            // Notifications
-            'create_announcement',
-            'edit_announcement',
-            'delete_announcement',
-            'view_announcements',
-            'receive_system_notifications',
-            // Rules
-            'view_school_rules',
-            // Activities
-            'create_activity',
-            'view_activities',
-            // Reports
-            'view_attendance_reports',
-            'view_grades_reports',
-            'view_subject_performance_reports',
-            // Complaints
-            'view_complaints',
+            'login', 'logout', 'reset_password', 'view_own_profile', 'edit_own_profile',
+            'student:view_by_class', 'student:view_by_section', 'student:view_profile',
+            'attendance_student:create','attendance_student:edit', 'attendance_student:view',
+            'mark:view','mark:publish', 'view_top_students', 'evaluation:view',
+            'schedule:view_own', 'announcement:create', 'announcement:edit', 'announcement:delete', 'announcement:view',
+            'notification:system_receive', 'rule:view', 'activity:create', 'activity:view',
+            'report_attendance:view', 'report_grades:view', 'report_performance:view', 'complaint:view', 'salary:view_own'
         ]);
 
-        // ─────────────────────────────────────────
         // ROLE 5: Counselor
-        // ─────────────────────────────────────────
-        $counselor = Role::firstOrCreate(
-            ['name' => 'counselor'],
-            ['guard_name' => 'sanctum']
-        );
-
+        $counselor = Role::firstOrCreate(['name' => 'counselor'], ['guard_name' => 'sanctum']);
         $counselor->syncPermissions([
-            // Auth
-            'login',
-            'logout',
-            'view_own_profile',
-            // Salaries (view own)
-            'view_counselor_salary_records',
-            // Schedules
-            'view_own_work_schedule',
-            // Counseling
-            'set_available_counseling_times',
-            'view_appointment_requests',
-            'approve_appointment_request',
-            'reject_appointment_request',
-            'view_student_appointments',
-            'delete_appointment',
-            'send_appointment_cancellation_notice',
-            'record_session_status',
-            // Notifications
-            'receive_system_notifications',
+            'login', 'logout', 'view_own_profile', 'edit_own_profile',
+            'counseling:set_times', 'counseling:view_requests', 'counseling:approve', 'counseling:reject',
+            'counseling:view_appointments', 'counseling:delete', 'counseling:cancel_notice', 'counseling:record_status',
+            'notification:system_receive', 'salary:view_own', 'schedule:view_own'
         ]);
 
-        // ─────────────────────────────────────────
         // ROLE 6: Guardian
-        // ─────────────────────────────────────────
-        $guardian = Role::firstOrCreate(
-            ['name' => 'guardian'],
-            ['guard_name' => 'sanctum']
-        );
-
+        $guardian = Role::firstOrCreate(['name' => 'guardian'], ['guard_name' => 'sanctum']);
         $guardian->syncPermissions([
-            // Auth
-            'login',
-            'logout',
-            'view_own_profile',
-            // Students
-            'view_children_list',
-            // Schedules
-            'view_student_schedule',
-            'view_exam_schedule',
-            // Grades
-            'view_grades',
-            'view_top_students',
-            'view_assignments',
-            'view_student_evaluation',
-            // Fees
-            'view_annual_fees',
-            'view_payment_records',
-            'view_remaining_fees',
-            // Notifications
-            'view_announcements',
-            'receive_system_notifications',
-            // Rules
-            'view_school_rules',
-            // Activities
-            'view_activities',
-            // Complaints
-            'submit_complaint_to_adviser',
+            'login', 'logout', 'view_own_profile', 'edit_own_profile',
+            'student:view_children', 'schedule_student:view', 'schedule_exam:view',
+            'mark:view', 'view_top_students', 'homework:view', 'evaluation:view',
+            'fee:view', 'payment:view_records', 'payment:view_remaining',
+            'announcement:view', 'notification:system_receive', 'rule:view', 'activity:view',
+            'complaint:submit_to_adviser'
         ]);
 
-        // ─────────────────────────────────────────
-        // ROLE 7: Student
-        // ─────────────────────────────────────────
-        $student = Role::firstOrCreate(
-            ['name' => 'student'],
-            ['guard_name' => 'sanctum']
-        );
-
+        // ROLE 7: Student (تم إصلاح خطأ اسم جدول الامتحانات)
+        $student = Role::firstOrCreate(['name' => 'student'], ['guard_name' => 'sanctum']);
         $student->syncPermissions([
-            // Auth
-            'login',
-            'logout',
-            'view_own_profile',
-            // Schedules
-            'view_student_schedule',
-            'view_exam_schedule',
-            // Grades
-            'view_grades',
-            'view_top_students',
-            'view_assignments',
-            'view_student_evaluation',
-            // Notifications
-            'view_announcements',
-            'receive_system_notifications',
-            // Rules
-            'view_school_rules',
-            // Activities
-            'view_activities',
-            // Counseling
-            'book_appointment',
-            'cancel_appointment',
-            'view_own_appointments',
-            // Tools
-            'use_ai_assistant',
-            'use_todo_list',
+            'login', 'logout', 'view_own_profile', 'edit_own_profile', 
+            'schedule_student:view', 'schedule_exam:view', 'mark:view', 'view_top_students',
+            'homework:view', 'evaluation:view', 'announcement:view', 'notification:system_receive',
+            'rule:view', 'activity:view', 'counseling:book', 'counseling:cancel', 'counseling:view_own',
+            'tool:ai_assistant', 'tool:todo_list'
         ]);
-
-
-        // ─────────────────────────────────────────
-        // ROLE 8: Service_Staff
-        // ─────────────────────────────────────────
-        $service_staff = Role::firstOrCreate(
-            ['name' => 'service_staff'],
-            ['guard_name' => 'sanctum']
-        );
-
-       // $service_staff->syncPermissions();
-
-        $this->command->info('✅ تم إنشاء جميع الأدوار وربط الصلاحيات بنجاح');
-        $this->command->table(
-            ['الدور', 'عدد الصلاحيات'],
-            [
-                ['super_admin', $superAdmin->permissions()->count()],
-                ['teacher',     $teacher->permissions()->count()],
-                ['secretary',   $secretary->permissions()->count()],
-                ['adviser',     $adviser->permissions()->count()],
-                ['counselor',   $counselor->permissions()->count()],
-                ['guardian',    $guardian->permissions()->count()],
-                ['student',     $student->permissions()->count()],
-            ]
-        );
+        $service_staff=Role::firstOrCreate(['name' => 'service_staff'], ['guard_name' => 'sanctum']);
+        
+        // مسح الكاش أوتوماتيكياً في نهاية السييدر لضمان عدم حدوث تعليق
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }

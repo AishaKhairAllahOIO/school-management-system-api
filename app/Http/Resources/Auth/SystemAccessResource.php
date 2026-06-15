@@ -19,7 +19,8 @@ class SystemAccessResource extends JsonResource
             'id' => $this->id,
             'role'=>$this->getRoleNames(),
             'email' => $this->email,
-            'is_active' => $this->account_status !== 'disabled'
+            'is_active' => $this->account_status !== 'disabled',
+            'permissions'=>$this->getAllPermissions()->pluck('name'),
         ];
     }
 }

@@ -4,7 +4,9 @@ namespace App\Http\Requests\Setting;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\BaseRequest;
+
 
 
 class UpdateGeneralSettingsRequest extends BaseRequest
@@ -14,7 +16,7 @@ class UpdateGeneralSettingsRequest extends BaseRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Gate::allows('school:update_info');
     }
 
     /**

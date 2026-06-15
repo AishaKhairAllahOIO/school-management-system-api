@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Setting;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\BaseRequest;
+
 
 
 class UpdateAcademicSettingsRequest extends FormRequest
@@ -13,7 +15,7 @@ class UpdateAcademicSettingsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Gate::allows('school:update_info');
     }
 
     /**
@@ -46,13 +48,13 @@ class UpdateAcademicSettingsRequest extends FormRequest
 
             'terms'                       => 'array',
             'terms.*.id'                  => 'nullable',
-            'terms.*.name'                => 'required|string',
+            'terms.*.name'                => 'required|string|distinct',
             'terms.*.startDate'           => 'required|date',
             'terms.*.endDate'             => 'required|date|after:terms.*.startDate',
 
             'gradeScale'                  => 'array',
             'gradeScale.*.id'             => 'nullable',
-            'gradeScale.*.grade'          => 'required|string',
+            'gradeScale.*.grade'          => 'required|string|distinct',
             'gradeScale.*.minimumScore'   => 'required|integer|min:0',
             'gradeScale.*.maximumScore'   => 'required|integer|gt:gradeScale.*.minimumScore',
             'gradeScale.*.description'    => 'nullable|string',

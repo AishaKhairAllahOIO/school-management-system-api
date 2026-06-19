@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Semester extends Model
 {
 
-const FIRST_TERM ='First_Term';
-const SECOUND_TERM = 'Secound_Term';
+    const FIRST_TERM = 'First_Term';
+    const SECOND_TERM = 'Second_Term';
     protected $guarded = [];
 
     public function academicYear()
@@ -27,4 +27,8 @@ const SECOUND_TERM = 'Secound_Term';
     }
 
 
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
 }

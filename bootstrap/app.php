@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +15,16 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })
+    ->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(function (ModelNotFoundException $e, $request) {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'المورد غير موجود.',
+            ], 404);
+        }
+    });
+})
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

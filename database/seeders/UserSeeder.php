@@ -27,6 +27,7 @@ class UserSeeder extends Seeder
             'gender' => 'female',
             'record_status' => 'active',
             'account_status' => 'enabled',
+            'personal_photo' => 'nour.png',
             'photo_url' => 'nour.png',
             'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
@@ -46,6 +47,7 @@ class UserSeeder extends Seeder
             'record_status' => 'active',
             'account_status' => 'enabled',
             'photo_url' => 'https://example.com/photo.jpg',
+            'personal_photo' => 'nour.png',
             'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
 
         ]);
@@ -66,6 +68,8 @@ class UserSeeder extends Seeder
             'account_status' => 'enabled',
             'record_status' => 'active',
             'photo_url' => 'aisha.png',
+            'personal_photo' => 'nour.png',
+
             'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
         $user3->assignRole('teacher');
@@ -103,6 +107,7 @@ class UserSeeder extends Seeder
             'record_status' => 'active',
             'gender' => 'male',
             'photo_url' => 'yazan.png',
+            'personal_photo' => 'nour.png',
             'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
 
@@ -203,5 +208,25 @@ class UserSeeder extends Seeder
             'record_status' => 'active',
         ]);
         $user10->assignRole('adviser');
+
+        $user11 = User::updateOrCreate([
+            'phone_number' => '0993790629',
+            'first_name' => 'Yazan',
+            'last_name' => 'Al_khalid',
+            'father_name' => 'Salem',
+            'mother_name' => 'Lisa Johnson',
+            'birth_date' => '1985-12-10',
+            'birth_place' => 'Villageburg',
+            'address' => '789 Pine Rd, Villageburg',
+            'nationality' => 'syrian',
+            'account_status' => 'enabled',
+            'record_status' => 'active',
+            'gender' => 'male',
+            'photo_url' => 'yazan.png',
+            'personal_photo' => 'nour.png',
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
+        ]);
+
+        $user11->assignRole('student');
     }
 }

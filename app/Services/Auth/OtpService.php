@@ -197,15 +197,7 @@ class OtpService
             'token' => $token,
         ];
     }
-    public function refreshToken(User $user): array
-    {
-        $user->currentAccessToken()->delete();
-        $newToken = $user->createToken('auth_token')->plainTextToken;
-
-        return [
-            'token' => $newToken,
-        ];
-    }
+   
     public function logout(): void
     {
 

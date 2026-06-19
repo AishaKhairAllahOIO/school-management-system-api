@@ -16,26 +16,26 @@ class RolesAndPermissionsSeeder extends Seeder
         $permissions = [
             // 1. نظام المصادقة والحسابات الأساسية
             'auth' => [
-                'login', 'logout', 'reset_password', 
+                'login', 'logout', 'reset_password',
                 'view_own_profile', 'edit_own_profile',
                 'account:toggle_status', 'record:toggle_status'
             ],
             // 1.1 تهيئة النظام
             'school_setup' => [
-                'school:initialize',      
-                'school:update_info',     
-                'academic_year:manage',   
+                'school:initialize',
+                'school:update_info',
+                'academic_year:manage',
             ],
             'access_control' => [
             'role:create', 'role:edit', 'role:delete', 'role:view',
             'permission:view', 'permission:assign_to_role'
-], 
+],
             // 2. إدارة الطلاب والتسجيل
             'students' => [
                 'student:create', 'student:edit', 'student:delete',
                 'student:view_by_class', 'student:view_by_section', 'student:view_profile',
                 'student:search', 'student:filter', 'student:transfer', 'student:promote',
-                'student:view_children' 
+                'student:view_children'
             ],
 
             // 3. إدارة الكوادر
@@ -83,12 +83,12 @@ class RolesAndPermissionsSeeder extends Seeder
                 'salary_secretary:set', 'salary_secretary:create', 'salary_secretary:delete', 'salary_secretary:view',
                 'salary_service:set', 'salary_service:create', 'salary_service:edit', 'salary_service:delete', 'salary_service:view',
                 'salary_counselor:set', 'salary_counselor:create', 'salary_counselor:edit', 'salary_counselor:delete', 'salary_counselor:view',
-                'salary:view_own' 
+                'salary:view_own'
             ],
 
-            // 9. الإجازات 
+            // 9. الإجازات
             'leaves' => [
-                'leave_admin:set_quota', 'leave_admin:edit_quota', 'leave_admin:apply_deduction', 
+                'leave_admin:set_quota', 'leave_admin:edit_quota', 'leave_admin:apply_deduction',
                 'leave_service:set_quota', 'leave_service:edit_quota', 'leave_service:apply_deduction',
                 'leave_counselor:set_quota', 'leave_counselor:edit_quota', 'leave_counselor:apply_deduction',
                 'leave_teacher:set_quota', 'leave_teacher:edit_quota', 'leave_teacher:apply_deduction',
@@ -99,7 +99,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'schedules' => [
                 'section:create', 'section:set_capacity', 'section:config_numbers',
                 'schedule_student:create', 'schedule_student:view',
-                'schedule_teacher:create', 
+                'schedule_teacher:create',
                 'schedule:view_own', // توحيد اسم الصلاحية للموظفين
                 'schedule_exam:create', 'schedule_exam:view'
             ],
@@ -177,8 +177,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $secretary = Role::firstOrCreate(['name' => 'secretary'], ['guard_name' => 'sanctum']);
         $secretary->syncPermissions([
             'login', 'logout', 'reset_password', 'view_own_profile', 'edit_own_profile',
-            'student:create', 'student:edit', 'student:delete', 'student:view_by_class', 
-            'student:view_by_section', 'student:view_profile', 'student:search', 
+            'student:create', 'student:edit', 'student:delete', 'student:view_by_class',
+            'student:view_by_section', 'student:view_profile', 'student:search',
             'student:filter', 'student:transfer', 'student:promote',
             'teacher:create', 'teacher:edit', 'teacher:view',
             'adviser:create', 'adviser:edit', 'adviser:view',
@@ -229,14 +229,14 @@ class RolesAndPermissionsSeeder extends Seeder
         // ROLE 7: Student (تم إصلاح خطأ اسم جدول الامتحانات)
         $student = Role::firstOrCreate(['name' => 'student'], ['guard_name' => 'sanctum']);
         $student->syncPermissions([
-            'login', 'logout', 'view_own_profile', 'edit_own_profile', 
+            'login', 'logout', 'view_own_profile', 'edit_own_profile',
             'schedule_student:view', 'schedule_exam:view', 'mark:view', 'view_top_students',
             'homework:view', 'evaluation:view', 'announcement:view', 'notification:system_receive',
             'rule:view', 'activity:view', 'counseling:book', 'counseling:cancel', 'counseling:view_own',
             'tool:ai_assistant', 'tool:todo_list'
         ]);
         $service_staff=Role::firstOrCreate(['name' => 'service_staff'], ['guard_name' => 'sanctum']);
-        
+
         // مسح الكاش أوتوماتيكياً في نهاية السييدر لضمان عدم حدوث تعليق
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }

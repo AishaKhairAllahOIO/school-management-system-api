@@ -12,22 +12,21 @@ class Enrollment extends Model
     {
         return $this->belongsTo(Student::class);
     }
-
     public function academicYear()
     {
         return $this->belongsTo(AcademicYear::class);
     }
-
     public function gradeLevel()
     {
         return $this->belongsTo(GradeLevel::class);
     }
-
     public function classRoom()
     {
         return $this->belongsTo(ClassRoom::class);
     }
 
-
-
+    public function semester()
+    {
+        return $this->belongsTo(ClassRoom::class);
+    }
 }

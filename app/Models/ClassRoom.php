@@ -12,4 +12,14 @@ class ClassRoom extends Model
     {
         return $this->belongsTo(GradeLevel::class);
     }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(Activity::class);
+    }
 }

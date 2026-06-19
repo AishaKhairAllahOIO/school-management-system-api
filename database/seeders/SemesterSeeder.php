@@ -18,7 +18,7 @@ class SemesterSeeder extends Seeder
         ]);
 
         Semester::updateOrCreate([
-            'semester_name' => Semester::SECOUND_TERM,
+            'semester_name' => Semester::SECOND_TERM,
             'start_date' => '2026-01-20',
             'end_date' => '2026-06-30',
             'academic_year_id' => 1

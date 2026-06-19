@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Setting\AcademicSettingsController;
+use App\Http\Controllers\web\ActivityController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -16,41 +17,53 @@ Route::prefix('auth')->group(function () {
 
     Route::post('/login', [SystemAccessController::class, 'loginWeb']);
     Route::post('/verify-otp', [SystemAccessController::class, 'verifyOtpWeb']);
-    Route::post('/loginMobile', [SystemAccessController::class,'loginMobile']);
-    Route::post('/verify-otp-mobile', [SystemAccessController::class,'vertifyOtpMobile']);
+    Route::post('/loginMobile', [SystemAccessController::class, 'loginMobile']);
+    Route::post('/verify-otp-mobile', [SystemAccessController::class, 'vertifyOtpMobile']);
     Route::post('/password/forgot', [SystemAccessController::class, 'forgotPassword']);
     Route::post('/password/verify-otp', [SystemAccessController::class, 'verifyPassword']);
-    Route::post('password/resend-otp', [SystemAccessController::class,'forgotPassword']);
+    Route::post('password/resend-otp', [SystemAccessController::class, 'forgotPassword']);
     Route::post('/password/reset', [SystemAccessController::class, 'resetPassword']);
-    Route::middleware('auth:sanctum')->delete('/logout', [SystemAccessController::class, 'logout']);
+    Route::post('/create-activity', [ActivityController::class, 'store']);
+    // Route::post('grade-levels/structure',[AcademicSettingsController::class,])
+
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::prefix('settings')->group(function () {
+            Route::get('general', [SchoolSettingsController::class, 'show']);
+            Route::put('general', [SchoolSettingsController::class, 'update']);
+            Route::get('academic', [AcademicSettingsController::class, 'show']);
+            Route::put('academic', [AcademicSettingsController::class, 'update']);
+
+            Route::post('/grade-levels/structure', [AcademicSettingsController::class, 'createStracture']);
+
+            Route::post('/one-grade-level', [AcademicSettingsController::class, 'createStracture']);
+
+
+            Route::get('/grade-levels',            [AcademicSettingsController::class, 'showAllGrades']);
+            Route::get('/grade-levels/{id}',       [AcademicSettingsController::class, 'showOneGrade']);
+            Route::put('/grade-levels/{id}',       [AcademicSettingsController::class, 'updateGrade']);
+            Route::delete('/grade-levels/{id}',    [AcademicSettingsController::class, 'destroyGrade']);
+
+            Route::put('/classrooms/{id}',         [AcademicSettingsController::class, 'updateClassroom']);
+            Route::delete('/classrooms/{id}',      [AcademicSettingsController::class, 'destroyClassroom']);
+        });
+        Route::delete('/logout', [SystemAccessController::class, 'logout']);
+    });
 });
 
 
-Route::prefix('user')->group(function(){
+Route::prefix('user')->group(function () {
 
     Route::post('login', [UserAuthController::class, 'login']);
     Route::post('verify-otp', [UserAuthController::class, 'verifyOtp']);
     Route::post('resend-otp', [UserAuthController::class, 'resendOtp']);
     Route::post('forgot-password', [UserAuthController::class, 'resendOtp']);
 
-    Route::middleware('auth:sanctum')->group(function(){
-            Route::delete('logout', [UserAuthController::class, 'logout']);
-            Route::get('/photos/{filename}',[ DocumentController::class,'showPersonalPhoto']);
-            Route::get('/get-user-data',[UserController::class,'getUserInfo']);
-
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::delete('logout', [UserAuthController::class, 'logout']);
+        Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
+        Route::get('/get-user-data', [UserController::class, 'getUserInfo']);
+        Route::get('/activites', [ActivityController::class, 'show']);
+        Route::get('/children/activities', [ActivityController::class, 'guardianViewActivities']);
     });
-
-
 });
-
-Route::middleware('auth:sanctum')->prefix('settings')->group(function () {
-
-    Route::get('general', [SchoolSettingsController::class, 'show']);
-    Route::put('general', [SchoolSettingsController::class, 'update']);
-    Route::get('academic', [AcademicSettingsController::class, 'show']);
-    Route::put('academic', [AcademicSettingsController::class, 'update']);
-
-
-});
-
-

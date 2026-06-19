@@ -130,7 +130,7 @@ class UserService
             [
                 'grade_name'    => $currentEnrollment->gradeLevel->grade_name ?? 'غير محدد',
                 'semester_name' => $semester->semester_name ?? 'غير محدد',
-                'class_number'  => $currentEnrollment->classRoom->class_number ?? 'غير محدد',
+                'name'  => $currentEnrollment->classRoom->name ?? 'غير محدد',
             ],
         ];
     }
@@ -159,7 +159,7 @@ class UserService
 
             if ($currentEnrollment) {
                 $gradeName = $currentEnrollment->gradeLevel->grade_name ?? 'غير محدد';
-                $className = $currentEnrollment->classRoom->class_number ?? 'غير محدد';
+                $className = $currentEnrollment->classRoom->name ?? 'غير محدد';
 
                 $semester = Semester::where('academic_year_id', $currentEnrollment->academic_year_id)
                     ->whereDate('start_date', '<=', now())
@@ -177,9 +177,9 @@ class UserService
                 'first_name'      => $student->user->first_name,
                 'father_name' => $student->user->father_name,
                 'last_name' => $student->user->last_name,
-                'student_photo_url' => url('api/user/photos/' . $student->user->photo_url),
+                'student_personal_photo' => url('api/user/photos/' . $student->user->personal_photo),
                 'grade_name'        => $gradeName,
-                'class_number'      => $className,
+                'name'      => $className,
             ];
         })->toArray();
 
@@ -187,4 +187,6 @@ class UserService
             'children_cards' => $childrenCards
         ];
     }
+
+
 }

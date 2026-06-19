@@ -16,15 +16,17 @@ class ClassRoomSeeder extends Seeder
     {
 
         $classRooms = [
-            ['class_number' => 'الشعبة الاولى', 'capacity' => 35, 'grade_level_id' => 1],
-            ['class_number' => 'الشعبة الثانية', 'capacity' => 35, 'grade_level_id' => 1],
-            ['class_number' => 'الشعبة الثالثة', 'capacity' => 35, 'grade_level_id' => 2],
+            ['name' => 'الشعبة الاولى', 'capacity' => 35, 'grade_level_id' => 1],
+            ['name' => 'الشعبة الثانية', 'capacity' => 35, 'grade_level_id' => 1],
+            ['name' => 'الشعبة الثالثة', 'capacity' => 35, 'grade_level_id' => 2],
+            ['name' => 'الشعبة الرابعة', 'capacity' => 35, 'grade_level_id' => 2],
+
 
 
         ];
 
         foreach ($classRooms as $room) {
-            ClassRoom::updateOrCreate(['class_number' => $room['class_number']], $room);
+            ClassRoom::updateOrCreate(['name' => $room['name']], $room);
         }
     }
 }

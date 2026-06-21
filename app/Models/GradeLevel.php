@@ -14,4 +14,14 @@ class GradeLevel extends Model
     {
         return $this->hasMany(ClassRoom::class);
     }
+
+    public function enrollments()
+    {
+        return $this->hasManyThrough(Enrollment::class, ClassRoom::class);
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(Activity::class);
+    }
 }

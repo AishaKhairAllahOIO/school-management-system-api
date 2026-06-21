@@ -31,6 +31,7 @@ return new class extends Migration
             $table->date('birth_date');
             $table->string('birth_place');
             $table->string('photo_url');
+            $table->string('personal_photo')->nullable();
             $table->string('address');
             $table->enum('gender', ['male', 'female']);
             $table->enum('nationality', ['syrian', 'lebanese', 'palestinian', 'jordanian', 'other'])->default('syrian');

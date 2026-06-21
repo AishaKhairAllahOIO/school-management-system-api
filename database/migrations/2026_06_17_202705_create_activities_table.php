@@ -11,11 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('class_rooms', function (Blueprint $table) {
+        Schema::create('activities', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
-            $table->unsignedInteger('capacity');
             $table->foreignId('grade_level_id')->constrained('grade_levels')->cascadeOnDelete();
+            $table->foreignId('class_room_id')->nullable()->constrained('class_rooms')->cascadeOnDelete();
+            $table->string('type');
+            $table->string('activity_name');
+            $table->date('activity_date');
+            $table->time('start_time');
+            $table->time('end_time');
+
             $table->timestamps();
         });
     }
@@ -25,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('class_rooms');
+        Schema::dropIfExists('activities');
     }
 };

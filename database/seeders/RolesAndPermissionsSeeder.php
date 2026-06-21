@@ -20,13 +20,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'auth' => [
                 'name' => 'Authentication & Accounts',
                 'perms' => [
-                    'login', 'logout', 'reset_password', 
+                    'login', 'logout', 'reset_password',
                     'view_own_profile', 'edit_own_profile',
                     'account:toggle_status', 'record:toggle_status'
                 ]
             ],
             'school_setup' => [
-                'name' =>'System Configuration',
+                'name' => 'System Configuration',
                 'perms' => ['school:initialize', 'school:update_info', 'academic_year:manage']
             ],
             'access_control' => [
@@ -35,14 +35,14 @@ class RolesAndPermissionsSeeder extends Seeder
                     'role:create', 'role:edit', 'role:delete', 'role:view',
                     'permission:view', 'permission:assign_to_role'
                 ]
-            ], 
+            ],
             'students' => [
                 'name' => 'Student Management',
                 'perms' => [
                     'student:create', 'student:edit', 'student:delete',
                     'student:view_by_class', 'student:view_by_section', 'student:view_profile',
                     'student:search', 'student:filter', 'student:transfer', 'student:promote',
-                    'student:view_children' 
+                    'student:view_children'
                 ]
             ],
             'users_management' => [
@@ -94,25 +94,25 @@ class RolesAndPermissionsSeeder extends Seeder
                     'salary_secretary:set', 'salary_secretary:create', 'salary_secretary:delete', 'salary_secretary:view',
                     'salary_service:set', 'salary_service:create', 'salary_service:edit', 'salary_service:delete', 'salary_service:view',
                     'salary_counselor:set', 'salary_counselor:create', 'salary_counselor:edit', 'salary_counselor:delete', 'salary_counselor:view',
-                    'salary:view_own' 
+                    'salary:view_own'
                 ]
             ],
             'leaves' => [
                 'name' => 'Leave Management',
                 'perms' => [
-                    'leave_admin:set_quota', 'leave_admin:edit_quota', 'leave_admin:apply_deduction', 
+                    'leave_admin:set_quota', 'leave_admin:edit_quota', 'leave_admin:apply_deduction',
                     'leave_service:set_quota', 'leave_service:edit_quota', 'leave_service:apply_deduction',
                     'leave_counselor:set_quota', 'leave_counselor:edit_quota', 'leave_counselor:apply_deduction',
                     'leave_teacher:set_quota', 'leave_teacher:edit_quota', 'leave_teacher:apply_deduction',
                     'leave:set_annual_holidays'
                 ]
             ],
-'schedules' => [
+            'schedules' => [
                 'name' => 'Schedules',
                 'perms' => [
                     'section:create', 'section:set_capacity', 'section:config_numbers',
                     'schedule_student:create', 'schedule_student:view',
-                    'schedule_teacher:create', 
+                    'schedule_teacher:create',
                     'schedule:view_own',
                     'schedule_exam:create', 'schedule_exam:view'
                 ]
@@ -201,8 +201,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $secretary = Role::firstOrCreate(['name' => 'secretary', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $secretary->syncPermissions([
             'login', 'logout', 'reset_password', 'view_own_profile', 'edit_own_profile',
-            'student:create', 'student:edit', 'student:delete', 'student:view_by_class', 
-            'student:view_by_section', 'student:view_profile', 'student:search', 
+            'student:create', 'student:edit', 'student:delete', 'student:view_by_class',
+            'student:view_by_section', 'student:view_profile', 'student:search',
             'student:filter', 'student:transfer', 'student:promote',
             'teacher:create', 'teacher:edit', 'teacher:view',
             'adviser:create', 'adviser:edit', 'adviser:view',
@@ -253,7 +253,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // ROLE 7: Student
         $student = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $student->syncPermissions([
-            'login', 'logout', 'view_own_profile', 'edit_own_profile', 
+            'login', 'logout', 'view_own_profile', 'edit_own_profile',
             'schedule_student:view', 'schedule_exam:view', 'mark:view', 'view_top_students',
             'homework:view', 'evaluation:view', 'announcement:view', 'notification:system_receive',
             'rule:view', 'activity:view', 'counseling:book', 'counseling:cancel', 'counseling:view_own',
@@ -282,3 +282,4 @@ class RolesAndPermissionsSeeder extends Seeder
         return 'global'; // الافتراضي
     }
 }
+    

@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Setting\AcademicSettingsController;
+use App\Http\Controllers\RoleAndPermission\RoleController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -52,5 +53,12 @@ Route::middleware('auth:sanctum')->prefix('settings')->group(function () {
 
 
 });
+
+Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {
+    Route::get('/systemRoles', [RoleController::class, 'index']);
+    Route::get('/systemModules', [RoleController::class, 'getSystemModules']);
+    Route::put('/{id}/permissions', [RoleController::class, 'sync']);
+});
+
 
 

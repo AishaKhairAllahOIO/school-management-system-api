@@ -50,5 +50,8 @@ class User extends Authenticatable
         return $this->hasOne(Guardian::class);
     }
 
-
+    public function staff()
+    {
+        return $this->hasOne(Staff::class);
+    }
 }

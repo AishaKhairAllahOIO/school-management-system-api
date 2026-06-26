@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Student\StudentController;
 use App\Http\Controllers\Auth\SystemAccessController;
 use App\Http\Controllers\Setting\SchoolSettingsController;
 use Illuminate\Http\Request;
@@ -8,11 +9,8 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Setting\AcademicSettingsController;
-<<<<<<< HEAD
 use App\Http\Controllers\RoleAndPermission\RoleController;
-=======
 use App\Http\Controllers\web\ActivityController;
->>>>>>> 36d654bf7416143ddfda67f0b4731ad830c31d16
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -86,7 +84,17 @@ Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(fun
     Route::get('/systemRoles', [RoleController::class, 'index']);
     Route::get('/systemModules', [RoleController::class, 'getSystemModules']);
     Route::put('/{id}/permissions', [RoleController::class, 'sync']);
-});
 
+
+
+});
+Route::middleware('auth:sanctum', 'role:super_admin')->prefix('data')->group(function () {
+    Route::get('/super_admin',[UserController::class,'myProfile']);
+    Route::put('/super_admin',[UserController::class,'updateMyAdminProfile']);
+    
+});
+Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
+   Route::post('/student/register',[StudentController::class,'store']);
+});
 
 

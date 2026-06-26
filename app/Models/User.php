@@ -54,4 +54,8 @@ class User extends Authenticatable
     {
         return $this->hasOne(Staff::class);
     }
+    public function serviceStaff()
+    {
+        return $this->hasOne(ServiceStaff::class);
+    }
 }

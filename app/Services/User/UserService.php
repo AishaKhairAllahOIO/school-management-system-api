@@ -7,8 +7,11 @@ use App\ApiResource;
 use App\Http\Resources\Auth\UserResource;
 use App\Models\Semester;
 use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class UserService
 {
@@ -189,4 +192,44 @@ class UserService
     }
 
 
+   
+    public function getAuthenticatedProfile(User $user)
+    {
+
+        // 1. نسحب اسم الرتبة الأولى للمستخدم من Spatie
+        $role = $user->getRoleNames()->first() ?? 'standard';
+
+        $relations = match ($role) {
+            // 'student'  => ['student'], 
+            // 'guardian' => ['guardian'],
+            'teacher', 'secretary', 'adviser', 'counselor', 'service_staff','super_admin' => ['staff'],
+            default    => [], 
+        };
+
+        return $user->loadMissing($relations);
+    }
+    public function updateStaffRecord(User $user, array $data): User
+    {
+        return DB::transaction(function () use ($user, $data) {
+            
+            $userData  = Arr::except($data, ['degree', 'specialization', 'university', 'graduation_year', 'experience_years']);
+            $staffData = Arr::only($data, ['degree', 'specialization', 'university', 'graduation_year', 'experience_years']);
+
+            if (!empty($userData)) {
+                $user->update($userData);
+            }
+
+            if (!empty($staffData)) {
+                $user->staff()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    $staffData
+                );
+            }
+
+            return $user->fresh(['staff']);
+        });
+    }
 }
+
+
+

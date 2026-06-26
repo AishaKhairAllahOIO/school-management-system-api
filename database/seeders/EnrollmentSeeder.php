@@ -25,8 +25,8 @@ class EnrollmentSeeder extends Seeder
                     'academic_year_id' => 1,
                     'grade_level_id' => 1,
                     'class_room_id' =>  1 ,
-                    'enrollment_status' => 'مثبت',
-                    'academic_result' => 'قيد الدراسة'
+                    'enrollment_status' => 'confirmed',
+                    'academic_result' => 'under_study'
                 ]
             );
 
@@ -36,8 +36,8 @@ class EnrollmentSeeder extends Seeder
                     'academic_year_id' => 1,
                     'grade_level_id' => 2,
                     'class_room_id' =>  3,
-                    'enrollment_status' => 'مثبت',
-                    'academic_result' => 'قيد الدراسة'
+                    'enrollment_status' => 'confirmed',
+                    'academic_result' => 'under_study'
                 ]
             );
         }

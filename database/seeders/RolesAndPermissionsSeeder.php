@@ -69,7 +69,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'academic_records' => [
                 'name' => 'Academic Records',
                 'perms' => [
-                    'mark:create', 'mark:edit', 'mark:delete', 'mark:view','mark:publish', 'mark:submit_to_adviser',
+                    'mark:create', 'mark:edit', 'mark:delete', 'mark:view', 'mark:publish', 'mark:submit_to_adviser',
                     'evaluation:create', 'evaluation:edit', 'evaluation:delete', 'evaluation:view', 'evaluation:submit_to_adviser',
                     'view_top_students'
                 ]
@@ -187,7 +187,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // ROLE 2: Teacher
         $teacher = Role::firstOrCreate(['name' => 'teacher', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $teacher->syncPermissions([
-            'login', 'logout', 'view_own_profile', 'edit_own_profile',
+            'login', 'logout', 'view_own_profile',
             'student:view_by_class', 'student:view_by_section', 'student:view_profile',
             'attendance_student:create', 'attendance_student:edit', 'attendance_student:view', 'attendance_teacher:view',
             'mark:create', 'mark:edit', 'mark:delete', 'mark:view', 'mark:submit_to_adviser',
@@ -200,7 +200,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // ROLE 3: Secretary
         $secretary = Role::firstOrCreate(['name' => 'secretary', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $secretary->syncPermissions([
-            'login', 'logout', 'reset_password', 'view_own_profile', 'edit_own_profile',
+            'login', 'logout', 'reset_password', 'view_own_profile',
             'student:create', 'student:edit', 'student:delete', 'student:view_by_class',
             'student:view_by_section', 'student:view_profile', 'student:search',
             'student:filter', 'student:transfer', 'student:promote',
@@ -221,7 +221,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // ROLE 4: Adviser
         $adviser = Role::firstOrCreate(['name' => 'adviser', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $adviser->syncPermissions([
-            'login', 'logout', 'reset_password', 'view_own_profile', 'edit_own_profile',
+            'login', 'logout', 'reset_password', 'view_own_profile', 
             'student:view_by_class', 'student:view_by_section', 'student:view_profile',
             'attendance_student:create','attendance_student:edit', 'attendance_student:view',
             'mark:view','mark:publish', 'view_top_students', 'evaluation:view',
@@ -233,7 +233,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // ROLE 5: Counselor
         $counselor = Role::firstOrCreate(['name' => 'counselor', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $counselor->syncPermissions([
-            'login', 'logout', 'view_own_profile', 'edit_own_profile',
+            'login', 'logout', 'view_own_profile',
             'counseling:set_times', 'counseling:view_requests', 'counseling:approve', 'counseling:reject',
             'counseling:view_appointments', 'counseling:delete', 'counseling:cancel_notice', 'counseling:record_status',
             'notification:system_receive', 'salary:view_own', 'schedule:view_own'
@@ -242,7 +242,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // ROLE 6: Guardian
         $guardian = Role::firstOrCreate(['name' => 'guardian', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $guardian->syncPermissions([
-            'login', 'logout', 'view_own_profile', 'edit_own_profile',
+            'login', 'logout', 'view_own_profile',
             'student:view_children', 'schedule_student:view', 'schedule_exam:view',
             'mark:view', 'view_top_students', 'homework:view', 'evaluation:view',
             'fee:view', 'payment:view_records', 'payment:view_remaining',
@@ -253,7 +253,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // ROLE 7: Student
         $student = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $student->syncPermissions([
-            'login', 'logout', 'view_own_profile', 'edit_own_profile',
+            'login', 'logout', 'view_own_profile',
             'schedule_student:view', 'schedule_exam:view', 'mark:view', 'view_top_students',
             'homework:view', 'evaluation:view', 'announcement:view', 'notification:system_receive',
             'rule:view', 'activity:view', 'counseling:book', 'counseling:cancel', 'counseling:view_own',

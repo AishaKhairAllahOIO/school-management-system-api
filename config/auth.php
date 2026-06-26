@@ -45,7 +45,7 @@ return [
         ],
         'api' => [
             'driver' => 'sanctum',
-            'provider' => 'system_accesses',
+            'provider' => 'users',
         ],
     ],
 
@@ -73,10 +73,7 @@ return [
         ],
 
   // تعديل البروفايدر المخصص لنظامك ليصبح Eloquent ويعتمد على موديلك
-        'system_accesses' => [
-            'driver' => 'eloquent', // مهم جداً ليعمل الـ ORM وتوليد التوكنات
-            'model' => SystemAccess::class, // الموديل الذي قمنا بإنشائه وتجهيزه بـ HasApiTokens
-        ],
+    
     ],
 
     /*

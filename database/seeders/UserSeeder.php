@@ -173,7 +173,6 @@ class UserSeeder extends Seeder
                 'nationality' => 'syrian',
                 'gender' => 'female',
                 'photo_url' => 'https://example.com/photo6.jpg',
-                'employee_type' => 'security',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
                 'account_status' => 'enabled',
                 'record_status' => 'active',

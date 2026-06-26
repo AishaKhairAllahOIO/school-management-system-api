@@ -15,7 +15,7 @@ class UpdateAcademicSettingsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Gate::allows('school:update_info');
+        return $this->user()->hasRole('super_admin');
     }
 
     /**

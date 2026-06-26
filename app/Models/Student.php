@@ -17,7 +17,7 @@ class Student extends Model
 
     public function guardian()
     {
-        return $this->belongsTo(Parent::class);
+        return $this->belongsTo(Guardian::class);
     }
 
     public function enrollments()

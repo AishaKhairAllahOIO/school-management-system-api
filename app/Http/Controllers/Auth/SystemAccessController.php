@@ -82,7 +82,7 @@ class SystemAccessController extends Controller
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while processing your request.', 500);
+            return $this->errorResponse('An error occurred while processing your request.', 500,$e);
         }
     }
 
@@ -103,8 +103,12 @@ class SystemAccessController extends Controller
     public function resetPassword(SystemAccessResetPasswordRequest $request, SystemAccessService $service)
     {
         try {
-            $service->resetPassword($request->validated());
-            return $this->successResponse(null, 'Password reset successfully.', 200);
+            $data=$service->resetPassword($request->validated());
+                $responseData = [
+                'user'  => new SystemAccessResource($data['data']),
+                'token' => $data['token']
+            ];
+            return $this->successResponse($responseData, 'Password reset successfully, you can use your account.', 200);
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {

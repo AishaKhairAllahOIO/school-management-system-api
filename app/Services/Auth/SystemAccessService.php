@@ -150,6 +150,7 @@ public function verifyOtpForPassword(array $data)
               'otp' => 'Invalid or expired OTP.'
 ]);
     }
+    Cache::forget('reset_otp'.$data['email']);
     $tempToken = bin2hex(random_bytes(20));
     Cache::put('reset_token'.$data['email'], $tempToken, now()->addMinutes(10));
 
@@ -159,20 +160,27 @@ public function verifyOtpForPassword(array $data)
 
 public function resetPassword(array $data)
 {
-  $cachtToken=Cache::get('reset_token'.$data['email']);
-  if (!$cachtToken || $cachtToken !== $data['tempToken'])
-    {
-      throw ValidationException::withMessages([
-               'token' => 'Invalid or expired reset token.'
-]);
+    $cachtToken = Cache::get('reset_token'.$data['email']);
+    
+    if (!$cachtToken || $cachtToken !== $data['tempToken']) {
+        throw ValidationException::withMessages([
+            'tempToken' => 'Invalid or expired reset token.'
+        ]);
     }
+    
     $access = User::where('email', $data['email'])->first();
     $access->update(['password' => Hash::make($data['password'])]);
 
-  Cache::forget('reset_token'.$data['email']);
-  Cache::forget('reset_otp'.$data['email']);
+    // تنظيف الكاش
+    Cache::forget('reset_token'.$data['email']);
+    Cache::forget('reset_otp'.$data['email']);
 
+    $token = $access->createToken('system_token', ['*'], now()->addHours(24))->plainTextToken;
 
+    return [
+        'token' => $token,
+        'data'  => $access,
+    ];
 }
 
 

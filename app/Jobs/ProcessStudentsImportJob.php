@@ -37,7 +37,7 @@ class ProcessStudentsImportJob implements ShouldQueue
             $mandatoryHeaders = [
                 'student_phone_number', 'student_first_name', 'student_last_name', 'student_father_name', 
                 'student_mother_name', 'student_birth_date', 'student_birth_place', 'student_address', 
-                'student_gender', 'student_nationality', 'student_connect_number',
+                'student_gender', 'student_nationality',
                 'guardian_phone_number', 'guardian_first_name', 'guardian_last_name', 'guardian_father_name', 
                 'guardian_mother_name', 'guardian_birth_date', 'guardian_birth_place', 'guardian_address', 
                 'guardian_gender', 'guardian_nationality',
@@ -91,7 +91,6 @@ class ProcessStudentsImportJob implements ShouldQueue
                         throw new \Exception("Student core data (first_name or phone_number) cannot be empty.");
                     }
 
-                    // المعالجة الذكية للتواريخ سواء جاءت Object أو String
                     $parseDate = fn($val) => $val instanceof \DateTimeInterface ? $val->format('Y-m-d') : trim((string)$val);
 
                     $payload = [

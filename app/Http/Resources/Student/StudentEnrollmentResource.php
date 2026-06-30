@@ -17,9 +17,9 @@ class StudentEnrollmentResource extends JsonResource
 
         return [
             'student' => [
-                'id'            => $student->id,
-                'userId'        => $this->id,
-                'full_name'       => $this->first_name . ' ' . $this->last_name,
+                'id'            => $student->id, // الآي دي الخاص بجدول الطلاب
+                'userId'        => $this->id,    // الآي دي الخاص بجدول المستخدمين
+                'fullName'      => $this->first_name . ' ' . $this->last_name, // camelCase
                 'fatherName'    => $this->father_name,
                 'motherName'    => $this->mother_name,
                 'birthDate'     => $this->birth_date,
@@ -30,11 +30,12 @@ class StudentEnrollmentResource extends JsonResource
                 'phoneNumber'   => $this->phone_number,
                 'photoUrl'      => $this->photo_url,
                 'accountStatus' => $this->account_status,
+                'recordStatus'  => $this->record_status,
             ],
             'guardian' => [
                 'id'          => $guardian->id,
                 'userId'      => $guardianUser->id,
-                'full_name'    => $guardianUser->first_name . ' ' . $guardianUser->last_name,
+                'fullName'    => $guardianUser->first_name . ' ' . $guardianUser->last_name,
                 'fatherName'  => $guardianUser->father_name,
                 'motherName'  => $guardianUser->mother_name,
                 'birthDate'   => $guardianUser->birth_date,
@@ -43,14 +44,23 @@ class StudentEnrollmentResource extends JsonResource
                 'gender'      => $guardianUser->gender,
                 'nationality' => $guardianUser->nationality,
                 'phoneNumber' => $guardianUser->phone_number,
+                'photoUrl'    => $guardianUser->photo_url, // تمت إضافة صورة ولي الأمر
+                'accountStatus' => $guardianUser->account_status,
+                'recordStatus'  => $guardianUser->record_status,
             ],
+            
+            // 🚨 هنا السحر: المطابقة الحرفية مع واجهة الـ TypeScript الخاصة بالفرونت إند
             'enrollment' => $enrollment ? [
-                'id'               => $enrollment->id,
-                'academicYearId'   => $enrollment->academic_year_id,
-                'gradeLevelId'     => $enrollment->grade_level_id,
-                'classRoomId'      => $enrollment->class_room_id,
-                'enrollmentStatus' => $enrollment->enrollment_status,
-                'academicResult'   => $enrollment->academic_result,
+                'id'               => (string) $enrollment->id,
+                'studentId'        => (string) $enrollment->student_id,
+                'academicYearId'   => (string) $enrollment->academic_year_id,
+                'gradeId'          => (string) $enrollment->grade_level_id, // لاحظوا تحويل الاسم لتطابق الواجهة
+                'classroomId'      => (string) $enrollment->class_room_id,  // لاحظوا تحويل الاسم لتطابق الواجهة
+                'enrollmentStatus' => $enrollment->enrollment_status,       // سيعيد 'suspended' افتراضياً
+                'enrollmentDate'   => $enrollment->enrollment_date?->toDateString(),
+                'completedAt'      => $enrollment->completed_at?->toIso8601String(),
+                'createdAt'        => $enrollment->created_at?->toIso8601String(),
+                'updatedAt'        => $enrollment->updated_at?->toIso8601String(),
             ] : null,
         ];
     }

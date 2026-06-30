@@ -39,7 +39,7 @@ class StudentRegisterService
                     'phone_number'   => $guardianPhone,
                     'email'          => null, 
                     'password'       => env('DEFAULT_USER_PASSWORD', 'password'),
-                    'photo_url'      => 'defaults/guardian.png',
+                    'photo_url'      => $data['guardian']['photo_url'] ?? 'defaults/guardian.png',
                     'account_status' => 'enabled',
                     'record_status'  => 'active',
                 ]);
@@ -65,10 +65,10 @@ class StudentRegisterService
                 'gender'         => $data['student']['gender'],
                 'nationality'    => $data['student']['nationality'],                
                 'phone_number'   => $data['student']['phone_number'],
+                'photo_url'      => $data['student']['photo_url'] ?? 'defaults/student.png',
                 'email'          => null,
                 'password'       => env('DEFAULT_USER_PASSWORD', 'password'),
-                'photo_url'      => 'defaults/student.png',
-                'account_status' => 'disabled',
+                'account_status' => 'disabled', // معطل حتى يتم الدفع
                 'record_status'  => 'active',
             ]);
 
@@ -79,13 +79,12 @@ class StudentRegisterService
                 'guardian_id'    => $guardianRecord->id,
             ]);
 
-            // 3. توثيق الالتحاق
+            // 3. توثيق الالتحاق (الداتابيز ستعطيه حالة suspended افتراضياً)
             Enrollment::create([
                 'student_id'       => $studentRecord->id,
                 'academic_year_id' => $data['enrollment']['academic_year_id'],
                 'grade_level_id'   => $data['enrollment']['grade_level_id'],
-                'class_room_id'    => $data['enrollment']['class_room_id'],
-                'enrollment_status' => 'pending',     
+                'class_room_id'    => $data['enrollment']['class_room_id'] ?? null,
             ]);
 
             return $studentUser->fresh(['student.guardian.user', 'student.enrollments']);
@@ -107,6 +106,7 @@ class StudentRegisterService
 
         return $batch;
     }
+
     public function downloadBatchErrors(ImportBatch $batch)
     {
         $errors = ImportError::where('import_batch_id', $batch->id)->get();
@@ -126,12 +126,9 @@ class StudentRegisterService
             ], $originalRow ?? []);
         });
 
-        $fileName = "rejected_students_batch_{$batch->id}.xlsx";
-
-        // تقوم FastExcel بتجهيز ستريم التحميل وإرساله للمتصفح مباشرة
-        return (new FastExcel($exportData))->download($fileName);
+        return (new FastExcel($exportData))->download("rejected_students_batch_{$batch->id}.xlsx");
     }
- 
+
     public function getImportBatchesArchive(array $filters)
     {
         $query = ImportBatch::latest();
@@ -149,8 +146,6 @@ class StudentRegisterService
             $query->where('imported_by_user_id', $filters['importer_id']);
         }
 
-        $perPage = $filters['per_page'] ?? 15;
-
-        return $query->paginate($perPage);
+        return $query->paginate($filters['per_page'] ?? 15);
     }
 }

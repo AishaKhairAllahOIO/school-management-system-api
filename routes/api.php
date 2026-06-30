@@ -84,37 +84,6 @@ Route::middleware('auth:sanctum', 'role:super_admin')->prefix('data')->group(fun
     Route::get('/super_admin', [UserController::class, 'myProfile']);
     Route::put('/super_admin', [UserController::class, 'updateMyAdminProfile']);
 });
-<<<<<<< HEAD
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
-    Route::post('/student/register', [StudentController::class, 'store']);
-});
-
-        Route::post('/alerts', [UserAlertController::class, 'store']);
-
-// /////////////////////////////////////Mobile///////////////////////////////////////////////////////////
-
-Route::prefix('user')->group(function () {
-
-    Route::post('login', [UserAuthController::class, 'login']);
-    Route::post('verify-otp', [UserAuthController::class, 'verifyOtp']);
-    Route::post('resend-otp', [UserAuthController::class, 'resendOtp']);
-
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
-        Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
-        Route::delete('logout', [UserAuthController::class, 'logout']);
-        Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
-        Route::get('/get-user-data', [UserController::class, 'getUserInfo']);
-        Route::get('/activites', [ActivityController::class, 'show']);
-        Route::get('/children/activities', [ActivityController::class, 'guardianViewActivities']);
-        Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy'])
-            ->middleware('role:super_admin|adviser');
-        Route::get('/my-alerts', [UserAlertController::class, 'myAlerts']);
-        Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
-        Route::get('/child-payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
-        Route::get('/staff-alerts', [UserAlertController::class, 'getStaffAlerts']);
-    });
-=======
 Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
    Route::post('/student/register',[StudentController::class,'store']);
    Route::post('/student/import',[StudentController::class,'importExcel']);
@@ -123,7 +92,6 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
      Route::get('/student/import-batches/{batch}/status', [StudentController::class, 'getImportStatus'])
      ->middleware('can:student:create');
      Route::get('/student/import-batches/history', [StudentController::class, 'getBatchesHistory']);
->>>>>>> d74dc54ece2b1753233d0eae07e6066bf945a21a
 });
 
 

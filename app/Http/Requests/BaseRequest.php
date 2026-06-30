@@ -25,4 +25,12 @@ abstract class BaseRequest extends FormRequest
             )
         );
     }
+    protected function failedAuthorization()
+    {
+        throw new HttpResponseException(
+            //اريد الرسالة بالانكليزية
+
+            $this->errorResponse('sorry,you do not have the permission to access this', 403,[])
+        );
+    }
 }

@@ -37,6 +37,7 @@ return new class extends Migration
             $table->json('working_days'); 
             $table->time('opening_time');
             $table->time('closing_time');
+            $table->enum('education_level', ['primary', 'secondary', 'middle'])->default('middle'  );
             $table->timestamps();
         });
     }

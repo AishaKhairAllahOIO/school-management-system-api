@@ -4,8 +4,9 @@ namespace App\Http\Requests\Admin\Student;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseRequest;
 
-class StoreStudentRegisterRequest extends FormRequest
+class StoreStudentRegisterRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -32,6 +33,11 @@ class StoreStudentRegisterRequest extends FormRequest
             'guardian.mother_name'  => ['required', 'string', 'max:50'],
             'guardian.birth_date'   => ['required', 'date', 'before:today'],
             'guardian.birth_place'  => ['required', 'string', 'max:100'],
+            'guardian.gender'        => ['required', 'in:male,female'],
+            'guardian.nationality'     => ['nullable', 'in:syrian,lebanese,palestinian,jordanian,other'],
+
+
+            
 
             // ----- بيانات الطالب -----
             'student.phone_number'  => ['required', 'string', 'max:20', 'different:guardian.phone_number', 'unique:users,phone_number'],
@@ -45,10 +51,10 @@ class StoreStudentRegisterRequest extends FormRequest
             'student.gender'        => ['required', 'in:male,female'],
 
             // ----- الهوية والالتحاق (مطابقة للـ Enums المحمية) -----
-            'connect_number'              => ['nullable', 'integer', 'unique:students,connect_number'],
             'enrollment.academic_year_id' => ['required', 'exists:academic_years,id'],
             'enrollment.grade_level_id'   => ['required', 'exists:grade_levels,id'],
             'enrollment.class_room_id'    => ['required', 'exists:class_rooms,id'],
+            'student.nationality'    => ['nullable', 'in:syrian,lebanese,palestinian,jordanian,other'],
 
         ];
     }

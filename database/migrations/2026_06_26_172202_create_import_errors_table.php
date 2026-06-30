@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('service_staff', function (Blueprint $table) {
+        Schema::create('import_errors', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('service_name', 100);
-            $table->date('hire_date')->nullable();
+            $table->foreignId('import_batch_id')->constrained('import_batches')->cascadeOnDelete();
+            $table->unsignedInteger('row_number');
+            $table->json('row_data');
+            $table->string('error_message');
+            $table->index(['import_batch_id', 'row_number']);
             $table->timestamps();
         });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('service_staff');
+        Schema::dropIfExists('import_errors');
     }
 };

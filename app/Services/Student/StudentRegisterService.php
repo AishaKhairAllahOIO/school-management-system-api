@@ -1,12 +1,17 @@
 <?php
+
 namespace App\Services\Student;
 
 use App\Models\User;
 use App\Models\Student;
 use App\Models\Guardian;
 use App\Models\Enrollment;
+use App\Models\ImportBatch;
+use App\Jobs\ProcessStudentsImportJob;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use App\Models\ImportError;
+use Rap2hpoutre\FastExcel\FastExcel;
 
 class StudentRegisterService
 {
@@ -14,7 +19,7 @@ class StudentRegisterService
     {
         return DB::transaction(function () use ($data) {
             
-            // 1. حساب الأب (يُفعّل فوراً ليدفع الفاتورة)
+            // 1. حساب الأب
             $guardianPhone = $data['guardian']['phone_number'];
             $guardianUser  = User::where('phone_number', $guardianPhone)->first();
 
@@ -24,16 +29,18 @@ class StudentRegisterService
                     'last_name'      => $data['guardian']['last_name'],
                     'father_name'    => $data['guardian']['father_name'] ?? 'غير مدخل',
                     'mother_name'    => $data['guardian']['mother_name'] ?? 'غير مدخل',
-                    'birth_date'     => $data['guardian']['birth_date']  ?? '1980-01-01',
+                    'birth_date'     => $data['guardian']['birth_date'] instanceof \DateTimeInterface 
+                                        ? $data['guardian']['birth_date']->format('Y-m-d') 
+                                        : $data['guardian']['birth_date'],
                     'birth_place'    => $data['guardian']['birth_place'] ?? 'غير مدخل',
                     'address'        => $data['guardian']['address'],
-                    'gender'         => 'male',
-                    'nationality'    => 'syrian',
+                    'gender'         => $data['guardian']['gender'],  
+                    'nationality'    => $data['guardian']['nationality'] ?? 'syrian',
                     'phone_number'   => $guardianPhone,
                     'email'          => null, 
-                    'password'       => Hash::make('12345678'), 
+                    'password'       => env('DEFAULT_USER_PASSWORD', 'password'),
                     'photo_url'      => 'defaults/guardian.png',
-                    'account_status' => 'enabled', // مفعّل ليدخل للبوابة المالية
+                    'account_status' => 'enabled',
                     'record_status'  => 'active',
                 ]);
 
@@ -44,23 +51,24 @@ class StudentRegisterService
                 if (!$guardianUser->hasRole('guardian')) $guardianUser->assignRole('guardian');
             }
 
-            // 2. حساب الطالب (مقفل برمجياً حتى إشعار مالي آخر!)
+            // 2. حساب الطالب
             $studentUser = User::create([
                 'first_name'     => $data['student']['first_name'],
                 'last_name'      => $data['student']['last_name'],
                 'father_name'    => $data['student']['father_name'],
                 'mother_name'    => $data['student']['mother_name'],
-                'birth_date'     => $data['student']['birth_date'],
+                'birth_date'     => $data['student']['birth_date'] instanceof \DateTimeInterface 
+                                    ? $data['student']['birth_date']->format('Y-m-d') 
+                                    : $data['student']['birth_date'],
                 'birth_place'    => $data['student']['birth_place'],
                 'address'        => $data['student']['address'],
                 'gender'         => $data['student']['gender'],
-                'nationality'    => 'syrian',
+                'nationality'    => $data['student']['nationality'],                
                 'phone_number'   => $data['student']['phone_number'],
                 'email'          => null,
                 'password'       => env('DEFAULT_USER_PASSWORD', 'password'),
                 'photo_url'      => 'defaults/student.png',
-                
-                'account_status' => 'disabled', // <-- صيد المهندسة العبقري! (حساب مجمد)
+                'account_status' => 'disabled',
                 'record_status'  => 'active',
             ]);
 
@@ -69,21 +77,80 @@ class StudentRegisterService
             $studentRecord = Student::create([
                 'user_id'        => $studentUser->id,
                 'guardian_id'    => $guardianRecord->id,
-                'connect_number' => $data['connect_number'] ?? null,
             ]);
 
-            // 4. توثيق الالتحاق بـ [حالات إجبارية من السيرفر]
+            // 3. توثيق الالتحاق
             Enrollment::create([
                 'student_id'       => $studentRecord->id,
                 'academic_year_id' => $data['enrollment']['academic_year_id'],
                 'grade_level_id'   => $data['enrollment']['grade_level_id'],
                 'class_room_id'    => $data['enrollment']['class_room_id'],
-                
-                'enrollment_status' => 'pending',     // محقونة آلياً (قيد انتظار الدفع)
-                'academic_result'   => 'under_study', // محقونة آلياً (طالب مستجد)
+                'enrollment_status' => 'pending',     
             ]);
 
             return $studentUser->fresh(['student.guardian.user', 'student.enrollments']);
         });
+    }
+
+    public function initiateExcelImport(UploadedFile $file, int $importerId)
+    {
+        $storedPath = $file->store('temp_imports', 'local');
+
+        $batch = ImportBatch::create([
+            'batch_title'         => $file->getClientOriginalName(),
+            'file_path'           => $storedPath,
+            'imported_by_user_id' => $importerId,
+            'status'              => 'pending'
+        ]);
+
+        ProcessStudentsImportJob::dispatch($batch->id);
+
+        return $batch;
+    }
+    public function downloadBatchErrors(ImportBatch $batch)
+    {
+        $errors = ImportError::where('import_batch_id', $batch->id)->get();
+
+        if ($errors->isEmpty()) {
+            throw new \Exception('لا توجد أخطاء مسجلة لهذه الدفعة.');
+        }
+
+        $exportData = $errors->map(function ($errorRecord) {
+            $originalRow = is_array($errorRecord->row_data) 
+                ? $errorRecord->row_data 
+                : json_decode($errorRecord->row_data, true);
+
+            return array_merge([
+                'EXCEL_ROW_NUMBER'  => $errorRecord->row_number,
+                'REJECTION_REASON'  => $errorRecord->error_message,
+            ], $originalRow ?? []);
+        });
+
+        $fileName = "rejected_students_batch_{$batch->id}.xlsx";
+
+        // تقوم FastExcel بتجهيز ستريم التحميل وإرساله للمتصفح مباشرة
+        return (new FastExcel($exportData))->download($fileName);
+    }
+ 
+    public function getImportBatchesArchive(array $filters)
+    {
+        $query = ImportBatch::latest();
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['search'])) {
+            $safeSearch = str_replace(['%', '_'], ['\%', '\_'], $filters['search']);
+            $query->where('batch_title', 'like', "%{$safeSearch}%");
+        }
+
+        if (!empty($filters['importer_id'])) {
+            $query->where('imported_by_user_id', $filters['importer_id']);
+        }
+
+        $perPage = $filters['per_page'] ?? 15;
+
+        return $query->paginate($perPage);
     }
 }

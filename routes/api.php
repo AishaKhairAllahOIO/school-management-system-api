@@ -95,6 +95,12 @@ Route::middleware('auth:sanctum', 'role:super_admin')->prefix('data')->group(fun
 });
 Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
    Route::post('/student/register',[StudentController::class,'store']);
+   Route::post('/student/import',[StudentController::class,'importExcel']);
+   Route::get('/student/import-batches/{batch}/errors/export', [StudentController::class, 'exportErrors'])
+     ->middleware('can:student:create');
+     Route::get('/student/import-batches/{batch}/status', [StudentController::class, 'getImportStatus'])
+     ->middleware('can:student:create');
+     Route::get('/student/import-batches/history', [StudentController::class, 'getBatchesHistory']);
 });
 
 

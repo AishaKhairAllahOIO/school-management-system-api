@@ -193,42 +193,42 @@ class UserService
 
 
    
-    public function getAuthenticatedProfile(User $user)
-    {
+    // public function getAuthenticatedProfile(User $user)
+    // {
 
-        // 1. نسحب اسم الرتبة الأولى للمستخدم من Spatie
-        $role = $user->getRoleNames()->first() ?? 'standard';
+    //     // 1. نسحب اسم الرتبة الأولى للمستخدم من Spatie
+    //     $role = $user->getRoleNames()->first() ?? 'standard';
 
-        $relations = match ($role) {
-            // 'student'  => ['student'], 
-            // 'guardian' => ['guardian'],
-            'teacher', 'secretary', 'adviser', 'counselor', 'service_staff','super_admin' => ['staff'],
-            default    => [], 
-        };
+    //     $relations = match ($role) {
+    //         // 'student'  => ['student'], 
+    //         // 'guardian' => ['guardian'],
+    //         'teacher', 'secretary', 'adviser', 'counselor', 'service_staff','super_admin' => ['staff'],
+    //         default    => [], 
+    //     };
 
-        return $user->loadMissing($relations);
-    }
-    public function updateStaffRecord(User $user, array $data): User
-    {
-        return DB::transaction(function () use ($user, $data) {
+    //     return $user->loadMissing($relations);
+    // }
+    // public function updateStaffRecord(User $user, array $data): User
+    // {
+    //     return DB::transaction(function () use ($user, $data) {
             
-            $userData  = Arr::except($data, ['degree', 'specialization', 'university', 'graduation_year', 'experience_years']);
-            $staffData = Arr::only($data, ['degree', 'specialization', 'university', 'graduation_year', 'experience_years']);
+    //         $userData  = Arr::except($data, ['degree', 'specialization', 'university', 'graduation_year', 'experience_years']);
+    //         $staffData = Arr::only($data, ['degree', 'specialization', 'university', 'graduation_year', 'experience_years']);
 
-            if (!empty($userData)) {
-                $user->update($userData);
-            }
+    //         if (!empty($userData)) {
+    //             $user->update($userData);
+    //         }
 
-            if (!empty($staffData)) {
-                $user->staff()->updateOrCreate(
-                    ['user_id' => $user->id],
-                    $staffData
-                );
-            }
+    //         if (!empty($staffData)) {
+    //             $user->staff()->updateOrCreate(
+    //                 ['user_id' => $user->id],
+    //                 $staffData
+    //             );
+    //         }
 
-            return $user->fresh(['staff']);
-        });
-    }
+    //         return $user->fresh(['staff']);
+    //     });
+    // }
 }
 
 

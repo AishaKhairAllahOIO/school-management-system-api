@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('grade_levels', function (Blueprint $table) {
             $table->id();
+            // لازم اربط المرحلة يعني اعدادي او ثانوي بالصفوف
+            
             $table->string('grade_name')->unique();
             $table->timestamps();
         });

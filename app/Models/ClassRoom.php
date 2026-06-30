@@ -22,4 +22,8 @@ class ClassRoom extends Model
     {
         return $this->hasMany(Activity::class);
     }
+
+    public function teacherAssignments(){
+        return $this->hasMany(TeacherAssignment::class);
+    }
 }

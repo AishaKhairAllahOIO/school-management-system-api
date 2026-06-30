@@ -24,9 +24,12 @@ class Enrollment extends Model
     {
         return $this->belongsTo(ClassRoom::class);
     }
-
     public function semester()
     {
-        return $this->belongsTo(ClassRoom::class);
+        return $this->belongsTo(Semester::class);
     }
+  public function alerts()
+{
+    return $this->morphMany(Alert::class, 'notifiable');
+}
 }

@@ -16,12 +16,9 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('phone_number', 20)->unique();
             $table->string('password');
-           // $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
-       //    بدي شيلها
-        //    $table->string('employee_type')->nullable(); // for the staff services
 
 
-            $table->enum('record_status', ['active', 'draft', 'archived', 'deleted'])->default('draft');
+            $table->enum('record_status', ['active', 'draft', 'archived'])->default('draft');
             $table->enum('account_status', ['enabled', 'disabled'])->default('disabled');
 
 
@@ -37,7 +34,6 @@ return new class extends Migration
             $table->enum('gender', ['male', 'female']);
             $table->enum('nationality', ['syrian', 'lebanese', 'palestinian', 'jordanian', 'other'])->default('syrian');
 
-// بدي ضيف ال deleted at
             $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();

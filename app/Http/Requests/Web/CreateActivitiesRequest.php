@@ -25,13 +25,12 @@ class CreateActivitiesRequest extends FormRequest
     {
         return [
             'grade_level_id' => ['required', 'integer', 'exists:grade_levels,id'],
-            // nullable: غيابه يعني أن النشاط لكل المرحلة
             'class_room_id'  => ['nullable', 'integer', 'exists:class_rooms,id'],
 
             'type'           => ['required', 'string', 'max:255'],
             'activity_name'           => ['required', 'string', 'max:255'],
-            'activity_date'           => ['required', 'date'],
-            'start_time'     => ['required', 'date_format:H:i'],
+            'activity_date'           => ['required', 'date', 'after_or_equal:today'],
+            'start_time'     => ['required', 'date_format:H:i', 'after:now'],
             'end_time'       => ['required', 'date_format:H:i', 'after:start_time'],
 
         ];
@@ -43,7 +42,7 @@ class CreateActivitiesRequest extends FormRequest
             $classRoomId = $this->input('class_room_id');
 
             if (! $classRoomId) {
-                return; // نشاط لكل المرحلة — لا شيء نتحقق منه
+                return; 
             }
 
             $belongsToGrade = ClassRoom::where('id', $classRoomId)

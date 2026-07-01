@@ -42,9 +42,25 @@ class ActivityService
                 $query->whereNull('class_room_id')
                     ->orWhere('class_room_id', $currentEnrollment->class_room_id);
             })
-            ->with(['gradeLevel:id,grade_name', 'classRoom:id,name'])    // Eager Loading يمنع N+1
+            ->with(['gradeLevel:id,grade_name', 'classRoom:id,name'])
             ->orderBy('activity_date')
             ->orderBy('start_time')
             ->get();
     }
+
+
+    public function updateActivity(Activity $activity, array $data)
+    {
+        $activity->update($data);
+
+        return $activity->load(['gradeLevel:id,grade_name', 'classRoom:id,name']);
+    }
+
+
+    public function deleteActivity(Activity $activity)
+    {
+        $activity->delete();
+    }
+
+
 }

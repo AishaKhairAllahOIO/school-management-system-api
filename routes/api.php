@@ -96,4 +96,14 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
 
 
 
+
+
+
+
 Route::post('/announcements',     [UserAnnouncementController::class, 'store']);
+
+
+
+
+
+

@@ -1,19 +1,15 @@
 <?php
 
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\Web;
 
 use App\Models\Alert;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-
 class AlertRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
+     public function authorize(): bool
     {
         return true;
     }

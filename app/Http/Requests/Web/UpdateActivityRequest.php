@@ -2,11 +2,12 @@
 
 namespace App\Http\Requests\Web;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use App\Models\ClassRoom;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
-class CreateActivitiesRequest extends FormRequest
+
+class UpdateActivityRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,26 +24,27 @@ class CreateActivitiesRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'grade_level_id' => ['required', 'integer', 'exists:grade_levels,id'],
-            'class_room_id'  => ['nullable', 'integer', 'exists:class_rooms,id'],
 
-            'type'           => ['required', 'string', 'max:255'],
-            'activity_name'           => ['required', 'string', 'max:255'],
-            'activity_date'           => ['required', 'date', 'after:today'],
-            'start_time'     => ['required', 'date_format:H:i','after:now'],
-            'end_time'       => ['required', 'date_format:H:i', 'after:start_time'],
+             return [
+            'grade_level_id' => ['sometimes', 'integer', 'exists:grade_levels,id'],
+            'class_room_id'  => ['sometimes', 'integer', 'exists:class_rooms,id'],
 
+            'type'           => ['sometimes', 'string', 'max:255'],
+            'activity_name'           => ['sometimes', 'string', 'max:255'],
+            'activity_date'           => ['sometimes', 'date', 'after:today'],
+            'start_time'     => ['sometimes', 'date_format:H:i','after:now'],
+            'end_time'       => ['sometimes', 'date_format:H:i', 'after:start_time'],
         ];
+
     }
 
-        public function withValidator(Validator $validator): void
+     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
             $classRoomId = $this->input('class_room_id');
 
             if (! $classRoomId) {
-                return; // نشاط لكل المرحلة — لا شيء نتحقق منه
+                return;
             }
 
             $belongsToGrade = ClassRoom::where('id', $classRoomId)

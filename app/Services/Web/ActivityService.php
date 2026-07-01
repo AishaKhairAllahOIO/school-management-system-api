@@ -47,4 +47,21 @@ class ActivityService
             ->orderBy('start_time')
             ->get();
     }
+
+    public function updateActivity(Activity $activity, array $data): Activity
+    {
+        $activity->update($data);
+
+        return $activity->load(['gradeLevel:id,grade_name', 'classRoom:id,name']);
+    }
+
+    public function deleteActivity(int $id): void
+    {
+        $activity = Activity::find($id);
+
+        if (!$activity)
+            throw new HttpResponseException($this->errorResponse('النشاط غير موجود.', 404));
+
+        $activity->delete();
+    }
 }

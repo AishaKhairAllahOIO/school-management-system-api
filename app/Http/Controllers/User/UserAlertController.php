@@ -4,7 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\ApiResource;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\AlertRequest;
+use App\Http\Requests\Web\AlertRequest;
 use App\Http\Resources\User\AlertResource;
 use App\Services\User\AlertService;
 use Illuminate\Http\Request;

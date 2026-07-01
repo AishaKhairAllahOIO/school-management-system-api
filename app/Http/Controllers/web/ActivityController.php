@@ -13,39 +13,38 @@ use Illuminate\Http\Request;
 class ActivityController extends Controller
 {
 
-use ApiResource;
+    use ApiResource;
 
-private ActivityService $activityService;
+    private ActivityService $activityService;
 
-public function __construct(ActivityService $activityService)
-{
-    $this->activityService=$activityService;
-}
-   public function store(CreateActivitiesRequest $activityRequest)
-{
-    $result = $this->activityService->addActivity($activityRequest->validated());
+    public function __construct(ActivityService $activityService)
+    {
+        $this->activityService = $activityService;
+    }
+    public function store(CreateActivitiesRequest $activityRequest)
+    {
+        $result = $this->activityService->addActivity($activityRequest->validated());
 
-    return $this->successResponse(
-        new ActivityResource($result),
-        'Activity has been added successfully',
-        201
-    );
-}
+        return $this->successResponse(
+            new ActivityResource($result),
+            'Activity has been added successfully',
+            201
+        );
+    }
     public function show(Request $request)
     {
 
-         $student = $request->user()->student;
-         if(!$student)
-            return $this->errorResponse('هذا الحساب غير مرتبط بطالب.',403,null);
+        $student = $request->user()->student;
+        if (!$student)
+            return $this->errorResponse('هذا الحساب غير مرتبط بطالب.', 403, null);
 
 
         $activities = $this->activityService->showActivites($student);
 
-        return $this->successResponse( ActivityResource::collection($activities),'student activites',200);
-
+        return $this->successResponse(ActivityResource::collection($activities), 'student activites', 200);
     }
 
-       public function guardianViewActivities(GuardianViewActivitiesRequest $request)
+    public function guardianViewActivities(GuardianViewActivitiesRequest $request)
     {
         $guardian = $request->user()->guardian;
 
@@ -58,6 +57,17 @@ public function __construct(ActivityService $activityService)
         return $this->successResponse(
             ActivityResource::collection($activities),
             'student activities',
+            200
+        );
+    }
+
+    public function destroy(Request $request)
+    {
+        $this->activityService->deleteActivity($request->id);
+
+        return $this->successResponse(
+            null,
+            'تم حذف النشاط بنجاح.',
             200
         );
     }

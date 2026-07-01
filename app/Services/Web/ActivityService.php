@@ -57,10 +57,15 @@ class ActivityService
     }
 
 
-    public function deleteActivity(Activity $activity)
+    public function deleteActivity(int $id): void
     {
+        $activity = Activity::find($id);
+
+        if(!$activity)
+            throw new HttpResponseException($this->errorResponse('Activity not found.', 404));
         $activity->delete();
     }
+
 
 
 }

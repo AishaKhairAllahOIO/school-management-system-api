@@ -11,7 +11,7 @@ class AnnouncementService
 
 
 
-      public function create(array $data): Announcement
+    public function create(array $data): Announcement
     {
         $announcement = Announcement::create($data);
 
@@ -30,7 +30,6 @@ class AnnouncementService
         $announcement = Announcement::findOrFail($id);
         $announcement->delete();
     }
-
 
     public function forStaff(): LengthAwarePaginator
     {

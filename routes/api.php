@@ -40,7 +40,11 @@ Route::prefix('auth')->group(function () {
 
 
     Route::middleware('auth:sanctum')->group(function () {
-            Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
+        Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
+        Route::get('/announcements', [UserAnnouncementController::class, 'announcementsForStaff']);
+        Route::get('/alerts', [UserAlertController::class, 'getStaffAlerts']);
+
+
         Route::prefix('settings')->group(function () {
             Route::get('general', [SchoolSettingsController::class, 'show']);
             Route::put('general', [SchoolSettingsController::class, 'update']);
@@ -52,6 +56,7 @@ Route::prefix('auth')->group(function () {
             Route::post('/one-grade-level', [AcademicSettingsController::class, 'createStracture']);
 
 
+
             Route::get('/grade-levels',            [AcademicSettingsController::class, 'showAllGrades']);
             Route::get('/grade-levels/{id}',       [AcademicSettingsController::class, 'showOneGrade']);
             Route::put('/grade-levels/{id}',       [AcademicSettingsController::class, 'updateGrade']);
@@ -59,11 +64,9 @@ Route::prefix('auth')->group(function () {
 
             Route::put('/classrooms/{id}',         [AcademicSettingsController::class, 'updateClassroom']);
             Route::delete('/classrooms/{id}',      [AcademicSettingsController::class, 'destroyClassroom']);
-            });
-            Route::post('/create-activity', [ActivityController::class, 'store']);
-            Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
-            Route::delete('/logout', [SystemAccessController::class, 'logout']);
-
+        });
+        Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
+        Route::delete('/logout', [SystemAccessController::class, 'logout']);
     });
 });
 
@@ -95,15 +98,41 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
 });
 
 
+/// ////////////////////////////////////////////////////////////////////////////////// ///
+
+
+Route::post('/announcement',   [UserAnnouncementController::class, 'store']);
+Route::delete('/announcement/{id}', [UserAnnouncementController::class, 'destroy']);
+
+Route::post('/alerts', [UserAlertController::class, 'store']);
+
+Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
+
+Route::post('/activity', [ActivityController::class, 'store']);
+Route::get('/activites', [ActivityController::class, 'show']);
+Route::delete('/activity',[ActivityController::class,'destroy']);
 
 
 
 
-
-Route::post('/announcements',     [UserAnnouncementController::class, 'store']);
-
+/// /////////////////////////////////////Mobile/////////////////////////////////////// ///
 
 
 
+Route::prefix('user')->group(function () {
+    Route::post('login', [UserAuthController::class, 'login']);
+    Route::post('verify-otp', [UserAuthController::class, 'verifyOtp']);
+    Route::post('resend-otp', [UserAuthController::class, 'resendOtp']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
+        Route::get('get-user-data', [UserController::class, 'getUserInfo']);
+        Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
+        Route::get('/alerts/{id}', [UserAlertController::class, 'childAlerts']);
+        Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
+        Route::get('/alerts', [UserAlertController::class, 'myAlerts']);
+        Route::get('/announcements', [UserAnnouncementController::class, 'announcementsForStudent']);
 
-
+        Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
+        Route::post('logout', [UserAuthController::class, 'logout']);
+    });
+});

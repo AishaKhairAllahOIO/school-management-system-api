@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\Web;
 
 use App\Models\Announcement;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -12,7 +12,7 @@ class AnnouncementRequset extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
+     public function authorize(): bool
     {
         return true;
     }

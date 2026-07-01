@@ -23,8 +23,10 @@ class DeviceTokenController extends Controller
 
     public function store(StoreDeviceTokenRequest $request)
 {
+
+$user =$request->user();
     $this->deviceTokenService->registerToken(
-        $request->user(),
+        $user,
         $request->fcm_token
     );
 

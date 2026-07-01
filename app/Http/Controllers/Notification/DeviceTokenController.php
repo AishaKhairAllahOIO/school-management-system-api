@@ -17,27 +17,27 @@ class DeviceTokenController extends Controller
 
     public function __construct(DeviceTokenService $deviceTokenService)
     {
-        $this->deviceTokenService=$deviceTokenService;
+        $this->deviceTokenService = $deviceTokenService;
     }
 
 
     public function store(StoreDeviceTokenRequest $request)
-{
+    {
 
-$user =$request->user();
-    $this->deviceTokenService->registerToken(
-        $user,
-        $request->fcm_token
-    );
+        $user = $request->user();
+        $this->deviceTokenService->registerToken(
+            $user,
+            $request->fcm_token
+        );
 
-    return $this->successResponse(null, 'تم تسجيل الجهاز للإشعارات.', 200);
-}
+        return $this->successResponse(null, 'تم تسجيل الجهاز للإشعارات.', 200);
+    }
 
 
     public function destroy(Request $request)
     {
 
-    $this->deviceTokenService->deleteToken($request->fcm_token);
+        $this->deviceTokenService->deleteToken($request->fcm_token);
         return $this->successResponse(null, 'تم إلغاء تسجيل الجهاز.', 200);
     }
 }

@@ -88,7 +88,12 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/student/register', [StudentController::class, 'store']);
 });
 
-        Route::post('/alerts', [UserAlertController::class, 'store']);
+
+
+Route::post('/announcements',     [UserAnnouncementController::class, 'store']);
+
+
+ Route::post('/alerts', [UserAlertController::class, 'store']);
 
 // /////////////////////////////////////Mobile///////////////////////////////////////////////////////////
 
@@ -116,5 +121,3 @@ Route::prefix('user')->group(function () {
 });
 
 
-
-Route::post('/announcements',     [UserAnnouncementController::class, 'store']);

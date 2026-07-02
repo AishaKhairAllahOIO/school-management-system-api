@@ -8,22 +8,23 @@ use Illuminate\Foundation\Auth;
 
 use Override;
 
-class Staff extends Model 
+class Staff extends Model
 {
-    protected $table = 'staff';
-    protected $guarded = []; 
+    protected $guarded = [];
 
-   
-
-   
    public function user()
     {
         return $this->belongsTo(User::class);
-    } 
- 
+    }
+
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
-   
+
+    public function alerts()
+{
+    return $this->morphMany(Alert::class, 'notifiable');
+}
+
 }

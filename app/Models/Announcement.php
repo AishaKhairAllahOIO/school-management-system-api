@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+
+class Announcement extends Model
+{
+
+    protected $guarded = [];
+
+    public const AUDIENCE_STUDENT = 'student';
+    public const AUDIENCE_STAFF   = 'staff';
+    public const AUDIENCE_BOTH = 'both';
+
+    public function scopeForAudience($query, string $role)
+    {
+        return $query->whereIn('audience', [$role, self::AUDIENCE_BOTH]);
+    }
+}

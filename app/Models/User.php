@@ -59,4 +59,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(ServiceStaff::class);
     }
+
+    public function deviceTokens()
+{
+    return $this->hasMany(DeviceToken::class);
+}
 }

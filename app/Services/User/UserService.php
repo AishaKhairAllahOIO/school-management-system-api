@@ -192,7 +192,7 @@ class UserService
     }
 
 
-   
+
     // public function getAuthenticatedProfile(User $user)
     // {
 
@@ -200,10 +200,10 @@ class UserService
     //     $role = $user->getRoleNames()->first() ?? 'standard';
 
     //     $relations = match ($role) {
-    //         // 'student'  => ['student'], 
+    //         // 'student'  => ['student'],
     //         // 'guardian' => ['guardian'],
     //         'teacher', 'secretary', 'adviser', 'counselor', 'service_staff','super_admin' => ['staff'],
-    //         default    => [], 
+    //         default    => [],
     //     };
 
     //     return $user->loadMissing($relations);
@@ -211,7 +211,7 @@ class UserService
     // public function updateStaffRecord(User $user, array $data): User
     // {
     //     return DB::transaction(function () use ($user, $data) {
-            
+
     //         $userData  = Arr::except($data, ['degree', 'specialization', 'university', 'graduation_year', 'experience_years']);
     //         $staffData = Arr::only($data, ['degree', 'specialization', 'university', 'graduation_year', 'experience_years']);
 

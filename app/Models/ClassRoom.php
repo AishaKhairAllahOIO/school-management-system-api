@@ -31,4 +31,8 @@ class ClassRoom extends Model
     {
         return max(0, $this->capacity - $this->current_students_count);
     }
+
+    public function teacherAssignments(){
+        return $this->hasMany(TeacherAssignment::class);
+    }
 }

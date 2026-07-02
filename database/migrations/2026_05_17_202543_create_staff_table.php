@@ -12,16 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('staff', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-           //$table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->enum('degree', ['diploma', 'bachelor', 'master', 'phd', 'other']);
             $table->string('specialization', 100);
             $table->string('university');
             $table->unsignedSmallInteger('graduation_year');
             $table->unsignedTinyInteger('experience_years')->default(0);
-    $table->timestamps();
-    $table->softDeletes();
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

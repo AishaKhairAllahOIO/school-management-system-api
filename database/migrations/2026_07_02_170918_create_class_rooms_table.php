@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->unsignedInteger('capacity');
+            $table->foreignId('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
             $table->foreignId('grade_level_id')->constrained('grade_levels')->cascadeOnDelete();
             $table->timestamps();
         });

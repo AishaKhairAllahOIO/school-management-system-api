@@ -2,120 +2,161 @@
 
 namespace App\Services\Student;
 
+use App\Models\Enrollment;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Models\Guardian;
+use Exception;
 
 class StudentManagementService
 {
     /**
      * عقل دالة الـ Index: يدمج البحث، الفلترة بالصف، الفلترة بالشعبة، والترتيب
      */
-    public function getAllStudents(array $filters)
-    {
-        // نسحب الطالب مع حسابه البشري (user) وحسابه المالي وحالته الأكاديمية
-        $query = Student::with(['user:id,first_name,last_name,father_name,mother_name,phone_number,record_status', 'enrollments.gradeLevel', 'enrollments.classRoom']);
+/**
+     * عقل دالة الـ Index: يدمج البحث، الفلترة بالصف، الفلترة بالشعبة، والترتيب
+     */
+public function getAllStudents(array $filters)
+{
+    // 1. استخدام eager loading
+    $query = Student::with([
+        'user:id,first_name,last_name,father_name,mother_name,phone_number', 
+        'enrollments.gradeLevel', // تأكدي من تطابق اسم العلاقة في الموديل
+        'enrollments.classRoom'
+    ]);
 
-        // 1. بحث بالاسم الأول أو الأخير أو اسم الأب (FR-12)
-        if (!empty($filters['search'])) {
-            $safe = str_replace(['%', '_'], ['\%', '\_'], $filters['search']);
-            $query->whereHas('user', function ($q) use ($safe) {
-                $q->where('first_name', 'like', "%{$safe}%")
-                  ->orWhere('last_name', 'like', "%{$safe}%")
-                  ->orWhere('father_name', 'like', "%{$safe}%");
-            });
-        }
-
-        // 2. فلترة حسب الصف الدراسي (FR-09)
-        if (!empty($filters['grade_level_id'])) {
-            $query->whereHas('enrollments', fn($q) => $q->where('grade_level_id', $filters['grade_level_id']));
-        }
-
-        // 3. فلترة حسب الشعبة الدراسية (FR-10)
-        if (!empty($filters['class_room_id'])) {
-            $query->whereHas('enrollments', fn($q) => $q->where('class_room_id', $filters['class_room_id']));
-        }
-
-        // 4. الترتيب أبجدياً أو حسب الأحدث (FR-13)
-        $dir = (!empty($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
-        
-        // نرتب استناداً إلى اسم المستخدم في الجدول المرتبط
-        $query->join('users', 'students.user_id', '=', 'users.id')
-              ->orderBy('users.first_name', $dir)
-              ->select('students.*');
-
-        $perPage = $filters['per_page'] ?? 15;
-
-        return $query->paginate($perPage);
+    // 2. الفلترة حسب الاسم الثلاثي
+    if (!empty($filters['search'])) {
+        $safe = str_replace(['%', '_'], ['\%', '\_'], $filters['search']);
+        $query->whereHas('user', function ($q) use ($safe) {
+            // البحث الشامل في الاسم الأول + اسم الأب + الكنية
+            $q->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'like', "%{$safe}%")
+              ->orWhere('first_name', 'like', "%{$safe}%")
+              ->orWhere('father_name', 'like', "%{$safe}%")
+              ->orWhere('last_name', 'like', "%{$safe}%");
+        });
     }
 
-    public function getStudentById($id)
+    // 3. الفلترة حسب الصف
+    if (!empty($filters['grade_level_id'])) {
+        $query->whereHas('enrollments', fn($q) => $q->where('grade_level_id', $filters['grade_level_id']));
+    }
+
+    // 4. الفلترة حسب الشعبة
+    if (!empty($filters['class_room_id'])) {
+        $query->whereHas('enrollments', fn($q) => $q->where('class_room_id', $filters['class_room_id']));
+    }
+
+    // 5. الترتيب الأبجدي حسب الاسم الثلاثي
+    $dir = (!empty($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
+    
+    $query->join('users', 'students.user_id', '=', 'users.id')
+          ->orderBy('users.first_name', $dir)
+          ->orderBy('users.father_name', $dir)
+          ->orderBy('users.last_name', $dir)
+          ->select('students.*'); 
+
+    // بدلاً من paginate نستخدم get لجلب كافة النتائج
+    return $query->get();
+}
+   public function getStudentPersonalProfile($studentId)
     {
-        $student = Student::with(['user', 'guardian.user', 'enrollments.academicYear', 'enrollments.gradeLevel', 'enrollments.classRoom'])->find($id);
+        $student = Student::with([
+            'user', 
+            'guardian.user'
+        ])->find($studentId);
 
         if (!$student) {
-            throw new \Exception('الطالب غير موجود في سجلات المدرسة.', 404);
+            throw new Exception('الطالب غير موجود في النظام.', 404);
         }
 
         return $student;
     }
 
-    public function updateStudent($id, array $data)
+   
+    public function getStudentFullProfile($enrollmentId)
     {
-        return DB::transaction(function () use ($id, $data) {
-            $student = Student::findOrFail($id);
+        $enrollment = Enrollment::with([
+            'student.user',
+            'student.guardian.user',
+            'gradeLevel',
+            'classRoom',
+            'academicYear'
+        ])->find($enrollmentId);
+
+        if (!$enrollment) {
+            throw new Exception('سجل التسجيل الأكاديمي غير موجود.', 404);
+        }
+
+        return $enrollment;
+    }
+
+
+    public function updateStudentPersonalData($studentId, array $userData)
+    {
+        
+        return DB::transaction(function () use ($studentId, $userData) {
+            $student = Student::findOrFail($studentId);
+            if(!$student)
+                throw new Exception('الطالب غير موجود في النظام.', 404);
+            // تحديث بيانات جدول users المرتبط بالطالب
+            $student->user()->update($userData);
             
-            // تحديث بيانات جدول المستهلك العام (users)
-            if (isset($data['user'])) {
-                $student->user()->update($data['user']);
-            }
-
-            // تحديث البيانات المدرسية الخاصة
-            $studentData = array_diff_key($data, ['user' => '']);
-            if (!empty($studentData)) {
-                $student->update($studentData);
-            }
-
-            return $student->fresh(['user', 'enrollments']);
+            return $student->fresh('user');
         });
     }
 
-public function deleteStudent($id)
+    public function updateEnrollmentData($enrollmentId, array $enrollmentData)
     {
-        return DB::transaction(function () use ($id) {
-            $student = Student::findOrFail($id);
+        return DB::transaction(function () use ($enrollmentId, $enrollmentData) {
+            $enrollment = Enrollment::findOrFail($enrollmentId);
+            if(!$enrollment)
+                throw new Exception('سجل القيد الأكاديمي غير موجود.', 404);
+            $enrollment->update($enrollmentData);
             
-            // 1. شل الحساب البشري تماماً
-            if ($student->user) {
-                $student->user->update(['account_status' => 'disabled']);
-                $student->user->delete(); 
+            return $enrollment->fresh(['gradeLevel', 'classRoom']);
+        });
+    }
+
+
+    public function updateGuardianPersonalData($guardianId, array $guardianUserData)
+    {
+        return DB::transaction(function () use ($guardianId, $guardianUserData) {
+            $guardian = Guardian::with('user')->findOrFail($guardianId);
+            if(!$guardian)
+                throw new Exception('ولي الامر غير موجود',404);
+            $guardian->user()->update($guardianUserData);
+            
+            return $guardian->fresh('user');
+        });
+    }
+
+public function deleteStudent($enrollmentId)
+    {
+        return DB::transaction(function () use ($enrollmentId) {
+            $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
+            
+            $enrollment->update(['enrollment_status' => 'suspended']);
+
+            if ($enrollment->student && $enrollment->student->user) {
+                $enrollment->student->user->update(['account_status' => 'disabled']);
             }
 
-            // 2. تصفية القيود الأكاديمية (نحول حالته إلى 'canceled' أو 'withdrawn')
-            // هذا يحرر المقعد في الشعبة
-            $student->enrollments()->update(['status' => 'canceled']);
-
-            // 3. تجميد المحفظة المالية (لكي لا تظهر في ديون المدرسة النشطة)
-            // ملاحظة: لا نحذف المحفظة لنحتفظ بتاريخ ما دفعه سابقاً
-            if ($student->financialAccount) {
-                $student->financialAccount()->update(['payment_status' => 'canceled']); 
-            }
-
-            // 4. أخيراً: إخفاء جثة الطالب (Soft Delete)
-            $student->delete();
+            $enrollment->delete();
 
             return true;
         });
     }
 
-
-    public function toggleAccountStatus($id)
+    public function toggleAccountStatus($enrollmentId)
     {
-        $student = Student::with('user')->findOrFail($id);
-        $user = $student->user;
+        $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
+        if(!$enrollment)
+            throw new Exception('سجل القيد الأكاديمي غير موجود.', 404);
+        $user = $enrollment->student->user;
 
         $newStatus = ($user->account_status === 'enabled') ? 'disabled' : 'enabled';
-        
         $user->update(['account_status' => $newStatus]);
 
         return $newStatus;

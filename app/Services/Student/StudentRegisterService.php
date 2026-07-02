@@ -146,6 +146,6 @@ class StudentRegisterService
             $query->where('imported_by_user_id', $filters['importer_id']);
         }
 
-        return $query->paginate($filters['per_page'] ?? 15);
+        return $query->get();
     }
 }

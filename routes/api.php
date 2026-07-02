@@ -93,14 +93,38 @@ Route::middleware('auth:sanctum', 'role:super_admin')->prefix('data')->group(fun
     Route::put('/super_admin',[UserController::class,'updateMyAdminProfile']);
     
 });
-Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
-   Route::post('/student/register',[StudentController::class,'store']);
-   Route::post('/student/import',[StudentController::class,'importExcel']);
-   Route::get('/student/import-batches/{batch}/errors/export', [StudentController::class, 'exportErrors'])
+Route::middleware('auth:sanctum')->prefix('admin/student')->group(function(){
+   Route::post('/register',[StudentController::class,'store']);
+   Route::post('/import',[StudentController::class,'importExcel']);
+   Route::get('/import-batches/{batch}/errors/export', [StudentController::class, 'exportErrors'])
      ->middleware('can:student:create');
-     Route::get('/student/import-batches/{batch}/status', [StudentController::class, 'getImportStatus'])
+     Route::get('/import-batches/{batch}/status', [StudentController::class, 'getImportStatus'])
      ->middleware('can:student:create');
-     Route::get('/student/import-batches/history', [StudentController::class, 'getBatchesHistory']);
+     Route::get('/import-batches/history', [StudentController::class, 'getBatchesHistory']);
+});
+Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function () {
+
+    Route::get('/', [StudentController::class, 'index'])
+        ->middleware('can:student:view_profile'); // أو can:student:search
+
+    Route::get('/{id}', [StudentController::class, 'show'])
+        ->middleware('can:student:view_profile');
+    Route::get('/{enrollmentId}/full-profile', [StudentController::class, 'showFullProfile'])
+        ->middleware('can:student:view_profile');    
+
+Route::post('/{student}/personal', [StudentController::class, 'updatePersonal'])
+        ->middleware('can:student:edit');
+
+    Route::post('/enrollments/{enrollment}', [StudentController::class, 'updateEnrollment']);
+         // أو أي صلاحية تراها مناسبة لتعديل القيود
+
+    Route::post('/guardians/{guardian}/personal', [StudentController::class, 'updateGuardian'])
+        ->middleware('can:student:edit');
+
+    Route::delete('/{id}', [StudentController::class, 'destroy'])
+        ->middleware('can:student:delete');
+    Route::post('/{enrollmentId}/toggle-account-status', [StudentController::class, 'toggleAccountStatus'])
+        ->middleware('can:account:toggle_status');    
 });
 
 

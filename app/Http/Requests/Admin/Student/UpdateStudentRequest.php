@@ -14,7 +14,7 @@ class UpdateStudentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('student:update');
+        return $this->user()->can('student:edit');
     }
 
     /**
@@ -48,12 +48,7 @@ class UpdateStudentRequest extends FormRequest
                 Rule::unique('users', 'phone_number')->ignore($userId)
             ],
 
-            'connect_number' => [
-                'sometimes', 
-                'nullable', 
-                'integer', 
-            ],
-            'guardian_id' => ['sometimes', 'exists:guardians,id'],
+
         ];
     }
 

@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             UserSeeder::class,
             AcademicYearSeeder::class,
+            AcademicStageSeeder::class,
             SemesterSeeder::class,
             GradeLevelSeeder::class,
             GuardianSeeder::class,

@@ -8,7 +8,13 @@ class GradeLevel extends Model
 {
     protected $guarded = [];
 
-
+    protected function casts(): array
+        {
+            return [
+                'is_graduation_grade' => 'boolean',
+                'level'               => 'integer',
+            ];
+        }
 
     public function classRooms()
     {
@@ -17,11 +23,19 @@ class GradeLevel extends Model
 
     public function enrollments()
     {
-        return $this->hasManyThrough(Enrollment::class, ClassRoom::class);
+        return $this->hasMany(Enrollment::class, ClassRoom::class);
     }
 
     public function activities()
     {
         return $this->hasMany(Activity::class);
+    }
+    public function academicStage()
+    {
+        return $this->belongsTo(AcademicStage::class);
+    }
+    public function gradeConfigurations()
+    {
+        return $this->hasMany(GradeConfiguration::class);
     }
 }

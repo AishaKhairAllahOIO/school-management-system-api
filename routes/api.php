@@ -96,7 +96,7 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::put('/terms/{term}', [AcademicSettingsController::class, 'updateTerm']);
 
     Route::post('/stages', [AcademicSettingsController::class, 'storeStage']);
-    Route::put('/stages/{stage}', [AcademicSettingsController::class, 'updateStage']);
+    Route::post('/stages/{stage}', [AcademicSettingsController::class, 'updateStage']);
 
 
     Route::post('/grades', [GradeAndClassroomController::class, 'storeGrade']);

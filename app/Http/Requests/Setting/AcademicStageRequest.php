@@ -16,7 +16,7 @@ class AcademicStageRequest extends BaseRequest
    public function authorize(): bool { return $this->user()->can('school:initialize'); }
     public function rules(): array {
         return [
-            'type' => ['required', new Enum(AcademicStageType::class), 'unique:academic_stages,type,' . $this->route('stage')],
+            'type' => ['required', new Enum(AcademicStageType::class), 'unique:academic_stages,type,' ],
         ];
     }
 }

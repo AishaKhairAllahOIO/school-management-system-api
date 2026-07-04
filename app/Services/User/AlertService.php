@@ -55,6 +55,36 @@ class AlertService
             $meta
         );
     }
+
+    public function createStudentPayed(Enrollment $enrollment, array $meta = []): Alert
+    {
+        return $this->createStudentAlert(
+            $enrollment,
+            Alert::TYPE_PAYED,
+            'تنبيه دفع',
+            'تم تسديد دفعة من القسط.',
+            $meta
+        );
+    }
+    public function createStudentHomework(Enrollment $enrollment,Staff $teacher, array $meta = []): Alert
+    {
+     $subject = $teacher->teacherAssignments
+        ->firstWhere('class_room_id', $enrollment->class_room_id)
+        ?->subject?->subject_name;
+
+    $defaultMeta = [
+        'date'    => now()->toDateString(),
+        'subject' => $subject,
+    ];
+
+    return $this->createStudentAlert(
+        $enrollment,
+        Alert::TYPE_HOMEWORK,
+        'تنبيه واجب',
+        'لم يكتب الطالب الواجب المنزلي.',
+        array_merge($defaultMeta, $meta)
+    );
+    }
     public function createStudentEscape(Enrollment $enrollment, array $meta = []): Alert
     {
         return $this->createStudentAlert(
@@ -75,7 +105,8 @@ class AlertService
             Alert::TYPE_ABSENCE,
             'تنبيه غياب',
             'تم تسجيل غيابك اليوم.',
-            $meta
+            array_merge(['date' => now()->toDateString()], $meta)
+
         );
     }
     public function createStaffLate(Staff $staff, array $meta = []): Alert
@@ -176,33 +207,45 @@ class AlertService
 
     // ======= CRUD ==========
 
-    public function staffAlerts(Staff $staff): LengthAwarePaginator
+    public function showStaffAlerts(Staff $staff): LengthAwarePaginator
     {
         return Alert::where('notifiable_type', Staff::class)
             ->where('notifiable_id', $staff->id)
+            ->whereNotIn('type', [Alert::TYPE_SALARY])
             ->latest()
             ->paginate(20);
     }
-    public function studentAlerts(Student $student): LengthAwarePaginator
+
+    public function showStaffPaymentAlerts(Staff $staff): LengthAwarePaginator
+    {
+        return Alert::where('notifiable_type', Staff::class)
+            ->where('notifiable_id', $staff->id)
+            ->whereIn('type', [Alert::TYPE_SALARY])
+            ->latest()
+            ->paginate(20);
+    }
+    public function showStudentAlerts(Student $student): LengthAwarePaginator
     {
         $enrollmentIds = $student->enrollments()->pluck('id');
 
         return Alert::where('notifiable_type', Enrollment::class)
             ->whereIn('notifiable_id', $enrollmentIds)
-            ->where('type', '!=', Alert::TYPE_PAYMENT)
+            ->whereNotIn('type', [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED])
             ->latest()
             ->paginate(20);
     }
-     public function studentPaymentAlerts(Student $student): LengthAwarePaginator
+    public function showStudentPaymentAlerts(Student $student): LengthAwarePaginator
     {
         $enrollmentIds = $student->enrollments()->pluck('id');
 
         return Alert::where('notifiable_type', Enrollment::class)
             ->whereIn('notifiable_id', $enrollmentIds)
-            ->where('type', '==', Alert::TYPE_PAYMENT)
+            ->whereIn('type', [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED])
             ->latest()
             ->paginate(20);
     }
+
+
     public function createManual(array $data): Alert
     {
         if ($data['audience'] === Alert::AUDIENCE_STUDENT) {
@@ -244,5 +287,55 @@ class AlertService
         $alert = Alert::findOrFail($id);
         $alert->delete();
     }
+    public function createPaymentAlerts(array $data): Alert
+    {
+        $enrollment = Enrollment::findOrFail($data['enrollment_id']);
 
+        return match ($data['type']) {
+            Alert::TYPE_PAYMENT  => $this->createStudentPayment($enrollment, $data['meta'] ?? []),
+            Alert::TYPE_PAYED    => $this->createStudentPayed($enrollment, $data['meta'] ?? []),
+            default              => $this->createStudentAlert(
+                $enrollment,
+                $data['type'],
+                $data['title'],
+                $data['description'] ?? '',
+                $data['meta'] ?? []
+            ),
+        };
+    }
+    public function advisorAlerts(array $data): Alert
+    {
+        $enrollment = Enrollment::findOrFail($data['enrollment_id']);
+
+        return match ($data['type']) {
+            Alert::TYPE_ABSENCE  => $this->createStudentAbsence($enrollment, $data['meta'] ?? []),
+            Alert::TYPE_LATE     => $this->createStudentLate($enrollment, $data['meta'] ?? []),
+            Alert::TYPE_BEHAVIOR => $this->createStudentBehavior($enrollment, $data['meta'] ?? []),
+            Alert::TYPE_ESCAPE =>   $this->createStudentEscape($enrollment, $data['meta'] ?? []),
+            default              => $this->createStudentAlert(
+                $enrollment,
+                $data['type'],
+                $data['title'],
+                $data['description'] ?? '',
+                $data['meta'] ?? []
+            ),
+        };
+    }
+    public function createStaffAlerts(array $data): Alert
+    {
+        $staff = Staff::findOrFail($data['staff_id']);
+
+        return match ($data['type']) {
+            Alert::TYPE_ABSENCE => $this->createStaffAbsence($staff, $data['meta'] ?? []),
+            Alert::TYPE_LATE    => $this->createStaffLate($staff, $data['meta'] ?? []),
+            Alert::TYPE_SALARY  => $this->createStaffSalary($staff, $data['meta'] ?? []),
+            default             => $this->createStaffAlert(
+                $staff,
+                $data['type'],
+                $data['title'],
+                $data['description'] ?? '',
+                $data['meta'] ?? []
+            ),
+        };
+    }
 }

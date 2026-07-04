@@ -21,6 +21,8 @@ class Alert extends Model
     public const TYPE_ESCAPE   = 'escape';
     public const TYPE_PAYMENT  = 'payment';
     public const TYPE_SALARY = 'salary';
+    public const TYPE_HOMEWORK = 'homework';
+    public const TYPE_PAYED = 'payed';
 
     // الجمهور
     public const AUDIENCE_STUDENT = 'student';

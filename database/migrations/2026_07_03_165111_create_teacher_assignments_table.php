@@ -17,8 +17,11 @@ return new class extends Migration
             $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
             $table->foreignId('class_room_id')->constrained('class_rooms')->cascadeOnDelete();
             $table->foreignId('staff_id')->constrained('staff')->cascadeOnDelete();
+            $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
 
             $table->timestamps();
+
+            $table->unique(['subject_id', 'class_room_id', 'semester_id', 'academic_year_id'], 'unique_class_subject_assignment');
         });
     }
 

@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 
 class AlertRequest extends FormRequest
 {
-     public function authorize(): bool
+    public function authorize(): bool
     {
         return true;
     }
@@ -29,7 +29,9 @@ class AlertRequest extends FormRequest
                 Alert::TYPE_LATE,
                 Alert::TYPE_ESCAPE,
                 Alert::TYPE_PAYMENT,
-                Alert::TYPE_SALARY
+                Alert::TYPE_SALARY,
+                Alert::TYPE_HOMEWORK,
+                Alert::TYPE_PAYED
             ])],
             'title'       => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
@@ -60,8 +62,15 @@ class AlertRequest extends FormRequest
                 'meta.date' => ['nullable', 'date'],
             ],
             Alert::TYPE_SALARY => [
+                'meta.amount' => ['nullable', 'numeric'],
+                'meta.month' => ['nullable', 'date'],
+            ],
+            Alert::TYPE_HOMEWORK => [
+                'meta.subject' => ['nullable', 'string'],
+                'meta.date' => ['nullable', 'date'],
+            ],
+            Alert::TYPE_PAYED => [
                 'meta.amount' => ['nullable','numeric'],
-                'meta.month' => ['nullable','date'],
             ],
             default => [],
         };

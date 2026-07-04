@@ -7,14 +7,14 @@ use App\Models\Student;
 use App\Models\Guardian;
 use App\Models\Enrollment;
 use App\Models\ImportBatch;
+use App\Models\GradeConfiguration;
+use App\Models\Classroom;
 use App\Jobs\ProcessStudentsImportJob;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use App\Models\ImportError;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Exception;
-use App\Models\GradeConfiguration;
-use App\Models\ClassRoom;
 
 class StudentRegisterService
 {
@@ -26,7 +26,7 @@ class StudentRegisterService
             // 🛡️ طبقة الحماية الاستباقية (Capacity Validation)
             // =========================================================
             $academicYearId = $data['enrollment']['academic_year_id'];
-            $gradeId        = $data['enrollment']['grade_level_id']; // 👈 استخدمنا grade_id وليس grade_level_id
+            $gradeId        = $data['enrollment']['grade_level_id'];
             $classroomId    = $data['enrollment']['class_room_id'] ?? null;
 
             // 1. هل المدرسة فتحت التسجيل لهذا الصف في هذا العام أساساً؟
@@ -40,18 +40,17 @@ class StudentRegisterService
 
             // 2. فحص سعة الشعبة (إذا تم تحديد شعبة للطالب)
             if ($classroomId) {
-                $classroom = ClassRoom::findOrFail($classroomId);
+                $classroom = Classroom::findOrFail($classroomId);
                 
-                // استخدام الـ Accessor الذكي الذي بنيناه سابقاً
+                // استخدام الـ Accessor الذكي
                 if ($classroom->available_seats <= 0) {
                     throw new Exception("عذراً، الشعبة ({$classroom->name}) ممتلئة بالكامل ولا توجد مقاعد متاحة.", 422);
                 }
             } else {
                 // 3. فحص السعة الكلية للصف (إذا لم يتم تحديد شعبة، سيتم فرزه لاحقاً)
-                // نعد الطلاب المسجلين حالياً في هذا الصف وهذا العام
                 $currentEnrolledCount = Enrollment::where('academic_year_id', $academicYearId)
                     ->where('grade_level_id', $gradeId)
-                    ->whereIn('enrollment_status', ['active', 'pending_payment']) // نعد الطلاب الفعالين فقط
+                    ->whereIn('enrollment_status', ['completed', 'enrolled'])
                     ->count();
 
                 if ($currentEnrolledCount >= $gradeConfig->planned_students_capacity) {
@@ -89,8 +88,12 @@ class StudentRegisterService
                 $guardianUser->assignRole('guardian');
                 $guardianRecord = Guardian::create(['user_id' => $guardianUser->id]);
             } else {
-                $guardianRecord = $guardianUser->guardian ?? Guardian::create(['user_id' => $guardianUser->id]);
-                if (!$guardianUser->hasRole('guardian')) $guardianUser->assignRole('guardian');
+                // البحث مباشرة عن سجل ولي الأمر أو إنشاؤه لتفادي خطأ الـ Builder Instance
+                $guardianRecord = Guardian::firstOrCreate(['user_id' => $guardianUser->id]);
+                
+                if (!$guardianUser->hasRole('guardian')) {
+                    $guardianUser->assignRole('guardian');
+                }
             }
 
             // =========================================================
@@ -129,9 +132,9 @@ class StudentRegisterService
             Enrollment::create([
                 'student_id'        => $studentRecord->id,
                 'academic_year_id'  => $academicYearId,
-                'grade_level_id'          => $gradeId, // 👈 تم التعديل لمعمارية النظام الجديدة
+                'grade_level_id'          => $gradeId,
                 'class_room_id'     => $classroomId,
-                'enrollment_status' => 'pending_payment', // 👈 حالة التسجيل الافتراضية
+                'enrollment_status' => 'suspended',
             ]);
 
             return $studentUser->fresh(['student.guardian.user', 'student.enrollments']);

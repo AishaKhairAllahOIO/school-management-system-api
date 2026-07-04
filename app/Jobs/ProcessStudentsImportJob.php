@@ -4,6 +4,9 @@ namespace App\Jobs;
 
 use App\Models\ImportBatch;
 use App\Models\ImportError;
+use App\Models\AcademicYear;
+use App\Models\GradeLevel;
+use App\Models\Classroom;
 use App\Services\Student\StudentRegisterService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,6 +14,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Throwable;
 
@@ -33,25 +37,88 @@ class ProcessStudentsImportJob implements ShouldQueue
         $failedCount = 0;
 
         try {
+            if (!Storage::disk('local')->exists($batch->file_path)) {
+                throw new \Exception("ملف الإكسل غير موجود في المسار المحدد: " . $fullPath);
+            }
+
             (new FastExcel)->import($fullPath, function ($row) use ($studentService, $batch, &$processedCount, &$successCount, &$failedCount) {
                 $processedCount++;
 
                 try {
-                    // هنا كان يتم إرسال الصف مباشرة للـ Service
-                    $studentService->registerStudentWithGuardian($row);
+                    $academicYearName = trim($row['academic_year_name'] ?? '');
+                    $gradeLevelName   = trim($row['grade_level_name'] ?? '');
+                    $classroomName    = trim($row['class_room_name'] ?? '');
+
+                    // 👈 التعديل تم هنا (إزالة orWhere('name') الذي كان يسبب خطأ قاعدة البيانات)
+                    $academicYear = AcademicYear::where('year_name', $academicYearName)->first();
+                    if (!$academicYear) {
+                        throw new \Exception("العام الدراسي '{$academicYearName}' غير موجود.");
+                    }
+
+                    $grade = GradeLevel::where('name', $gradeLevelName)->first();
+                    if (!$grade) {
+                        throw new \Exception("الصف الدراسي '{$gradeLevelName}' غير موجود.");
+                    }
+
+                    $classroomId = null;
+                    if (!empty($classroomName)) {
+                        $classroom = Classroom::where('academic_year_id', $academicYear->id)
+                            ->where('grade_level_id', $grade->id) 
+                            ->where('name', 'like', '%' . $classroomName . '%')
+                            ->first();
+                            
+                        if (!$classroom) {
+                            throw new \Exception("الشعبة '{$classroomName}' غير موجودة لهذا الصف.");
+                        }
+                        $classroomId = $classroom->id;
+                    }
+
+                    $formattedData = [
+                        'student' => [
+                            'first_name'   => $row['student_first_name'] ?? '',
+                            'last_name'    => $row['student_last_name'] ?? '',
+                            'father_name'  => $row['student_father_name'] ?? '',
+                            'mother_name'  => $row['student_mother_name'] ?? '',
+                            'birth_date'   => isset($row['student_birth_date']) ? \Carbon\Carbon::parse($row['student_birth_date'])->format('Y-m-d') : null,
+                            'birth_place'  => $row['student_birth_place'] ?? '',
+                            'address'      => $row['student_address'] ?? '',
+                            'gender'       => strtolower($row['student_gender'] ?? 'male'),
+                            'nationality'  => strtolower($row['student_nationality'] ?? 'syrian'),
+                            'phone_number' => (string) ($row['student_phone_number'] ?? ''),
+                        ],
+                        'guardian' => [
+                            'first_name'   => $row['guardian_first_name'] ?? '',
+                            'last_name'    => $row['guardian_last_name'] ?? '',
+                            'father_name'  => $row['guardian_father_name'] ?? '',
+                            'mother_name'  => $row['guardian_mother_name'] ?? '',
+                            'birth_date'   => isset($row['guardian_birth_date']) ? \Carbon\Carbon::parse($row['guardian_birth_date'])->format('Y-m-d') : null,
+                            'birth_place'  => $row['guardian_birth_place'] ?? '',
+                            'address'      => $row['guardian_address'] ?? '',
+                            'gender'       => strtolower($row['guardian_gender'] ?? 'male'),
+                            'nationality'  => strtolower($row['guardian_nationality'] ?? 'syrian'),
+                            'phone_number' => (string) ($row['guardian_phone_number'] ?? ''),
+                        ],
+                        'enrollment' => [
+                            'academic_year_id' => $academicYear->id,
+                            'grade_level_id'         => $grade->id, 
+                            'class_room_id'    => $classroomId,
+                        ]
+                    ];
+
+                    // إرسال البيانات للـ Service المُحسّن الذي يعتمد على firstOrCreate
+                    $studentService->registerStudentWithGuardian($formattedData);
                     $successCount++;
-                } catch (\Exception $e) {
+                    
+                } catch (\Throwable $e) { 
                     $failedCount++;
-                    // هنا كانت عملية تسجيل الخطأ التي تُستخدم لاحقاً في exportErrors
                     ImportError::create([
                         'import_batch_id' => $batch->id,
                         'row_number'      => $processedCount,
-                        'row_data'        => json_encode($row),
-                        'error_message'   => $e->getMessage(),
+                        'row_data'        => json_encode($row ?? [], JSON_UNESCAPED_UNICODE),
+                        'error_message'   => substr($e->getMessage(), 0, 250),
                     ]);
                 }
 
-                // التحديث الدوري للحالة الذي قرأته ميثود getImportStatus
                 if ($processedCount % 10 === 0) {
                     $batch->update([
                         'processed_rows'  => $processedCount,
@@ -61,7 +128,6 @@ class ProcessStudentsImportJob implements ShouldQueue
                 }
             });
 
-            // الحالة النهائية بعد المعالجة
             $batch->update([
                 'status'          => 'completed',
                 'total_rows'      => $processedCount,
@@ -70,9 +136,24 @@ class ProcessStudentsImportJob implements ShouldQueue
                 'failed_rows'     => $failedCount,
             ]);
 
-            Storage::disk('local')->delete($batch->file_path);
+            if (Storage::disk('local')->exists($batch->file_path)) {
+                Storage::disk('local')->delete($batch->file_path);
+            }
 
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
+            Log::error("Import Job Failed completely: " . $e->getMessage() . " on line " . $e->getLine());
+            
+            try {
+                ImportError::create([
+                    'import_batch_id' => $batch->id,
+                    'row_number'      => 0,
+                    'row_data'        => json_encode(['error' => 'System Error / FastExcel Crash'], JSON_UNESCAPED_UNICODE),
+                    'error_message'   => substr("انهيار أثناء فتح الملف: " . $e->getMessage(), 0, 250),
+                ]);
+            } catch (\Throwable $innerE) {
+                Log::error("Failed to save ImportError: " . $innerE->getMessage());
+            }
+            
             $batch->update(['status' => 'failed']);
         }
     }

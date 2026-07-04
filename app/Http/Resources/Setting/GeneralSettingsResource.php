@@ -14,39 +14,32 @@ class GeneralSettingsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-return [
-            'id' =>  $this->id,
-            'schoolName' => $this->school_name,
-            'shortName' => $this->short_name,
-            'description' => $this->description ?? '',
-            'phoneNumber' => $this->phone_number,
-            'emergencyPhoneNumber' => $this->emergency_phone_number ?? '',
-            'email' => $this->email,
-            'website' => $this->website ?? '',
-            'address' => $this->address,
-            'city' => $this->city,
-            'country' => $this->country,
+        return [
+            'id'                   => (string) $this->id,
             
-            // دمج الإحداثيات في كائن Location
+            'schoolName'           => $this->school_name,
+            'shortName'            => $this->short_name,
+            'description'          => $this->description,
+            
+            'phoneNumber'          => $this->phone_number,
+            'emergencyPhoneNumber' => $this->emergency_phone_number,
+            'email'                => $this->email,
+            'website'              => $this->website,
+            
+            'address'              => $this->address,
+            'city'                 => $this->city,
+            'country'              => $this->country,
+            
             'location' => [
-                'latitude' => $this->latitude,
-                'longitude' => $this->longitude,
+                'latitude'  => $this->latitude ? (float) $this->latitude : null,
+                'longitude' => $this->longitude ? (float) $this->longitude : null,
             ],
             
-            'logoUrl' => $this->logo_url,
-            'images' => $this->relationLoaded('images') ? $this->images : [],
+            'logoUrl'              => $this->logo_url,
+            'images'               => SchoolImageResource::collection($this->whenLoaded('images')),
             
-            'defaultLanguage' => $this->default_language,
-            'timezone' => $this->timezone,
-            'dateFormat' => $this->date_format,
-            'currency' => $this->currency,
-            
-            'workingDays' => $this->working_days,
-            'openingTime' => substr($this->opening_time, 0, 5), // يرجع HH:MM فقط
-            'closingTime' => substr($this->closing_time, 0, 5),
-            'academicYear' => $this->academic_year,
-            
-            'createdAt' => $this->created_at->toISOString(),
-            'updatedAt' => $this->updated_at->toISOString(),
-        ];    }
+            'createdAt'            => $this->created_at->toIso8601String(),
+            'updatedAt'            => $this->updated_at->toIso8601String(),
+        ];
+    }
 }

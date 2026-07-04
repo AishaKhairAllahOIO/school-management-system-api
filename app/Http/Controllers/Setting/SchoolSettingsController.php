@@ -9,6 +9,10 @@ use App\Services\Setting\SchoolSettingsService;
 use App\ApiResource; 
 use Illuminate\Validation\ValidationException;
 use Exception;
+use App\Http\Requests\Setting\AddSchoolImageRequest;
+use App\Http\Resources\Setting\SchoolImageResource;
+use App\Models\SchoolImage;
+use App\Http\Requests\Setting\UpdateSchoolImageRequest;
 
 class SchoolSettingsController extends Controller
 {
@@ -51,4 +55,33 @@ class SchoolSettingsController extends Controller
             return $this->errorResponse('Failed to update settings.', 500, ['exception_message' => $e->getMessage()]);
         }
     }
+    
+    public function storeImages(AddSchoolImageRequest $request,SchoolSettingsService $service)
+    {
+        $images = $service->addSchoolImages($request->validated());
+
+        return $this->successResponse(
+            SchoolImageResource::collection($images),
+            'تم إضافة رابط الصورة إلى المعرض بنجاح.',
+            201
+        );
+    }
+        public function updateImage(UpdateSchoolImageRequest $request, SchoolImage $image, SchoolSettingsService $service)
+    {
+        $updatedImage = $service->updateSchoolImage($image, $request->validated());
+
+        return $this->successResponse(
+            new SchoolImageResource($updatedImage),
+            'تم تحديث بيانات الصورة بنجاح.',
+            200
+        );
+    }
+
+    public function destroyImage(SchoolImage $image, SchoolSettingsService $service)
+    {
+        $service->deleteSchoolImage($image);
+        return $this->successResponse(null, 'تم حذف الصورة بنجاح.');
+    }
+
+    
 }

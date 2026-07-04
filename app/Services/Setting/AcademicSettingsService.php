@@ -12,92 +12,226 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\ValidationException; // 👈 لا تنسي استدعاء هذه الكلاس في أعلى الملف
 use Illuminate\Pagination\LengthAwarePaginator;
+use Carbon\Carbon;
+use App\Models\AcademicStage;
+
 
 
 class AcademicSettingsService
 {
 
     use ApiResource;
-    public function syncSettings(array $data)
+ public function getAcademicViewData()
+    {
+    $settings = AcademicSetting::first();
+
+   return  $settings;
+    }
+
+    // تحديث إعدادات الجدولة
+    public function updateSettings(array $data)
     {
         return DB::transaction(function () use ($data) {
+        $settings = AcademicSetting::updateOrCreate(
+            ['id' => 1],
+            [
+                'current_academic_year_id' => $data['currentAcademicYearId'] ?? null,
+                'current_semester_id' => $data['currentSemesterId'] ?? null,
+                'schedule_settings'        => $data['scheduleSettings'],
+            ] 
+        );
 
-            if (!empty($data['academicYears'])) {
-                foreach ($data['academicYears'] as $yearData) {
-                    AcademicYear::updateOrCreate(
-                        ['id' => $yearData['id'] ?? null], // إذا لم يكن هناك ID، قم بإنشاء سجل جديد
-                        [
-                            'year_name'  => $yearData['name'],
-                            'start_date' => $yearData['startDate'],
-                            'end_date'   => $yearData['endDate'],
-                        ]
-                    );
-                }
-            }
-
-            if (!empty($data['terms'])) {
-                foreach ($data['terms'] as $termData) {
-                    $academicYearId = $termData['academic_year_id'] ?? ($data['academicYears'][0]['id'] ?? null);
-                    Semester::updateOrCreate(
-                        ['id' => $termData['id'] ?? null],
-                        [
-                            'academic_year_id' => $academicYearId, // تأكد من ربط الفصل بالسنة الدراسية الصحيحة
-                            'semester_name' => $termData['name'],
-                            'start_date'    => $termData['startDate'],
-                            'end_date'      => $termData['endDate'],
-                        ]
-                    );
-                }
-            }
-
-            $settings = AcademicSetting::updateOrCreate(
-                ['school_id' => 1],
-                [
-                    'current_academic_year_id'      => $data['currentAcademicYearId'],
-                    'passing_grade'                 => $data['passingGrade'],
-                    'maximum_grade'                 => $data['maximumGrade'],
-                    'gpa_scale'                     => $data['gpaScale'],
-                    'minimum_attendance_percentage' => $data['minimumAttendancePercentage'],
-                    'promotion_threshold'           => $data['promotionThreshold'],
-
-                    'auto_promote_students'         => $data['preferences']['autoPromoteStudents'],
-                    'allow_student_repeating'       => $data['preferences']['allowStudentRepeating'],
-                    'calculate_gpa'                 => $data['preferences']['calculateGpa'],
-                    'rank_students'                 => $data['preferences']['rankStudents'],
-                    'use_attendance_in_promotion'   => $data['preferences']['useAttendanceInPromotion'],
-                ]
-            );
-
-            if (!empty($data['gradeScale'])) {
-
-                $providedIds = collect($data['gradeScale'])->pluck('id')->filter()->toArray();
-                $settings->gradeScales()->whereNotIn('id', $providedIds)->delete();
-                // $scalesToDelete=$settings->gradeScales()->whereNotIn('id', $providedIds)->get();
-                // if($scalesToDelete->isNotEmpty()){
-                //     $idToDelete=$scalesToDelete->pluck('id')->toArray();
-                //     $isUsed=StudenGrade::whereIn('grade_scale_id', $idToDelete)->exists();
-                //     if($isUsed){
-                //         throw new Exception('Cannot delete grade scales that are currently in use.');
-                //     }
-                //     $settings->gradeScales()->whereIn('id', $idToDelete)->delete();
-                // }
-                foreach ($data['gradeScale'] as $gradeData) {
-                    $settings->gradeScales()->updateOrCreate(
-                        ['id' => $gradeData['id'] ?? null],
-                        [
-                            'grade'        => $gradeData['grade'],
-                            'minimum_score' => $gradeData['minimumScore'],
-                            'maximum_score' => $gradeData['maximumScore'],
-                            'description'   => $gradeData['description'] ?? null,
-                        ]
-                    );
-                }
-            }
-
-            return $settings->load(['gradeScales']);
+            return $settings->refresh();
         });
     }
+
+    // ---------------- عمليات العام الدراسي ----------------
+
+    public function saveYear(array $data, ?AcademicYear $year = null)
+    {
+        return DB::transaction(function () use ($data, $year):AcademicYear {
+            
+            $startYear = isset($data['startDate']) ? Carbon::parse($data['startDate'])->year : Carbon::parse($year->start_date)->year;
+            $endYear   = isset($data['endDate']) ? Carbon::parse($data['endDate'])->year : Carbon::parse($year->end_date)->year;
+            
+            $yearName = "{$startYear}-{$endYear}";
+
+            $existingYear = AcademicYear::where('year_name', $yearName)
+                ->when($year, fn($query) => $query->where('id', '!=', $year->id)) // تجاهل السنة الحالية لو كنا في حالة تعديل
+                ->exists();
+
+            if ($existingYear) {
+                throw ValidationException::withMessages([
+                    'startDate' => ["العام الدراسي ({$yearName}) مُسجل مسبقاً في النظام ولا يمكن تكراره."]
+                ]);
+            }
+
+            if (isset($data['isCurrent']) && $data['isCurrent']) {
+                AcademicYear::query()->update(['is_current' => false]); 
+            }
+
+            $payload = [
+                'year_name'  => $yearName,
+                'start_date' => $data['startDate'] ?? $year->start_date,
+                'end_date'   => $data['endDate'] ?? $year->end_date,
+                'is_current' => $data['isCurrent'] ?? $year->is_current,
+            ];
+
+            if ($year) {
+                $year->update($payload);
+            } else {
+                $year = AcademicYear::create($payload);
+            }
+
+            return $year->refresh();
+        });
+    }
+    public function getCurrentAcademicYear(): ?AcademicYear
+    {
+        return AcademicYear::where('is_current', true)->first();
+    }
+
+    // ---------------- عمليات الفصل الدراسي ----------------
+       public function saveTerm(array $data, ?Semester $term = null): Semester 
+    {
+        return DB::transaction(function () use ($data, $term) {
+            
+            // 1. استخراج القيم المراد فحصها 
+            $academicYearId = $data['academicYearId'] ?? $term->academic_year_id;
+            $semesterName   = $data['semesterName'] ?? $term->semester_name;
+
+            $existingTerm = Semester::where('academic_year_id', $academicYearId)
+                ->where('semester_name', $semesterName)
+                ->when($term, fn($query) => $query->where('id', '!=', $term->id)) // تجاهل الفصل الحالي عند التعديل
+                ->exists();
+
+            if ($existingTerm) {
+                // 🛑 رمي خطأ تحقق لالتقاطه في الكنترولر وإرساله للفرونت إند (422)
+                throw ValidationException::withMessages([
+                    'semesterName' => ["الفصل الدراسي ({$semesterName}) مسجل مسبقاً في هذا العام الدراسي ولا يمكن تكراره."]
+                ]);
+            }
+
+            if (isset($data['isCurrent']) && $data['isCurrent']) {
+                Semester::query()->update(['is_current' => false]); // إطفاء البقية
+            }
+
+            $payload = [
+                'academic_year_id' => $academicYearId,
+                'semester_name'    => $semesterName,
+                'start_date'       => $data['startDate'] ?? $term->start_date,
+                'end_date'         => $data['endDate'] ?? $term->end_date,
+                'order'            => $data['order'] ?? $term->order,
+                'is_current'       => $data['isCurrent'] ?? $term->is_current,
+                'is_final_term'    => $data['isFinalTerm'] ?? $term->is_final_term,
+            ];
+
+            if ($term) {
+                $term->update($payload);
+            } else {
+                $term = Semester::create($payload);
+            }
+
+            // 👈 إرجاع الموديل مباشرة بدلاً من دالة الـ format
+            return $term->refresh(); 
+        });
+    }
+
+    // ---------------- عمليات المراحل الدراسية ----------------
+    public function saveStage(array $data, ?AcademicStage $stage = null)
+    {
+        if ($stage) {
+            $stage->update(['type' => $data['type']]);
+        } else {
+            $stage = AcademicStage::create(['type' => $data['type']]);
+        }
+        return $stage;
+    }
+
+
+
+
+    // public function syncSettings(array $data)
+    // {
+    //     return DB::transaction(function () use ($data) {
+
+    //         if (!empty($data['academicYears'])) {
+    //             foreach ($data['academicYears'] as $yearData) {
+    //                 AcademicYear::updateOrCreate(
+    //                     ['id' => $yearData['id'] ?? null], // إذا لم يكن هناك ID، قم بإنشاء سجل جديد
+    //                     [
+    //                         'year_name'  => $yearData['name'],
+    //                         'start_date' => $yearData['startDate'],
+    //                         'end_date'   => $yearData['endDate'],
+    //                     ]
+    //                 );
+    //             }
+    //         }
+
+    //         if (!empty($data['terms'])) {
+    //             foreach ($data['terms'] as $termData) {
+    //                 $academicYearId = $termData['academic_year_id'] ?? ($data['academicYears'][0]['id'] ?? null);
+    //                 Semester::updateOrCreate(
+    //                     ['id' => $termData['id'] ?? null],
+    //                     [
+    //                         'academic_year_id' => $academicYearId, // تأكد من ربط الفصل بالسنة الدراسية الصحيحة
+    //                         'semester_name' => $termData['name'],
+    //                         'start_date'    => $termData['startDate'],
+    //                         'end_date'      => $termData['endDate'],
+    //                     ]
+    //                 );
+    //             }
+    //         }
+
+    //         $settings = AcademicSetting::updateOrCreate(
+    //             ['school_id' => 1],
+    //             [
+    //                 'current_academic_year_id'      => $data['currentAcademicYearId'],
+    //                 'passing_grade'                 => $data['passingGrade'],
+    //                 'maximum_grade'                 => $data['maximumGrade'],
+    //                 'gpa_scale'                     => $data['gpaScale'],
+    //                 'minimum_attendance_percentage' => $data['minimumAttendancePercentage'],
+    //                 'promotion_threshold'           => $data['promotionThreshold'],
+
+    //                 'auto_promote_students'         => $data['preferences']['autoPromoteStudents'],
+    //                 'allow_student_repeating'       => $data['preferences']['allowStudentRepeating'],
+    //                 'calculate_gpa'                 => $data['preferences']['calculateGpa'],
+    //                 'rank_students'                 => $data['preferences']['rankStudents'],
+    //                 'use_attendance_in_promotion'   => $data['preferences']['useAttendanceInPromotion'],
+    //             ]
+    //         );
+
+    //         if (!empty($data['gradeScale'])) {
+
+    //             $providedIds = collect($data['gradeScale'])->pluck('id')->filter()->toArray();
+    //             $settings->gradeScales()->whereNotIn('id', $providedIds)->delete();
+    //             // $scalesToDelete=$settings->gradeScales()->whereNotIn('id', $providedIds)->get();
+    //             // if($scalesToDelete->isNotEmpty()){
+    //             //     $idToDelete=$scalesToDelete->pluck('id')->toArray();
+    //             //     $isUsed=StudenGrade::whereIn('grade_scale_id', $idToDelete)->exists();
+    //             //     if($isUsed){
+    //             //         throw new Exception('Cannot delete grade scales that are currently in use.');
+    //             //     }
+    //             //     $settings->gradeScales()->whereIn('id', $idToDelete)->delete();
+    //             // }
+    //             foreach ($data['gradeScale'] as $gradeData) {
+    //                 $settings->gradeScales()->updateOrCreate(
+    //                     ['id' => $gradeData['id'] ?? null],
+    //                     [
+    //                         'grade'        => $gradeData['grade'],
+    //                         'minimum_score' => $gradeData['minimumScore'],
+    //                         'maximum_score' => $gradeData['maximumScore'],
+    //                         'description'   => $gradeData['description'] ?? null,
+    //                     ]
+    //                 );
+    //             }
+    //         }
+
+    //         return $settings->load(['gradeScales']);
+    //     });
+    // }
 
 
     public function createStructure(array $data): Collection

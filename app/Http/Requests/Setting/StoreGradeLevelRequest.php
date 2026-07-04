@@ -13,7 +13,7 @@ class StoreGradeLevelRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+       return $this->user()->can('school:initialize');
     }
 
     /**
@@ -26,12 +26,9 @@ class StoreGradeLevelRequest extends FormRequest
 
 
         return [
-            'grade_levels'                          => ['required', 'array', 'min:1'],
-            'grade_levels.*.grade_name'                   => ['required', 'string', 'max:255', 'distinct', Rule::unique('grade_levels', 'grade_name'),],
-
-            'grade_levels.*.classrooms'             => ['required', 'array', 'min:1'],
-            'grade_levels.*.classrooms.*.name'      => ['nullable', 'string', 'max:255'],
-            'grade_levels.*.classrooms.*.capacity'  => ['required', 'integer', 'min:10', 'max:1000'],
+         'academicStageId'   => ['required', 'exists:academic_stages,id'],
+            'name'              => ['required', 'string', 'max:100', 'unique:grade_levels,name'],
+            'isGraduationGrade' => ['nullable', 'boolean'],
         ];
     }
 

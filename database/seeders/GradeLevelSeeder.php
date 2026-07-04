@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AcademicStageType;
 use App\Models\GradeLevel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -43,7 +44,7 @@ class GradeLevelSeeder extends Seeder
             GradeLevel::updateOrCreate(
                 ['id' => $grade['id']], 
                 [
-                    'academic_stage_id'   => 1,
+                    'academic_stage_id'   => 1 ,
                     'name'                => $grade['name'],
                     'level'               => $grade['level'],
                     'is_graduation_grade' => $grade['is_graduation_grade']

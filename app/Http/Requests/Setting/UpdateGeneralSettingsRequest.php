@@ -16,7 +16,7 @@ class UpdateGeneralSettingsRequest extends BaseRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->hasRole('super_admin');
+       return $this->user()->can('school:initialize');;
     }
 
     /**
@@ -39,14 +39,6 @@ class UpdateGeneralSettingsRequest extends BaseRequest
             'country' => 'required|string',
             'location.latitude' => 'nullable|numeric',
             'location.longitude' => 'nullable|numeric',
-            'defaultLanguage' => 'required|string|max:5',
-            'timezone' => 'required|string',
-            'dateFormat' => 'required|string',
-            'currency' => 'required|string',
-            'workingDays' => 'required|array',
-            'workingDays.*' => 'string',
-            'openingTime' => 'required|date_format:H:i',
-            'closingTime' => 'required|date_format:H:i',
-        ];
+            'logo' => 'nullable|url',];
     }
 }

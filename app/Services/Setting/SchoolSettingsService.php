@@ -2,6 +2,7 @@
 namespace App\Services\Setting;
 use App\Models\School;
 use Exception;
+use App\Models\SchoolImage;
 
 class SchoolSettingsService
 {
@@ -25,13 +26,8 @@ class SchoolSettingsService
             'country' => $validatedData['country'],
             'latitude' => $validatedData['location']['latitude'] ?? null,
             'longitude' => $validatedData['location']['longitude'] ?? null,
-            'default_language' => $validatedData['defaultLanguage'],
-            'timezone' => $validatedData['timezone'],
-            'date_format' => $validatedData['dateFormat'],
-            'currency' => $validatedData['currency'],
-            'working_days' => $validatedData['workingDays'],
-            'opening_time' => $validatedData['openingTime'],
-            'closing_time' => $validatedData['closingTime'],
+            'logo_url' => $validatedData['logo'] ?? null,
+
         ];
 
         
@@ -41,5 +37,24 @@ class SchoolSettingsService
         );
 
         return $school->load('images');
+    }
+    // --- إضافة صورة كـ URL لمعرض المدرسة ---
+   public function addSchoolImages(array $data)
+    {
+        $settings = School::firstOrCreate(['id' => 1]);
+
+        // createMany تأخذ مصفوفة (Array) وتضيفها كلها دفعة واحدة
+        return $settings->images()->createMany($data['images']);
+    }
+    public function updateSchoolImage(SchoolImage $image, array $data)
+    {
+        $image->update($data);
+        return $image;
+    }
+
+    // --- حذف صورة (حذف السجل فقط من الداتابيز) ---
+    public function deleteSchoolImage(SchoolImage $image): void
+    {
+        $image->delete();
     }
 }

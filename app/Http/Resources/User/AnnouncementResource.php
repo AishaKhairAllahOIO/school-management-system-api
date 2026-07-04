@@ -19,7 +19,7 @@ class AnnouncementResource extends JsonResource
             'audience'    => $this->audience,
             'title'       => $this->title,
             'description' => $this->description,
-            'created_at'  => $this->created_at,
+            'created_at'  => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
 }

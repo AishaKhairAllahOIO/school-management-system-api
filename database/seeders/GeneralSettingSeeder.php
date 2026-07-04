@@ -28,13 +28,9 @@ class GeneralSettingSeeder extends Seeder
                 'country'               => 'USA',
                 'latitude'              => 40.7128,
                 'longitude'             => -74.0060,
-                'default_language'      => 'en',
-                'timezone'              => 'UTC',
-                'date_format'           => 'Y-m-d',
-                'currency'              => 'USD',
-                'working_days'          => json_encode(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday']),
-                'opening_time'          => '08:00',
-                'closing_time'          => '15:00',
+                'logo_url'              => 'https://globalacademy.com/logo.png',
+                
+
             ]
         );
     }

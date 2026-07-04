@@ -5,7 +5,7 @@ namespace App\Http\Requests\Setting;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateClassroomRequest extends FormRequest
+class UpdateSchoolImageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,11 +22,9 @@ class UpdateClassroomRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'capacity' => ['sometimes', 'required', 'integer', 'min:5', 'max:100'],
-
-            'grade_level_id' => ['sometimes', 'required', 'exists:grade_levels,id'],
-        
+        return[
+            'url'  => ['sometimes', 'required', 'url', 'max:255'],
+            'name' => ['sometimes', 'required', 'string', 'max:100'],
         ];
     }
 }

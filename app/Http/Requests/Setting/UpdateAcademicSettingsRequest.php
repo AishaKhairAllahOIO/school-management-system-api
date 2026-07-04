@@ -5,17 +5,19 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\BaseRequest;
+use App\Enums\SchoolDay;
+use Illuminate\Validation\Rules\Enum;
 
 
 
-class UpdateAcademicSettingsRequest extends FormRequest
+class UpdateAcademicSettingsRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()->hasRole('super_admin');
+        return $this->user()->can('school:initialize');
     }
 
     /**
@@ -27,70 +29,27 @@ class UpdateAcademicSettingsRequest extends FormRequest
     {
         return [
             'currentAcademicYearId'       => 'required|exists:academic_years,id',
-            'passingGrade'                => 'required|string',
-            'maximumGrade'                => 'required|integer',
-            'gpaScale'                    => 'required|in:4.0,5.0,100',
-            'minimumAttendancePercentage' => 'required|integer|min:0|max:100',
-            'promotionThreshold'          => 'required|integer',
+            'currentSemesterId'           => 'required|exists:semesters,id',
+            'scheduleSettings'                       => 'required|array',
+            'scheduleSettings.dayStartTime'          => 'required|date_format:H:i',
+            'scheduleSettings.periodDurationMinutes' => 'required|integer|min:20|max:120',
+            
+            // فحص أيام العمل
+            'scheduleSettings.workingDays'                => 'required|array|min:1',
+            'scheduleSettings.workingDays.*.day'          => ['required', new Enum(SchoolDay::class)],
+            'scheduleSettings.workingDays.*.periodsCount' => 'required|integer|min:1|max:15',
+            
+            // فحص مصفوفة الفسح
+            'scheduleSettings.breaks'                    => 'present|array',
+            'scheduleSettings.breaks.*.id'               => 'required|string',
+            'scheduleSettings.breaks.*.afterPeriodIndex' => 'required|integer|min:1',
+            'scheduleSettings.breaks.*.durationMinutes'  => 'required|integer|min:5',
 
-            'preferences'                          => 'array',
-            'preferences.autoPromoteStudents'      => 'boolean',
-            'preferences.allowStudentRepeating'    => 'boolean',
-            'preferences.calculateGpa'             => 'boolean',
-            'preferences.rankStudents'             => 'boolean',
-            'preferences.useAttendanceInPromotion' => 'boolean',
-
-            'academicYears'               => 'array',
-            'academicYears.*.id'          => 'nullable', 
-            'academicYears.*.name'        => 'required|string',
-            'academicYears.*.startDate'   => 'required|date',
-            'academicYears.*.endDate'     => 'required|date|after:academicYears.*.startDate',
-
-            'terms'                       => 'array',
-            'terms.*.id'                  => 'nullable',
-            'terms.*.name'                => 'required|string|distinct',
-            'terms.*.startDate'           => 'required|date',
-            'terms.*.endDate'             => 'required|date|after:terms.*.startDate',
-
-            'gradeScale'                  => 'array',
-            'gradeScale.*.id'             => 'nullable',
-            'gradeScale.*.grade'          => 'required|string|distinct',
-            'gradeScale.*.minimumScore'   => 'required|integer|min:0',
-            'gradeScale.*.maximumScore'   => 'required|integer|gt:gradeScale.*.minimumScore',
-            'gradeScale.*.description'    => 'nullable|string',
         ];
     }
     public function messages(){
     return [
-        'currentAcademicYearId.required' => 'The academic year must be selected.',
-        'currentAcademicYearId.exists'   => 'The selected academic year is invalid.',
-        'passingGrade.required'          => 'The passing grade is required.',
-        'maximumGrade.integer'           => 'Maximum grade must be a valid number.',
-        'gpaScale.in'                    => 'GPA scale must be one of the following: 4.0, 5.0, or 100.',
-        'minimumAttendancePercentage.between' => 'Attendance must be between 0 and 100%.',
-
-        'academicYears.*.name.required'      => 'Academic year name is required for all entries.',
-        'academicYears.*.startDate.required' => 'Start date is required for all academic years.',
-        'academicYears.*.endDate.after'      => 'End date must be after the start date for all academic years.',
-
-        'terms.*.name.required'   => 'Term name is required.',
-        'terms.*.status.in'       => 'Status must be active, upcoming, or completed.',
-        'terms.*.endDate.after'   => 'Term end date must be after the start date.',
-
-        // سلم الدرجات
-        'gradeScale.*.grade.required'        => 'Grade letter is required.',
-        'gradeScale.*.minimumScore.required' => 'Minimum score is required.',
-        'gradeScale.*.maximumScore.gt'       => 'The maximum score must be strictly greater than the minimum score.',
-    ];
+];
 }
-    // public function attributes(): array
-    // {
-    //     return [
-    //         'currentAcademicYearId' => 'Academic Year',
-    //         'passingGrade'          => 'Passing Grade',
-    //         'gradeScale.*.grade'    => 'Grade',
-    //         'gradeScale.*.minimumScore' => 'Minimum Score',
-    //         'gradeScale.*.maximumScore' => 'Maximum Score',
-    //     ];
-    // }
+
 }

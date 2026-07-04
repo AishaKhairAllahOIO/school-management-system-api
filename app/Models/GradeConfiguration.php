@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class GradeConfiguration extends Model
 {
     protected $guarded = [];
+    protected $casts = [
+        'planned_classrooms_count' => 'integer',
+        'planned_students_capacity' => 'integer',
+    ];
     protected $appends = ['actual_classrooms_count', 'actual_students_count'];
 
     // ... العلاقات (grade, academicYear, supervisor) ...

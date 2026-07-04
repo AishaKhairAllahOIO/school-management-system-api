@@ -10,15 +10,19 @@ class Semester extends Model
     const FIRST_TERM = 'First_Term';
     const SECOND_TERM = 'Second_Term';
     protected $guarded = [];
-
+    protected $casts = [
+        'is_current'    => 'boolean',
+        'is_final_term' => 'boolean',
+        'order'         => 'integer',
+        'start_date'    => 'date:Y-m-d',
+        'end_date'      => 'date:Y-m-d',
+    ];
     public function academicYear()
     {
         return $this->belongsTo(AcademicYear::class);
     }
-
-    public function extraServices()
-    {
-        return $this->hasMany(ExtraService::class);
+    public function academicSetting() {
+        return $this->hasOne(AcademicSetting::class, 'current_semester_id');
     }
 
     public function scheduleTimeSlots()
@@ -27,8 +31,4 @@ class Semester extends Model
     }
 
 
-    public function enrollments()
-    {
-        return $this->hasMany(Enrollment::class);
-    }
 }

@@ -9,7 +9,11 @@ class AcademicYear extends Model
 
     protected $guarded = [];
 
-
+    protected $casts = [
+        'is_current' => 'boolean',
+        'start_date' => 'date:Y-m-d',
+        'end_date'   => 'date:Y-m-d',
+    ];
 
     public function enrollments()
     {

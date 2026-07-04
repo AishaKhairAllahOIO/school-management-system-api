@@ -13,7 +13,7 @@ class UpdateGradeLevelRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+       return $this->user()->can('school:initialize');
     }
 
     /**
@@ -24,13 +24,13 @@ class UpdateGradeLevelRequest extends FormRequest
     public function rules(): array
     {
 
-             $id = $this->route('id'); // معرّف المرحلة من الرابط
+        $gradeId = $this->route('grade_level') ? $this->route('grade_level')->id : null;
 
         return [
-            'grade_name' => [
-                'required', 'string', 'max:255',
-                Rule::unique('grade_levels', 'grade_name')->ignore($id), // تجاهل السجل نفسه
-            ],
+            'academicStageId'   => ['sometimes', 'required', 'exists:academic_stages,id'],
+            'name'              => ['sometimes', 'required', 'string', 'max:100', Rule::unique('grade_levels')->ignore($gradeId)],
+            'isGraduationGrade' => ['sometimes', 'boolean'],
+            
         ];
 
     }

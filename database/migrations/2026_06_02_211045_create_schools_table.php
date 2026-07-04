@@ -27,17 +27,7 @@ return new class extends Migration
             $table->string('country');
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
-            
             $table->string('logo_url')->nullable();
-            $table->string('default_language')->default('ar');
-            $table->string('timezone')->default('Asia/Damascus');
-            $table->string('date_format')->default('YYYY-MM-DD');
-            $table->string('currency')->default('SYP');
-            
-            $table->json('working_days'); 
-            $table->time('opening_time');
-            $table->time('closing_time');
-            $table->enum('education_level', ['primary', 'secondary', 'middle'])->default('middle'  );
             $table->timestamps();
         });
     }

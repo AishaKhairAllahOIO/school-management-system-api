@@ -17,7 +17,9 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('end_date');
             $table->foreignId('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
-         //   $table->foreignId('extra_service_id')->constrained('extra_services')->cascadeOnDelete()->nullable();
+            $table->tinyInteger('order')->unsigned(); // 1, 2, 3
+            $table->boolean('is_current')->default(false);
+            $table->boolean('is_final_term')->default(false);
             $table->timestamps();
         });
     }

@@ -8,6 +8,12 @@ class Enrollment extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'enrollment_date' => 'date',
+        'completed_at' => 'datetime',
+    ];
+
+
     public function student()
     {
         return $this->belongsTo(Student::class);

@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('grade_levels', function (Blueprint $table) {
             $table->id();
-            // لازم اربط المرحلة يعني اعدادي او ثانوي بالصفوف
-            
-            $table->string('grade_name')->unique();
+            $table->foreignId('academic_stage_id')->constrained('academic_stages'); // المرحلة (ابتدائي، إعدادي..)
+            $table->string('name');
+            $table->integer('level');
+            $table->boolean('is_graduation_grade')->default(false);
             $table->timestamps();
         });
     }

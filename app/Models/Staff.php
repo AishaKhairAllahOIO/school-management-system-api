@@ -27,4 +27,14 @@ class Staff extends Model
     return $this->morphMany(Alert::class, 'notifiable');
 }
 
+public function teacherAssignments()
+    {
+        return $this->hasMany(TeacherAssignment::class);
+    }
+
+    public function teacherWorkloads()
+    {
+        return $this->hasMany(TeacherWorkload::class);
+    }
+
 }

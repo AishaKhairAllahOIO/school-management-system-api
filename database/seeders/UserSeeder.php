@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
     {
         // استخدام رقم الهاتف كمفتاح للبحث، وباقي البيانات للإنشاء/التحديث
         $user1 = User::updateOrCreate(
-            ['phone_number' => '0968661500'], 
+            ['phone_number' => '0968661500'],
             [
                 'first_name' => 'Nour',
                 'last_name' => 'Alali_Alsaleh',
@@ -60,7 +60,7 @@ class UserSeeder extends Seeder
         $user3 = User::updateOrCreate(
             ['phone_number' => '0960657740'],
             [
-                'email' => 'arsmstaif@gmail.com',
+                'email' => 'nnnnahhmad@gmail.com',
                 'first_name' => 'aisha',
                 'last_name' => 'khair allah',
                 'father_name' => 'emad aldeen',
@@ -190,7 +190,7 @@ class UserSeeder extends Seeder
                 'birth_date' => '1985-11-19',
                 'birth_place' => 'Spy City',
                 'address' => '123 Mission St, Spy City',
-                'email' => 'nnnnahhmad@gmail.com',
+                'email' => 'dfghjmjjh@gmail.com',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
                 'nationality' => 'jordanian',
                 'gender' => 'male',

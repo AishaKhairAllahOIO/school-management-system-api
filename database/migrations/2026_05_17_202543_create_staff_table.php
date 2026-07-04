@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('specialization', 100);
             $table->string('university');
             $table->unsignedSmallInteger('graduation_year');
+            $table->date('hire_date');
             $table->unsignedTinyInteger('experience_years')->default(0);
             $table->timestamps();
             $table->softDeletes();

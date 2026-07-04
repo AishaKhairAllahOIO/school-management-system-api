@@ -16,4 +16,15 @@ class TeacherAssignment extends Model
         public function alerts(){
             return $this->hasMany(Alert::class);
         }
+
+        public function subject(){
+            return $this->belongsTo(Subject::class);
+        }
+
+        public function classRoom(){
+            return $this->belongsTo(ClassRoom::class);
+        }
+        public function academicYear(){
+            return $this->belongsTo(AcademicYear::class);
+        }
 }

@@ -19,6 +19,7 @@ class StaffSeeder extends Seeder
                 'university' => 'جامعة البعث',
                 'graduation_year' => 2012,
                 'experience_years' => 8,
+                'hire_date' => '2022-08-11'
             ]);
 
 
@@ -29,6 +30,7 @@ class StaffSeeder extends Seeder
                 'university' => 'جامعة دمشق',
                 'graduation_year' => 2010,
                 'experience_years' => 12,
+                'hire_date' => '2010-09-01',
             ]);
 
 
@@ -39,6 +41,7 @@ class StaffSeeder extends Seeder
                 'university' => 'جامعة تشرين',
                 'graduation_year' => 2015,
                 'experience_years' => 5,
+                'hire_date' => '2015-09-01',
             ]);
     }
 }

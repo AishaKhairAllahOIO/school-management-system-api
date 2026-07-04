@@ -180,9 +180,10 @@ class UserService
                 'first_name'      => $student->user->first_name,
                 'father_name' => $student->user->father_name,
                 'last_name' => $student->user->last_name,
+                'gender' => $student->user->gender,
                 'student_personal_photo' => url('api/user/photos/' . $student->user->personal_photo),
                 'grade_name'        => $gradeName,
-                'name'      => $className,
+                'class_room_name'      => $className,
             ];
         })->toArray();
 

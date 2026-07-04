@@ -43,6 +43,10 @@ Route::prefix('auth')->group(function () {
         Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
         Route::get('/announcements', [UserAnnouncementController::class, 'announcementsForStaff']);
         Route::get('/alerts', [UserAlertController::class, 'getStaffAlerts']);
+        Route::get('/payment-alerts', [UserAlertController::class, 'getStaffPaymentAlerts']);
+        Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
+
+
 
 
         Route::prefix('settings')->group(function () {
@@ -87,32 +91,34 @@ Route::middleware('auth:sanctum', 'role:super_admin')->prefix('data')->group(fun
     Route::get('/super_admin', [UserController::class, 'myProfile']);
     Route::put('/super_admin', [UserController::class, 'updateMyAdminProfile']);
 });
-Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
-   Route::post('/student/register',[StudentController::class,'store']);
-   Route::post('/student/import',[StudentController::class,'importExcel']);
-   Route::get('/student/import-batches/{batch}/errors/export', [StudentController::class, 'exportErrors'])
-     ->middleware('can:student:create');
-     Route::get('/student/import-batches/{batch}/status', [StudentController::class, 'getImportStatus'])
-     ->middleware('can:student:create');
-     Route::get('/student/import-batches/history', [StudentController::class, 'getBatchesHistory']);
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::post('/student/register', [StudentController::class, 'store']);
+    Route::post('/student/import', [StudentController::class, 'importExcel']);
+    Route::get('/student/import-batches/{batch}/errors/export', [StudentController::class, 'exportErrors'])
+        ->middleware('can:student:create');
+    Route::get('/student/import-batches/{batch}/status', [StudentController::class, 'getImportStatus'])
+        ->middleware('can:student:create');
+    Route::get('/student/import-batches/history', [StudentController::class, 'getBatchesHistory']);
 });
 
 
 /// ////////////////////////////////////////////////////////////////////////////////// ///
 
 
-Route::post('/announcement',   [UserAnnouncementController::class, 'store']);
-Route::delete('/announcement/{id}', [UserAnnouncementController::class, 'destroy']);
+Route::post('/announcements',   [UserAnnouncementController::class, 'store']);
+Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
 
 Route::post('/alerts', [UserAlertController::class, 'store']);
 
 Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
 
-Route::post('/activity', [ActivityController::class, 'store']);
 Route::get('/activites', [ActivityController::class, 'show']);
-Route::delete('/activity',[ActivityController::class,'destroy']);
+Route::delete('/activity/{id}', [ActivityController::class, 'destroy']);
+Route::post('/activity', [ActivityController::class, 'store']);
 
-
+Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
+Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
+Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
 
 
 /// /////////////////////////////////////Mobile/////////////////////////////////////// ///
@@ -127,9 +133,9 @@ Route::prefix('user')->group(function () {
         Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
         Route::get('get-user-data', [UserController::class, 'getUserInfo']);
         Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
-        Route::get('/alerts/{id}', [UserAlertController::class, 'childAlerts']);
+        Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
-        Route::get('/alerts', [UserAlertController::class, 'myAlerts']);
+        Route::get('/my-alerts', [UserAlertController::class, 'myAlerts']);
         Route::get('/announcements', [UserAnnouncementController::class, 'announcementsForStudent']);
 
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);

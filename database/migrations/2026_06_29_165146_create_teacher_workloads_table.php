@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('teacher_workloads', function (Blueprint $table) {
             $table->id();
             $table->integer('required_monthly_periods');
-            $table->integer('assigned_monthly_periods');
-            $table->foreignId('teacher_assignment_id')->constrained('teacher_assignments')->cascadeOnDelete();
+            $table->foreignId('staff_id')->constrained('staff')->cascadeOnDelete();
+            $table->foreignId('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
+            $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
+            $table->unique(['staff_id', 'academic_year_id', 'semester_id'], 'teacher_semester_workload_unique');
             $table->timestamps();
         });
     }
@@ -28,3 +30,4 @@ return new class extends Migration
         Schema::dropIfExists('teacher_workloads');
     }
 };
+

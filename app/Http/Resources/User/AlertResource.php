@@ -21,7 +21,7 @@ class AlertResource extends JsonResource
             'title'       => $this->title,
             'description' => $this->description,
             'meta'        => $this->meta ?? [],
-            'created_at'  => $this->created_at->format('Y-m-d H:i:s'), ,
+            'created_at'  => $this->created_at->format('Y-m-d H:i:s'), 
         ];
     }
 }

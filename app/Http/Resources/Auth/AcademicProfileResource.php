@@ -37,6 +37,7 @@ class AcademicProfileResource extends JsonResource
             'university'       => $this->staff?->university,
             'graduation_year'  => $this->staff?->graduation_year,
             'experience_years' => $this->staff?->experience_years,
+            'hire_date'        => $this->staff?->hire_date,
 
             'roles'=> $this->getRoleNames(),
         ];

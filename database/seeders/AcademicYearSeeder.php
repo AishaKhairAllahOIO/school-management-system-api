@@ -16,7 +16,7 @@ public function run(): void
 {
     AcademicYear::updateOrCreate(
         ['id' => 1],
-        ['year_name' => '2025-2026', 'start_date' => '2025-09-01', 'end_date' => '2026-06-30']
+        ['year_name' => '2025-2026', 'start_date' => '2025-09-01', 'end_date' => '2026-12-30']
     );
 }
 }

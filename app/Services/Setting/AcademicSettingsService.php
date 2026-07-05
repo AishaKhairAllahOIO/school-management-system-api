@@ -29,6 +29,35 @@ class AcademicSettingsService
 
    return  $settings;
     }
+     public function getAllYears(): Collection
+    {
+        return AcademicYear::orderBy('start_date', 'desc')->get();
+    }
+
+    public function getYearById(int $id): AcademicYear
+    {
+        return AcademicYear::findOrFail($id);
+    }
+
+    public function getAllTerms(): Collection
+    {
+        return Semester::orderBy('academic_year_id', 'desc')->orderBy('order', 'asc')->get();
+    }
+
+    public function getTermById(int $id): Semester
+    {
+        return Semester::findOrFail($id);
+    }
+
+    public function getAllStages(): Collection
+    {
+        return AcademicStage::all();
+    }
+
+    public function getStageById(int $id): AcademicStage
+    {
+        return AcademicStage::findOrFail($id);
+    }
 
     // تحديث إعدادات الجدولة
     public function updateSettings(array $data)
@@ -94,13 +123,35 @@ class AcademicSettingsService
     }
 
     // ---------------- عمليات الفصل الدراسي ----------------
-       public function saveTerm(array $data, ?Semester $term = null): Semester 
+private function determineTermNameAndOrder(string $inputName): array
+    {
+        $nameLower = strtolower($inputName);
+        
+        if (str_contains($nameLower, 'first') || str_contains($nameLower, 'أول') || $nameLower === '1') {
+            return ['name' => Semester::FIRST_TERM, 'order' => 1];
+        } 
+        
+        if (str_contains($nameLower, 'second') || str_contains($nameLower, 'ثاني') || $nameLower === '2') {
+            return ['name' => Semester::SECOND_TERM, 'order' => 2];
+        }
+
+        // قيمة افتراضية في حال تم إدخال اسم غريب جداً
+        return ['name' => $inputName, 'order' => 1]; 
+    }
+
+    public function saveTerm(array $data, ?Semester $term = null): Semester 
     {
         return DB::transaction(function () use ($data, $term) {
             
-            // 1. استخراج القيم المراد فحصها 
             $academicYearId = $data['academicYearId'] ?? $term->academic_year_id;
-            $semesterName   = $data['semesterName'] ?? $term->semester_name;
+            
+            // 👈 أخذ الاسم المرسل من الفرونت إند
+            $inputSemesterName = $data['semesterName'] ?? $term->semester_name;
+
+            // 🧠 تمرير الاسم للعقل المدبر لاستنتاج الترتيب والاسم الموحد
+            $termData = $this->determineTermNameAndOrder($inputSemesterName);
+            $semesterName = $termData['name'];
+            $order = $termData['order'];
 
             $existingTerm = Semester::where('academic_year_id', $academicYearId)
                 ->where('semester_name', $semesterName)
@@ -108,9 +159,8 @@ class AcademicSettingsService
                 ->exists();
 
             if ($existingTerm) {
-                // 🛑 رمي خطأ تحقق لالتقاطه في الكنترولر وإرساله للفرونت إند (422)
                 throw ValidationException::withMessages([
-                    'semesterName' => ["الفصل الدراسي ({$semesterName}) مسجل مسبقاً في هذا العام الدراسي ولا يمكن تكراره."]
+                    'semesterName' => ["الفصل الدراسي المماثل مسجل مسبقاً في هذا العام الدراسي ولا يمكن تكراره."]
                 ]);
             }
 
@@ -120,10 +170,10 @@ class AcademicSettingsService
 
             $payload = [
                 'academic_year_id' => $academicYearId,
-                'semester_name'    => $semesterName,
+                'semester_name'    => $semesterName, // 👈 الاسم الموحد والمستنتج آلياً
                 'start_date'       => $data['startDate'] ?? $term->start_date,
                 'end_date'         => $data['endDate'] ?? $term->end_date,
-                'order'            => $data['order'] ?? $term->order,
+                'order'            => $order,        // 👈 الترتيب المستنتج آلياً (تجاهلنا الفرونت إند تماماً هنا)
                 'is_current'       => $data['isCurrent'] ?? $term->is_current,
                 'is_final_term'    => $data['isFinalTerm'] ?? $term->is_final_term,
             ];
@@ -134,7 +184,6 @@ class AcademicSettingsService
                 $term = Semester::create($payload);
             }
 
-            // 👈 إرجاع الموديل مباشرة بدلاً من دالة الـ format
             return $term->refresh(); 
         });
     }
@@ -151,7 +200,41 @@ class AcademicSettingsService
     }
 
 
+  public function deleteYear(int $id): void
+    {
+        $year = AcademicYear::findOrFail($id);
+        
+        $hasSemesters = Semester::where('academic_year_id', $id)->exists();
+        $hasConfigurations = \App\Models\GradeConfiguration::where('academic_year_id', $id)->exists();
+        
+        if ($hasSemesters || $hasConfigurations) {
+            throw new HttpResponseException(
+                $this->errorResponse('لا يمكن حذف العام الدراسي لارتباطه بفصول دراسية أو إعدادات تخطيطية.', 409)
+            );
+        }
+        
+        $year->delete();
+    }
 
+    public function deleteTerm(int $id): void
+    {
+        $term = Semester::findOrFail($id);
+        $term->delete();
+    }
+
+    public function deleteStage(int $id): void
+    {
+        $stage = AcademicStage::findOrFail($id);
+        $hasGrades = GradeLevel::where('academic_stage_id', $id)->exists();
+        
+        if ($hasGrades) {
+            throw new HttpResponseException(
+                $this->errorResponse('لا يمكن حذف المرحلة الدراسية لأنها تحتوي على صفوف دراسية. احذف الصفوف أولاً.', 409)
+            );
+        }
+        
+        $stage->delete();
+    }
 
     // public function syncSettings(array $data)
     // {
@@ -234,131 +317,60 @@ class AcademicSettingsService
     // }
 
 
-    public function createStructure(array $data): Collection
-    {
-        return DB::transaction(function () use ($data) {
-            $ids = [];
 
-            foreach ($data['grade_levels'] as $levelData) {
-                $ids[] = $this->persistLevel($levelData)->id;
-            }
 
-            return $this->loadLevels($ids);
-        });
-    }
 
-    public function createSingleLevel(array $levelData): GradeLevel
-    {
-        return DB::transaction(function () use ($levelData) {
-            $level = $this->persistLevel($levelData);
+    // private function loadLevels(array $ids): Collection
+    // {
+    //     return GradeLevel::query()
+    //         ->whereIn('id', $ids)
+    //         ->withCount('classRooms')
+    //         ->with(['classRooms:id,grade_level_id,name,capacity'])
+    //         ->orderBy('id')
+    //         ->get();
+    // }
 
-            return $this->loadLevels([$level->id])->first();
-        });
-    }
 
-    private function persistLevel(array $levelData): GradeLevel
-    {
-        $level = GradeLevel::create(['grade_name' => $levelData['grade_name']]);
 
-        $now  = now();
-        $rows = [];
+// public function deleteLevel(int $id): void
+// {
+//     $level = GradeLevel::withCount('classRooms')->findOrFail($id);
 
-        foreach ($levelData['classrooms'] as $index => $classroom) {
-            $rows[] = [
-                'grade_level_id' => $level->id,
-                'name'           => $classroom['name'] ?? $this->generateClassroomName($index),
-                'capacity'       => $classroom['capacity'],
-                'created_at'     => $now,
-                'updated_at'     => $now,
-            ];
-        }
+//     // حماية: امنع حذف مرحلة فيها شعب
+//     if ($level->class_rooms_count > 0) {
+//         throw new HttpResponseException(
+//             $this->errorResponse(
+//                 'لا يمكن حذف المرحلة لأنها تحتوي على شعب. احذف الشعب أولاً.',
+//                 409 // Conflict
+//             )
+//         );
+//     }
 
-        ClassRoom::insert($rows); // كل الشعب باستعلام واحد
+//     $level->delete();
+// }
 
-        return $level;
-    }
+// public function updateClassroom(int $id, array $data): ClassRoom
+// {
+//     $classRoom = ClassRoom::findOrFail($id);
+//     $classRoom->update($data);
 
-    private function loadLevels(array $ids): Collection
-    {
-        return GradeLevel::query()
-            ->whereIn('id', $ids)
-            ->withCount('classRooms')
-            ->with(['classRooms:id,grade_level_id,name,capacity'])
-            ->orderBy('id')
-            ->get();
-    }
+//     return $classRoom->fresh();
+// }
 
-    private function generateClassroomName(int $index): string
-    {
-        $letters = ['أولى', 'ثانية', 'ثالثة', 'رابعة', 'خامسة', 'سادسة', 'سابعة', 'ثامنة', 'تاسعة', 'عاشرة'];
+// public function deleteClassroom(int $id): void
+// {
+//     $classRoom = ClassRoom::withCount('enrollments')->findOrFail($id);
 
-        return 'شعبة ' . ($letters[$index] ?? (string) ($index + 1));
-    }
+//     if ($classRoom->enrollments_count > 0) {
+//         throw new HttpResponseException(
+//             $this->errorResponse(
+//                 'لا يمكن حذف الشعبة لأنها تحتوي على طلاب مسجّلين.',
+//                 409
+//             )
+//         );
+//     }
 
-    public function listStructure(): LengthAwarePaginator
-    {
-        return GradeLevel::query()
-            ->withCount('classRooms')
-            ->with(['classRooms:id,grade_level_id,name,capacity'])
-            ->orderBy('id')
-            ->paginate(15);
-    }
-
-    public function showLevel(int $id): GradeLevel
-{
-    // loadLevels تعيد Collection — نأخذ أول عنصر، أو نرمي 404
-    $level = $this->loadLevels([$id])->first();
-
-    return $level;
-}
-
-public function updateLevel(int $id, array $data): GradeLevel
-{
-    $level = GradeLevel::findOrFail($id);
-    $level->update(['grade_name' => $data['grade_name']]);
-
-    return $this->loadLevels([$level->id])->first();
-}
-
-public function deleteLevel(int $id): void
-{
-    $level = GradeLevel::withCount('classRooms')->findOrFail($id);
-
-    // حماية: امنع حذف مرحلة فيها شعب
-    if ($level->class_rooms_count > 0) {
-        throw new HttpResponseException(
-            $this->errorResponse(
-                'لا يمكن حذف المرحلة لأنها تحتوي على شعب. احذف الشعب أولاً.',
-                409 // Conflict
-            )
-        );
-    }
-
-    $level->delete();
-}
-
-public function updateClassroom(int $id, array $data): ClassRoom
-{
-    $classRoom = ClassRoom::findOrFail($id);
-    $classRoom->update($data);
-
-    return $classRoom->fresh();
-}
-
-public function deleteClassroom(int $id): void
-{
-    $classRoom = ClassRoom::withCount('enrollments')->findOrFail($id);
-
-    if ($classRoom->enrollments_count > 0) {
-        throw new HttpResponseException(
-            $this->errorResponse(
-                'لا يمكن حذف الشعبة لأنها تحتوي على طلاب مسجّلين.',
-                409
-            )
-        );
-    }
-
-    $classRoom->delete();
-}
+//     $classRoom->delete();
+// }
 
 }

@@ -6,6 +6,8 @@ use App\Models\GradeLevel;
 use App\Models\GradeConfiguration;
 use App\Models\Classroom;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
 
 class GradeAndClassroomService
 {
@@ -136,9 +138,56 @@ class GradeAndClassroomService
     // --- دوال مساعدة داخلية (Helpers) ---
     // =====================================================================
 
-    /**
-     * إعادة حساب السعة الكلية للصف كلما تمت إضافة/تعديل سعة شعبة
-     */
+       public function getGradeById(int $id): GradeLevel
+    {
+        return GradeLevel::findOrFail($id);
+    }
+
+    public function getConfigurationById(int $id): GradeConfiguration
+    {
+        return GradeConfiguration::findOrFail($id);
+    }
+
+    public function getClassroomById(int $id): Classroom
+    {
+        return Classroom::findOrFail($id);
+    }
+       public function deleteGrade(int $id)
+    {
+        $grade = GradeLevel::findOrFail($id);
+        $hasClassrooms = Classroom::where('grade_level_id', $id)->exists();
+        $hasConfigs = GradeConfiguration::where('grade_level_id', $id)->exists();
+
+        if ($hasClassrooms || $hasConfigs) {
+            throw new HttpResponseException(response()->json([
+                'status' => false,
+                'message' => 'لا يمكن حذف الصف لاحتوائه على إعدادات تخطيطية أو شعب دراسية.'
+            ], 409));
+        }
+
+        $grade->delete();
+    }
+
+    public function deleteConfiguration(int $id): void
+    {
+        $config = GradeConfiguration::findOrFail($id);
+        $config->delete();
+    }
+
+    public function deleteClassroom(int $id): void
+    {
+        $classroom = Classroom::findOrFail($id);
+        $yearId = $classroom->academic_year_id;
+        $gradeId = $classroom->grade_level_id;
+
+        // ملاحظة: لاحقاً عند إضافة نظام الطلاب، سنفحص إذا كان هناك طلاب مسجلون هنا.
+
+        $classroom->delete();
+
+        // 🪄 السحر: إعادة حساب السعة الكلية للصف وخصم سعة الشعبة المحذوفة!
+        $this->recalculateGradeCapacity($yearId, $gradeId);
+    }
+
     private function recalculateGradeCapacity($yearId, $gradeId): void 
     {
         $totalCapacity = Classroom::where('academic_year_id', $yearId)

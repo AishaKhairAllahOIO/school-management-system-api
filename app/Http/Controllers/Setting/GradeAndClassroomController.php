@@ -66,4 +66,27 @@ class GradeAndClassroomController extends Controller
             'Classroom updated successfully.'
         );
     }
+        public function showGrade(int $id): JsonResponse 
+    {
+        return $this->successResponse(
+            new GradeLevelResource($this->service->getGradeById($id)),
+            'تم جلب بيانات الصف الدراسي بنجاح.'
+        );
+    }
+
+    public function showConfiguration(int $id): JsonResponse 
+    {
+        return $this->successResponse(
+            new GradeConfigurationResource($this->service->getConfigurationById($id)),
+            'تم جلب الإعداد التخطيطي بنجاح.'
+        );
+    }
+
+    public function showClassroom(int $id): JsonResponse 
+    {
+        return $this->successResponse(
+            new ClassroomResource($this->service->getClassroomById($id)),
+            'تم جلب بيانات الشعبة بنجاح.'
+        );
+    }
 }

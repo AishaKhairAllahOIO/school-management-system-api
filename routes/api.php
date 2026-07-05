@@ -107,6 +107,31 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
             // Classrooms
     Route::post('/classrooms', [GradeAndClassroomController::class, 'storeClassroom']);
     Route::post('/classrooms/{classroom}', [GradeAndClassroomController::class, 'updateClassroom']);
+
+
+    // جلب القوائم (الأعوام، الفصول، المراحل)
+    Route::get('/years', [AcademicSettingsController::class, 'getYears']);
+    Route::get('/terms', [AcademicSettingsController::class, 'getTerms']);
+    Route::get('/stages', [AcademicSettingsController::class, 'getStages']);
+
+    // جلب عناصر محددة بالـ ID (الصفوف، التكوينات، الشعب)
+    Route::get('/grades/{id}', [GradeAndClassroomController::class, 'showGrade']);
+    Route::get('/configurations/{id}', [GradeAndClassroomController::class, 'showConfiguration']);
+    Route::get('/classrooms/{id}', [GradeAndClassroomController::class, 'showClassroom']);
+
+    // --- دوال الحذف (DELETE) ---
+    Route::delete('/years/{id}', [AcademicSettingsController::class, 'destroyYear']);
+    Route::delete('/terms/{id}', [AcademicSettingsController::class, 'destroyTerm']);
+    Route::delete('/stages/{id}', [AcademicSettingsController::class, 'destroyStage']);
+    
+    Route::delete('/grades/{id}', [GradeAndClassroomController::class, 'destroyGrade']);
+    Route::delete('/configurations/{id}', [GradeAndClassroomController::class, 'destroyConfiguration']);
+    Route::delete('/classrooms/{id}', [GradeAndClassroomController::class, 'destroyClassroom']);
+
+    Route::get('/years/{id}', [AcademicSettingsController::class, 'showYear']);
+    Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
+    Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
+
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {

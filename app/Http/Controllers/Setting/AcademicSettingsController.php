@@ -34,6 +34,46 @@ class AcademicSettingsController extends Controller
     {
         $this->academicSettingsService = $academicSettingsService;
     }
+     public function getYears(AcademicSettingsService $service) {
+        return $this->successResponse(
+            AcademicYearResource::collection($service->getAllYears()),
+            'تم جلب الأعوام الدراسية بنجاح.'
+        );
+    }
+
+    public function getTerms(AcademicSettingsService $service) {
+        return $this->successResponse(
+            SemesterResource::collection($service->getAllTerms()),
+            'تم جلب الفصول الدراسية بنجاح.'
+        );
+    }
+
+    public function getStages(AcademicSettingsService $service) {
+        return $this->successResponse(
+            AcademicStageResource::collection($service->getAllStages()),
+            'تم جلب المراحل الدراسية بنجاح.'
+        );
+    }
+      public function showYear(int $id, AcademicSettingsService $service) {
+        return $this->successResponse(
+            new AcademicYearResource($service->getYearById($id)),
+            'تم جلب بيانات العام الدراسي بنجاح.'
+        );
+    }
+
+    public function showTerm(int $id, AcademicSettingsService $service) {
+        return $this->successResponse(
+            new SemesterResource($service->getTermById($id)),
+            'تم جلب بيانات الفصل الدراسي بنجاح.'
+        );
+    }
+
+    public function showStage(int $id, AcademicSettingsService $service) {
+        return $this->successResponse(
+            new AcademicStageResource($service->getStageById($id)),
+            'تم جلب بيانات المرحلة الدراسية بنجاح.'
+        );
+    }
 
       public function index(AcademicSettingsService $service) {
         return $this->successResponse(

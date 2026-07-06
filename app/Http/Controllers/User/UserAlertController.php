@@ -28,13 +28,10 @@ class UserAlertController extends Controller
         if (!$guardian)
             return $this->errorResponse('this account not for a parent', 403, null);
 
-
         $student = $guardian->students()->find($studentId);
 
         if (!$student)
             return $this->errorResponse('this student not belong to this parent', 403, null);
-
-
 
         $alerts = $this->alertService->showStudentAlerts($student);
 
@@ -44,6 +41,9 @@ class UserAlertController extends Controller
             200
         );
     }
+
+
+
     public function childPaymentAlerts(Request $request, int $studentId)
     {
         $guardian = $request->user()->guardian;

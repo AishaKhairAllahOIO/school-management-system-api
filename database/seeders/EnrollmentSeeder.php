@@ -17,7 +17,7 @@ class EnrollmentSeeder extends Seeder
         $student1 = Student::find(1);
         $student2 = Student::find(2);
         $year = AcademicYear::find(1);
-        
+
         // إذا لم يكن هناك طلاب أو سنة دراسية رقم 1، أوقف السيدر حتى لا ينهار السيرفر
         if (!$year) {
             return;
@@ -50,7 +50,7 @@ class EnrollmentSeeder extends Seeder
                 [
                     'grade_level_id' => 2,
                     'class_room_id' => 3,
-                    'enrollment_status' => 'suspended', // طالب معلق مالياً
+                    'enrollment_status' => 'enrolled', // تم التعديل لتطابق الهيكلية
                     'enrollment_date' => null, // لم يدفع لذا لا يوجد تاريخ التحاق فعلي
                 ]
             );

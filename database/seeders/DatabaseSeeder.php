@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             ScheduleTimeSlotSeeder::class,
             StaffSeeder::class,
             TeacherAssignmentSeeder::class,
+            AlertSeeder::class,
 
 
         ]);

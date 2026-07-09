@@ -68,21 +68,12 @@ class AlertService
     }
     public function createStudentHomework(Enrollment $enrollment,Staff $teacher, array $meta = []): Alert
     {
-     $subject = $teacher->teacherAssignments
-        ->firstWhere('class_room_id', $enrollment->class_room_id)
-        ?->subject?->subject_name;
-
-    $defaultMeta = [
-        'date'    => now()->toDateString(),
-        'subject' => $subject,
-    ];
-
     return $this->createStudentAlert(
         $enrollment,
         Alert::TYPE_HOMEWORK,
         'تنبيه واجب',
         'لم يكتب الطالب الواجب المنزلي.',
-        array_merge($defaultMeta, $meta)
+            array_merge(['date' => now()->toDateString()], $meta)
     );
     }
     public function createStudentEscape(Enrollment $enrollment, array $meta = []): Alert
@@ -337,5 +328,9 @@ class AlertService
                 $data['meta'] ?? []
             ),
         };
+    }
+
+    public function showTeacherAlerts(){
+        
     }
 }

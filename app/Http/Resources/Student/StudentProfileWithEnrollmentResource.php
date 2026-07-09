@@ -9,7 +9,6 @@ class StudentProfileWithEnrollmentResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $enrollment   = $this; 
         $student      = $this->student;
         $studentUser  = $student->user; // البيانات الشخصية للطالب من جدول users
         $guardian     = $student->guardian;
@@ -53,16 +52,16 @@ class StudentProfileWithEnrollmentResource extends JsonResource
             
             // بيانات القيد الأكاديمي الحالية (Enrollment)
             'enrollment' => [
-                'id'               => (string) $enrollment->id,
-                'studentId'        => (string) $enrollment->student_id,
-                'academicYearId'   => (string) $enrollment->academic_year_id,
-                'gradeId'          => (string) $enrollment->grade_level_id, 
-                'classroomId'      => (string) $enrollment->class_room_id,  
-                'enrollmentStatus' => $enrollment->enrollment_status,       
-                'enrollmentDate'   => $enrollment->enrollment_date?->toDateString(),
-                'completedAt'      => $enrollment->completed_at?->toIso8601String(),
-                'createdAt'        => $enrollment->created_at?->toIso8601String(),
-                'updatedAt'        => $enrollment->updated_at?->toIso8601String(),
+                'id'               => (string) $student->enrollments()->latest()->first()?->id,
+                'studentId'        => (string) $student->enrollments()->first()->student_id,
+                'academicYearId'   => (string) $student->enrollments()->first()->academic_year_id,
+                'gradeId'          => (string) $student->enrollments()->first()->grade_level_id, 
+                'classroomId'      => (string) $student->enrollments()->first()->class_room_id,  
+                'enrollmentStatus' => $student->enrollments()->first()->enrollment_status,       
+                'enrollmentDate'   => $student->enrollments()->first()->enrollment_date?->toDateString(),
+                'completedAt'      => $student->enrollments()->first()->completed_at?->toIso8601String(),
+                'createdAt'        => $student->enrollments()->first()->created_at?->toIso8601String(),
+                'updatedAt'        => $student->enrollments()->first()->updated_at?->toIso8601String(),
             ],
         ];
     }

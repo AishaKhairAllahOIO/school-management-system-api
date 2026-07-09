@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\ImportError;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Exception;
+use App\Models\FinancialAccount;
 
 class StudentRegisterService
 {
@@ -135,6 +136,11 @@ class StudentRegisterService
                 'grade_level_id'          => $gradeId,
                 'class_room_id'     => $classroomId,
                 'enrollment_status' => 'suspended',
+            ]);
+
+            FinancialAccount::create([
+                'student_id'       => $studentRecord->id,
+                'academic_year_id' => $academicYearId,
             ]);
 
             return $studentUser->fresh(['student.guardian.user', 'student.enrollments']);

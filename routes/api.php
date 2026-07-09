@@ -144,6 +144,31 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
     
 });
+Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
+    
+    // سياسات التقسيط
+    Route::get('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getPolicies']);
+    Route::post('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storePolicy']);
+    
+    // خطط الرسوم الموحدة
+    Route::get('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getFeePlans']);
+    Route::post('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storeFeePlan']);
+    Route::post('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicy']);
+    Route::delete('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicy']);
+    
+    // تعديل وحذف خطط الرسوم الموحدة
+    Route::post('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateFeePlan']);
+    Route::delete('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyFeePlan']);
+    Route::post('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicyItem']);
+    Route::delete('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicyItem']);
+
+    Route::post('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateExtraService']);
+    Route::delete('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyExtraService']);
+    Route::get('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicy']);
+    Route::get('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showFeePlan']);    
+Route::get('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicyItem']);
+Route::get('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showExtraService']);
+    });
 
 //////////////////////////////////////////////////
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {

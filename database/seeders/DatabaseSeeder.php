@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             StaffSeeder::class,
             TeacherAssignmentSeeder::class,
             AlertSeeder::class,
+            TeacherWorkLoadSeeder::class,
 
 
         ]);

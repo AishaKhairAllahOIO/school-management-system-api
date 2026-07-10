@@ -28,7 +28,6 @@ class AcademicProfileResource extends JsonResource
 
             'email'         => $this->email,
             'phone_number'  => $this->phone_number,
-            'employee_type' => $this->employee_type,
             'is_active' => $this->account_status !== 'disabled',
             'record_status' => $this->record_status,
 

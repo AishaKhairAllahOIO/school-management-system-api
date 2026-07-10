@@ -49,16 +49,21 @@ Route::prefix('auth')->group(function () {
         Route::get('/payment-alerts', [UserAlertController::class, 'getStaffPaymentAlerts']);
         Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
 
+        Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
+            Route::get('/show-profile', [UserController::class, 'teacherProfile']);
+        });
 
-
+            Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
+            Route::get('/show-profile', [UserController::class, 'counselorProfile']);
+        });
 
         Route::prefix('admin/settings')->group(function () {
     // Route::get('/', [AcademicSettingsController::class, 'index']);
     // Route::put('/', [AcademicSettingsController::class, 'update']);
-    
+
     // Route::post('/years', [AcademicSettingsController::class, 'storeYear']);
     // Route::put('/years/{year}', [AcademicSettingsController::class, 'updateYear']);
-    
+
     // Route::post('/terms', [AcademicSettingsController::class, 'storeTerm']);
     // Route::put('/terms/{term}', [AcademicSettingsController::class, 'updateTerm']);
 
@@ -90,10 +95,10 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
     Route::get('/', [AcademicSettingsController::class, 'index']);
     Route::put('/', [AcademicSettingsController::class, 'update']);
-    
+
     Route::post('/years', [AcademicSettingsController::class, 'storeYear']);
     Route::put('/years/{year}', [AcademicSettingsController::class, 'updateYear']);
-    
+
     Route::post('/terms', [AcademicSettingsController::class, 'storeTerm']);
     Route::put('/terms/{term}', [AcademicSettingsController::class, 'updateTerm']);
 
@@ -125,7 +130,7 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::delete('/years/{id}', [AcademicSettingsController::class, 'destroyYear']);
     Route::delete('/terms/{id}', [AcademicSettingsController::class, 'destroyTerm']);
     Route::delete('/stages/{id}', [AcademicSettingsController::class, 'destroyStage']);
-    
+
     Route::delete('/grades/{id}', [GradeAndClassroomController::class, 'destroyGrade']);
     Route::delete('/configurations/{id}', [GradeAndClassroomController::class, 'destroyConfiguration']);
     Route::delete('/classrooms/{id}', [GradeAndClassroomController::class, 'destroyClassroom']);
@@ -137,27 +142,27 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
-    
+
     Route::get('/', [SchoolSettingsController::class, 'show']);
     Route::put('/', [SchoolSettingsController::class, 'update']);
-    
+
     Route::post('/images', [SchoolSettingsController::class, 'storeImages']);
     Route::post('/images/{image}', [SchoolSettingsController::class, 'updateImage']);
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
-    
+
 });
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
-    
+
             // سياسات التقسيط
             Route::get('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getPolicies']);
             Route::post('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storePolicy']);
-            
+
             // خطط الرسوم الموحدة
             Route::get('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getFeePlans']);
             Route::post('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storeFeePlan']);
             Route::post('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicy']);
             Route::delete('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicy']);
-            
+
             // تعديل وحذف خطط الرسوم الموحدة
             Route::post('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateFeePlan']);
             Route::delete('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyFeePlan']);
@@ -167,17 +172,17 @@ Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(funct
             Route::post('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateExtraService']);
             Route::delete('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyExtraService']);
             Route::get('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicy']);
-            Route::get('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showFeePlan']);    
+            Route::get('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showFeePlan']);
             Route::get('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicyItem']);
             Route::get('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showExtraService']);
         });
 
 
     Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(function () {
-    
+
         Route::get('/accounts', [FinancialContractController::class, 'index']);
-        Route::get('/accounts/{studentId}', [FinancialContractController::class, 'show']);       
-        
+        Route::get('/accounts/{studentId}', [FinancialContractController::class, 'show']);
+
         // 2️⃣ مسارات الأقساط (Installments)
         Route::get('/installments', [FinancialContractController::class, 'installmentsIndex']);
         Route::get('/installments/{id}', [FinancialContractController::class, 'showInstallment']);
@@ -185,8 +190,8 @@ Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(funct
         // 3️⃣ مسارات الصندوق والدفع (Payments)
         Route::get('/payments', [PaymentController::class, 'index']);
         Route::get('/payments/{id}', [PaymentController::class, 'show']);
-        Route::post('/payments', [PaymentController::class, 'store']);      
-           
+        Route::post('/payments', [PaymentController::class, 'store']);
+
         Route::post('/finalize', [FinancialContractController::class, 'finalize']);
         Route::post('/{studentId}', [FinancialContractController::class, 'update']);});
 
@@ -221,7 +226,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
     Route::get('/{id}', [StudentController::class, 'show'])
         ->middleware('can:student:view_profile');
     Route::get('/{enrollmentId}/full-profile', [StudentController::class, 'showFullProfile'])
-        ->middleware('can:student:view_profile');    
+        ->middleware('can:student:view_profile');
     Route::post('/{student}/personal', [StudentController::class, 'updatePersonal'])
         ->middleware('can:student:edit');
     Route::post('/enrollments/{enrollment}', [StudentController::class, 'updateEnrollment']);
@@ -265,6 +270,7 @@ Route::prefix('user')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
         Route::get('get-user-data', [UserController::class, 'getUserInfo']);
+
         Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
         Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);

@@ -66,7 +66,7 @@ class AlertRequest extends FormRequest
                 'meta.month' => ['nullable', 'date'],
             ],
             Alert::TYPE_HOMEWORK => [
-                'meta.subject' => ['nullable', 'string'],
+                'meta.subject' => ['required', 'string'],
                 'meta.date' => ['nullable', 'date'],
             ],
             Alert::TYPE_PAYED => [

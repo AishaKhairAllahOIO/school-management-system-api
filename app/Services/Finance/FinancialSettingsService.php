@@ -125,13 +125,13 @@ class FinancialSettingsService
 
     public function getFeePlans(): Collection
     {
-        return FeePlan::with(['academicYear', 'gradeLevel', 'installmentPolicy', 'extraServices'])->get();
+        return FeePlan::with(['academicYear', 'gradeLevel', 'extraServices'])->get();
     }
 
     // 👈 إضافة دالة جلب خطة مالية واحدة
     public function getFeePlanById(int $id): FeePlan
     {
-        return FeePlan::with(['academicYear', 'gradeLevel', 'installmentPolicy', 'extraServices'])->findOrFail($id);
+        return FeePlan::with(['academicYear', 'gradeLevel', 'extraServices'])->findOrFail($id);
     }
 
     public function createFeePlan(array $data): FeePlan
@@ -140,7 +140,6 @@ class FinancialSettingsService
             $feePlan = FeePlan::create([
                 'academic_year_id'      => $data['academicYearId'],
                 'grade_level_id'        => $data['gradeLevelId'],
-                'installment_policy_id' => $data['installmentPolicyId'],
                 'name'                  => $data['name'],
                 'base_amount'           => $data['baseAmount'],
             ]);
@@ -149,11 +148,11 @@ class FinancialSettingsService
                 $feePlan->extraServices()->createMany($data['extraServices']);
             }
 
-            return $feePlan->load(['academicYear', 'gradeLevel', 'installmentPolicy', 'extraServices']);
+            return $feePlan->load(['academicYear', 'gradeLevel', 'extraServices']);
         });
     }
 
-    public function updateFeePlan(int $id, array $data): FeePlan
+    public function updateFeePlan(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
             $feePlan = FeePlan::findOrFail($id);
@@ -166,7 +165,6 @@ class FinancialSettingsService
             $feePlan->update([
                 'academic_year_id'      => $data['academicYearId'],
                 'grade_level_id'        => $data['gradeLevelId'],
-                'installment_policy_id' => $data['installmentPolicyId'],
                 'name'                  => $data['name'],
                 'base_amount'           => $data['baseAmount'],
             ]);
@@ -176,7 +174,7 @@ class FinancialSettingsService
                 $feePlan->extraServices()->createMany($data['extraServices']);
             }
 
-            return $feePlan->fresh(['academicYear', 'gradeLevel', 'installmentPolicy', 'extraServices']);
+            return $feePlan->fresh(['academicYear', 'gradeLevel', 'extraServices']);
         });
     }
 

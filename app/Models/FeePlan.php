@@ -20,10 +20,6 @@ class FeePlan extends Model
         return $this->belongsTo(GradeLevel::class);
     }
 
-    public function installmentPolicy()
-    {
-        return $this->belongsTo(InstallmentPolicy::class);
-    }
 
     public function extraServices()
     {

@@ -15,6 +15,8 @@ use App\Http\Controllers\User\UserAlertController;
 use App\Http\Controllers\User\UserAnnouncementController;
 use App\Http\Controllers\web\ActivityController;
 use App\Http\Controllers\Setting\GradeAndClassroomController;
+use App\Http\Controllers\Finance\PaymentController;
+use App\Http\Controllers\Finance\FinancialContractController;
 
 
 Route::get('/user', function (Request $request) {
@@ -146,29 +148,47 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
 });
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
     
-    // سياسات التقسيط
-    Route::get('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getPolicies']);
-    Route::post('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storePolicy']);
-    
-    // خطط الرسوم الموحدة
-    Route::get('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getFeePlans']);
-    Route::post('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storeFeePlan']);
-    Route::post('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicy']);
-    Route::delete('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicy']);
-    
-    // تعديل وحذف خطط الرسوم الموحدة
-    Route::post('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateFeePlan']);
-    Route::delete('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyFeePlan']);
-    Route::post('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicyItem']);
-    Route::delete('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicyItem']);
+            // سياسات التقسيط
+            Route::get('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getPolicies']);
+            Route::post('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storePolicy']);
+            
+            // خطط الرسوم الموحدة
+            Route::get('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getFeePlans']);
+            Route::post('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storeFeePlan']);
+            Route::post('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicy']);
+            Route::delete('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicy']);
+            
+            // تعديل وحذف خطط الرسوم الموحدة
+            Route::post('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateFeePlan']);
+            Route::delete('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyFeePlan']);
+            Route::post('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicyItem']);
+            Route::delete('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicyItem']);
 
-    Route::post('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateExtraService']);
-    Route::delete('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyExtraService']);
-    Route::get('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicy']);
-    Route::get('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showFeePlan']);    
-Route::get('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicyItem']);
-Route::get('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showExtraService']);
-    });
+            Route::post('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateExtraService']);
+            Route::delete('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyExtraService']);
+            Route::get('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicy']);
+            Route::get('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showFeePlan']);    
+            Route::get('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicyItem']);
+            Route::get('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showExtraService']);
+        });
+
+
+    Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(function () {
+    
+        Route::get('/accounts', [FinancialContractController::class, 'index']);
+        Route::get('/accounts/{studentId}', [FinancialContractController::class, 'show']);       
+        
+        // 2️⃣ مسارات الأقساط (Installments)
+        Route::get('/installments', [FinancialContractController::class, 'installmentsIndex']);
+        Route::get('/installments/{id}', [FinancialContractController::class, 'showInstallment']);
+
+        // 3️⃣ مسارات الصندوق والدفع (Payments)
+        Route::get('/payments', [PaymentController::class, 'index']);
+        Route::get('/payments/{id}', [PaymentController::class, 'show']);
+        Route::post('/payments', [PaymentController::class, 'store']);      
+           
+        Route::post('/finalize', [FinancialContractController::class, 'finalize']);
+        Route::post('/{studentId}', [FinancialContractController::class, 'update']);});
 
 //////////////////////////////////////////////////
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {

@@ -17,8 +17,11 @@ class FinancialAccount extends Model
     {
         return $this->belongsTo(FeePlan::class);
     }
-
-    public function installments()
+    public function installmentPolicy()
+    {
+        return $this->belongsTo(InstallmentPolicy::class);
+    }
+    public function scheduledInstallments()
     {
         return $this->hasMany(ScheduledInstallment::class)->orderBy('installment_number');
     }

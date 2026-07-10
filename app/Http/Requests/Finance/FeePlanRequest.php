@@ -25,7 +25,6 @@ class FeePlanRequest extends FormRequest
         return [
             'academicYearId'         => ['required', 'exists:academic_years,id'],
             'gradeLevelId'           => ['required', 'exists:grade_levels,id'],
-            'installmentPolicyId'    => ['required', 'exists:installment_policies,id'],
             'name'                   => ['required', 'string', 'max:100'],
             'baseAmount'             => ['required', 'numeric', 'min:0'],
             

@@ -15,7 +15,6 @@ class FeePlanResource extends JsonResource
             'id'                  => (string) $this->id,
             'academicYearId'      => (string) $this->academic_year_id,
             'gradeLevelId'        => (string) $this->grade_level_id,
-            'installmentPolicyId' => (string) $this->installment_policy_id,
             
             'name'                => $this->name,
             'baseAmount'          => (float) $this->base_amount,

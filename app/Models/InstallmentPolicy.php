@@ -14,4 +14,5 @@ class InstallmentPolicy extends Model
     {
         return $this->hasMany(InstallmentPolicyItem::class)->orderBy('installment_number');
     }
+    
 }

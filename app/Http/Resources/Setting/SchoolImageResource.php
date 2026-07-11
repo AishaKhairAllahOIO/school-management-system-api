@@ -16,7 +16,7 @@ class SchoolImageResource extends JsonResource
     {
         return [
             'id'   => (string) $this->id,
-            'url'  => $this->url,
+            'url'  => str_starts_with($this->url, 'http') ? $this->url : asset('storage/' . $this->url),
             'name' => $this->name,
         ];
     }

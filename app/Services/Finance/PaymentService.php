@@ -8,6 +8,7 @@ use App\Models\ScheduledInstallment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Exception;
+use App\Models\Alert;
 
 class PaymentService
 {
@@ -102,6 +103,26 @@ class PaymentService
                 'digital_reference'    => $data['digitalReference'] ?? null,
                 'collected_by_user_id' => Auth::id(), // المحاسب الذي قام بالعملية
             ]);
+            $guardianUser = $account->student->guardian->user;
+            $student = $account->student->user;
+            
+            if ($guardianUser) {
+                Alert::create([
+                    'notifiable_type' => get_class($guardianUser),
+                    'notifiable_id'   => $guardianUser->id,
+                    'type'            => 'payment_received',
+                    'audience'        => 'guardian',
+                    'title'           => 'تأكيد استلام دفعة مالية',
+                    'description'     => "تم استلام مبلغ {$transaction->paid_amount} ل.س لحساب الطالب {$student->first_name}.",
+                    'meta'            => [
+                        'transaction_id'    => $transaction->id,
+                        'paid_amount'       => $transaction->paid_amount,
+                        'remaining_balance' => $account->remaining_balance,
+                        'student_id'        => $student->id
+                    ],
+                    'created_by'      => Auth::id() // الموظف الذي أصدر الإشعار
+                ]);
+            }
 
             // إعادة الإيصال + حالة الحساب المحدثة
             return [

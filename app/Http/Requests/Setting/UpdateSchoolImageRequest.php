@@ -23,8 +23,8 @@ class UpdateSchoolImageRequest extends FormRequest
     public function rules(): array
     {
         return[
-            'url'  => ['sometimes', 'required', 'url', 'max:255'],
-            'name' => ['sometimes', 'required', 'string', 'max:100'],
+            'url'  => ['sometimes' ,'image', 'mimes:jpeg,png,jpg,webp'],
+            'name' => ['sometimes', 'string', 'max:100'],
         ];
     }
 }

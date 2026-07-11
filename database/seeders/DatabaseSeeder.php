@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             AcademicStageSeeder::class,
             SubjectSeeder::class,
             GradeLevelSeeder::class,
+            GeneralSettingSeeder::class,
+            AcademicSettingSeeder::class,
             GuardianSeeder::class,
             ClassRoomSeeder::class,
             ActivitySeeder::class,

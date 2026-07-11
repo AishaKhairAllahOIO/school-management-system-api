@@ -13,6 +13,8 @@ use App\Http\Requests\Setting\AddSchoolImageRequest;
 use App\Http\Resources\Setting\SchoolImageResource;
 use App\Models\SchoolImage;
 use App\Http\Requests\Setting\UpdateSchoolImageRequest;
+use Illuminate\Database\Eloquent\ModelNotFoundException; // 👈 هذا الكلاس الذي يصطاد عدم وجود الداتا
+
 
 class SchoolSettingsController extends Controller
 {
@@ -23,9 +25,9 @@ class SchoolSettingsController extends Controller
         try {
             $settings = $service->getSettings();
             
-            if (!$settings) {
-                return $this->errorResponse('School settings have not been initialized yet.', 404);
-            }
+            // if (!$settings) {
+            //     return $this->errorResponse('School settings have not been initialized yet.', 404);
+            // }
             
             return $this->successResponse(
                 new GeneralSettingsResource($settings), 
@@ -55,7 +57,32 @@ class SchoolSettingsController extends Controller
             return $this->errorResponse('Failed to update settings.', 500, ['exception_message' => $e->getMessage()]);
         }
     }
-    
+    public function indexImages(SchoolSettingsService $service)
+    {
+        $images = $service->getAllImages();
+
+        return $this->successResponse(
+            SchoolImageResource::collection($images),
+            'تم جلب جميع الصور بنجاح.',
+            200
+        );
+    }
+
+    // 👈 دالة عرض صورة محددة
+public function showImage(int $id, SchoolSettingsService $service)
+    {
+        try {
+            $image = $service->getImageById($id);
+            return $this->successResponse(
+                new SchoolImageResource($image),
+                'تم جلب بيانات الصورة بنجاح.'
+            );
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('الصورة المطلوبة غير موجودة في المعرض.', 404);
+        } catch (\Exception $e) {
+            return $this->errorResponse('حدث خطأ غير متوقع.', 500, ['error' => $e->getMessage()]);
+        }
+    }
     public function storeImages(AddSchoolImageRequest $request,SchoolSettingsService $service)
     {
         $images = $service->addSchoolImages($request->validated());

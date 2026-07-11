@@ -58,7 +58,7 @@ class UserSeeder extends Seeder
         $user2->assignRole('student');
 
         $user3 = User::updateOrCreate(
-            ['phone_number' => '0960657740'],
+            ['phone_number' => '0960657750'],
             [
                 'email' => 'nnnnahhmad@gmail.com',
                 'first_name' => 'aisha',
@@ -76,7 +76,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
-        $user3->assignRole('teacher');
+        $user3->assignRole('guardian');
 
         $user4 = User::updateOrCreate(
             ['phone_number' => '0960657741'],

@@ -10,11 +10,7 @@ use App\Services\Setting\AcademicSettingsService;
 use App\Http\Resources\Setting\AcademicSettingsResource;
 use App\ApiResource;
 use App\Http\Requests\Setting\SemesterRequest;
-use App\Http\Requests\Setting\StoreGradeLevelRequest;
-use App\Http\Requests\Setting\UpdateClassroomRequest;
-use App\Http\Requests\Setting\UpdateGradeLevelRequest;
 use Illuminate\Validation\ValidationException;
-use Exception;
 use App\Http\Requests\Setting\AcademicStageRequest;
 use App\Models\AcademicYear;
 use App\Http\Requests\Setting\AcademicYearRequest;
@@ -23,6 +19,8 @@ use App\Models\Semester;
 use App\Http\Resources\Setting\AcademicYearResource;
 use App\Http\Resources\Setting\SemesterResource;
 use App\Http\Resources\Setting\AcademicStageResource;
+use Illuminate\Database\Eloquent\ModelNotFoundException; // 👈 هذا الكلاس الذي يصطاد عدم وجود الداتا
+
 
 class AcademicSettingsController extends Controller
 {
@@ -55,24 +53,42 @@ class AcademicSettingsController extends Controller
         );
     }
       public function showYear(int $id, AcademicSettingsService $service) {
+        try{
         return $this->successResponse(
             new AcademicYearResource($service->getYearById($id)),
             'تم جلب بيانات العام الدراسي بنجاح.'
         );
+        }catch(ModelNotFoundException $e)
+        {
+         return $this->errorResponse('العام الدراسي المطلوب غير موجود.', 404);
+        }
+        {
+         }
     }
 
     public function showTerm(int $id, AcademicSettingsService $service) {
+        try{
         return $this->successResponse(
             new SemesterResource($service->getTermById($id)),
             'تم جلب بيانات الفصل الدراسي بنجاح.'
         );
+        }
+        catch(ModelNotFoundException $e)
+        {
+         return $this->errorResponse('الفصل الدراسي المطلوب غير موجود.', 404);
+        }
     }
 
     public function showStage(int $id, AcademicSettingsService $service) {
+        try{
         return $this->successResponse(
             new AcademicStageResource($service->getStageById($id)),
             'تم جلب بيانات المرحلة الدراسية بنجاح.'
         );
+        }catch(ModelNotFoundException $e)
+        {
+         return $this->errorResponse('المرحلة الدراسية المطلوب غير موجود.', 404);
+        }
     }
 
       public function index(AcademicSettingsService $service) {

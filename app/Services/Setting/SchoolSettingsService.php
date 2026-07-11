@@ -3,6 +3,9 @@ namespace App\Services\Setting;
 use App\Models\School;
 use Exception;
 use App\Models\SchoolImage;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Storage; // 👈 لا تنسي إضافة هذه
+
 
 class SchoolSettingsService
 {
@@ -39,22 +42,64 @@ class SchoolSettingsService
         return $school->load('images');
     }
     // --- إضافة صورة كـ URL لمعرض المدرسة ---
-   public function addSchoolImages(array $data)
+    public function getAllImages()
     {
         $settings = School::firstOrCreate(['id' => 1]);
-
-        // createMany تأخذ مصفوفة (Array) وتضيفها كلها دفعة واحدة
-        return $settings->images()->createMany($data['images']);
+        return $settings->images;
     }
-    public function updateSchoolImage(SchoolImage $image, array $data)
+   
+public function getImageById(int $id)
     {
-        $image->update($data);
-        return $image;
+        // findOrFail ترمي ModelNotFoundException إذا لم تجد الصورة
+        return \App\Models\SchoolImage::findOrFail($id);
+    } 
+
+
+    public function addSchoolImages(array $data)
+    {
+        $settings = School::firstOrCreate(['id' => 1]);
+        $imagesData = [];
+
+        foreach ($data['images'] as $imageData) {
+            // رفع الملف إلى مجلد storage/app/public/school_images
+            $path = $imageData['file']->store('school_images', 'public');
+            
+            $imagesData[] = [
+                'url'  => $path, // نحفظ المسار الجديد
+                'name' => $imageData['name'],
+            ];
+        }
+
+        return $settings->images()->createMany($imagesData);
     }
 
-    // --- حذف صورة (حذف السجل فقط من الداتابيز) ---
+    // --- تعديل بيانات صورة موجودة (الاسم أو الملف) ---
+    public function updateSchoolImage(SchoolImage $image, array $data): SchoolImage
+    {
+        if (isset($data['file'])) {
+            // حذف الصورة القديمة من السيرفر إذا كانت موجودة (ولا تبدأ بـ http)
+            if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
+                Storage::disk('public')->delete($image->url);
+            }
+            // رفع الصورة الجديدة
+            $data['url'] = $data['file']->store('school_images', 'public');
+        }
+
+        $image->update([
+            'url'  => $data['url'] ?? $image->url,
+            'name' => $data['name'] ?? $image->name,
+        ]);
+
+        return $image->fresh();
+    }
+
     public function deleteSchoolImage(SchoolImage $image): void
     {
+        // حذف الملف الفعلي من السيرفر
+        if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
+            Storage::disk('public')->delete($image->url);
+        }
+        
         $image->delete();
     }
 }

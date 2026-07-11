@@ -95,7 +95,6 @@ class UserAlertController extends Controller
             200
         );
     }
-
     public function getStaffPaymentAlerts(Request $request)
     {
         $staff = $request->user()->staff;
@@ -140,16 +139,7 @@ class UserAlertController extends Controller
     }
     public function teacherCreateAlerts(AlertRequest $request)
     {
-
-        $teacher = $request->user()->staff?->load('teacherAssignments.subject');
-        $enrollment = Enrollment::find($request->validated('enrollment_id'));
-
-        if (!$enrollment)
-            return $this->errorResponse('Enrollment not found', 404, null);
-
-        $meta = $request->validated('meta', []);
-
-        $alert = $this->alertService->createStudentHomework($enrollment, $teacher, $meta);
+        $alert = $this->alertService->createStudentHomework($request->validated());
 
         return $this->successResponse(
             new AlertResource($alert),
@@ -176,4 +166,6 @@ class UserAlertController extends Controller
             201
         );
     }
+
+    
 }

@@ -5,12 +5,14 @@ namespace App\Http\Controllers\User;
 use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Auth\ProfileResource;
+use App\Http\Resources\User\TeacherProfileResource;
 use App\Models\User;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\User\UpdateStaffRequest;
 use App\Http\Resources\Auth\AcademicProfileResource;
+use App\Http\Resources\User\CounselorProfileResource;
 
 class UserController extends Controller
 {
@@ -39,24 +41,51 @@ class UserController extends Controller
 
         return $this->successResponse($result, 'تم جلب بيانات لوحةالتحكم بنجاح', 200);
     }
-    public function myProfile()
-    {
+    // public function myProfile()
+    // {
 
-        $user = $this->userService->getAuthenticatedProfile(Auth::user());
+    //     $user = $this->userService->getAuthenticatedProfile(Auth::user());
 
-        return $this->successResponse(new AcademicProfileResource($user), 'تم استعراض الملف الشخصي بنجاح', 200);
+    //     return $this->successResponse(new AcademicProfileResource($user), 'تم استعراض الملف الشخصي بنجاح', 200);
+    // }
+    // public function updateMyAdminProfile(UpdateStaffRequest $request)
+    // {
+    // ;
+    //     $updatedAdmin = $this->userService->updateStaffRecord(
+    //         Auth::user(),
+    //         $request->validated()
+    //     );
+
+    //     return $this->successResponse(
+    //          new AcademicProfileResource($updatedAdmin),
+    //         'تم تحديث بيانات الملف الشخصي للمدير العام بنجاح', 200
+    //     );
+    // }
+
+    public function teacherProfile(Request $request){
+        $user= $request->user();
+        if (!$user) {
+            return $this->errorResponse('User not found.', 404);
     }
-    public function updateMyAdminProfile(UpdateStaffRequest $request)
-    {
-    ;
-        $updatedAdmin = $this->userService->updateStaffRecord(
-            Auth::user(),
-            $request->validated()
-        );
 
-        return $this->successResponse(
-             new AcademicProfileResource($updatedAdmin), 
-            'تم تحديث بيانات الملف الشخصي للمدير العام بنجاح', 200
-        );
+        if (!$user->hasRole('teacher')) {
+            return $this->errorResponse('User is not a teacher.', 403);
+        }
+
+        return $this->successResponse(new TeacherProfileResource($user), 'تم جلب بيانات المستخدم بنجاح', 200);
     }
+    public function counselorProfile(Request $request){
+        $user= $request->user();
+        if (!$user) {
+            return $this->errorResponse('User not found.', 404);
+    }
+
+        if (!$user->hasRole('counselor')) {
+            return $this->errorResponse('User is not a counselor.', 403);
+        }
+
+        return $this->successResponse(new CounselorProfileResource($user), 'تم جلب بيانات المستخدم بنجاح', 200);
+    }
+    
+
 }

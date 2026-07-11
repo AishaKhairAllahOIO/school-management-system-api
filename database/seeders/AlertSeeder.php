@@ -22,6 +22,7 @@ class AlertSeeder extends Seeder
                 'title'       => 'تنبيه واجب',
                 'description' => 'لم يكتب الطالب الواجب المنزلي.',
                 'meta'        => ['subject_id' => 1],
+                'created_by'  => 3
             ]
         );
 

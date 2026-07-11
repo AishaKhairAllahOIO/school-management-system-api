@@ -9,11 +9,18 @@ class TeacherWorkload extends Model
     protected $guarded = [];
 
 
-    public function staff(){
+    public function staff()
+    {
         return $this->belongsTo(Staff::class);
     }
 
-    public function academicYear(){
+    public function academicYear()
+    {
         return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
     }
 }

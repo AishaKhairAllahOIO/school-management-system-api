@@ -55,7 +55,6 @@ class AlertService
             $meta
         );
     }
-
     public function createStudentPayed(Enrollment $enrollment, array $meta = []): Alert
     {
         return $this->createStudentAlert(
@@ -66,7 +65,7 @@ class AlertService
             $meta
         );
     }
-    public function createStudentHomework(Enrollment $enrollment,Staff $teacher, array $meta = []): Alert
+    public function createStudentHomework(Enrollment $enrollment, array $meta = []): Alert
     {
     return $this->createStudentAlert(
         $enrollment,
@@ -131,6 +130,7 @@ class AlertService
         string $title,
         string $desc,
         array $meta
+
     ): Alert {
         $alert = Alert::create([
             'notifiable_id'   => $enrollment->id,
@@ -140,6 +140,7 @@ class AlertService
             'title'           => $title,
             'description'     => $desc,
             'meta'            => $meta,
+            'created_by'      => auth()-> id(),
         ]);
 
         $student = $enrollment->student;
@@ -167,6 +168,7 @@ class AlertService
             'title'           => $title,
             'description'     => $desc,
             'meta'            => $meta,
+            'created_by'      => auth()->id(),
         ]);
 
         $users = collect([$staff->user])->filter();
@@ -330,7 +332,10 @@ class AlertService
         };
     }
 
-    public function showTeacherAlerts(){
-        
-    }
+  public function teacherAlerts(){
+
+  }
+
+
+
 }

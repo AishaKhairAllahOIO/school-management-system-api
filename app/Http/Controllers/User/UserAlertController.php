@@ -72,7 +72,6 @@ class UserAlertController extends Controller
         if (!$student)
             return $this->errorResponse('this account not for a student', 403, null);
 
-        // جلب التنبيهات الخاصة بالطالب عبر نفس الخدمة المشتركة
         $alerts = $this->alertService->showStudentAlerts($student);
 
         return $this->successResponse(
@@ -171,10 +170,10 @@ class UserAlertController extends Controller
 
     public function markAllAlertsRead(Request $request)
     {
-        // category=general  category=financial
         $category = $request->query('category', 'all');
+        $studentId = $request->input('student_id');
 
-        $counts = $this->alertService->markAllReadForUser($request->user(), $category);
+        $counts = $this->alertService->markAllReadForUser($request->user(), $category, $studentId);
 
         return $this->successResponse(
             $counts,
@@ -183,9 +182,10 @@ class UserAlertController extends Controller
         );
     }
 
-    public function unreadAlertsCount(Request $request)
+ public function unreadAlertsCount(Request $request)
     {
-        $counts = $this->alertService->unreadCountForUser($request->user());
+        $studentId = $request->input('student_id'); 
+        $counts = $this->alertService->unreadCountForUser($request->user(), $studentId);
 
         return $this->successResponse(
             $counts,
@@ -193,6 +193,4 @@ class UserAlertController extends Controller
             200
         );
     }
-
-
 }

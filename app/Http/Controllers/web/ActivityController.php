@@ -81,4 +81,16 @@ class ActivityController extends Controller
             200
         );
     }
+
+    public function getUnreadCount(Request $request)
+    {
+        $count = $this->activityService->unreadCount($request->user(), $request->student_id);
+        return $this->successResponse(['count' => $count], 'success', 200);
+    }
+
+    public function markAllAsRead(Request $request)
+    {
+        $this->activityService->markAllAsRead($request->user(), $request->student_id);
+        return $this->successResponse(null, 'تم تصفير عداد الأنشطة', 200);
+    }
 }

@@ -14,7 +14,6 @@ use Illuminate\Support\Collection;
 
 class AlertService
 {
-    // ========== تنبيهات الطلاب (للطالب + ولي أمره) ==========
 
     public function createStudentAbsence(Enrollment $enrollment, array $meta = []): Alert
     {
@@ -87,7 +86,6 @@ class AlertService
         );
     }
 
-    // ========== تنبيهات الموظّفين (للموظّف نفسه) ==========
 
     public function createStaffAbsence(Staff $staff, array $meta = []): Alert
     {
@@ -123,7 +121,6 @@ class AlertService
     }
 
 
-    // ========== المنطق المشترك للطلاب ==========
 
     private function createStudentAlert(
         Enrollment $enrollment,
@@ -152,7 +149,6 @@ class AlertService
         return $alert;
     }
 
-    // ========== المنطق المشترك للموظّفين ==========
 
     private function createStaffAlert(
         Staff $staff,
@@ -179,7 +175,6 @@ class AlertService
         return $alert;
     }
 
-    // ========== الإرسال المركزي ==========
 
     private function dispatch(Alert $alert, Collection $users): void
     {
@@ -199,7 +194,6 @@ class AlertService
         );
     }
 
-    // ======= CRUD ==========
 
     public function showStaffAlerts(Staff $staff): LengthAwarePaginator
     {
@@ -333,7 +327,7 @@ class AlertService
         };
     }
 
-    private function getBaseAlertQueryForUser(User $user)
+    private function getBaseAlertQueryForUser(User $user, ?int $studentId = null)
     {
         if ($user->hasRole('student') && $user->student) {
             $enrollmentIds = $user->student->enrollments()->pluck('id');
@@ -341,10 +335,16 @@ class AlertService
         }
 
         if ($user->hasRole('guardian') && $user->guardian) {
-            $enrollmentIds = [];
-            foreach ($user->guardian->students as $child) {
-                $enrollmentIds = array_merge($enrollmentIds, $child->enrollments()->pluck('id')->toArray());
+            $studentsQuery = $user->guardian->students();
+
+            // إضافة الفلتر الخاص بالطالب المحدد
+            if ($studentId) {
+                $studentsQuery->where('students.id', $studentId);
             }
+
+            $studentIds = $studentsQuery->pluck('students.id')->toArray();
+            $enrollmentIds = Enrollment::whereIn('student_id', $studentIds)->pluck('id')->toArray();
+
             return Alert::where('notifiable_type', Enrollment::class)->whereIn('notifiable_id', $enrollmentIds);
         }
 
@@ -355,9 +355,9 @@ class AlertService
         return Alert::where('id', '<', 0);
     }
 
-    public function unreadCountForUser(User $user): array
+    public function unreadCountForUser(User $user, ?int $studentId = null): array
     {
-        $baseQuery = $this->getBaseAlertQueryForUser($user)
+        $baseQuery = $this->getBaseAlertQueryForUser($user, $studentId)
             ->whereDoesntHave('readers', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
@@ -370,9 +370,9 @@ class AlertService
         ];
     }
 
-    public function markAllReadForUser(User $user, string $category = 'all',): array
+    public function markAllReadForUser(User $user, string $category = 'all', ?int $studentId = null): array
     {
-        $baseQuery = $this->getBaseAlertQueryForUser($user)
+        $baseQuery = $this->getBaseAlertQueryForUser($user, $studentId)
             ->whereDoesntHave('readers', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
@@ -397,8 +397,6 @@ class AlertService
             $user->readAlerts()->syncWithoutDetaching($syncData);
         }
 
-        return $this->unreadCountForUser($user);
+        return $this->unreadCountForUser($user, $studentId);
     }
-
-
 }

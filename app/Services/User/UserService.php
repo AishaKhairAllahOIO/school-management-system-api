@@ -10,9 +10,10 @@ use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
+
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Storage;
 class UserService
 {
 
@@ -230,6 +231,24 @@ class UserService
     //         return $user->fresh(['staff']);
     //     });
     // }
+
+
+
+
+public function updateProfileImage(User $user, $imageFile): User
+    {
+        if ($user->personal_photo && Storage::disk('local')->exists($user->personal_photo)) {
+            Storage::disk('local')->delete($user->personal_photo);
+        }
+
+        $imagePath = $imageFile->store('personal_photos', 'local');
+
+        $user->update([
+            'personal_photo' => $imagePath,
+        ]);
+
+        return $user->fresh();
+    }
 }
 
 

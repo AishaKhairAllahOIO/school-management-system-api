@@ -146,7 +146,7 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::put('/', [SchoolSettingsController::class, 'update']);
     Route::get('/images', [SchoolSettingsController::class, 'indexImages']);
     Route::get('/images/{image}', [SchoolSettingsController::class, 'showImage']);
-  
+
 
     Route::post('/images', [SchoolSettingsController::class, 'storeImages']);
     Route::post('/images/{image}', [SchoolSettingsController::class, 'updateImage']);
@@ -279,6 +279,8 @@ Route::prefix('user')->group(function () {
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
         Route::get('/my-alerts', [UserAlertController::class, 'myAlerts']);
         Route::get('/announcements', [UserAnnouncementController::class, 'announcementsForStudent']);
+        Route::get('/announcements/unread-count', [UserAnnouncementController::class, 'getUnreadCount']);
+        Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
 
 

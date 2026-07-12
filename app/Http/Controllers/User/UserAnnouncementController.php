@@ -54,4 +54,17 @@ use ApiResource;
         $this->service->delete($id);
         return $this->successResponse(null, 'تم حذف الإعلان بنجاح.');
     }
+
+
+    public function getUnreadCount(Request $request)
+{
+    $count = $this->service->unreadCount($request->user());
+    return $this->successResponse(['count' => $count], 'success', 200);
+}
+
+public function markAllAsRead(Request $request)
+{
+    $this->service->markAllAsRead($request->user());
+    return $this->successResponse(null, 'تم تصفير عداد الإعلانات', 200);
+}
 }

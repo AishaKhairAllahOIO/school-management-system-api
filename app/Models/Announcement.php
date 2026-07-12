@@ -18,4 +18,9 @@ class Announcement extends Model
     {
         return $query->whereIn('audience', [$role, self::AUDIENCE_BOTH]);
     }
+
+    public function readers()
+    {
+        return $this->belongsToMany(User::class, 'announcement_user')->withPivot('read_at');
+    }
 }

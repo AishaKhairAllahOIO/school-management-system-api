@@ -70,4 +70,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Alert::class, 'alert_reads')->withPivot('read_at');
     }
+
+    public function readAnnouncements()
+    {
+        return $this->belongsToMany(Announcement::class, 'announcement_user')->withPivot('read_at');
+    }
 }

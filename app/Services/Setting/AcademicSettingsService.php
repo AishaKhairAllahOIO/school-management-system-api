@@ -226,6 +226,9 @@ private function determineTermNameAndOrder(string $inputName): array
         if(!$term) {
             throw new ModelNotFoundException("الفصل الدراسي المحدد غير موجود.");
         }
+        if($term->is_current) {
+            throw new Exception('لا يمكن حذف الفصل الدراسي الحالي.', 409);
+        }
         
         $term->delete();
     }

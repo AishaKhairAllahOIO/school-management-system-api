@@ -21,7 +21,7 @@ class PaymentService
 
     public function getAllPayments(array $filters = [])
     {
-        $query = PaymentTransaction::with(['financialAccount.student.user', 'cashier'])->latest();
+        $query = PaymentTransaction::with(['account.student.user'])->latest();
 
         // هنا يمكنك إضافة فلاتر مستقبلاً (مثلاً البحث برقم الإيصال أو طريقة الدفع)
         if (!empty($filters['payment_method'])) {
@@ -36,7 +36,7 @@ class PaymentService
      */
     public function getPaymentById(int $id)
     {
-        return PaymentTransaction::with(['financialAccount.student.user', 'cashier'])->findOrFail($id);
+        return PaymentTransaction::with(['account.student.user'])->findOrFail($id);
     }
 
     public function processPayment(array $data): array

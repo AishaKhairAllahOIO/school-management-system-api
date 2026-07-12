@@ -27,7 +27,6 @@ class EnrollmentSeeder extends Seeder
         if ($student1) {
             Enrollment::updateOrCreate(
                 [
-                    // مفاتيح البحث: نمنع تكرار هذا الطالب في هذه السنة تحديداً
                     'student_id' => 1,
                     'academic_year_id' => 1,
                 ],
@@ -40,7 +39,6 @@ class EnrollmentSeeder extends Seeder
             );
         }
 
-        // تسجيل الطالب الثاني (بافتراض أنه سجل ولم يدفع بعد، فحسابه suspended)
         if ($student2) {
             Enrollment::updateOrCreate(
                 [
@@ -50,8 +48,8 @@ class EnrollmentSeeder extends Seeder
                 [
                     'grade_level_id' => 2,
                     'class_room_id' => 3,
-                    'enrollment_status' => 'enrolled', // تم التعديل لتطابق الهيكلية
-                    'enrollment_date' => null, // لم يدفع لذا لا يوجد تاريخ التحاق فعلي
+                    'enrollment_status' => 'enrolled',
+                    'enrollment_date' => now(),
                 ]
             );
         }

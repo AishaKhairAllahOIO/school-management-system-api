@@ -35,7 +35,7 @@ class StaffSeeder extends Seeder
 
 
             Staff::create([
-                'user_id' => 4,
+                'user_id' => 6,
                 'degree' => 'bachelor',
                 'specialization' => 'علم نفس وتوجيه إرشادي',
                 'university' => 'جامعة تشرين',

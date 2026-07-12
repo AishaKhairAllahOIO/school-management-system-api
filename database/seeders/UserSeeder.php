@@ -15,7 +15,6 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // استخدام رقم الهاتف كمفتاح للبحث، وباقي البيانات للإنشاء/التحديث
         $user1 = User::updateOrCreate(
             ['phone_number' => '0968661500'],
             [
@@ -34,7 +33,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
-        // التحديد الصريح لـ sanctum لتجنب خطأ (Role does not exist)
         $user1->assignRole('guardian');
 
         $user2 = User::updateOrCreate(
@@ -76,7 +74,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
-        $user3->assignRole('guardian');
+        $user3->assignRole('teacher');
 
         $user4 = User::updateOrCreate(
             ['phone_number' => '0960657741'],
@@ -133,6 +131,7 @@ class UserSeeder extends Seeder
                 'gender' => 'female',
                 'photo_url' => 'alice.png',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'email' => 'nournour.ahmad.1284@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]
@@ -211,7 +210,7 @@ class UserSeeder extends Seeder
                 'birth_date' => '1992-02-14',
                 'birth_place' => 'Shameless Town',
                 'address' => '456 Chaos Ave, Shameless Town',
-                'email' => 'nournour.ahmad.1284@gmail.com',
+                'email' => 'alicedksjdj@gmail.com',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
                 'nationality' => 'other',
                 'gender' => 'female',
@@ -220,7 +219,7 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
             ]
         );
-        $user10->assignRole('adviser');
+        $user10->assignRole('secretary');
 
         $user11 = User::updateOrCreate([
             'phone_number' => '0993790629',

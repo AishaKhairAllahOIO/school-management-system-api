@@ -14,8 +14,6 @@ class StudentSeeder extends Seeder
      */
     public function run(): void
     {
-
-
     Student::create([
         'user_id'=>5,
         'guardian_id'=>1,

@@ -7,12 +7,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\GuardianViewActivitiesRequest;
 use App\Http\Requests\Web\CreateActivitiesRequest;
 use App\Http\Resources\Web\ActivityResource;
+use App\Models\Enrollment;
+use App\Models\Student;
 use App\Services\Web\ActivityService;
 use Illuminate\Http\Request;
 
 class ActivityController extends Controller
 {
-
     use ApiResource;
 
     private ActivityService $activityService;
@@ -21,6 +22,7 @@ class ActivityController extends Controller
     {
         $this->activityService = $activityService;
     }
+
     public function store(CreateActivitiesRequest $activityRequest)
     {
         $result = $this->activityService->addActivity($activityRequest->validated());
@@ -33,26 +35,35 @@ class ActivityController extends Controller
     }
     public function show(Request $request)
     {
-
         $student = $request->user()->student;
-        if (!$student)
-            return $this->errorResponse('هذا الحساب غير مرتبط بطالب.', 403, null);
 
+        if (!$student) {
+            return $this->errorResponse('هذا الحساب ليس حساب طالب.', 403);
+        }
 
-        $activities = $this->activityService->showActivites($student);
+        $activities = $this->activityService->showActivities($student);
 
-        return $this->successResponse(ActivityResource::collection($activities), 'student activites', 200);
+        return $this->successResponse(
+            ActivityResource::collection($activities),
+            'تم جلب الأنشطة بنجاح',
+            200
+        );
     }
-
     public function guardianViewActivities(GuardianViewActivitiesRequest $request)
     {
         $guardian = $request->user()->guardian;
 
-        abort_if($guardian === null, 403, 'هذا الحساب غير مرتبط بولي أمر.');
+        if (!$guardian) {
+            return $this->errorResponse('guardian not found', 404, null);
+        }
 
-        $student = $guardian->students()->findOrFail($request->student_id);
+        $student = $guardian->students()->where('students.id', $request->student_id)->first();
 
-        $activities = $this->activityService->showActivites($student);
+        if (!$student) {
+            return $this->errorResponse('الطالب غير موجود أو غير مرتبط بولي الأمر.', 404, null);
+        }
+
+        $activities = $this->activityService->showActivities($student);
 
         return $this->successResponse(
             ActivityResource::collection($activities),
@@ -60,7 +71,6 @@ class ActivityController extends Controller
             200
         );
     }
-
     public function destroy(Request $request)
     {
         $this->activityService->deleteActivity($request->id);

@@ -13,11 +13,10 @@ class TeacherProfileResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-   public function toArray(Request $request): array
+public function toArray(Request $request): array
     {
         return [
-            // جلب البيانات الأساسية للمستخدم
-            ...(new \App\Http\Resources\Auth\UserResource($this))->resolve(),
+            ...(new UserResource($this))->resolve(),
 
             'professional_info' => [
                 'degree'           => $this->staff?->degree,
@@ -28,24 +27,25 @@ class TeacherProfileResource extends JsonResource
                 'experience_years' => $this->staff?->experience_years,
             ],
 
-            // 🌟 الحل هنا: استخدام map() للمرور على كل تكليف على حدة
-            'teacher_assignments' => $this->staff?->teacherAssignments?->map(function ($assignment) {
-                return [
-                    // هنا $assignment يمثل تكليفاً واحداً (Model)، لذا يمكننا الآن الوصول لـ subjects
-                    'subjects'      => $assignment->subject?->pluck('subject_name')->toArray() ?? [],
-                    'academic_year' => $assignment->academicYear?->year_name,
-                    'semester'      => $assignment->semester?->semester_name,
-                    'class_rooms'   => $assignment->classRoom ? [$assignment->classRoom->name] : [],
-                ];
-            })->toArray() ?? [],
+            'teacher_assignments' => $this->staff?->teacherAssignments
+                ?->groupBy('class_room_id')
+                ?->map(function ($assignments) {
+                    $first = $assignments->first();
+                    return [
+                        'class_room'    => $first->classRoom?->name,
+                        'academic_year' => $first->academicYear?->year_name,
+                        'semester'      => $first->semester?->semester_name,
 
-            'teacher_workload' =>$this->staff?->teacherWorkloads?->map(function($workload){
-                 return [
-                    'required_monthly_periods' => $workload?->teacherWorkloads?->required_monthly_periods,
+                        'subjects'      => $assignments->map(fn($a) => $a->subject?->subject_name)->filter()->unique()->values()->toArray(),
+                    ];
+                })?->values()?->toArray() ?? [],
+
+            'teacher_workload' => $this->staff?->teacherWorkloads?->map(function ($workload) {
+                return [
+                    'required_monthly_periods' => $workload->required_monthly_periods,
                     'assigned_monthly_periods' => 7,
                 ];
             })->toArray() ?? [],
-
         ];
     }
 }

@@ -14,11 +14,13 @@ class AnnouncementResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = $request->user();
         return [
             'id'          => $this->id,
             'audience'    => $this->audience,
             'title'       => $this->title,
             'description' => $this->description,
+            'is_read'     => $user ? $this->readers->contains($user->id) : false,
             'created_at'  => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }

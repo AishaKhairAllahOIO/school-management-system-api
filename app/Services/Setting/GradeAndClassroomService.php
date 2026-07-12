@@ -230,4 +230,21 @@ class GradeAndClassroomService
                           ->where('grade_level_id', $gradeId)
                           ->update(['planned_students_capacity' => $totalCapacity]);
     }
+     public function getAllGrades()
+    {
+        // 🛡️ لارافيل هنا آمن: الدالة get() ستعيد [] إذا كان الجدول فارغاً ولن تعيد null
+        return GradeLevel::orderBy('level', 'asc')->get();
+    }
+
+    public function getAllConfigurations()
+    {
+        // 🛡️ ستعيد [] إذا لم يكن هناك إعدادات
+        return GradeConfiguration::latest()->get();
+    }
+
+    public function getAllClassrooms()
+    {
+        // 🛡️ ستعيد [] إذا لم يتم فتح أي شعبة بعد
+        return Classroom::latest()->get();
+    }
 }

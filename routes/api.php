@@ -101,6 +101,9 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
 
     Route::get('/', [AcademicSettingsController::class, 'index']);
+    Route::get('/grades', [GradeAndClassroomController::class, 'indexGrades']);
+    Route::get('/configurations', [GradeAndClassroomController::class, 'indexConfigurations']);
+    Route::get('/classrooms', [GradeAndClassroomController::class, 'indexClassrooms']);
     Route::put('/', [AcademicSettingsController::class, 'update']);
 
     Route::post('/years', [AcademicSettingsController::class, 'storeYear']);
@@ -146,6 +149,7 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
+
 
 
 });
@@ -206,8 +210,10 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     Route::post('/payments', [PaymentController::class, 'store']);
 
     Route::post('/finalize', [FinancialContractController::class, 'finalize']);
-    Route::post('/{studentId}', [FinancialContractController::class, 'update']);
-});
+    Route::post('/{accountId}', [FinancialContractController::class, 'update']);
+    Route::post('/payments/{id}', [PaymentController::class, 'update']);
+    Route::delete('/payments/{id}', [PaymentController::class, 'destroy']);
+    });
 
 //////////////////////////////////////////////////
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {

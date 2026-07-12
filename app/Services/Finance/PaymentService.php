@@ -256,7 +256,7 @@ class PaymentService
             // 3. تحديث حالة التسجيل الأكاديمي إذا تم تصفير حساب الطالب بالكامل
             $enrollment = $account->student->enrollments()->latest()->first();
             if ($enrollment && $account->remaining_balance == $account->total_required_amount) {
-                $enrollment->update(['enrollment_status' => 'pending']); // عاد كأنه لم يدفع شيئاً
+                $enrollment->update(['enrollment_status' => 'suspended']); // عاد كأنه لم يدفع شيئاً
             }
 
             // 4. حذف الإيصال من الدفتر

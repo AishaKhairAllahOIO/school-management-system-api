@@ -35,7 +35,11 @@ class SchoolSettingsController extends Controller
                 200
             );
             
-        } catch (Exception $e) {
+        }catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse($e->getMessage(),404);
+        }
+         catch (Exception $e) {
             return $this->errorResponse('An error occurred while fetching settings.', 500, ['exception_message' => $e->getMessage()]);
         }
     }

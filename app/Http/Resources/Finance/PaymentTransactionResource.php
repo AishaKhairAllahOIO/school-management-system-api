@@ -18,9 +18,8 @@ class PaymentTransactionResource extends JsonResource
             'digitalReference'  => $this->digital_reference,
             
             // جلب اسم المحاسب الذي استلم المبلغ
-            'cashierName'       => $this->cashier ? $this->cashier->first_name . ' ' . $this->cashier->last_name : 'النظام الآلي',
+            'user_id'       => $this->collected_by_user_id,
             
-            'paymentDate'       => Carbon::parse($this->created_at)->format('Y-m-d H:i A'),
         ];
     }
 }

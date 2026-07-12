@@ -12,7 +12,13 @@ class SchoolSettingsService
 {
     public function getSettings()
     {
-        return School::with('images')->first();
+        //اريد ان تعيد لا شي اذا لم يوجد هذا الاعداد:
+
+        $setting= School::with('images')->first();
+        if (!$setting) {
+            return new School(); 
+        }
+        return $setting;
     }
 
     public function updateSettings(array $validatedData)
@@ -132,7 +138,6 @@ public function getImageById(int $id)
     {
         $school = School::findOrFail(1);
         if ($school) {
-            // لمسة احترافية: نحذف الصور من السيرفر (Storage) قبل حذف الإعدادات
             foreach ($school->images as $image) {
                 if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
                     Storage::disk('public')->delete($image->url);

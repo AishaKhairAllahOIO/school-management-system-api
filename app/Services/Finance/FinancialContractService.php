@@ -7,6 +7,7 @@ use App\Models\FeePlan;
 use App\Models\InstallmentPolicy;
 use App\Models\ScheduledInstallment;
 use App\Models\AcademicYear;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Exception;
@@ -127,6 +128,8 @@ class FinancialContractService
     {
         return DB::transaction(function () use ($accountId, $data) {
             $account = FinancialAccount::findOrFail($accountId);
+            if(!$account)
+                throw new ModelNotFoundException('الحساب غير موجود ');
 
             // 🛡️ حماية مالية: يمنع تعديل العقد إذا كان هناك دفعات مسددة
             if (!in_array($account->payment_status, ['draft', 'unpaid'])) {

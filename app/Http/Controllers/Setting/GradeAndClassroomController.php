@@ -26,6 +26,50 @@ class GradeAndClassroomController extends Controller
     public function __construct(protected GradeAndClassroomService $service) {}
 
     // ---- الصفوف ----
+        public function indexGrades(): JsonResponse 
+    {
+        try {
+            $grades = $this->service->getAllGrades();
+            // لمسة إضافية: تغيير الرسالة إذا كانت القائمة فارغة
+            $message = $grades->isEmpty() ? 'لا يوجد صفوف دراسية مسجلة بعد.' : 'تم جلب جميع الصفوف الدراسية بنجاح.';
+            
+            return $this->successResponse(
+                GradeLevelResource::collection($grades),
+                $message
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب الصفوف.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+        public function indexClassrooms(): JsonResponse 
+    {
+        try {
+            $classrooms = $this->service->getAllClassrooms();
+            $message = $classrooms->isEmpty() ? 'لا يوجد شعب دراسية مسجلة بعد.' : 'تم جلب جميع الشعب الدراسية بنجاح.';
+
+            return $this->successResponse(
+                ClassroomResource::collection($classrooms),
+                $message
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب الشعب.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+        public function indexConfigurations(): JsonResponse 
+    {
+        try {
+            $configs = $this->service->getAllConfigurations();
+            $message = $configs->isEmpty() ? 'لا يوجد إعدادات تخطيطية مسجلة بعد.' : 'تم جلب جميع الإعدادات التخطيطية بنجاح.';
+
+            return $this->successResponse(
+                GradeConfigurationResource::collection($configs),
+                $message
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب الإعدادات.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
     public function storeGrade(StoreGradeLevelRequest $request): JsonResponse {
         return $this->successResponse(new GradeLevelResource(
             $this->service->createGrade($request->validated())),

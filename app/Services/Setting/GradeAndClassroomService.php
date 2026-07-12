@@ -7,6 +7,9 @@ use App\Models\GradeConfiguration;
 use App\Models\Classroom;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
+
 
 
 class GradeAndClassroomService
@@ -155,14 +158,13 @@ class GradeAndClassroomService
        public function deleteGrade(int $id)
     {
         $grade = GradeLevel::findOrFail($id);
+        if(!$grade)
+            throw new ModelNotFoundException("الصف الدراسي المحدد غير موجود.");
         $hasClassrooms = Classroom::where('grade_level_id', $id)->exists();
         $hasConfigs = GradeConfiguration::where('grade_level_id', $id)->exists();
 
         if ($hasClassrooms || $hasConfigs) {
-            throw new HttpResponseException(response()->json([
-                'status' => false,
-                'message' => 'لا يمكن حذف الصف لاحتوائه على إعدادات تخطيطية أو شعب دراسية.'
-            ], 409));
+            throw new Exception('لا يمكن حذف الصف لاحتوائه على إعدادات تخطيطية أو شعب دراسية.', 409);
         }
 
         $grade->delete();
@@ -171,17 +173,47 @@ class GradeAndClassroomService
     public function deleteConfiguration(int $id): void
     {
         $config = GradeConfiguration::findOrFail($id);
+        if(!$config) {
+            throw new ModelNotFoundException("الإعداد التخطيطي المحدد غير موجود.");
+        }
+        $hasClassrooms = Classroom::where('academic_year_id', $config->academic_year_id)
+                                  ->where('grade_level_id', $config->grade_level_id)
+                                  ->exists();
+                                  
+        if ($hasClassrooms) {
+            throw new Exception(
+              'لا يمكن حذف الإعداد التخطيطي لوجود شعب دراسية تابعة له. يرجى حذف الشعب أولاً.'
+            , 409);
+        }
+
+        // 🛡️ الحماية 2: هل يوجد طلاب مسجلون في هذا الصف خلال هذه السنة؟
+        $hasEnrollments = \App\Models\Enrollment::where('academic_year_id', $config->academic_year_id)
+                                                ->where('grade_level_id', $config->grade_level_id)
+                                                ->exists();
+                                                
+        if ($hasEnrollments) {
+            throw new Exception( 'لا يمكن حذف الإعداد التخطيطي لوجود طلاب مسجلين بالفعل في هذا الصف للعام الدراسي المحدد.'
+            , 409);
+        }
         $config->delete();
     }
 
     public function deleteClassroom(int $id): void
     {
         $classroom = Classroom::findOrFail($id);
+        if(!$classroom) {
+            throw new ModelNotFoundException("الشعبة الدراسية المحددة غير موجودة.");
+        }
         $yearId = $classroom->academic_year_id;
         $gradeId = $classroom->grade_level_id;
 
-        // ملاحظة: لاحقاً عند إضافة نظام الطلاب، سنفحص إذا كان هناك طلاب مسجلون هنا.
-
+        $hasStudents = \App\Models\Enrollment::where('class_room_id', $classroom->id)->exists();
+        
+        if ($hasStudents) {
+            throw new Exception(
+             'لا يمكن حذف هذه الشعبة لأنها تحتوي على طلاب مسجلين بداخلها. يرجى نقل الطلاب لشعبة أخرى أولاً.'
+            , 409);
+        }
         $classroom->delete();
 
         // 🪄 السحر: إعادة حساب السعة الكلية للصف وخصم سعة الشعبة المحذوفة!

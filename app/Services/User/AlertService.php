@@ -140,7 +140,7 @@ class AlertService
             'title'           => $title,
             'description'     => $desc,
             'meta'            => $meta,
-            'created_by'      => auth()-> id(),
+            'created_by'      => auth()->id(),
         ]);
 
         $student = $enrollment->student;

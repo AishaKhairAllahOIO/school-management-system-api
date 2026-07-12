@@ -57,11 +57,12 @@ public function getImageById(int $id)
 
     public function addSchoolImages(array $data)
     {
-        $settings = School::firstOrCreate(['id' => 1]);
+        $settings = \App\Models\School::first(); 
+        if(!$settings)
+            throw new ModelNotFoundException("إعدادات المدرسة غير موجودة.");
         $imagesData = [];
 
         foreach ($data['images'] as $imageData) {
-            // رفع الملف إلى مجلد storage/app/public/school_images
             $path = $imageData['file']->store('school_images', 'public');
             
             $imagesData[] = [
@@ -74,8 +75,11 @@ public function getImageById(int $id)
     }
 
     // --- تعديل بيانات صورة موجودة (الاسم أو الملف) ---
-    public function updateSchoolImage(SchoolImage $image, array $data): SchoolImage
+    public function updateSchoolImage(int $id, array $data): SchoolImage
     {
+        $image = SchoolImage::findOrFail($id);
+        if(!$image)
+            throw new ModelNotFoundException("الصورة المحددة غير موجودة في المعرض.");
         if (isset($data['file'])) {
             // حذف الصورة القديمة من السيرفر إذا كانت موجودة (ولا تبدأ بـ http)
             if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
@@ -93,13 +97,29 @@ public function getImageById(int $id)
         return $image->fresh();
     }
 
-    public function deleteSchoolImage(SchoolImage $image): void
+    public function deleteSchoolImage(int $id): void
     {
+        $image = SchoolImage::findOrFail($id);
+        if(!$image)
+            throw new ModelNotFoundException("الصورة المحددة غير موجودة في المعرض.");
         // حذف الملف الفعلي من السيرفر
         if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
             Storage::disk('public')->delete($image->url);
         }
         
         $image->delete();
+    }
+        public function deleteSettings(): void
+    {
+        $school = School::findOrFail(1);
+        if ($school) {
+            // لمسة احترافية: نحذف الصور من السيرفر (Storage) قبل حذف الإعدادات
+            foreach ($school->images as $image) {
+                if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
+                    Storage::disk('public')->delete($image->url);
+                }
+            }
+            $school->delete();
+        }
     }
 }

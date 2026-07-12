@@ -145,6 +145,9 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/years/{id}', [AcademicSettingsController::class, 'showYear']);
     Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
+    Route::delete('/', [AcademicSettingsController::class, 'destroy']);
+
+
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
@@ -158,6 +161,8 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::post('/images', [SchoolSettingsController::class, 'storeImages']);
     Route::post('/images/{image}', [SchoolSettingsController::class, 'updateImage']);
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
+    Route::delete('/', [SchoolSettingsController::class, 'destroy']);
+
 });
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
 

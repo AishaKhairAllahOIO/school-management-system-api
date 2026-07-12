@@ -16,8 +16,9 @@ use Illuminate\Validation\ValidationException; // 👈 لا تنسي استدع�
 use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
 use App\Models\AcademicStage;
-
-
+use App\Models\Enrollment;
+use Exception;
+use App\Models\GradeConfiguration;
 
 class AcademicSettingsService
 {
@@ -203,14 +204,17 @@ private function determineTermNameAndOrder(string $inputName): array
   public function deleteYear(int $id): void
     {
         $year = AcademicYear::findOrFail($id);
+        if(!$year) {
+            throw new ModelNotFoundException("العام الدراسي المحدد غير موجود.");
+        }
         
         $hasSemesters = Semester::where('academic_year_id', $id)->exists();
-        $hasConfigurations = \App\Models\GradeConfiguration::where('academic_year_id', $id)->exists();
+        $hasConfigurations = GradeConfiguration::where('academic_year_id', $id)->exists();
         
         if ($hasSemesters || $hasConfigurations) {
-            throw new HttpResponseException(
-                $this->errorResponse('لا يمكن حذف العام الدراسي لارتباطه بفصول دراسية أو إعدادات تخطيطية.', 409)
-            );
+            throw new Exception(
+                'لا يمكن حذف العام الدراسي لارتباطه بفصول دراسية أو إعدادات تخطيطية.', 409)
+            ;
         }
         
         $year->delete();
@@ -219,158 +223,53 @@ private function determineTermNameAndOrder(string $inputName): array
     public function deleteTerm(int $id): void
     {
         $term = Semester::findOrFail($id);
+        if(!$term) {
+            throw new ModelNotFoundException("الفصل الدراسي المحدد غير موجود.");
+        }
+        if($term->is_current) {
+            throw new Exception('لا يمكن حذف الفصل الدراسي الحالي.', 409);
+        }
+        
         $term->delete();
     }
 
     public function deleteStage(int $id): void
     {
         $stage = AcademicStage::findOrFail($id);
+        if(!$stage)
+            throw new ModelNotFoundException("المرحلة الدراسية المحددة غير موجودة.");
         $hasGrades = GradeLevel::where('academic_stage_id', $id)->exists();
         
         if ($hasGrades) {
-            throw new HttpResponseException(
-                $this->errorResponse('لا يمكن حذف المرحلة الدراسية لأنها تحتوي على صفوف دراسية. احذف الصفوف أولاً.', 409)
-            );
+            throw new Exception(
+                'لا يمكن حذف المرحلة الدراسية لأنها تحتوي على صفوف دراسية. احذف الصفوف أولاً.', 409)
+            ;
         }
         
         $stage->delete();
     }
+    //i want to delete academic setting:
+  public function deleteSettings(): void
+    {
+        $settings = AcademicSetting::findOrFail(1);
+        
+        if ($settings) {
+            if ($settings->current_academic_year_id) {
+                $hasEnrollments = Enrollment::where('academic_year_id', $settings->current_academic_year_id)->exists();
 
-    // public function syncSettings(array $data)
-    // {
-    //     return DB::transaction(function () use ($data) {
+                if ($hasEnrollments) {
+                    throw new Exception(
+                        'تحذير أمني: لا يمكن حذف الإعدادات الأكاديمية للمدرسة لوجود طلاب مسجلين بالفعل بناءً على هذه الإعدادات.', 409);
+                }
+            }
+            
 
-    //         if (!empty($data['academicYears'])) {
-    //             foreach ($data['academicYears'] as $yearData) {
-    //                 AcademicYear::updateOrCreate(
-    //                     ['id' => $yearData['id'] ?? null], // إذا لم يكن هناك ID، قم بإنشاء سجل جديد
-    //                     [
-    //                         'year_name'  => $yearData['name'],
-    //                         'start_date' => $yearData['startDate'],
-    //                         'end_date'   => $yearData['endDate'],
-    //                     ]
-    //                 );
-    //             }
-    //         }
-
-    //         if (!empty($data['terms'])) {
-    //             foreach ($data['terms'] as $termData) {
-    //                 $academicYearId = $termData['academic_year_id'] ?? ($data['academicYears'][0]['id'] ?? null);
-    //                 Semester::updateOrCreate(
-    //                     ['id' => $termData['id'] ?? null],
-    //                     [
-    //                         'academic_year_id' => $academicYearId, // تأكد من ربط الفصل بالسنة الدراسية الصحيحة
-    //                         'semester_name' => $termData['name'],
-    //                         'start_date'    => $termData['startDate'],
-    //                         'end_date'      => $termData['endDate'],
-    //                     ]
-    //                 );
-    //             }
-    //         }
-
-    //         $settings = AcademicSetting::updateOrCreate(
-    //             ['school_id' => 1],
-    //             [
-    //                 'current_academic_year_id'      => $data['currentAcademicYearId'],
-    //                 'passing_grade'                 => $data['passingGrade'],
-    //                 'maximum_grade'                 => $data['maximumGrade'],
-    //                 'gpa_scale'                     => $data['gpaScale'],
-    //                 'minimum_attendance_percentage' => $data['minimumAttendancePercentage'],
-    //                 'promotion_threshold'           => $data['promotionThreshold'],
-
-    //                 'auto_promote_students'         => $data['preferences']['autoPromoteStudents'],
-    //                 'allow_student_repeating'       => $data['preferences']['allowStudentRepeating'],
-    //                 'calculate_gpa'                 => $data['preferences']['calculateGpa'],
-    //                 'rank_students'                 => $data['preferences']['rankStudents'],
-    //                 'use_attendance_in_promotion'   => $data['preferences']['useAttendanceInPromotion'],
-    //             ]
-    //         );
-
-    //         if (!empty($data['gradeScale'])) {
-
-    //             $providedIds = collect($data['gradeScale'])->pluck('id')->filter()->toArray();
-    //             $settings->gradeScales()->whereNotIn('id', $providedIds)->delete();
-    //             // $scalesToDelete=$settings->gradeScales()->whereNotIn('id', $providedIds)->get();
-    //             // if($scalesToDelete->isNotEmpty()){
-    //             //     $idToDelete=$scalesToDelete->pluck('id')->toArray();
-    //             //     $isUsed=StudenGrade::whereIn('grade_scale_id', $idToDelete)->exists();
-    //             //     if($isUsed){
-    //             //         throw new Exception('Cannot delete grade scales that are currently in use.');
-    //             //     }
-    //             //     $settings->gradeScales()->whereIn('id', $idToDelete)->delete();
-    //             // }
-    //             foreach ($data['gradeScale'] as $gradeData) {
-    //                 $settings->gradeScales()->updateOrCreate(
-    //                     ['id' => $gradeData['id'] ?? null],
-    //                     [
-    //                         'grade'        => $gradeData['grade'],
-    //                         'minimum_score' => $gradeData['minimumScore'],
-    //                         'maximum_score' => $gradeData['maximumScore'],
-    //                         'description'   => $gradeData['description'] ?? null,
-    //                     ]
-    //                 );
-    //             }
-    //         }
-
-    //         return $settings->load(['gradeScales']);
-    //     });
-    // }
+            $settings->delete();
+        }
+    }
 
 
 
-
-
-    // private function loadLevels(array $ids): Collection
-    // {
-    //     return GradeLevel::query()
-    //         ->whereIn('id', $ids)
-    //         ->withCount('classRooms')
-    //         ->with(['classRooms:id,grade_level_id,name,capacity'])
-    //         ->orderBy('id')
-    //         ->get();
-    // }
-
-
-
-// public function deleteLevel(int $id): void
-// {
-//     $level = GradeLevel::withCount('classRooms')->findOrFail($id);
-
-//     // حماية: امنع حذف مرحلة فيها شعب
-//     if ($level->class_rooms_count > 0) {
-//         throw new HttpResponseException(
-//             $this->errorResponse(
-//                 'لا يمكن حذف المرحلة لأنها تحتوي على شعب. احذف الشعب أولاً.',
-//                 409 // Conflict
-//             )
-//         );
-//     }
-
-//     $level->delete();
-// }
-
-// public function updateClassroom(int $id, array $data): ClassRoom
-// {
-//     $classRoom = ClassRoom::findOrFail($id);
-//     $classRoom->update($data);
-
-//     return $classRoom->fresh();
-// }
-
-// public function deleteClassroom(int $id): void
-// {
-//     $classRoom = ClassRoom::withCount('enrollments')->findOrFail($id);
-
-//     if ($classRoom->enrollments_count > 0) {
-//         throw new HttpResponseException(
-//             $this->errorResponse(
-//                 'لا يمكن حذف الشعبة لأنها تحتوي على طلاب مسجّلين.',
-//                 409
-//             )
-//         );
-//     }
-
-//     $classRoom->delete();
-// }
+   
 
 }

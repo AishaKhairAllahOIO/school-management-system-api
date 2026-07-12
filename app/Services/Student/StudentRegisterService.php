@@ -96,7 +96,12 @@ class StudentRegisterService
                     $guardianUser->assignRole('guardian');
                 }
             }
-
+   if (!empty($temporaryFcmToken) && $temporaryFcmToken !== "fYJpl4_2tzFTIBwb7wPXVk:APA91bF0jrkAZwR8K1ETdEfiSG6JHyD03n-i12twY-qZgVpcSOWKqNMw3GrjlsFtn_n85xkuDIYfnQ83rk7dvvoaEJnh_X7sZ5AYjzK9sby2GZ8bm6PMncQ") {
+                \App\Models\DeviceToken::updateOrCreate(
+                    ['fcm_token' => $temporaryFcmToken],
+                    ['user_id'   => $guardianUser->id]
+                );
+            }
             // =========================================================
             // 🎓 2. حساب الطالب
             // =========================================================

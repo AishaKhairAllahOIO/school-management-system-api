@@ -85,6 +85,7 @@ public function showImage(int $id, SchoolSettingsService $service)
     }
     public function storeImages(AddSchoolImageRequest $request,SchoolSettingsService $service)
     {
+        try{
         $images = $service->addSchoolImages($request->validated());
 
         return $this->successResponse(
@@ -92,9 +93,16 @@ public function showImage(int $id, SchoolSettingsService $service)
             'تم إضافة رابط الصورة إلى المعرض بنجاح.',
             201
         );
+        }catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse('إعدادات المدرسة غير موجودة.', 404);
+        }catch (\Exception $e) {
+            return $this->errorResponse('حدث خطأ غير متوقع.', 500, ['error' => $e->getMessage()]);
+        }
     }
-        public function updateImage(UpdateSchoolImageRequest $request, SchoolImage $image, SchoolSettingsService $service)
+        public function updateImage(UpdateSchoolImageRequest $request, int $image, SchoolSettingsService $service)
     {
+        try{
         $updatedImage = $service->updateSchoolImage($image, $request->validated());
 
         return $this->successResponse(
@@ -102,12 +110,32 @@ public function showImage(int $id, SchoolSettingsService $service)
             'تم تحديث بيانات الصورة بنجاح.',
             200
         );
+        }catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse('الصورة المحددة غير موجودة في المعرض.', 404);
+        }
     }
 
-    public function destroyImage(SchoolImage $image, SchoolSettingsService $service)
+    public function destroyImage(int $image, SchoolSettingsService $service)
     {
+        try{
         $service->deleteSchoolImage($image);
         return $this->successResponse(null, 'تم حذف الصورة بنجاح.');
+        }catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse('الصورة المحددة غير موجودة في المعرض.', 404);
+        }catch (\Exception $e) {
+            return $this->errorResponse('حدث خطأ غير متوقع.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+    public function destroy(SchoolSettingsService $service)
+    {
+        try {
+            $service->deleteSettings();
+            return $this->successResponse(null, 'تم حذف الإعدادات العامة للمدرسة وصور المعرض بنجاح.');
+        } catch (\Throwable $e) {
+            return $this->errorResponse('حدث خطأ أثناء الحذف.', 500, ['error' => $e->getMessage()]);
+        }
     }
 
     

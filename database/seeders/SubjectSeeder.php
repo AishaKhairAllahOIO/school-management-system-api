@@ -15,9 +15,18 @@ class SubjectSeeder extends Seeder
     {
         Subject::updateOrCreate([
             'subject_name'=>'math',
-            'subject_full_mark'=>100,
-            'subject_pass_mark'=>50,
+            'subject_full_mark'=>600,
+            'subject_pass_mark'=>300,
             'subject_type'=>'assessment',
         ]);
+
+         Subject::updateOrCreate([
+            'subject_name'=>'physic',
+            'subject_full_mark'=>400,
+            'subject_pass_mark'=>200,
+            'subject_type'=>'assessment',
+        ]);
+
+
     }
 }

@@ -22,7 +22,7 @@ class CounselorProfileResource extends JsonResource
                 'specialization'   => $this->staff?->specialization,
                 'university'       => $this->staff?->university,
                 'graduation_year'  => $this->staff?->graduation_year,
-                'hire_date'        => $this->staff?->hire_date?->format('Y-m-d'),
+                'hire_date'        => $this->staff?->hire_date,
                 'experience_years' => $this->staff?->experience_years,
             ],
         ];

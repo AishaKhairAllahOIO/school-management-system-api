@@ -20,5 +20,20 @@ class TeacherAssignmentSeeder extends Seeder
             'academic_year_id' => 1,
             'semester_id' => 1,
         ]);
+
+         TeacherAssignment::updateOrCreate([
+            'staff_id' => 1,
+            'subject_id' => 2,
+            'class_room_id' => 1,
+            'academic_year_id' => 1,
+            'semester_id' => 1,
+        ]);
+         TeacherAssignment::updateOrCreate([
+            'staff_id' => 1,
+            'subject_id' => 2,
+            'class_room_id' => 2,
+            'academic_year_id' => 1,
+            'semester_id' => 1,
+        ]);
     }
 }

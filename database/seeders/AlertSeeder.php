@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Alert;
 use App\Models\Enrollment;
+use App\Models\Staff;
 use Illuminate\Database\Seeder;
 
 class AlertSeeder extends Seeder
@@ -21,7 +22,7 @@ class AlertSeeder extends Seeder
                 'audience'    => Alert::AUDIENCE_STUDENT,
                 'title'       => 'تنبيه واجب',
                 'description' => 'لم يكتب الطالب الواجب المنزلي.',
-                'meta'        => ['subject_id' => 1],
+                'meta'        => ['subject' => 'math','date' => '2026-06-01'],
                 'created_by'  => 3
             ]
         );
@@ -38,6 +39,7 @@ class AlertSeeder extends Seeder
                 'title'       => 'تنبيه غياب',
                 'description' => 'تم تسجيل غياب الطالب اليوم.',
                 'meta'        => ['date' => '2026-06-01'],
+                'created_by'  => 9
             ]
         );
 
@@ -53,6 +55,7 @@ class AlertSeeder extends Seeder
                 'title'       => 'تنبيه سلوك',
                 'description' => 'تم تسجيل ملاحظة سلوكية للطالب.',
                 'meta'        => ['severity' => 'high'],
+                'created_by'  => 9
             ]
         );
 
@@ -68,6 +71,7 @@ class AlertSeeder extends Seeder
                 'title'       => 'تنبيه تأخير',
                 'description' => 'تم تسجيل تأخر الطالب عن الدوام.',
                 'meta'        => ['minutes_late' => 15, 'session' => 'Math Class'],
+                'created_by'  => 9
             ]
         );
 
@@ -83,6 +87,7 @@ class AlertSeeder extends Seeder
                 'title'       => 'تنبيه هروب',
                 'description' => 'تم تسجيل حالة هروب الطالب.',
                 'meta'        => ['session' => 'Science Class'],
+                'created_by'  => 9
             ]
         );
 
@@ -98,6 +103,7 @@ class AlertSeeder extends Seeder
                 'title'       => 'تنبيه دفع',
                 'description' => 'يوجد تأخر في دفع قسط.',
                 'meta'        => ['amount_due' => 2000, 'due_date' => '2026-06-15'],
+                'created_by'  => 10
             ]
         );
 
@@ -113,6 +119,95 @@ class AlertSeeder extends Seeder
                 'title'       => 'تنبيه دفع',
                 'description' => 'تم تسديد دفعة من القسط.',
                 'meta'        => ['amount' => 2000],
+                'created_by'  => 10
+            ]
+        );
+
+
+        Alert::updateOrCreate(
+            [
+                'notifiable_type' => Staff::class,
+                'notifiable_id'   => 1,
+                'type'            => Alert::TYPE_SALARY,
+            ],
+            [
+                'audience'    => Alert::AUDIENCE_STAFF,
+                'title'       => 'تنبيه راتب',
+                'description' => 'تم رفع الراتب الشهري يرجى مراجعة حساب شام كاش.',
+                'meta'        => [
+                    'amount' => 20000,
+                    'month' => 'june 2026'
+                ],
+                'created_by'  => 9
+            ]
+        );
+        Alert::updateOrCreate(
+            [
+                'notifiable_type' => Staff::class,
+                'notifiable_id'   => 1,
+                'type'            => Alert::TYPE_ABSENCE,
+            ],
+            [
+                'audience'    => Alert::AUDIENCE_STAFF,
+                'title'       => 'تنبيه غياب',
+                'description' => 'تم تسجيل غيابك اليوم.',
+                'meta'        => [
+                    'date' => '2026-06-01'
+                ],
+                'created_by'  => 9
+            ]
+        );
+        Alert::updateOrCreate(
+            [
+                'notifiable_type' => Staff::class,
+                'notifiable_id'   => 1,
+                'type'            => Alert::TYPE_LATE,
+            ],
+            [
+                'audience'    => Alert::AUDIENCE_STAFF,
+                'title'       => 'تنبيه تأخر',
+                'description' => 'تم تسجيل تأخرك عن الدوام.',
+
+                'meta'        => [
+                    'minutes_late' => 20,
+                    'session' => 'الحصة الأولى'
+                ],
+                'created_by'  => 9
+            ]
+        );
+        Alert::updateOrCreate(
+            [
+                'notifiable_type' => Staff::class,
+                'notifiable_id'   => 3,
+                'type'            => Alert::TYPE_LATE,
+            ],
+            [
+                'audience'    => Alert::AUDIENCE_STAFF,
+                'title'       => 'تنبيه تأخر',
+                'description' => 'تم تسجيل تأخرك عن الدوام.',
+
+                'meta'        => [
+                    'minutes_late' => 20,
+                ],
+                'created_by'  => 9
+            ]
+        );
+        Alert::updateOrCreate(
+            [
+                'notifiable_type' => Staff::class,
+                'notifiable_id'   => 3,
+                'type'            => Alert::TYPE_SALARY,
+            ],
+            [
+                'audience'    => Alert::AUDIENCE_STAFF,
+                'title'       => 'تنبيه راتب',
+                'description' => 'تم رفع الراتب الشهري يرجى مراجعة حساب شام كاش.',
+
+                'meta'        => [
+                    'amount' => 20000,
+                    'month' => 'june 2026'
+                ],
+                'created_by'  => 9
             ]
         );
     }

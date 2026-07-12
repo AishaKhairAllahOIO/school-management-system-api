@@ -47,43 +47,43 @@ Route::prefix('auth')->group(function () {
         Route::get('/announcements', [UserAnnouncementController::class, 'announcementsForStaff']);
         Route::get('/alerts', [UserAlertController::class, 'getStaffAlerts']);
         Route::get('/payment-alerts', [UserAlertController::class, 'getStaffPaymentAlerts']);
-        Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
 
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
+            Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
         });
 
-            Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
+        Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
             Route::get('/show-profile', [UserController::class, 'counselorProfile']);
         });
 
         Route::prefix('admin/settings')->group(function () {
-    // Route::get('/', [AcademicSettingsController::class, 'index']);
-    // Route::put('/', [AcademicSettingsController::class, 'update']);
+            // Route::get('/', [AcademicSettingsController::class, 'index']);
+            // Route::put('/', [AcademicSettingsController::class, 'update']);
 
-    // Route::post('/years', [AcademicSettingsController::class, 'storeYear']);
-    // Route::put('/years/{year}', [AcademicSettingsController::class, 'updateYear']);
+            // Route::post('/years', [AcademicSettingsController::class, 'storeYear']);
+            // Route::put('/years/{year}', [AcademicSettingsController::class, 'updateYear']);
 
-    // Route::post('/terms', [AcademicSettingsController::class, 'storeTerm']);
-    // Route::put('/terms/{term}', [AcademicSettingsController::class, 'updateTerm']);
+            // Route::post('/terms', [AcademicSettingsController::class, 'storeTerm']);
+            // Route::put('/terms/{term}', [AcademicSettingsController::class, 'updateTerm']);
 
-    // Route::post('/stages', [AcademicSettingsController::class, 'storeStage']);
-    // Route::put('/stages/{stage}', [AcademicSettingsController::class, 'updateStage']);
-    // Route::patch('/stages/{stage}', [AcademicSettingsController::class, 'updateStage']);
+            // Route::post('/stages', [AcademicSettingsController::class, 'storeStage']);
+            // Route::put('/stages/{stage}', [AcademicSettingsController::class, 'updateStage']);
+            // Route::patch('/stages/{stage}', [AcademicSettingsController::class, 'updateStage']);
 
-    //         Route::post('/grade-levels/structure', [AcademicSettingsController::class, 'createStracture']);
+            //         Route::post('/grade-levels/structure', [AcademicSettingsController::class, 'createStracture']);
 
-    //         Route::post('/one-grade-level', [AcademicSettingsController::class, 'createStracture']);
+            //         Route::post('/one-grade-level', [AcademicSettingsController::class, 'createStracture']);
 
 
 
-    //         Route::get('/grade-levels',            [AcademicSettingsController::class, 'showAllGrades']);
-    //         Route::get('/grade-levels/{id}',       [AcademicSettingsController::class, 'showOneGrade']);
-    //         Route::put('/grade-levels/{id}',       [AcademicSettingsController::class, 'updateGrade']);
-    //         Route::delete('/grade-levels/{id}',    [AcademicSettingsController::class, 'destroyGrade']);
+            //         Route::get('/grade-levels',            [AcademicSettingsController::class, 'showAllGrades']);
+            //         Route::get('/grade-levels/{id}',       [AcademicSettingsController::class, 'showOneGrade']);
+            //         Route::put('/grade-levels/{id}',       [AcademicSettingsController::class, 'updateGrade']);
+            //         Route::delete('/grade-levels/{id}',    [AcademicSettingsController::class, 'destroyGrade']);
 
-    //         Route::put('/classrooms/{id}',         [AcademicSettingsController::class, 'updateClassroom']);
-    //         Route::delete('/classrooms/{id}',      [AcademicSettingsController::class, 'destroyClassroom']);
+            //         Route::put('/classrooms/{id}',         [AcademicSettingsController::class, 'updateClassroom']);
+            //         Route::delete('/classrooms/{id}',      [AcademicSettingsController::class, 'destroyClassroom']);
         });
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::delete('/logout', [SystemAccessController::class, 'logout']);
@@ -108,10 +108,10 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
     Route::post('/grades', [GradeAndClassroomController::class, 'storeGrade']);
     Route::post('/grades/{grade}', [GradeAndClassroomController::class, 'updateGrade']);
-            // Grade Configurations
+    // Grade Configurations
     Route::post('/configurations', [GradeAndClassroomController::class, 'storeConfiguration']);
     Route::post('/configurations/{config}', [GradeAndClassroomController::class, 'updateConfiguration']);
-            // Classrooms
+    // Classrooms
     Route::post('/classrooms', [GradeAndClassroomController::class, 'storeClassroom']);
     Route::post('/classrooms/{classroom}', [GradeAndClassroomController::class, 'updateClassroom']);
 
@@ -138,7 +138,6 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/years/{id}', [AcademicSettingsController::class, 'showYear']);
     Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
-
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
@@ -149,51 +148,51 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::post('/images', [SchoolSettingsController::class, 'storeImages']);
     Route::post('/images/{image}', [SchoolSettingsController::class, 'updateImage']);
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
-
 });
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
 
-            // سياسات التقسيط
-            Route::get('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getPolicies']);
-            Route::post('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storePolicy']);
+    // سياسات التقسيط
+    Route::get('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getPolicies']);
+    Route::post('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storePolicy']);
 
-            // خطط الرسوم الموحدة
-            Route::get('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getFeePlans']);
-            Route::post('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storeFeePlan']);
-            Route::post('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicy']);
-            Route::delete('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicy']);
+    // خطط الرسوم الموحدة
+    Route::get('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getFeePlans']);
+    Route::post('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storeFeePlan']);
+    Route::post('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicy']);
+    Route::delete('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicy']);
 
-            // تعديل وحذف خطط الرسوم الموحدة
-            Route::post('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateFeePlan']);
-            Route::delete('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyFeePlan']);
-            Route::post('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicyItem']);
-            Route::delete('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicyItem']);
+    // تعديل وحذف خطط الرسوم الموحدة
+    Route::post('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateFeePlan']);
+    Route::delete('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyFeePlan']);
+    Route::post('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicyItem']);
+    Route::delete('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicyItem']);
 
-            Route::post('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateExtraService']);
-            Route::delete('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyExtraService']);
-            Route::get('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicy']);
-            Route::get('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showFeePlan']);
-            Route::get('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicyItem']);
-            Route::get('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showExtraService']);
-        });
+    Route::post('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateExtraService']);
+    Route::delete('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyExtraService']);
+    Route::get('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicy']);
+    Route::get('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showFeePlan']);
+    Route::get('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicyItem']);
+    Route::get('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showExtraService']);
+});
 
 
-    Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(function () {
+Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(function () {
 
-        Route::get('/accounts', [FinancialContractController::class, 'index']);
-        Route::get('/accounts/{studentId}', [FinancialContractController::class, 'show']);
+    Route::get('/accounts', [FinancialContractController::class, 'index']);
+    Route::get('/accounts/{studentId}', [FinancialContractController::class, 'show']);
 
-        // 2️⃣ مسارات الأقساط (Installments)
-        Route::get('/installments', [FinancialContractController::class, 'installmentsIndex']);
-        Route::get('/installments/{id}', [FinancialContractController::class, 'showInstallment']);
+    // 2️⃣ مسارات الأقساط (Installments)
+    Route::get('/installments', [FinancialContractController::class, 'installmentsIndex']);
+    Route::get('/installments/{id}', [FinancialContractController::class, 'showInstallment']);
 
-        // 3️⃣ مسارات الصندوق والدفع (Payments)
-        Route::get('/payments', [PaymentController::class, 'index']);
-        Route::get('/payments/{id}', [PaymentController::class, 'show']);
-        Route::post('/payments', [PaymentController::class, 'store']);
+    // 3️⃣ مسارات الصندوق والدفع (Payments)
+    Route::get('/payments', [PaymentController::class, 'index']);
+    Route::get('/payments/{id}', [PaymentController::class, 'show']);
+    Route::post('/payments', [PaymentController::class, 'store']);
 
-        Route::post('/finalize', [FinancialContractController::class, 'finalize']);
-        Route::post('/{studentId}', [FinancialContractController::class, 'update']);});
+    Route::post('/finalize', [FinancialContractController::class, 'finalize']);
+    Route::post('/{studentId}', [FinancialContractController::class, 'update']);
+});
 
 //////////////////////////////////////////////////
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {
@@ -207,15 +206,15 @@ Route::middleware('auth:sanctum', 'role:super_admin')->prefix('data')->group(fun
     Route::put('/super_admin', [UserController::class, 'updateMyAdminProfile']);
 });
 ///////////////////////////////////////////////////////
-Route::middleware('auth:sanctum')->prefix('admin/student')->group(function(){
+Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
 
-   Route::post('/register',[StudentController::class,'store']);
-   Route::post('/import',[StudentController::class,'importExcel']);
-   Route::get('/import-batches/{batch}/errors/export', [StudentController::class, 'exportErrors'])
-     ->middleware('can:student:create');
-     Route::get('/import-batches/{batch}/status', [StudentController::class, 'getImportStatus'])
-     ->middleware('can:student:create');
-     Route::get('/import-batches/history', [StudentController::class, 'getBatchesHistory']);
+    Route::post('/register', [StudentController::class, 'store']);
+    Route::post('/import', [StudentController::class, 'importExcel']);
+    Route::get('/import-batches/{batch}/errors/export', [StudentController::class, 'exportErrors'])
+        ->middleware('can:student:create');
+    Route::get('/import-batches/{batch}/status', [StudentController::class, 'getImportStatus'])
+        ->middleware('can:student:create');
+    Route::get('/import-batches/history', [StudentController::class, 'getBatchesHistory']);
 });
 
 ///////////////////////////////////////////////////////////
@@ -230,7 +229,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
     Route::post('/{student}/personal', [StudentController::class, 'updatePersonal'])
         ->middleware('can:student:edit');
     Route::post('/enrollments/{enrollment}', [StudentController::class, 'updateEnrollment']);
-         // أو أي صلاحية تراها مناسبة لتعديل القيود
+    // أو أي صلاحية تراها مناسبة لتعديل القيود
     Route::post('/guardians/{guardian}/personal', [StudentController::class, 'updateGuardian'])
         ->middleware('can:student:edit');
     Route::delete('/{id}', [StudentController::class, 'destroy'])
@@ -250,7 +249,6 @@ Route::post('/alerts', [UserAlertController::class, 'store']);
 
 Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
 
-Route::get('/activites', [ActivityController::class, 'show']);
 Route::delete('/activity/{id}', [ActivityController::class, 'destroy']);
 Route::post('/activity', [ActivityController::class, 'store']);
 
@@ -270,12 +268,16 @@ Route::prefix('user')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
         Route::get('get-user-data', [UserController::class, 'getUserInfo']);
+        Route::get('/activities', [ActivityController::class, 'show']);
+        Route::get('/child-activities',[ActivityController::class, 'guardianViewActivities']);
 
         Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
         Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
         Route::get('/my-alerts', [UserAlertController::class, 'myAlerts']);
         Route::get('/announcements', [UserAnnouncementController::class, 'announcementsForStudent']);
+        Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
+
 
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::post('logout', [UserAuthController::class, 'logout']);

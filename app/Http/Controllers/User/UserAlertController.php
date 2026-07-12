@@ -139,7 +139,9 @@ class UserAlertController extends Controller
     }
     public function teacherCreateAlerts(AlertRequest $request)
     {
-        $alert = $this->alertService->createStudentHomework($request->validated());
+
+        $enrollment = Enrollment::findOrFail($request['enrollment_id']);
+        $alert = $this->alertService->createStudentHomework($enrollment, $request->validated());
 
         return $this->successResponse(
             new AlertResource($alert),
@@ -167,5 +169,30 @@ class UserAlertController extends Controller
         );
     }
 
-    
+    public function markAllAlertsRead(Request $request)
+    {
+        // category=general  category=financial
+        $category = $request->query('category', 'all');
+
+        $counts = $this->alertService->markAllReadForUser($request->user(), $category);
+
+        return $this->successResponse(
+            $counts,
+            'تم تصفير العداد المطلوب.',
+            200
+        );
+    }
+
+    public function unreadAlertsCount(Request $request)
+    {
+        $counts = $this->alertService->unreadCountForUser($request->user());
+
+        return $this->successResponse(
+            $counts,
+            'تم جلب عدد التنبيهات غير المقروءة.',
+            200
+        );
+    }
+
+
 }

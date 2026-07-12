@@ -17,11 +17,10 @@ return new class extends Migration
             $table->morphs('notifiable');
 
             $table->string('type')->index();
-            $table->string('audience')->index();    
+            $table->string('audience')->index();
             $table->string('title');
             $table->text('description')->nullable();
             $table->json('meta')->nullable();
-            $table->boolean('is_read')->default(false);
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
 

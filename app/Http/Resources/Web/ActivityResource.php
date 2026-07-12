@@ -16,17 +16,15 @@ class ActivityResource extends JsonResource
             'activity_date'        => $this->activity_date,
             'start_time'  => $this->start_time,
             'end_time'    => $this->end_time,
-            
+
             'scope'       => $this->class_room_id ? 'classroom' : 'grade_level',
 
             'grade_level' => [
-                'id'   => $this->gradeLevel->id,
-                'grade_name' => $this->gradeLevel->grade_name,
+                'grade_name' => $this->gradeLevel->name,
             ],
             'classroom'   => $this->whenLoaded('classRoom', fn () =>
                 $this->classRoom ? [
-                    'id'   => $this->classRoom->id,
-                    'name' => $this->classRoom->name,
+                    'class_room_name' => $this->classRoom->name,
                 ] : null
             ),
         ];

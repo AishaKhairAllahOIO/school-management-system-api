@@ -131,7 +131,7 @@ class UserService
         return [
             'academic_info' =>
             [
-                'grade_name'    => $currentEnrollment->gradeLevel->grade_name ?? 'غير محدد',
+                'grade_name'    => $currentEnrollment->gradeLevel->name ?? 'غير محدد',
                 'semester_name' => $semester->semester_name ?? 'غير محدد',
                 'name'  => $currentEnrollment->classRoom->name ?? 'غير محدد',
             ],
@@ -161,7 +161,7 @@ class UserService
             $semesterName = 'غير محدد';
 
             if ($currentEnrollment) {
-                $gradeName = $currentEnrollment->gradeLevel->grade_name ?? 'غير محدد';
+                $gradeName = $currentEnrollment->gradeLevel->name ?? 'غير محدد';
                 $className = $currentEnrollment->classRoom->name ?? 'غير محدد';
 
                 $semester = Semester::where('academic_year_id', $currentEnrollment->academic_year_id)
@@ -176,7 +176,7 @@ class UserService
 
             // إرجاع بيانات البطاقة الواحدة مسطحة (Flat) لتسهيل عرضها في الفرونت إند
             return [
-                'id' => $student->user->id,
+                'id' => $student->id,
                 'first_name'      => $student->user->first_name,
                 'father_name' => $student->user->father_name,
                 'last_name' => $student->user->last_name,

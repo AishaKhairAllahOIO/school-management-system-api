@@ -50,4 +50,9 @@ class Alert extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function readers()
+    {
+        return $this->belongsToMany(User::class, 'alert_reads')->withPivot('read_at');
+    }
 }

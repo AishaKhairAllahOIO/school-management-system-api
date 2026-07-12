@@ -7,6 +7,7 @@ use App\Models\Alert;
 use App\Models\Enrollment;
 use App\Models\Staff;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -67,13 +68,13 @@ class AlertService
     }
     public function createStudentHomework(Enrollment $enrollment, array $meta = []): Alert
     {
-    return $this->createStudentAlert(
-        $enrollment,
-        Alert::TYPE_HOMEWORK,
-        'تنبيه واجب',
-        'لم يكتب الطالب الواجب المنزلي.',
+        return $this->createStudentAlert(
+            $enrollment,
+            Alert::TYPE_HOMEWORK,
+            'تنبيه واجب',
+            'لم يكتب الطالب الواجب المنزلي.',
             array_merge(['date' => now()->toDateString()], $meta)
-    );
+        );
     }
     public function createStudentEscape(Enrollment $enrollment, array $meta = []): Alert
     {
@@ -140,7 +141,7 @@ class AlertService
             'title'           => $title,
             'description'     => $desc,
             'meta'            => $meta,
-            'created_by'      => auth()-> id(),
+            'created_by'      => auth()->id(),
         ]);
 
         $student = $enrollment->student;
@@ -332,10 +333,73 @@ class AlertService
         };
     }
 
-  public function teacherAlerts(){
+    private function getBaseAlertQueryForUser(User $user)
+    {
+        if ($user->hasRole('student') && $user->student) {
+            $enrollmentIds = $user->student->enrollments()->pluck('id');
+            return Alert::where('notifiable_type', Enrollment::class)->whereIn('notifiable_id', $enrollmentIds);
+        }
 
-  }
+        if ($user->hasRole('guardian') && $user->guardian) {
+            $enrollmentIds = [];
+            foreach ($user->guardian->students as $child) {
+                $enrollmentIds = array_merge($enrollmentIds, $child->enrollments()->pluck('id')->toArray());
+            }
+            return Alert::where('notifiable_type', Enrollment::class)->whereIn('notifiable_id', $enrollmentIds);
+        }
 
+        if ($user->staff) {
+            return Alert::where('notifiable_type', Staff::class)->where('notifiable_id', $user->staff->id);
+        }
+
+        return Alert::where('id', '<', 0);
+    }
+
+    public function unreadCountForUser(User $user): array
+    {
+        $baseQuery = $this->getBaseAlertQueryForUser($user)
+            ->whereDoesntHave('readers', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+
+        $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
+
+        return [
+            'alerts'         => (clone $baseQuery)->whereNotIn('type', $financialTypes)->count(),
+            'payment_alerts' => (clone $baseQuery)->whereIn('type', $financialTypes)->count(),
+        ];
+    }
+
+    public function markAllReadForUser(User $user, string $category = 'all'): array
+    {
+        $baseQuery = $this->getBaseAlertQueryForUser($user)
+            ->whereDoesntHave('readers', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+
+        $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
+
+        // التفرقة: هل نريد تصفير المالي أم العادي أم الكل؟
+        if ($category === 'financial') {
+            $baseQuery->whereIn('type', $financialTypes);
+        } elseif ($category === 'general') {
+            $baseQuery->whereNotIn('type', $financialTypes);
+        }
+
+        $unreadAlertIds = $baseQuery->pluck('id');
+
+        $syncData = [];
+        $now = now();
+        foreach ($unreadAlertIds as $id) {
+            $syncData[$id] = ['read_at' => $now];
+        }
+
+        if (!empty($syncData)) {
+            $user->readAlerts()->syncWithoutDetaching($syncData);
+        }
+
+        return $this->unreadCountForUser($user);
+    }
 
 
 }

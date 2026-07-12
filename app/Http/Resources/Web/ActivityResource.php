@@ -9,6 +9,8 @@ class ActivityResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+
+        $user = $request->user();
         return [
             'id'          => $this->id,
             'activity_name'        => $this->activity_name,
@@ -22,11 +24,14 @@ class ActivityResource extends JsonResource
             'grade_level' => [
                 'grade_name' => $this->gradeLevel->name,
             ],
-            'classroom'   => $this->whenLoaded('classRoom', fn () =>
+            'classroom'   => $this->whenLoaded(
+                'classRoom',
+                fn() =>
                 $this->classRoom ? [
                     'class_room_name' => $this->classRoom->name,
                 ] : null
             ),
+            'is_read' => $user ? $this->readers->contains($user->id) : false,
         ];
     }
 }

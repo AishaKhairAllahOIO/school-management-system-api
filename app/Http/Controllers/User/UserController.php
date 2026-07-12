@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\ApiResource;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\UpdatePersonalImageRequest;
 use App\Http\Resources\Auth\ProfileResource;
 use App\Http\Resources\User\TeacherProfileResource;
 use App\Models\User;
@@ -62,11 +63,12 @@ class UserController extends Controller
     //     );
     // }
 
-    public function teacherProfile(Request $request){
-        $user= $request->user();
+    public function teacherProfile(Request $request)
+    {
+        $user = $request->user();
         if (!$user) {
             return $this->errorResponse('User not found.', 404);
-    }
+        }
 
         if (!$user->hasRole('teacher')) {
             return $this->errorResponse('User is not a teacher.', 403);
@@ -74,11 +76,12 @@ class UserController extends Controller
 
         return $this->successResponse(new TeacherProfileResource($user), 'تم جلب بيانات المستخدم بنجاح', 200);
     }
-    public function counselorProfile(Request $request){
-        $user= $request->user();
+    public function counselorProfile(Request $request)
+    {
+        $user = $request->user();
         if (!$user) {
             return $this->errorResponse('User not found.', 404);
-    }
+        }
 
         if (!$user->hasRole('counselor')) {
             return $this->errorResponse('User is not a counselor.', 403);
@@ -86,6 +89,42 @@ class UserController extends Controller
 
         return $this->successResponse(new CounselorProfileResource($user), 'تم جلب بيانات المستخدم بنجاح', 200);
     }
-    
+    public function uploadImage(UpdatePersonalImageRequest $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('User not found.', 404);
+        }
+        $updatedUser = $this->userService->updateProfileImage($user, $request->file('personal_image'));
 
+        return $this->successResponse([
+            'photo_url' => $this->getPhotoUrl($updatedUser),
+        ], 'تم تعيين الصورة الشخصية بنجاح', 200);
+    }
+
+    public function myPersonalPhotoUrl(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->errorResponse('User not found.', 404);
+        }
+
+        return $this->successResponse([
+            'photo_url' => $this->getPhotoUrl($user),
+        ], 'تم جلب رابط الصورة الشخصية بنجاح', 200);
+    }
+
+    private function getPhotoUrl(User $user): ?string
+    {
+        if (!$user->personal_photo) {
+            return null;
+        }
+
+        if ($user->hasRole('student') || $user->hasRole('guardian')) {
+            return url('/api/user/photos/' . ltrim($user->personal_photo, '/'));
+        }
+
+        return url('/api/auth/documents/' . ltrim($user->personal_photo, '/'));
+    }
 }

@@ -49,6 +49,11 @@ Route::prefix('auth')->group(function () {
         Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
         Route::get('/alerts', [UserAlertController::class, 'getStaffAlerts']);
         Route::get('/payment-alerts', [UserAlertController::class, 'getStaffPaymentAlerts']);
+        Route::post('/alerts/mark-all-read', [UserAlertController::class, 'markAllAlertsRead']);
+        Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
+        Route::post('/personal-image', [UserController::class, 'uploadImage']);
+        Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
+        Route::get('/documents/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
 
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
@@ -278,10 +283,13 @@ Route::prefix('user')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
         Route::get('get-user-data', [UserController::class, 'getUserInfo']);
-        Route::get('/activities', [ActivityController::class, 'show']);
+        Route::get('/my-activities', [ActivityController::class, 'show']);
         Route::get('/child-activities', [ActivityController::class, 'guardianViewActivities']);
-
-        Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
+        Route::get('/activity-unread-count',[ActivityController::class,'getUnreadCount']);
+        Route::post('/activity-mark-all-read',[ActivityController::class,'markAllAsRead']);
+        Route::post('/personal-image', [UserController::class, 'uploadImage']);
+        Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
+        Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
         Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
         Route::get('/my-alerts', [UserAlertController::class, 'myAlerts']);
@@ -289,6 +297,7 @@ Route::prefix('user')->group(function () {
         Route::get('/child-announcements', [UserAnnouncementController::class, 'guardianAnnouncements']);
         Route::get('/announcements/unread-count', [UserAnnouncementController::class, 'getUnreadCount']);
         Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
+        Route::post('/alerts/mark-all-read', [UserAlertController::class, 'markAllAlertsRead']);
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
 
 

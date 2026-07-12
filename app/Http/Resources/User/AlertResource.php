@@ -14,6 +14,7 @@ class AlertResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user=$request->user();
         return [
             'id'          => $this->id,
             'type'        => $this->type,
@@ -21,7 +22,8 @@ class AlertResource extends JsonResource
             'title'       => $this->title,
             'description' => $this->description,
             'meta'        => $this->meta ?? [],
-            'created_at'  => $this->created_at->format('Y-m-d H:i:s'), 
+            'created_at'  => $this->created_at->format('Y-m-d H:i:s'),
+            'is_raed'     => $user ? $this->readers->contains($user->id) : false,
         ];
     }
 }

@@ -75,4 +75,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Announcement::class, 'announcement_user')->withPivot('read_at');
     }
+    public function readActivities()
+    {
+        return $this->belongsToMany(Activity::class, 'activity_user')->withPivot('read_at');
+    }
+
+
 }

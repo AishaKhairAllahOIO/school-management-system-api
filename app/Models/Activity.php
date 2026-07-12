@@ -17,4 +17,9 @@ class Activity extends Model
     {
         return $this->belongsTo(ClassRoom::class);
     }
+
+  public function readers()
+    {
+        return $this->belongsToMany(User::class, 'activity_user')->withPivot('read_at');
+    }
 }

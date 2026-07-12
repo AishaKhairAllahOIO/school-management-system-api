@@ -14,11 +14,14 @@ class AcademicSettingsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $schedule = is_string($this->schedule_settings) 
+                    ? json_decode($this->schedule_settings, true) 
+                    : $this->schedule_settings;
         return  [
             'id'                    => (string) $this->id,
             'currentAcademicYearId' => (string) ($this->current_academic_year_id ?? ''),
             'currentSemesterId'     => (string) ($this->current_semester_id ?? ''), // أو current_academic_term_id حسب تسميتك في الداتابيز
-            'scheduleSettings'      => $this->schedule_settings,
+            'scheduleSettings'      => $schedule,
             'createdAt'             => $this->created_at->toIso8601String(),
             'updatedAt'             => $this->updated_at->toIso8601String(),
         ];

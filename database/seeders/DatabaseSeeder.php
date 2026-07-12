@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             ActivitySeeder::class,
             StudentSeeder::class,
             EnrollmentSeeder::class,
+            FinancialTestSeeder::class,
             ScheduleTimeSlotSeeder::class,
             StaffSeeder::class,
             TeacherAssignmentSeeder::class,

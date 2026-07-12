@@ -97,12 +97,22 @@ public function getAllStudents(array $filters)
     {
         
         return DB::transaction(function () use ($studentId, $userData) {
-            $student = Student::findOrFail($studentId);
-            if(!$student)
-                throw new Exception('الطالب غير موجود في النظام.', 404);
-            // تحديث بيانات جدول users المرتبط بالطالب
-            $student->user()->update($userData);
             
+            $student = Student::with('user')->findOrFail($studentId);
+            $user = $student->user;
+
+            if (isset($userData['photo_url']) && $userData['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
+                
+                if ($user->photo_url && !str_contains($user->photo_url, 'defaults/')) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($user->photo_url)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($user->photo_url);
+                    }
+                }
+                $userData['photo_url'] = $userData['photo_url']->store('users/students', 'public');
+                unset($userData['photo_url']); 
+            }
+
+            $user->update($userData);
             return $student->fresh('user');
         });
     }

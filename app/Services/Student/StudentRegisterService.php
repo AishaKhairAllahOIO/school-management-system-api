@@ -43,6 +43,11 @@ class StudentRegisterService
             if ($classroomId) {
                 $classroom = Classroom::findOrFail($classroomId);
                 
+                $classroomGradeId = $classroom->grade_level_id ?? $classroom->grade_id; // دعم للمسميين
+    
+            if ($classroom->academic_year_id != $academicYearId || $classroomGradeId != $gradeId) {
+                throw new Exception("عذراً، الشعبة المحددة ({$classroom->name}) لا تنتمي للصف أو العام الدراسي المحدد للطالب.", 422);
+            }
                 // استخدام الـ Accessor الذكي
                 if ($classroom->available_seats <= 0) {
                     throw new Exception("عذراً، الشعبة ({$classroom->name}) ممتلئة بالكامل ولا توجد مقاعد متاحة.", 422);
@@ -57,6 +62,17 @@ class StudentRegisterService
                 if ($currentEnrolledCount >= $gradeConfig->planned_students_capacity) {
                     throw new Exception('عذراً، لقد اكتمل العدد الكلي المسموح به لهذا الصف ولا يمكن تسجيل المزيد من الطلاب.', 422);
                 }
+            }
+            $guardianPhotoPath = 'defaults/guardian.png'; // الصورة الافتراضية
+            if (isset($data['guardian']['photo_url']) && $data['guardian']['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
+                // حفظ الصورة في مجلد public/users/guardians
+                    $guardianPhotoPath = $data['guardian']['photo_url']->store('users/guardians', 'public');
+            }
+
+            $studentPhotoPath = 'defaults/student.png'; // الصورة الافتراضية
+            if (isset($data['student']['photo_url']) && $data['student']['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
+                // حفظ الصورة في مجلد public/users/students
+                $studentPhotoPath = $data['student']['photo_url']->store('users/students', 'public');
             }
 
             // =========================================================
@@ -81,7 +97,7 @@ class StudentRegisterService
                     'phone_number'   => $guardianPhone,
                     'email'          => null, 
                     'password'       => env('DEFAULT_USER_PASSWORD', 'password'),
-                    'photo_url'      => $data['guardian']['photo_url'] ?? 'defaults/guardian.png',
+                    'photo_url'      => $guardianPhotoPath ?? 'defaults/guardian.png',
                     'account_status' => 'enabled',
                     'record_status'  => 'active',
                 ]);
@@ -118,7 +134,7 @@ class StudentRegisterService
                 'gender'         => $data['student']['gender'],
                 'nationality'    => $data['student']['nationality'],                
                 'phone_number'   => $data['student']['phone_number'],
-                'photo_url'      => $data['student']['photo_url'] ?? 'defaults/student.png',
+                'photo_url'      => $studentPhotoPath ?? 'defaults/student.png',
                 'email'          => null,
                 'password'       => env('DEFAULT_USER_PASSWORD', 'password'),
                 'account_status' => 'disabled', // معطل حتى يتم الدفع

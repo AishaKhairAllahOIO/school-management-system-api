@@ -34,7 +34,7 @@ class StoreStudentRegisterRequest extends BaseRequest
             'guardian.birth_date'   => ['required', 'date', 'before:today'],
             'guardian.birth_place'  => ['required', 'string', 'max:100'],
             'guardian.gender'        => ['required', 'in:male,female'],
-            'guardian.photo_url'    => ['required', 'string', 'max:255'], // تم إضافة صورة ولي الأمر            
+            'guardian.photo_url'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'], 
             'guardian.nationality'     => ['nullable', 'in:syrian,lebanese,palestinian,jordanian,other'],
 
 
@@ -50,7 +50,8 @@ class StoreStudentRegisterRequest extends BaseRequest
             'student.birth_place'   => ['required', 'string', 'max:100'],
             'student.address'       => ['required', 'string', 'max:255'],
             'student.gender'        => ['required', 'in:male,female'],
-            'student.photo_url'     => ['required', 'string', 'max:255'], // تم إضافة صورة الطالب
+            'student.photo_url'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'], 
+ // تم إضافة صورة الطالب
             // ----- الهوية والالتحاق (مطابقة للـ Enums المحمية) -----
             'enrollment.academic_year_id' => ['required', 'exists:academic_years,id'],
             'enrollment.grade_level_id'   => ['required', 'exists:grade_levels,id'],

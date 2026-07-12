@@ -29,7 +29,7 @@ use ApiResource;
         $data=$service->registerStudentWithGuardian($request->validated());
         return $this->successResponse(new StudentProfileWithEnrollmentResource($data), 'تم تسجيل الطالب وولي أمره بنجاح.', 201);
         }catch (Exception $e) {
-        return $this->errorResponse('حدث خطا اثناء التسجيل', 500, ['exception_message' => $e->getMessage()]);
+        return $this->errorResponse('حدث خطا اثناء التسجيل', $e->getCode(), ['exception_message' => $e->getMessage()]);
  
     }
 }

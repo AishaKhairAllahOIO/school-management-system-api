@@ -138,6 +138,9 @@ public function getImageById(int $id)
     {
         $school = School::findOrFail(1);
         if ($school) {
+             if ($school->logo && !str_starts_with($school->logo, 'http') && Storage::disk('public')->exists($school->logo)) {
+                Storage::disk('public')->delete($school->logo);
+            }
             foreach ($school->images as $image) {
                 if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
                     Storage::disk('public')->delete($image->url);

@@ -49,6 +49,8 @@ class AnnouncementSeeder extends Seeder
             [
                 'audience'    => Announcement::AUDIENCE_STUDENT,
                 'description' => ' وكل عام وأنتم بخير.',
+                'grade_level_id' => 1
+
             ]
         );
     }

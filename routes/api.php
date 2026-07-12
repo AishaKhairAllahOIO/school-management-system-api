@@ -44,7 +44,9 @@ Route::prefix('auth')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
-        Route::get('/announcements', [UserAnnouncementController::class, 'announcementsForStaff']);
+        Route::get('/staff-announcements', [UserAnnouncementController::class, 'announcementsForStaff']);
+        Route::get('/announcements/unread-count', [UserAnnouncementController::class, 'getUnreadCount']);
+        Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
         Route::get('/alerts', [UserAlertController::class, 'getStaffAlerts']);
         Route::get('/payment-alerts', [UserAlertController::class, 'getStaffPaymentAlerts']);
 
@@ -272,13 +274,14 @@ Route::prefix('user')->group(function () {
         Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
         Route::get('get-user-data', [UserController::class, 'getUserInfo']);
         Route::get('/activities', [ActivityController::class, 'show']);
-        Route::get('/child-activities',[ActivityController::class, 'guardianViewActivities']);
+        Route::get('/child-activities', [ActivityController::class, 'guardianViewActivities']);
 
         Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto']);
         Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
         Route::get('/my-alerts', [UserAlertController::class, 'myAlerts']);
-        Route::get('/announcements', [UserAnnouncementController::class, 'announcementsForStudent']);
+        Route::get('/my-announcements', [UserAnnouncementController::class, 'studentAnnouncements']);
+        Route::get('/child-announcements', [UserAnnouncementController::class, 'guardianAnnouncements']);
         Route::get('/announcements/unread-count', [UserAnnouncementController::class, 'getUnreadCount']);
         Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);

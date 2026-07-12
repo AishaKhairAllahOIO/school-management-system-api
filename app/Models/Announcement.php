@@ -23,4 +23,14 @@ class Announcement extends Model
     {
         return $this->belongsToMany(User::class, 'announcement_user')->withPivot('read_at');
     }
+
+    public function gradeLevel()
+    {
+        return $this->belongsTo(GradeLevel::class);
+    }
+
+    public function classRoom()
+    {
+        return $this->belongsTo(ClassRoom::class);
+    }
 }

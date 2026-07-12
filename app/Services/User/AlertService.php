@@ -370,7 +370,7 @@ class AlertService
         ];
     }
 
-    public function markAllReadForUser(User $user, string $category = 'all'): array
+    public function markAllReadForUser(User $user, string $category = 'all',): array
     {
         $baseQuery = $this->getBaseAlertQueryForUser($user)
             ->whereDoesntHave('readers', function ($q) use ($user) {
@@ -379,7 +379,6 @@ class AlertService
 
         $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
 
-        // التفرقة: هل نريد تصفير المالي أم العادي أم الكل؟
         if ($category === 'financial') {
             $baseQuery->whereIn('type', $financialTypes);
         } elseif ($category === 'general') {

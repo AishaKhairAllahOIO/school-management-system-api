@@ -15,10 +15,10 @@ return new class extends Migration
     Schema::create('activity_user', function (Blueprint $table) {
         $table->id();
         $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
-        $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // هذا يسجل (الطالب أو ولي الأمر)
+        $table->foreignId('user_id')->constrained()->cascadeOnDelete(); 
         $table->timestamp('read_at')->useCurrent();
 
-        $table->unique(['activity_id', 'user_id']); // منع التكرار
+        $table->unique(['activity_id', 'user_id']);
     });
 }
 

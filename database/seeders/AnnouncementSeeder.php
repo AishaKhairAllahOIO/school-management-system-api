@@ -35,5 +35,21 @@ class AnnouncementSeeder extends Seeder
                 'description' => 'بناءً على القرار الوزاري، تعطل المدرسة أبوابها يوم الأحد القادم بمناسبة الأعياد الوطنية، وكل عام وأنتم بخير.',
             ]
         );
+        Announcement::updateOrCreate(
+            ['title' => 'غياب استاذ '],
+            [
+                'audience'    => Announcement::AUDIENCE_STUDENT,
+                'description' => 'الاستاذ احمد سيتغيب عن حصة غد',
+                'class_room_id' => 1,
+                'grade_level_id' => 1
+            ]
+        );
+        Announcement::updateOrCreate(
+            ['title' => 'عطلة رسمية للصف السابع'],
+            [
+                'audience'    => Announcement::AUDIENCE_STUDENT,
+                'description' => ' وكل عام وأنتم بخير.',
+            ]
+        );
     }
 }

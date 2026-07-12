@@ -16,7 +16,7 @@ public function up(): void
         $table->foreignId('announcement_id')->constrained()->cascadeOnDelete();
         $table->foreignId('user_id')->constrained()->cascadeOnDelete();
         $table->timestamp('read_at')->useCurrent();
-        $table->unique(['announcement_id', 'user_id']); // منع التكرار
+        $table->unique(['announcement_id', 'user_id']); 
     });
 }
 

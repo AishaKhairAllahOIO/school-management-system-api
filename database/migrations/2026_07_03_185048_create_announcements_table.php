@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('audience')->index();
             $table->string('title');
             $table->text('description')->nullable();
+            $table->foreignId('class_room_id')->nullable()->constrained('class_rooms')->cascadeOnDelete();
+            $table->foreignId('grade_level_id')->nullable()->constrained('grade_levels')->cascadeOnDelete();
             $table->timestamps();
         });
     }

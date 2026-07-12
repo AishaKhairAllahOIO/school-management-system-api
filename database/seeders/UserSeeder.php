@@ -74,7 +74,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
-        $user3->assignRole('guardian');
+        $user3->assignRole('teacher');
 
         $user4 = User::updateOrCreate(
             ['phone_number' => '0960657741'],

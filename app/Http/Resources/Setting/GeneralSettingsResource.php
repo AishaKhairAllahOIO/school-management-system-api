@@ -35,7 +35,7 @@ class GeneralSettingsResource extends JsonResource
                 'longitude' => $this->longitude ? (float) $this->longitude : null,
             ],
             
-            'logoUrl'              => $this->logo_url,
+            'logoUrl'              => $this->logo_url ? (str_starts_with($this->logo_url, 'http') ? $this->logo_url : asset('storage/' . $this->logo_url)) : null,
             'images'               => SchoolImageResource::collection($this->whenLoaded('images')),
             
             'createdAt'            => $this->created_at->toIso8601String(),

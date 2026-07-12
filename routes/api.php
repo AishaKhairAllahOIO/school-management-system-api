@@ -153,7 +153,7 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/', [SchoolSettingsController::class, 'show']);
-    Route::put('/', [SchoolSettingsController::class, 'update']);
+    Route::post('/', [SchoolSettingsController::class, 'update']);
     Route::get('/images', [SchoolSettingsController::class, 'indexImages']);
     Route::get('/images/{image}', [SchoolSettingsController::class, 'showImage']);
 

@@ -14,28 +14,32 @@ class StudentFilterResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $enrollment = $this->enrollments->first(); 
+       $enrollment = $this->enrollments->first(); 
 
         return [
-            'studentId'     => $this->id,
-            'userId'        => $this->user_id,
-            'guardianId'    => $this->guardian_id,
-            'enrollmentId'  => $enrollment ? (string)$enrollment->id : null,
+            'studentId'    => (string) $this->id,
+            'userId'       => (string) $this->user_id,
+            'guardianId'   => (string) $this->guardian_id,
+            'enrollmentId' => $enrollment ? (string) $enrollment->id : null,
             
-            // الاسم الثلاثي
-            'fullName'      => $this->user->first_name . ' ' . 
-                               $this->user->father_name . ' ' . 
-                               $this->user->last_name,
+            // الاسم الثلاثي باستخدام الـ Nullsafe Operator للحماية من الانهيار لو كان المستخدم محذوفاً
+            'fullName'     => trim($this->user?->first_name . ' ' . $this->user?->father_name . ' ' . $this->user?->last_name),
             
-            // بيانات الصف والشعبة
+            // بيانات الصف (استخدمنا ?-> لحماية الكود من الانهيار إذا كان الصف محذوفاً)
             'grade' => [
-                'id'   => $enrollment ? (string)$enrollment->grade_level_id : null,
-                'name' => $enrollment ? $enrollment->gradeLevel->name : null,
+                'id'    => $enrollment ? (string) $enrollment->grade_level_id : null,
+                'name'  => $enrollment?->gradeLevel?->name,
+                'level' => $enrollment?->gradeLevel?->level,
             ],
+            
+            // بيانات الشعبة
             'classroom' => [
-                'id'   => $enrollment ? (string)$enrollment->class_room_id : null,
-                'name' => $enrollment ? $enrollment->classRoom->name : null,
+                'id'    => $enrollment ? (string) $enrollment->class_room_id : null,
+                'name'  => $enrollment?->classRoom?->name,
             ],
+            
+            // يمكنك إضافة حالة التسجيل لتظهر في الجدول للفرونت إند
+            'status' => $enrollment ? $enrollment->enrollment_status : 'none',
         ];
     }
 }

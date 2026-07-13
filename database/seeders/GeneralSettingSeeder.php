@@ -28,7 +28,7 @@ class GeneralSettingSeeder extends Seeder
                 'country'               => 'USA',
                 'latitude'              => 40.7128,
                 'longitude'             => -74.0060,
-                'logo_url'              => 'https://globalacademy.com/logo.png',
+                'logo_url'              => 'school_logos\EZp5iO5ZgScMldgw2PpInCaicNtKtD5eVYN3hBxf.jpg',
                 
 
             ]

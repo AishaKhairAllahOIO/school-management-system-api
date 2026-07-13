@@ -17,7 +17,7 @@ use App\Http\Controllers\web\ActivityController;
 use App\Http\Controllers\Setting\GradeAndClassroomController;
 use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
-
+use App\Models\School;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -157,6 +157,7 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/', [SchoolSettingsController::class, 'show']);
+    Route::get('/basic',[SchoolSettingsController::class,'index']);
     Route::post('/', [SchoolSettingsController::class, 'update']);
     Route::get('/images', [SchoolSettingsController::class, 'indexImages']);
     Route::get('/images/{image}', [SchoolSettingsController::class, 'showImage']);
@@ -166,6 +167,7 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::post('/images/{image}', [SchoolSettingsController::class, 'updateImage']);
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
     Route::delete('/', [SchoolSettingsController::class, 'destroy']);
+
 
 });
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
@@ -241,8 +243,10 @@ Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
 ///////////////////////////////////////////////////////////
 Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function () {
 
-    Route::get('/', [StudentController::class, 'index'])
-        ->middleware('can:student:view_profile'); // أو can:student:search
+    Route::get('/filter', [StudentController::class, 'filter'])
+        ->middleware('can:student:view_profile');
+    Route::get('/search', [StudentController::class, 'search'])
+        ->middleware('can:student:view_profile');
     Route::get('/{id}', [StudentController::class, 'show'])
         ->middleware('can:student:view_profile');
     Route::get('/{enrollmentId}/full-profile', [StudentController::class, 'showFullProfile'])

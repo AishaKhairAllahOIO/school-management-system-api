@@ -141,6 +141,10 @@ public function showImage(int $id, SchoolSettingsService $service)
             return $this->errorResponse('حدث خطأ أثناء الحذف.', 500, ['error' => $e->getMessage()]);
         }
     }
+    public function index(SchoolSettingsService $service)
+    {
+        return $this->successResponse($service->index(),'تم جلب البيانات ',200);
+    }
 
     
 }

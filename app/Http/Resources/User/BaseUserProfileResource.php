@@ -38,7 +38,8 @@ class BaseUserProfileResource extends JsonResource
             'phone_number'   => $user->phone_number,
             'nationality'    => $user->nationality,   
             'gender'         => $user->gender,
-            'photo_url'      => $user->photo_url,        // تعديل: جلب الصورة من الـ user
+            'photo_url'      => $user->photo_url? (str_starts_with($user->photo_url, 'http') ? $user->photo_url : asset('storage/' . $user->photo_url)) : null,        // اريد ان اجلب الصورة من الstorage
+            
             'account_status' => $user->account_status,   // تعديل: جلب الحالة من الـ user
             'record_status'  => $user->record_status,    // تعديل: جلب حالة السجل من الـ user
         ];

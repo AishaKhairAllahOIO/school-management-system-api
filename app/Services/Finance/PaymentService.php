@@ -13,6 +13,7 @@ use App\Services\Notification\PushNotificationService;
 use Illuminate\Support\Facades\Log; // 👈 استدعاء الـ Log لتسجيل أخطاء الفايربيز بصمت
 use App\Services\User\AlertService;
 use Carbon\Carbon;
+use App\Models\User;
 
 
 class PaymentService
@@ -263,4 +264,5 @@ class PaymentService
             $transaction->delete();
         });
     }
+      
 }

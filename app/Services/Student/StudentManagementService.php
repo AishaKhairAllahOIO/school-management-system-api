@@ -8,58 +8,75 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use App\Models\Guardian;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
+
 
 class StudentManagementService
 {
-    /**
-     * عقل دالة الـ Index: يدمج البحث، الفلترة بالصف، الفلترة بالشعبة، والترتيب
-     */
-/**
-     * عقل دالة الـ Index: يدمج البحث، الفلترة بالصف، الفلترة بالشعبة، والترتيب
-     */
-public function getAllStudents(array $filters)
-{
-    // 1. استخدام eager loading
-    $query = Student::with([
-        'user:id,first_name,last_name,father_name,mother_name,phone_number', 
-        'enrollments.gradeLevel', // تأكدي من تطابق اسم العلاقة في الموديل
-        'enrollments.classRoom'
-    ]);
 
-    // 2. الفلترة حسب الاسم الثلاثي
-    if (!empty($filters['search'])) {
-        $safe = str_replace(['%', '_'], ['\%', '\_'], $filters['search']);
+public function filterStudents(array $filters)
+{
+$query = Student::with([
+            'user:id,first_name,last_name,father_name,mother_name,phone_number', 
+            'enrollments.gradeLevel', 
+            'enrollments.classRoom'
+        ]);
+
+
+        if (isset($filters['level'])) {
+            $query->whereHas('enrollments.gradeLevel', function ($q) use ($filters) {
+                $q->where('level', $filters['level']);
+            });
+        }
+
+        if (!empty($filters['classroom_name'])) {
+            $query->whereHas('enrollments.classRoom', function ($q) use ($filters) {
+                $q->where('name', 'like', "%{$filters['classroom_name']}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->whereHas('enrollments', function ($q) use ($filters) {
+                $q->where('enrollment_status', $filters['status']);
+            });
+        }
+
+        $direction = (isset($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
+        
+        $query->join('users', 'students.user_id', '=', 'users.id')
+              ->select('students.*') // 🛡️ مهم جداً لمنع تداخل الـ IDs بين الجدولين
+              ->orderBy('users.first_name', $direction)
+              ->orderBy('users.father_name', $direction)
+              ->orderBy('users.last_name', $direction);        // الترتيب تصاعدي أو تنازلي (حسب تاريخ الإنشاء)
+
+
+        return $query->paginate(15);
+}
+ public function searchStudents(string $searchTerm)
+    {
+        $query = Student::with([
+            'user:id,first_name,last_name,father_name,mother_name,phone_number', 
+            'enrollments.gradeLevel', 
+            'enrollments.classRoom'
+        ]);
+
+        $safe = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+        
         $query->whereHas('user', function ($q) use ($safe) {
-            // البحث الشامل في الاسم الأول + اسم الأب + الكنية
             $q->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'like', "%{$safe}%")
               ->orWhere('first_name', 'like', "%{$safe}%")
               ->orWhere('father_name', 'like', "%{$safe}%")
               ->orWhere('last_name', 'like', "%{$safe}%");
         });
+
+        $query->join('users', 'students.user_id', '=', 'users.id')
+              ->select('students.*')
+              ->orderBy('users.first_name', 'asc')
+              ->orderBy('users.father_name', 'asc')
+              ->orderBy('users.last_name', 'asc');
+
+        return $query->paginate(15);
     }
-
-    // 3. الفلترة حسب الصف
-    if (!empty($filters['grade_level_id'])) {
-        $query->whereHas('enrollments', fn($q) => $q->where('grade_level_id', $filters['grade_level_id']));
-    }
-
-    // 4. الفلترة حسب الشعبة
-    if (!empty($filters['class_room_id'])) {
-        $query->whereHas('enrollments', fn($q) => $q->where('class_room_id', $filters['class_room_id']));
-    }
-
-    // 5. الترتيب الأبجدي حسب الاسم الثلاثي
-    $dir = (!empty($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
-    
-    $query->join('users', 'students.user_id', '=', 'users.id')
-          ->orderBy('users.first_name', $dir)
-          ->orderBy('users.father_name', $dir)
-          ->orderBy('users.last_name', $dir)
-          ->select('students.*'); 
-
-    // بدلاً من paginate نستخدم get لجلب كافة النتائج
-    return $query->get();
-}
    public function getStudentPersonalProfile($studentId)
     {
         $student = Student::with([
@@ -77,7 +94,7 @@ public function getAllStudents(array $filters)
    
     public function getStudentFullProfile($enrollmentId)
     {
-        $enrollment = Enrollment::with([
+        $enrollment = Enrollment::withTrashed()->with([
             'student.user',
             'student.guardian.user',
             'gradeLevel',

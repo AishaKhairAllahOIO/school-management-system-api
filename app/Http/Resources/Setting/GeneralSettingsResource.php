@@ -45,4 +45,5 @@ class GeneralSettingsResource extends JsonResource
             'updatedAt'            => $this->updated_at ? $this->updated_at->toIso8601String() : null,
         ];
     }
+    
 }

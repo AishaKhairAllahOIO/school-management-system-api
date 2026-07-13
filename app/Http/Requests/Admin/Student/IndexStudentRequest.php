@@ -19,10 +19,10 @@ class IndexStudentRequest extends FormRequest
     {
         return [
             'search'         => ['nullable', 'string', 'max:100'],
-            'grade_level_id' => ['nullable', 'integer', 'exists:grade_levels,id'],
-            'class_room_id'  => ['nullable', 'integer', 'exists:class_rooms,id'],
+            'level' => ['nullable', 'integer'],
+            'classroom_name'  => ['nullable', 'string', ],
             'sort'           => ['nullable', 'string', 'in:asc,desc,ASC,DESC'],
-            'per_page'       => ['nullable', 'integer', 'min:5', 'max:100'],
+            'status'         =>['nullable','string'],
         ];
     }
 

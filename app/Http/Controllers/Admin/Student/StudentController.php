@@ -18,6 +18,8 @@ use App\Http\Resources\Student\StudentFilterResource;
 use App\Http\Requests\Admin\Student\IndexStudentRequest;
 use App\Models\ImportBatch;
 use App\ApiResource;
+use Illuminate\Http\Request;
+
 use Exception;
 
 class StudentController extends Controller
@@ -85,11 +87,30 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
 
 
 
-    public function index(IndexStudentRequest $request, StudentManagementService $service)
+ public function filter(IndexStudentRequest $request,StudentManagementService $service)
     {
-        $students = $service->getAllStudents($request->all());
+        $students = $service->filterStudents($request->validated());
 
-        return $this->successResponse(StudentFilterResource::collection($students), 'تم جلب سجلات الطلاب بنجاح.');
+        return $this->successResponse(
+            StudentFilterResource::collection($students)->response()->getData(true), 
+            'تم جلب سجلات الطلاب المفلترة بنجاح.'
+        );
+    }
+
+
+    public function search(Request $request,StudentManagementService $service)
+    {
+        // إجبار الفرونت إند على إرسال حرفين على الأقل للبحث لعدم إرهاق الداتابيز
+        $request->validate([
+            'q' => 'required|string|min:2' 
+        ]);
+
+        $students = $service->searchStudents($request->q);
+
+        return $this->successResponse(
+            StudentFilterResource::collection($students)->response()->getData(true), 
+            'تم جلب نتائج البحث بنجاح.'
+        );
     }
 
 

@@ -13,6 +13,7 @@ class StudentProfileWithEnrollmentResource extends JsonResource
         $studentUser  = $student->user; // البيانات الشخصية للطالب من جدول users
         $guardian     = $student->guardian;
         $guardianUser = $guardian ? $guardian->user : null; // البيانات الشخصية للولي (إن وجد)
+        $latestEnrollment = $student->enrollments()->withTrashed()->latest()->first();
 
         return [
             'student' => [
@@ -51,18 +52,23 @@ class StudentProfileWithEnrollmentResource extends JsonResource
             ] : null,
             
             // بيانات القيد الأكاديمي الحالية (Enrollment)
-            'enrollment' => [
-                'id'               => (string) $student->enrollments()->latest()->first()?->id,
-                'studentId'        => (string) $student->enrollments()->first()->student_id,
-                'academicYearId'   => (string) $student->enrollments()->first()->academic_year_id,
-                'gradeId'          => (string) $student->enrollments()->first()->grade_level_id, 
-                'classroomId'      => (string) $student->enrollments()->first()->class_room_id,  
-                'enrollmentStatus' => $student->enrollments()->first()->enrollment_status,       
-                'enrollmentDate'   => $student->enrollments()->first()->enrollment_date?->toDateString(),
-                'completedAt'      => $student->enrollments()->first()->completed_at?->toIso8601String(),
-                'createdAt'        => $student->enrollments()->first()->created_at?->toIso8601String(),
-                'updatedAt'        => $student->enrollments()->first()->updated_at?->toIso8601String(),
-            ],
+     'enrollment' => $latestEnrollment ? [
+                'id'               => (string) $latestEnrollment->id,
+                'studentId'        => (string) $latestEnrollment->student_id,
+                'academicYearId'   => (string) $latestEnrollment->academic_year_id,
+                'gradeId'          => (string) $latestEnrollment->grade_level_id, 
+                'classroomId'      => (string) $latestEnrollment->class_room_id,  
+                'enrollmentStatus' => $latestEnrollment->enrollment_status,       
+                'enrollmentDate'   => $latestEnrollment->enrollment_date?->toDateString(),
+                'completedAt'      => $latestEnrollment->completed_at?->toIso8601String(),
+                
+                // 💡 المؤشرات الذهبية للفرونت إند لمعرفة أن السجل محذوف
+                'isDeleted'        => $latestEnrollment->trashed(),
+                'deletedAt'        => $latestEnrollment->deleted_at?->toIso8601String(),
+                
+                'createdAt'        => $latestEnrollment->created_at?->toIso8601String(),
+                'updatedAt'        => $latestEnrollment->updated_at?->toIso8601String(),
+            ] : null,
         ];
     }
 }

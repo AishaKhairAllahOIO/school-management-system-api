@@ -154,6 +154,7 @@ public function getImageById(int $id)
         $school=School::find(1);
         return ['schoolName'=>$school->school_name? :"school",
                 'shortName'=>$school->short_name? :"sch",
+                'website'=>$school->website?:null,
                 'logo'=> $school->logo_url ? (str_starts_with($school->logo_url, 'http') ? $school->logo_url : asset('storage/' . $school->logo_url)):null];
     }
 }

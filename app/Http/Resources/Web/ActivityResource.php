@@ -18,6 +18,8 @@ class ActivityResource extends JsonResource
             'activity_date'        => $this->activity_date,
             'start_time'  => $this->start_time,
             'end_time'    => $this->end_time,
+            'description' =>$this->description,
+            'creadted_at' =>$this->created_at,
 
             'scope'       => $this->class_room_id ? 'classroom' : 'grade_level',
 

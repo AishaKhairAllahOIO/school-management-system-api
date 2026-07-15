@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('class_room_id')->nullable()->constrained('class_rooms')->cascadeOnDelete();
             $table->string('type');
             $table->string('activity_name');
+            $table->string('description');
             $table->date('activity_date');
             $table->time('start_time');
             $table->time('end_time');

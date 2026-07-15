@@ -17,7 +17,7 @@ use App\Http\Controllers\web\ActivityController;
 use App\Http\Controllers\Setting\GradeAndClassroomController;
 use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
-
+use App\Models\School;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -101,6 +101,9 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
 
     Route::get('/', [AcademicSettingsController::class, 'index']);
+    Route::get('/grades', [GradeAndClassroomController::class, 'indexGrades']);
+    Route::get('/configurations', [GradeAndClassroomController::class, 'indexConfigurations']);
+    Route::get('/classrooms', [GradeAndClassroomController::class, 'indexClassrooms']);
     Route::put('/', [AcademicSettingsController::class, 'update']);
 
     Route::post('/years', [AcademicSettingsController::class, 'storeYear']);
@@ -148,12 +151,14 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
 
 
+
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/', [SchoolSettingsController::class, 'show']);
-    Route::put('/', [SchoolSettingsController::class, 'update']);
+    Route::get('/basic',[SchoolSettingsController::class,'index']);
+    Route::post('/', [SchoolSettingsController::class, 'update']);
     Route::get('/images', [SchoolSettingsController::class, 'indexImages']);
     Route::get('/images/{image}', [SchoolSettingsController::class, 'showImage']);
 
@@ -162,6 +167,7 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::post('/images/{image}', [SchoolSettingsController::class, 'updateImage']);
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
     Route::delete('/', [SchoolSettingsController::class, 'destroy']);
+
 
 });
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
@@ -206,8 +212,10 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     Route::post('/payments', [PaymentController::class, 'store']);
 
     Route::post('/finalize', [FinancialContractController::class, 'finalize']);
-    Route::post('/{studentId}', [FinancialContractController::class, 'update']);
-});
+    Route::post('/{accountId}', [FinancialContractController::class, 'update']);
+    Route::post('/payments/{id}', [PaymentController::class, 'update']);
+    Route::delete('/payments/{id}', [PaymentController::class, 'destroy']);
+    });
 
 //////////////////////////////////////////////////
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {
@@ -235,8 +243,10 @@ Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
 ///////////////////////////////////////////////////////////
 Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function () {
 
-    Route::get('/', [StudentController::class, 'index'])
-        ->middleware('can:student:view_profile'); // أو can:student:search
+    Route::get('/filter', [StudentController::class, 'filter'])
+        ->middleware('can:student:view_profile');
+    Route::get('/search', [StudentController::class, 'search'])
+        ->middleware('can:student:view_profile');
     Route::get('/{id}', [StudentController::class, 'show'])
         ->middleware('can:student:view_profile');
     Route::get('/{enrollmentId}/full-profile', [StudentController::class, 'showFullProfile'])

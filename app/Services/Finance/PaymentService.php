@@ -12,6 +12,8 @@ use App\Models\Alert;
 use App\Services\Notification\PushNotificationService;
 use Illuminate\Support\Facades\Log; // 👈 استدعاء الـ Log لتسجيل أخطاء الفايربيز بصمت
 use App\Services\User\AlertService;
+use Carbon\Carbon;
+use App\Models\User;
 
 
 class PaymentService
@@ -21,7 +23,7 @@ class PaymentService
 
     public function getAllPayments(array $filters = [])
     {
-        $query = PaymentTransaction::with(['financialAccount.student.user', 'cashier'])->latest();
+        $query = PaymentTransaction::with(['account.student.user'])->latest();
 
         // هنا يمكنك إضافة فلاتر مستقبلاً (مثلاً البحث برقم الإيصال أو طريقة الدفع)
         if (!empty($filters['payment_method'])) {
@@ -36,7 +38,7 @@ class PaymentService
      */
     public function getPaymentById(int $id)
     {
-        return PaymentTransaction::with(['financialAccount.student.user', 'cashier'])->findOrFail($id);
+        return PaymentTransaction::with(['account.student.user'])->findOrFail($id);
     }
 
     public function processPayment(array $data): array
@@ -180,4 +182,87 @@ class PaymentService
             ];
         });
     }
+        public function updatePayment(int $id, array $data): PaymentTransaction
+    {
+        $transaction = PaymentTransaction::findOrFail($id);
+
+        // 🛡️ حماية سيادية: يمنع منعاً باتاً تعديل المبلغ برمجياً للحفاظ على سلامة الحسابات
+        if (isset($data['paidAmount']) && (float)$data['paidAmount'] !== (float)$transaction->paid_amount) {
+            throw new Exception('عذراً، يمنع تعديل المبلغ المالي في الأنظمة المحاسبية بعد الحفظ. إذا كان المبلغ خاطئاً، قم بحذف الإيصال وإصدار واحد جديد.', 422);
+        }
+
+        $transaction->update([
+            'payment_method'    => $data['paymentMethod'] ?? $transaction->payment_method,
+            'paper_receipt_no'  => $data['paperReceiptNo'] ?? $transaction->paper_receipt_no,
+            'digital_reference' => $data['digitalReference'] ?? $transaction->digital_reference,
+        ]);
+
+        return $transaction->fresh();
+    }
+
+    /**
+     * 🗑️ حذف الإيصال المالي (عكس خوارزمية الشلال - Reverse Waterfall)
+     */
+    public function deletePayment(int $id): void
+    {
+        DB::transaction(function () use ($id) {
+            $transaction = PaymentTransaction::findOrFail($id);
+            $account = FinancialAccount::findOrFail($transaction->financial_account_id);
+            
+            $amountToReverse = $transaction->paid_amount;
+
+            // 1. إعادة الرصيد المتبقي للطالب
+            $newRemainingBalance = $account->remaining_balance + $amountToReverse;
+            
+            $account->update([
+                'remaining_balance' => $newRemainingBalance,
+                'payment_status'    => $newRemainingBalance == $account->total_required_amount ? 'unpaid' : 'partially_paid',
+            ]);
+
+            // 2. 🌊 عكس الشلال: سحب المبلغ من الأقساط المدفوعة (من الأحدث دفعاً إلى الأقدم)
+            $paidInstallments = ScheduledInstallment::where('financial_account_id', $account->id)
+                ->where('amount_paid', '>', 0)
+                ->orderBy('due_date', 'desc') // نبدأ من آخر قسط تم سداده
+                ->get();
+
+            foreach ($paidInstallments as $installment) {
+                if ($amountToReverse <= 0) break;
+
+                if ($installment->amount_paid >= $amountToReverse) {
+                    // سحب جزء من هذا القسط يكفي لتغطية الإلغاء
+                    $newAmountPaid = $installment->amount_paid - $amountToReverse;
+                    $installment->update([
+                        'amount_paid' => $newAmountPaid,
+                    ]);
+                    $amountToReverse = 0;
+                } else {
+                    // سحب كل ما تم دفعه في هذا القسط والذهاب للقسط الذي قبله
+                    $amountToReverse -= $installment->amount_paid;
+                    $installment->update([
+                        'amount_paid' => 0,
+                    ]);
+                }
+
+                // تحديث حالة القسط بناءً على تاريخه والمبلغ الجديد
+                $newStatus = 'pending';
+                if ($installment->amount_paid >= $installment->amount_due) {
+                    $newStatus = 'paid';
+                } elseif ($installment->due_date < Carbon::today() && $installment->amount_paid < $installment->amount_due) {
+                    $newStatus = 'overdue';
+                }
+                
+                $installment->update(['status' => $newStatus]);
+            }
+
+            // 3. تحديث حالة التسجيل الأكاديمي إذا تم تصفير حساب الطالب بالكامل
+            $enrollment = $account->student->enrollments()->latest()->first();
+            if ($enrollment && $account->remaining_balance == $account->total_required_amount) {
+                $enrollment->update(['enrollment_status' => 'suspended']); // عاد كأنه لم يدفع شيئاً
+            }
+
+            // 4. حذف الإيصال من الدفتر
+            $transaction->delete();
+        });
+    }
+      
 }

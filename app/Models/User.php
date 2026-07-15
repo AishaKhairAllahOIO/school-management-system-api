@@ -9,14 +9,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use softeDeletes;
+use Illuminate\Database\Eloquent\SoftDeletes; // 👈 1. الاستدعاء الصحيح
 
 class User extends Authenticatable
 {
 
 
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    use HasFactory, Notifiable, HasApiTokens, HasRoles,SoftDeletes;
 
     /**
      * The attributes that are mass assignable.

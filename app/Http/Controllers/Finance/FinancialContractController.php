@@ -92,7 +92,7 @@ class FinancialContractController extends Controller
                 'تم اعتماد العقد المالي وتوليد الأقساط الزمنية بنجاح.'
             );
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 422);
+            return $this->errorResponse('حدث خطاء اثناء العملية', 422,$e->getMessage());
         }
     }
         public function update(FinancialContractRequest $request, int $id): JsonResponse
@@ -104,8 +104,11 @@ class FinancialContractController extends Controller
                 new FinancialAccountResource($account),
                 'تم تعديل العقد المالي وإعادة توليد الأقساط بنجاح.'
             );
-        } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 422);
+        }catch(ModelNotFoundException $e){
+            return $this->errorResponse('لا يوجد حساب مالي مسجل لهذا الطالب.', 404);
+        }
+         catch (Exception $e) {
+            return $this->errorResponse('حدث خطاء اثناء العملية', 422,$e->getMessage());
         }
     }
 }

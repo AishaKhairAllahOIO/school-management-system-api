@@ -5,42 +5,67 @@ use Exception;
 use App\Models\SchoolImage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage; // 👈 لا تنسي إضافة هذه
+use Illuminate\Support\Facades\DB;
 
 
 class SchoolSettingsService
 {
     public function getSettings()
     {
-        return School::with('images')->first();
+        //اريد ان تعيد لا شي اذا لم يوجد هذا الاعداد:
+
+        $setting= School::with('images')->first();
+        if (!$setting) {
+            return new School(); 
+        }
+        return $setting;
     }
 
     public function updateSettings(array $validatedData)
     {
-        $mappedData = [
-            'school_name' => $validatedData['schoolName'],
-            'short_name' => $validatedData['shortName'],
-            'description' => $validatedData['description'] ?? null,
-            'phone_number' => $validatedData['phoneNumber'],
-            'emergency_phone_number' => $validatedData['emergencyPhoneNumber'] ?? null,
-            'email' => $validatedData['email'],
-            'website' => $validatedData['website'] ?? null,
-            'address' => $validatedData['address'],
-            'city' => $validatedData['city'],
-            'country' => $validatedData['country'],
-            'latitude' => $validatedData['location']['latitude'] ?? null,
-            'longitude' => $validatedData['location']['longitude'] ?? null,
-            'logo_url' => $validatedData['logo'] ?? null,
+        return DB::transaction(function () use ($validatedData) {
+            
+            $settings = School::find(1);
 
-        ];
+            $logoPath = $settings ? $settings->logo_url : null;
 
-        
-        $school = School::updateOrCreate(
-            ['id' => 1], 
-            $mappedData  
-        );
+            if (isset($validatedData['logo']) && $validatedData['logo'] instanceof \Illuminate\Http\UploadedFile) {
+                
+                // حذف الشعار القديم من السيرفر إذا كان موجوداً
+                if ($logoPath && !str_starts_with($logoPath, 'http') && Storage::disk('public')->exists($logoPath)) {
+                    Storage::disk('public')->delete($logoPath);
+                }
+                
+                // رفع الشعار الجديد وتحديث مساره
+                $logoPath = $validatedData['logo']->store('school_logos', 'public');
+            }
 
-        return $school->load('images');
-    }
+            // 4. تجهيز البيانات للإنشاء أو التعديل
+            $mappedData = [
+                'school_name'            => $validatedData['schoolName'],
+                'short_name'             => $validatedData['shortName'],
+                'description'            => $validatedData['description'] ?? null,
+                'phone_number'           => $validatedData['phoneNumber'],
+                'emergency_phone_number' => $validatedData['emergencyPhoneNumber'] ?? null,
+                'email'                  => $validatedData['email'],
+                'website'                => $validatedData['website'] ?? null,
+                'address'                => $validatedData['address'],
+                'city'                   => $validatedData['city'],
+                'country'                => $validatedData['country'],
+                'latitude'               => $validatedData['location']['latitude'] ?? null,
+                'longitude'              => $validatedData['location']['longitude'] ?? null,
+                'logo_url'               => $logoPath, // مسار الصورة الجديد أو القديم
+            ];
+
+            // 5. ✨ السحر الخاص بكِ: إنشاء إذا لم يوجد، وتحديث إذا وجد!
+            $updatedSettings = School::updateOrCreate(
+                ['id' => 1], 
+                $mappedData  
+            );
+
+            // إرجاع الإعدادات مع صور المعرض
+            return $updatedSettings->load('images');
+        });}
     // --- إضافة صورة كـ URL لمعرض المدرسة ---
     public function getAllImages()
     {
@@ -113,7 +138,9 @@ public function getImageById(int $id)
     {
         $school = School::findOrFail(1);
         if ($school) {
-            // لمسة احترافية: نحذف الصور من السيرفر (Storage) قبل حذف الإعدادات
+             if ($school->logo && !str_starts_with($school->logo, 'http') && Storage::disk('public')->exists($school->logo)) {
+                Storage::disk('public')->delete($school->logo);
+            }
             foreach ($school->images as $image) {
                 if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
                     Storage::disk('public')->delete($image->url);
@@ -121,5 +148,13 @@ public function getImageById(int $id)
             }
             $school->delete();
         }
+    }
+    public function index()
+    {
+        $school=School::find(1);
+        return ['schoolName'=>$school->school_name? :"school",
+                'shortName'=>$school->short_name? :"sch",
+                'website'=>$school->website?:null,
+                'logo'=> $school->logo_url ? (str_starts_with($school->logo_url, 'http') ? $school->logo_url : asset('storage/' . $school->logo_url)):null];
     }
 }

@@ -39,6 +39,6 @@ class UpdateGeneralSettingsRequest extends BaseRequest
             'country' => 'required|string',
             'location.latitude' => 'nullable|numeric',
             'location.longitude' => 'nullable|numeric',
-            'logo' => 'nullable|url',];
+            'logo'                 => ['nullable', 'image', 'mimes:jpeg,png,jpg,svg,webp']];
     }
 }

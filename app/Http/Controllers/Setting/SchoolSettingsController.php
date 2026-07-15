@@ -35,7 +35,11 @@ class SchoolSettingsController extends Controller
                 200
             );
             
-        } catch (Exception $e) {
+        }catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse($e->getMessage(),404);
+        }
+         catch (Exception $e) {
             return $this->errorResponse('An error occurred while fetching settings.', 500, ['exception_message' => $e->getMessage()]);
         }
     }
@@ -136,6 +140,10 @@ public function showImage(int $id, SchoolSettingsService $service)
         } catch (\Throwable $e) {
             return $this->errorResponse('حدث خطأ أثناء الحذف.', 500, ['error' => $e->getMessage()]);
         }
+    }
+    public function index(SchoolSettingsService $service)
+    {
+        return $this->successResponse($service->index(),'تم جلب البيانات ',200);
     }
 
     

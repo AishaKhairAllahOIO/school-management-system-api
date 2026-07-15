@@ -3,7 +3,6 @@
 namespace App\Services\Web;
 
 use App\ApiResource;
-use App\Http\Requests\Web\ActivityRequest;
 use App\Jobs\SendPushNotification;
 use App\Models\Activity;
 use App\Models\Enrollment;
@@ -11,6 +10,7 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ActivityService
 {
@@ -58,18 +58,18 @@ class ActivityService
         return $activity->load(['gradeLevel:id,name', 'classRoom:id,name']);
     }
 
-    public function showActivities(Student $student): Collection
+public function showActivities(Student $student): LengthAwarePaginator // لاحظ تغيير نوع الإرجاع
     {
-        $enrollment = $student->enrollments()
-            ->whereHas('academicYear', function ($q) {
-                $q->whereDate('start_date', '<=', now())
-                    ->whereDate('end_date', '>=', now());
-            })
-            ->latest()
-            ->first();
+         $enrollment = $student->enrollments()
+        ->whereHas('academicYear', function ($q) {
+            $q->whereDate('start_date', '<=', now())
+              ->whereDate('end_date', '>=', now());
+        })
+        ->latest()
+        ->first();
 
         if (!$enrollment) {
-            return new Collection();
+            return new LengthAwarePaginator([], 0, 20);
         }
 
         return Activity::query()
@@ -81,7 +81,7 @@ class ActivityService
             ->with(['gradeLevel:id,name', 'classRoom:id,name'])
             ->orderBy('activity_date')
             ->orderBy('start_time')
-            ->get();
+            ->paginate(20); 
     }
 
     public function updateActivity(Activity $activity, array $data)

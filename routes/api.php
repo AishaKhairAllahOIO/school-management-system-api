@@ -299,8 +299,6 @@ Route::prefix('user')->group(function () {
         Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
         Route::post('/alerts/mark-all-read', [UserAlertController::class, 'markAllAlertsRead']);
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
-
-
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::post('logout', [UserAuthController::class, 'logout']);
     });

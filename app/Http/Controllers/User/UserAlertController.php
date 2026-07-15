@@ -35,7 +35,7 @@ class UserAlertController extends Controller
 
         $alerts = $this->alertService->showStudentAlerts($student);
 
-        return $this->successResponse(
+        return $this->paginatedResponse(
             AlertResource::collection($alerts),
             'تنبيهات الطالب',
             200
@@ -59,7 +59,7 @@ class UserAlertController extends Controller
 
         $alerts = $this->alertService->showStudentPaymentAlerts($student);
 
-        return $this->successResponse(
+        return $this->paginatedResponse(
             AlertResource::collection($alerts),
             'التنبيهات المالية للطالب',
             200
@@ -74,7 +74,7 @@ class UserAlertController extends Controller
 
         $alerts = $this->alertService->showStudentAlerts($student);
 
-        return $this->successResponse(
+        return $this->paginatedResponse(
             AlertResource::collection($alerts),
             'تنبيهاتي الشخصية',
             200
@@ -88,7 +88,7 @@ class UserAlertController extends Controller
 
         $alerts = $this->alertService->showStaffAlerts($staff);
 
-        return $this->successResponse(
+        return $this->paginatedResponse(
             AlertResource::collection($alerts),
             'تنبيهاتي الشخصية',
             200
@@ -102,7 +102,7 @@ class UserAlertController extends Controller
 
         $alerts = $this->alertService->showStaffPaymentAlerts($staff);
 
-        return $this->successResponse(
+        return $this->paginatedResponse(
             AlertResource::collection($alerts),
             'تنبيهاتي المالية',
             200
@@ -184,7 +184,7 @@ class UserAlertController extends Controller
 
  public function unreadAlertsCount(Request $request)
     {
-        $studentId = $request->input('student_id'); 
+        $studentId = $request->input('student_id');
         $counts = $this->alertService->unreadCountForUser($request->user(), $studentId);
 
         return $this->successResponse(

@@ -31,4 +31,17 @@ public function errorResponse($message = null, $code = 422, $errors = null)
 
     return response()->json($response, $code);
 }
+
+public function paginatedResponse($resourceCollection, $message = null, $code = 200)
+    {
+        $response = $resourceCollection->response()->getData(true);
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data'    => $response['data'],
+            'links'   => $response['links'] ?? null,
+            'meta'    => $response['meta'] ?? null,
+        ], $code);
+    }
 }

@@ -43,7 +43,7 @@ class ActivityController extends Controller
 
         $activities = $this->activityService->showActivities($student);
 
-        return $this->successResponse(
+        return $this->paginatedResponse(
             ActivityResource::collection($activities),
             'تم جلب الأنشطة بنجاح',
             200
@@ -65,7 +65,7 @@ class ActivityController extends Controller
 
         $activities = $this->activityService->showActivities($student);
 
-        return $this->successResponse(
+        return $this->paginatedResponse(
             ActivityResource::collection($activities),
             'student activities',
             200

@@ -23,7 +23,7 @@ class AlertResource extends JsonResource
             'description' => $this->description,
             'meta'        => $this->meta ?? [],
             'created_at'  => $this->created_at->format('Y-m-d H:i:s'),
-            'is_raed'     => $user ? $this->readers->contains($user->id) : false,
+            'is_read'     => $user ? $this->readers->contains($user->id) : false,
         ];
     }
 }

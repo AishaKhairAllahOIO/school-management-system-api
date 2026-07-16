@@ -18,12 +18,10 @@ class EnrollmentSeeder extends Seeder
         $student2 = Student::find(2);
         $year = AcademicYear::find(1);
 
-        // إذا لم يكن هناك طلاب أو سنة دراسية رقم 1، أوقف السيدر حتى لا ينهار السيرفر
         if (!$year) {
             return;
         }
 
-        // تسجيل الطالب الأول (بافتراض أنه دفع الرسوم وأصبح enrolled)
         if ($student1) {
             Enrollment::updateOrCreate(
                 [
@@ -33,8 +31,8 @@ class EnrollmentSeeder extends Seeder
                 [
                     'grade_level_id' => 1,
                     'class_room_id' => 1,
-                    'enrollment_status' => 'enrolled', // تم التعديل لتطابق الهيكلية
-                    'enrollment_date' => now(), // أضفنا تاريخ التسجيل بما أنه مفعل
+                    'enrollment_status' => 'enrolled',
+                    'enrollment_date' => now(),
                 ]
             );
         }

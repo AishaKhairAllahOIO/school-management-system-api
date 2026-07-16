@@ -32,6 +32,8 @@ class CreateActivitiesRequest extends FormRequest
             'activity_date'           => ['required', 'date', 'after:today'],
             'start_time'     => ['required', 'date_format:H:i'],
             'end_time'       => ['required', 'date_format:H:i', 'after:start_time'],
+            'description'    => ['nullable', 'string',],
+
 
         ];
     }

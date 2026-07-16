@@ -337,7 +337,6 @@ class AlertService
         if ($user->hasRole('guardian') && $user->guardian) {
             $studentsQuery = $user->guardian->students();
 
-            // إضافة الفلتر الخاص بالطالب المحدد
             if ($studentId) {
                 $studentsQuery->where('students.id', $studentId);
             }

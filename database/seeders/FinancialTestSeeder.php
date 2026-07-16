@@ -28,42 +28,40 @@ class FinancialTestSeeder extends Seeder
             return;
         }
 
-        // 2. جلب أو إنشاء عام دراسي وصف دراسي
-        $year = AcademicYear::firstOrCreate(
-            ['is_current' => true],
-            ['year_name' => '2025-2026', 'start_date' => '2025-09-01', 'end_date' => '2026-06-30']
-        );
+        // $year = AcademicYear::firstOrCreate(
+        //     ['is_current' => true],
+        //     ['year_name' => '2025-2026', 'start_date' => '2025-09-01', 'end_date' => '2026-06-30']
+        // );
 
         $grade = GradeLevel::firstOrCreate(
             ['level' => 1],
             ['academic_stage_id' => 1, 'name' => 'الصف التجريبي', 'is_graduation_grade' => false]
         );
 
-        DB::transaction(function () use ($student, $year, $grade) {
-            
+        DB::transaction(function () use ($student, $grade) {
+
             // 3. إنشاء سياسة تقسيط تجريبية
             $policy = InstallmentPolicy::updateOrCreate(
                 ['name' => 'سياسة اختبار الكوماند (3 دفعات)'],
                 ['installments_count' => 3]
             );
 
-            // 4. إنشاء خطة مالية تجريبية (مليون ليرة)
             $plan = FeePlan::updateOrCreate(
                 ['name' => 'خطة اختبار الكوماند'],
                 [
-                    'academic_year_id'      => $year->id,
+                    'academic_year_id'      => 1,
                     'grade_level_id'        => $grade->id,
                     'base_amount'           => 1000000.00,
                 ]
             );
 
             // 5. مسح أي حساب مالي قديم لهذا الطالب في هذه السنة لتجنب التضارب
-            FinancialAccount::where('student_id', $student->id)->where('academic_year_id', $year->id)->delete();
+            FinancialAccount::where('student_id', $student->id)->where('academic_year_id', 1)->delete();
 
             // 6. إنشاء المحفظة المالية للطالب
             $account = FinancialAccount::create([
                 'student_id'                   => $student->id,
-                'academic_year_id'             => $year->id,
+                'academic_year_id'             => 1,
                 'fee_plan_id'                  => $plan->id,
                 'installment_policy_id'        => $policy->id,
                 'total_required_amount'        => 1000000.00,
@@ -74,7 +72,7 @@ class FinancialTestSeeder extends Seeder
             // =========================================================
             // 🚀 السحر هنا: التلاعب بالزمن (Time Travel) لإنشاء الأقساط
             // =========================================================
-            
+
             // القسط 1: مدفوع بالكامل (موعده كان الشهر الماضي) - الكوماند يجب أن يتجاهله
             $installment1 = ScheduledInstallment::create([
                 'financial_account_id' => $account->id,

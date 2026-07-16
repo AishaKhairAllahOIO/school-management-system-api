@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class UserAnnouncementController extends Controller
 {
-use ApiResource;
+    use ApiResource;
     public function __construct(
         private readonly AnnouncementService $service
     ) {}
@@ -31,35 +31,37 @@ use ApiResource;
 
     public function announcementsForStaff(Request $request)
     {
-        $user=$request->user();
+        $user = $request->user();
 
-         if ($user->hasRole('guardian') || $user->hasRole('student')) {
+        if ($user->hasRole('guardian') || $user->hasRole('student')) {
             return $this->errorResponse('هذا الحساب ليس حساب موظف.', 403);
         }
 
         $announcements = $this->service->forStaff($user);
 
-        return $this->successResponse(
+        return $this->paginatedResponse(
             AnnouncementResource::collection($announcements),
             'تم جلب الإعلانات بنجاح.'
         );
     }
 
-public function studentAnnouncements(Request $request)
-{
-    $user = $request->user();
+    public function studentAnnouncements(Request $request)
+    {
+        $user = $request->user();
 
- if (!$user->hasRole('student')) {
+        if (!$user->hasRole('student')) {
             return $this->errorResponse('هذا الحساب ليس حساب طالب.', 403);
         }
-    $announcements = $this->service->forStudent($user);
+        $announcements = $this->service->forStudent($user);
 
-    return $this->successResponse(AnnouncementResource::collection($announcements),
-     'success',
-      200);
-}
+        return $this->paginatedResponse(
+            AnnouncementResource::collection($announcements),
+            'success',
+            200
+        );
+    }
 
-public function guardianAnnouncements(Request $request)
+    public function guardianAnnouncements(Request $request)
     {
         $user = $request->user();
 
@@ -78,16 +80,21 @@ public function guardianAnnouncements(Request $request)
 
         $announcements = $this->service->forGuardian($user, $studentId);
 
-        return $this->successResponse(AnnouncementResource::collection($announcements), 'تم جلب إعلانات الطالب بنجاح', 200);
+        return $this->paginatedResponse(
+            AnnouncementResource::collection($announcements),
+            'تم جلب إعلانات الطالب بنجاح',
+            200
+        );
     }
 
-    public function destroy(int $id){
+    public function destroy(int $id)
+    {
         $this->service->delete($id);
         return $this->successResponse(null, 'تم حذف الإعلان بنجاح.');
     }
 
 
-public function getUnreadCount(Request $request)
+    public function getUnreadCount(Request $request)
     {
         $count = $this->service->unreadCount($request->user(), $request->student_id);
         return $this->successResponse(['count' => $count], 'success', 200);

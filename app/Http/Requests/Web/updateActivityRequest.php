@@ -34,6 +34,8 @@ class UpdateActivityRequest extends FormRequest
             'activity_date'           => ['sometimes', 'date', 'after:today'],
             'start_time'     => ['sometimes', 'date_format:H:i','after:now'],
             'end_time'       => ['sometimes', 'date_format:H:i', 'after:start_time'],
+            'description'    => ['sometimes', 'string'],
+
         ];
 
     }

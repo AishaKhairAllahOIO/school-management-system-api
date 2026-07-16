@@ -32,6 +32,7 @@ class UpdateGeneralPersonalRequest extends FormRequest
             'birth_place'   => ['sometimes', 'string', 'max:100'],
             'address'       => ['sometimes', 'string', 'max:255'],
             'gender'        => ['sometimes', 'in:male,female'],
+            'email'        => ['nullable', 'email', 'unique:users,email'],
             'photo_url'     => ['sometimes', 'image', 'mimes:jpeg,png,jpg,webp'], 
 
             ];

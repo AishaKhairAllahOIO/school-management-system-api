@@ -9,17 +9,18 @@ class StudentProfileWithEnrollmentResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $student      = $this->student;
-        $studentUser  = $student->user; // البيانات الشخصية للطالب من جدول users
+$enrollment   = $this;
+        $student      = $enrollment->student;
+        $studentUser  = $student->user; 
         $guardian     = $student->guardian;
-        $guardianUser = $guardian ? $guardian->user : null; // البيانات الشخصية للولي (إن وجد)
-        $latestEnrollment = $student->enrollments()->withTrashed()->latest()->first();
+        $guardianUser = $guardian ? $guardian->user : null; 
 
         return [
             'student' => [
-                'id'            => $student->id,             // الآي دي الخاص بجدول الطلاب
-                'userId'        => $studentUser->id,         // الآي دي الخاص بجدول المستخدمين
-                'fullName'      => $studentUser->first_name . ' ' . $studentUser->last_name,
+                'id'            => (string) $student->id,
+                'userId'        => (string) $studentUser->id,
+                // تنظيف الاسم من أي مسافات زائدة
+                'fullName'      => trim(preg_replace('/\s+/', ' ', $studentUser->first_name . ' ' . $studentUser->father_name . ' ' . $studentUser->last_name)),
                 'fatherName'    => $studentUser->father_name,
                 'motherName'    => $studentUser->mother_name,
                 'birthDate'     => $studentUser->birth_date,
@@ -33,11 +34,10 @@ class StudentProfileWithEnrollmentResource extends JsonResource
                 'recordStatus'  => $studentUser->record_status,
             ],
             
-            // بيانات ولي الأمر الشخصية
             'guardian' => $guardianUser ? [
-                'id'            => $guardian->id,
-                'userId'        => $guardianUser->id,
-                'fullName'      => $guardianUser->first_name . ' ' . $guardianUser->last_name,
+                'id'            => (string) $guardian->id,
+                'userId'        => (string) $guardianUser->id,
+                'fullName'      => trim(preg_replace('/\s+/', ' ', $guardianUser->first_name . ' ' . $guardianUser->father_name . ' ' . $guardianUser->last_name)),
                 'fatherName'    => $guardianUser->father_name,
                 'motherName'    => $guardianUser->mother_name,
                 'birthDate'     => $guardianUser->birth_date,
@@ -51,24 +51,24 @@ class StudentProfileWithEnrollmentResource extends JsonResource
                 'recordStatus'  => $guardianUser->record_status,
             ] : null,
             
-            // بيانات القيد الأكاديمي الحالية (Enrollment)
-     'enrollment' => $latestEnrollment ? [
-                'id'               => (string) $latestEnrollment->id,
-                'studentId'        => (string) $latestEnrollment->student_id,
-                'academicYearId'   => (string) $latestEnrollment->academic_year_id,
-                'gradeId'          => (string) $latestEnrollment->grade_level_id, 
-                'classroomId'      => (string) $latestEnrollment->class_room_id,  
-                'enrollmentStatus' => $latestEnrollment->enrollment_status,       
-                'enrollmentDate'   => $latestEnrollment->enrollment_date?->toDateString(),
-                'completedAt'      => $latestEnrollment->completed_at?->toIso8601String(),
+            // 💡 التعديل الجوهري: إضافة أسماء (الصف، الشعبة، العام) بداخل القيد
+            'enrollment' => [
+                'id'               => (string) $enrollment->id,
+                'studentId'        => (string) $enrollment->student_id,
+                'academicYearId'   => (string)$enrollment->academic_year_id,
+                'gradeId'          =>(string)$enrollment->grade_level_id,
+                'classroomId'      =>(string)$enrollment->class_room_id,
+            
+                'enrollmentStatus' => $enrollment->enrollment_status,       
+                'enrollmentDate'   => $enrollment->enrollment_date ? \Carbon\Carbon::parse($enrollment->enrollment_date)->toDateString() : null,
+                'completedAt'      => $enrollment->completed_at ? \Carbon\Carbon::parse($enrollment->completed_at)->toIso8601String() : null,
                 
-                // 💡 المؤشرات الذهبية للفرونت إند لمعرفة أن السجل محذوف
-                'isDeleted'        => $latestEnrollment->trashed(),
-                'deletedAt'        => $latestEnrollment->deleted_at?->toIso8601String(),
+                'isDeleted'        => $enrollment->trashed(),
+                'deletedAt'        => $enrollment->deleted_at ? $enrollment->deleted_at->toIso8601String() : null,
                 
-                'createdAt'        => $latestEnrollment->created_at?->toIso8601String(),
-                'updatedAt'        => $latestEnrollment->updated_at?->toIso8601String(),
-            ] : null,
+                'createdAt'        => $enrollment->created_at ? $enrollment->created_at->toIso8601String() : null,
+                'updatedAt'        => $enrollment->updated_at ? $enrollment->updated_at->toIso8601String() : null,
+            ]?:null,
         ];
     }
 }

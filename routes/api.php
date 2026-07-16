@@ -279,17 +279,15 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
         ->middleware('can:account:toggle_status');
 });
 
-<<<<<<< HEAD
-=======
 Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
-    
-    Route::post('/register', [StaffController::class, 'store']); 
+
+    Route::post('/register', [StaffController::class, 'store']);
     Route::post('/import', [StaffController::class, 'importExcel']);
     Route::get('/import-batches/{batch}/errors/export',[StaffController::class,'exportErrors']);
     Route::get('/import-batches/{batch}/status',[StaffController::class,'getImportStatus']);
 
-    Route::get('/search', [StaffController::class, 'search']);  
-    Route::get('/alphabetical', [StaffController::class, 'alphabetical']);  
+    Route::get('/search', [StaffController::class, 'search']);
+    Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
 
     Route::get('/showAllStaff',[StaffController::class,'index']);
     Route::get('/showStaff/{staffId}',[StaffController::class,'show']);
@@ -299,7 +297,7 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 
     Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
     Route::delete('/{staff}', [StaffController::class, 'destroy']);
-   
+
 });
 
 /// ////////////////////////////////////////////////////////////////////////////////// ///
@@ -320,7 +318,6 @@ Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
 Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
 
 
->>>>>>> 9f2e0e9a638c3884b368fb5ddc77ba7ebc4c21bf
 /// /////////////////////////////////////Mobile/////////////////////////////////////// ///
 
 Route::prefix('user')->group(function () {

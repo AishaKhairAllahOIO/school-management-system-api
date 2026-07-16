@@ -55,6 +55,25 @@ Route::prefix('auth')->group(function () {
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
         Route::get('/documents/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
 
+        Route::middleware('role:secretary')->group(function(){
+            Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
+            Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
+        });
+
+        Route::middleware('role:adviser')->group(function () {
+            Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
+            Route::post('/announcements',   [UserAnnouncementController::class, 'store']);
+            Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
+            Route::post('/alerts', [UserAlertController::class, 'store']);
+            Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
+            Route::get('/activity/{id}', [ActivityController::class, 'showActivity']);
+            Route::delete('/activity/{id}', [ActivityController::class, 'destroy']);
+            Route::post('/activity', [ActivityController::class, 'store']);
+            Route::get('/activities/all', [ActivityController::class, 'showAllActivity']);
+            Route::post('/activity/update/{id}', [ActivityController::class, 'updateActivity']);
+        });
+
+
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
             Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
@@ -149,15 +168,12 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
-
-
-
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/', [SchoolSettingsController::class, 'show']);
-    Route::get('/basic',[SchoolSettingsController::class,'index']);
+    Route::get('/basic', [SchoolSettingsController::class, 'index']);
     Route::post('/', [SchoolSettingsController::class, 'update']);
     Route::get('/images', [SchoolSettingsController::class, 'indexImages']);
     Route::get('/images/{image}', [SchoolSettingsController::class, 'showImage']);
@@ -167,8 +183,6 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::post('/images/{image}', [SchoolSettingsController::class, 'updateImage']);
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
     Route::delete('/', [SchoolSettingsController::class, 'destroy']);
-
-
 });
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
 
@@ -215,7 +229,7 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     Route::post('/{accountId}', [FinancialContractController::class, 'update']);
     Route::post('/payments/{id}', [PaymentController::class, 'update']);
     Route::delete('/payments/{id}', [PaymentController::class, 'destroy']);
-    });
+});
 
 //////////////////////////////////////////////////
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {
@@ -263,28 +277,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
         ->middleware('can:account:toggle_status');
 });
 
-
-/// ////////////////////////////////////////////////////////////////////////////////// ///
-
-
-Route::post('/announcements',   [UserAnnouncementController::class, 'store']);
-Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
-
-Route::post('/alerts', [UserAlertController::class, 'store']);
-
-Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
-
-Route::delete('/activity/{id}', [ActivityController::class, 'destroy']);
-Route::post('/activity', [ActivityController::class, 'store']);
-
-Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
-Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
-Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
-
-
 /// /////////////////////////////////////Mobile/////////////////////////////////////// ///
-
-
 
 Route::prefix('user')->group(function () {
     Route::post('login', [UserAuthController::class, 'login']);
@@ -295,11 +288,12 @@ Route::prefix('user')->group(function () {
         Route::get('get-user-data', [UserController::class, 'getUserInfo']);
         Route::get('/my-activities', [ActivityController::class, 'show']);
         Route::get('/child-activities', [ActivityController::class, 'guardianViewActivities']);
-        Route::get('/activity-unread-count',[ActivityController::class,'getUnreadCount']);
-        Route::post('/activity-mark-all-read',[ActivityController::class,'markAllAsRead']);
+        Route::get('/activity-unread-count', [ActivityController::class, 'getUnreadCount']);
+        Route::post('/activity-mark-all-read', [ActivityController::class, 'markAllAsRead']);
         Route::post('/personal-image', [UserController::class, 'uploadImage']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
         Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
+        Route::get('/guardian/student/{studentId}/photo', [UserController::class, 'childPersonalPhotoUrl']);
         Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
         Route::get('/my-alerts', [UserAlertController::class, 'myAlerts']);

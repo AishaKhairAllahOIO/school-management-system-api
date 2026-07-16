@@ -7,12 +7,20 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use App\Jobs\SendAnnouncementNotification;
 use App\Models\Enrollment;
 use App\Models\User;
+use Illuminate\Support\Arr;
 
 class AnnouncementService
 {
     public function create(array $data): Announcement
     {
-        $announcement = Announcement::create($data);
+        $classRoomIds = $data['class_room_ids'] ?? [];
+        $announcementData = Arr::except($data, ['class_room_ids']);
+
+        $announcement = Announcement::create($announcementData);
+
+        if (!empty($classRoomIds)) {
+            $announcement->classRooms()->attach($classRoomIds);
+        }
 
         SendAnnouncementNotification::dispatch(
             $announcement->id,
@@ -30,10 +38,10 @@ class AnnouncementService
         $announcement->delete();
     }
 
-private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
+    private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
     {
         if ($user->student) {
-           $enrollment = $user->student->enrollments()
+            $enrollment = $user->student->enrollments()
                 ->whereHas('academicYear', function ($q) {
                     $q->whereDate('start_date', '<=', now())
                       ->whereDate('end_date', '>=', now());
@@ -45,7 +53,7 @@ private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
                       ->orWhere(function ($sq) {
                           $sq->where('audience', Announcement::AUDIENCE_STUDENT)
                              ->whereNull('grade_level_id')
-                             ->whereNull('class_room_id');
+                             ->doesntHave('classRooms'); // التعديل هنا
                       });
                 });
             }
@@ -55,12 +63,18 @@ private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
                       ->orWhere(function ($q) use ($enrollment) {
                           $q->where('audience', Announcement::AUDIENCE_STUDENT)
                             ->where(function ($subQ) use ($enrollment) {
+                                // إعلان عام لجميع الطلاب
                                 $subQ->whereNull('grade_level_id')
+                                     // أو إعلان مخصص لصف الطالب وشعبته
                                      ->orWhere(function ($gq) use ($enrollment) {
                                          $gq->where('grade_level_id', $enrollment->grade_level_id)
-                                            ->whereNull('class_room_id');
-                                     })
-                                     ->orWhere('class_room_id', $enrollment->class_room_id);
+                                            ->where(function ($cq) use ($enrollment) {
+                                                $cq->doesntHave('classRooms') // لكل شعب الصف
+                                                   ->orWhereHas('classRooms', function ($rq) use ($enrollment) {
+                                                       $rq->where('class_rooms.id', $enrollment->class_room_id); // لشعبة الطالب تحديداً
+                                                   });
+                                            });
+                                     });
                             });
                       });
             });
@@ -87,7 +101,7 @@ private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
                       ->orWhere(function ($sq) {
                           $sq->where('audience', Announcement::AUDIENCE_STUDENT)
                              ->whereNull('grade_level_id')
-                             ->whereNull('class_room_id');
+                             ->doesntHave('classRooms');
                       });
                 });
             }
@@ -98,12 +112,17 @@ private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
                           $q->where('audience', Announcement::AUDIENCE_STUDENT)
                             ->where(function ($subQ) use ($enrollments) {
                                 $subQ->whereNull('grade_level_id');
+
                                 foreach ($enrollments as $enrollment) {
                                     $subQ->orWhere(function ($gq) use ($enrollment) {
                                         $gq->where('grade_level_id', $enrollment->grade_level_id)
-                                           ->whereNull('class_room_id');
-                                    })
-                                    ->orWhere('class_room_id', $enrollment->class_room_id);
+                                           ->where(function ($cq) use ($enrollment) {
+                                               $cq->doesntHave('classRooms') // لكل شعب الصف
+                                                  ->orWhereHas('classRooms', function ($rq) use ($enrollment) {
+                                                      $rq->where('class_rooms.id', $enrollment->class_room_id); // لشعبة الابن تحديداً
+                                                  });
+                                           });
+                                    });
                                 }
                             });
                       });
@@ -127,19 +146,18 @@ private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
     public function forStudent(User $user): LengthAwarePaginator
     {
         return $this->getBaseQueryForUser($user)
-            ->with(['gradeLevel:id,name', 'classRoom:id,name'])
+            ->with(['gradeLevel:id,name', 'classRooms:id,name']) // تم تعديل classRoom إلى classRooms
             ->latest()
             ->paginate(20);
     }
 
     public function forGuardian(User $user, ?int $studentId = null): LengthAwarePaginator
     {
-        return $this->getBaseQueryForUser($user,$studentId)
-            ->with(['gradeLevel:id,name', 'classRoom:id,name'])
+        return $this->getBaseQueryForUser($user, $studentId)
+            ->with(['gradeLevel:id,name', 'classRooms:id,name']) // تم تعديل classRoom إلى classRooms
             ->latest()
             ->paginate(20);
     }
-
 
     public function unreadCount(User $user, ?int $studentId = null): int
     {

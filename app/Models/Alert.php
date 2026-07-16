@@ -28,9 +28,7 @@ class Alert extends Model
     public const AUDIENCE_STUDENT = 'student';
     public const AUDIENCE_STAFF   = 'staff';
 
-    /**
-     * العلاقة متعددة الأشكال: قد يكون Enrollment أو Staff.
-     */
+  
     public function notifiable(): MorphTo
     {
         return $this->morphTo();

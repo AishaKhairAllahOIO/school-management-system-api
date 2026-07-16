@@ -21,18 +21,15 @@ class ActivityResource extends JsonResource
             'description' =>$this->description,
             'created_at' =>$this->created_at->format('Y-m-d-H-i-s'),
 
-            'scope'       => $this->class_room_id ? 'classroom' : 'grade_level',
+            'scope'       => $this->classRooms->count() > 0 ? 'specific_classrooms' : 'grade_level',
 
             'grade_level' => [
                 'grade_name' => $this->gradeLevel->name,
             ],
-            'classroom'   => $this->whenLoaded(
-                'classRoom',
-                fn() =>
-                $this->classRoom ? [
-                    'class_room_name' => $this->classRoom->name,
-                ] : null
-            ),
+            'classrooms'    => $this->classRooms->map(function ($room) {
+                return ['class_room_name' => $room->name] ?? null;
+            }),
+
             'is_read' => $user ? $this->readers->contains($user->id) : false,
         ];
     }

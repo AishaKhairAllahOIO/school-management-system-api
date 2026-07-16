@@ -6,6 +6,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use App\Models\ClassRoom;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
+
 class CreateActivitiesRequest extends FormRequest
 {
     /**
@@ -25,8 +26,8 @@ class CreateActivitiesRequest extends FormRequest
     {
         return [
             'grade_level_id' => ['required', 'integer', 'exists:grade_levels,id'],
-            'class_room_id'  => ['nullable', 'integer', 'exists:class_rooms,id'],
-
+            'class_room_ids'   => ['nullable', 'array'],
+            'class_room_ids.*' => ['integer', 'exists:class_rooms,id'],
             'type'           => ['required', 'string', 'max:255'],
             'activity_name'           => ['required', 'string', 'max:255'],
             'activity_date'           => ['required', 'date', 'after:today'],
@@ -38,23 +39,21 @@ class CreateActivitiesRequest extends FormRequest
         ];
     }
 
-        public function withValidator(Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
-        $validator->after(function (Validator $validator) {
-            $classRoomId = $this->input('class_room_id');
+       $validator->after(function (Validator $validator) {
+            $classRoomIds = $this->input('class_room_ids');
 
-            if (! $classRoomId) {
-                return;
-            }
+            if (!$classRoomIds || !is_array($classRoomIds)) return;
 
-            $belongsToGrade = ClassRoom::where('id', $classRoomId)
+            $validRoomsCount = ClassRoom::whereIn('id', $classRoomIds)
                 ->where('grade_level_id', $this->input('grade_level_id'))
-                ->exists();
+                ->count();
 
-            if (! $belongsToGrade) {
+            if ($validRoomsCount !== count($classRoomIds)) {
                 $validator->errors()->add(
-                    'class_room_id',
-                    'الشعبة المختارة لا تتبع المرحلة الدراسية المحددة.'
+                    'class_room_ids',
+                    'إحدى الشعب المختارة أو أكثر لا تتبع المرحلة الدراسية المحددة.'
                 );
             }
         });

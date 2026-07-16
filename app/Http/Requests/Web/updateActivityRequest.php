@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Web;
 
+use App\Models\Activity;
 use App\Models\ClassRoom;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -19,45 +19,54 @@ class UpdateActivityRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        return [
+            'grade_level_id'   => ['sometimes', 'integer', 'exists:grade_levels,id'],
 
-             return [
-            'grade_level_id' => ['sometimes', 'integer', 'exists:grade_levels,id'],
-            'class_room_id'  => ['sometimes', 'integer', 'exists:class_rooms,id'],
+            'class_room_ids'   => ['nullable', 'array'],
+            'class_room_ids.*' => ['integer', 'exists:class_rooms,id'],
 
-            'type'           => ['sometimes', 'string', 'max:255'],
-            'activity_name'           => ['sometimes', 'string', 'max:255'],
-            'activity_date'           => ['sometimes', 'date', 'after:today'],
-            'start_time'     => ['sometimes', 'date_format:H:i','after:now'],
-            'end_time'       => ['sometimes', 'date_format:H:i', 'after:start_time'],
-            'description'    => ['sometimes', 'string'],
-
+            'type'             => ['sometimes', 'string', 'max:255'],
+            'activity_name'    => ['sometimes', 'string', 'max:255'],
+            'activity_date'    => ['sometimes', 'date', 'after:today'],
+            'start_time'       => ['sometimes', 'date_format:H:i'],
+            'end_time'         => ['sometimes', 'date_format:H:i', 'after:start_time'],
+            'description'      => ['sometimes', 'string'],
         ];
-
     }
 
-     public function withValidator(Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $classRoomId = $this->input('class_room_id');
 
-            if (! $classRoomId) {
-                return;
+            $classRoomIds = $this->input('class_room_ids');
+
+            if (!$classRoomIds || !is_array($classRoomIds)) return;
+
+            $gradeLevelId = $this->input('grade_level_id');
+
+            if (!$gradeLevelId) {
+                $activityId = $this->route('id');
+                $activity = Activity::find($activityId);
+
+                if ($activity) {
+                    $gradeLevelId = $activity->grade_level_id;
+                }
             }
 
-            $belongsToGrade = ClassRoom::where('id', $classRoomId)
-                ->where('grade_level_id', $this->input('grade_level_id'))
-                ->exists();
+            if ($gradeLevelId) {
+                $validRoomsCount = ClassRoom::whereIn('id', $classRoomIds)
+                    ->where('grade_level_id', $gradeLevelId)
+                    ->count();
 
-            if (! $belongsToGrade) {
-                $validator->errors()->add(
-                    'class_room_id',
-                    'الشعبة المختارة لا تتبع المرحلة الدراسية المحددة.'
-                );
+                if ($validRoomsCount !== count($classRoomIds)) {
+                    $validator->errors()->add(
+                        'class_room_ids',
+                        'إحدى الشعب المختارة أو أكثر لا تتبع المرحلة الدراسية المحددة لهذا النشاط.'
+                    );
+                }
             }
         });
     }

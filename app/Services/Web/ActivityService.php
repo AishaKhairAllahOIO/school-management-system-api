@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 
 class ActivityService
 {
@@ -19,7 +20,14 @@ class ActivityService
 
     public function addActivity(array $data)
     {
-        $activity = Activity::create($data);
+        $classRoomIds = $data['class_room_ids'] ?? [];
+        $activityData = Arr::except($data, ['class_room_ids']);
+
+        $activity = Activity::create($activityData);
+
+        if (!empty($classRoomIds)) {
+            $activity->classRooms()->attach($classRoomIds);
+        }
 
         $enrollmentsQuery = Enrollment::where('grade_level_id', $activity->grade_level_id)
             ->whereHas('academicYear', function ($q) {
@@ -27,72 +35,70 @@ class ActivityService
                     ->whereDate('end_date', '>=', now());
             });
 
-        if ($activity->class_room_id) {
-            $enrollmentsQuery->where('class_room_id', $activity->class_room_id);
+        if (!empty($classRoomIds)) {
+            $enrollmentsQuery->whereIn('class_room_id', $classRoomIds);
         }
 
         $studentIds = $enrollmentsQuery->pluck('student_id');
 
         $usersIds = User::whereHas('student', function ($q) use ($studentIds) {
             $q->whereIn('id', $studentIds);
-        })
-            ->orWhereHas('guardian', function ($q) use ($studentIds) {
-                $q->whereHas('students', function ($sq) use ($studentIds) {
-                    $sq->whereIn('id', $studentIds);
-                });
-            })
-            ->pluck('id')->toArray();
+        })->orWhereHas('guardian', function ($q) use ($studentIds) {
+            $q->whereHas('students', function ($sq) use ($studentIds) {
+                $sq->whereIn('id', $studentIds);
+            });
+        })->pluck('id')->toArray();
 
         if (!empty($usersIds)) {
             SendPushNotification::dispatch(
                 $usersIds,
                 'نشاط مدرسي جديد',
                 'تمت إضافة نشاط جديد: ' . $activity->activity_name,
-                [
-                    'activity_id' => (string) $activity->id,
-                    'type'        => 'activity'
-                ]
+                ['activity_id' => (string) $activity->id, 'type' => 'activity']
             );
         }
 
-        return $activity->load(['gradeLevel:id,name', 'classRoom:id,name']);
+        return $activity->load(['gradeLevel:id,name', 'classRooms:id,name']);
     }
 
-    public function showActivities(Student $student): LengthAwarePaginator // لاحظ تغيير نوع الإرجاع
+    public function showActivities(Student $student): LengthAwarePaginator
     {
         $enrollment = $student->enrollments()
             ->whereHas('academicYear', function ($q) {
                 $q->whereDate('start_date', '<=', now())
                     ->whereDate('end_date', '>=', now());
-            })
-            ->latest()
-            ->first();
+            })->latest()->first();
 
         if (!$enrollment) {
-            $emptyPaginator = new LengthAwarePaginator([], 0, 20);
-            $emptyPaginator->withPath(request()->url()); // إخبار Laravel بالرابط الحالي
-            return $emptyPaginator;
+            return new LengthAwarePaginator([], 0, 20);
         }
 
         return Activity::query()
             ->where('grade_level_id', $enrollment->grade_level_id)
             ->where(function ($query) use ($enrollment) {
-                $query->whereNull('class_room_id')
-                    ->orWhere('class_room_id', $enrollment->class_room_id);
+                $query->doesntHave('classRooms')
+                    ->orWhereHas('classRooms', function ($q) use ($enrollment) {
+                        $q->where('class_rooms.id', $enrollment->class_room_id);
+                    });
             })
-            ->with(['gradeLevel:id,name', 'classRoom:id,name'])
+            ->with(['gradeLevel:id,name', 'classRooms:id,name'])
             ->orderBy('activity_date')
             ->orderBy('start_time')
             ->paginate(20);
     }
-
     public function updateActivity(Activity $activity, array $data)
     {
-        $activity->update($data);
+        $classRoomIds = $data['class_room_ids'] ?? null;
+        $activityData = Arr::except($data, ['class_room_ids']);
 
-        return $activity->load(['gradeLevel:id,name', 'classRoom:id,name']);
+        $activity->update($activityData);
+
+        if ($classRoomIds !== null) {
+            $activity->classRooms()->sync($classRoomIds);
+        }
+
+        return $activity->load(['gradeLevel:id,name', 'classRooms:id,name']);
     }
-
     public function deleteActivity(int $id): void
     {
         $activity = Activity::find($id);
@@ -101,7 +107,6 @@ class ActivityService
             throw new HttpResponseException($this->errorResponse('Activity not found.', 404));
         $activity->delete();
     }
-
     private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
     {
         if ($user->student) {
@@ -153,7 +158,6 @@ class ActivityService
 
         return Activity::query()->where('id', '<', 0);
     }
-
     public function unreadCount(User $user, ?int $studentId = null): int
     {
         return $this->getBaseQueryForUser($user, $studentId)
@@ -162,7 +166,6 @@ class ActivityService
             })
             ->count();
     }
-
     public function markAllAsRead(User $user, ?int $studentId = null): void
     {
         $activityIds = $this->getBaseQueryForUser($user, $studentId)
@@ -181,4 +184,14 @@ class ActivityService
             $user->readActivities()->syncWithoutDetaching($syncData);
         }
     }
+    public function getAllActivities(): LengthAwarePaginator
+    {
+        return Activity::query()
+            ->with(['gradeLevel:id,name', 'classRooms:id,name'])
+            ->orderBy('activity_date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->paginate(20);
+    }
+
+    
 }

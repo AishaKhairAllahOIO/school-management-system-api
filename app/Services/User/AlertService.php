@@ -138,7 +138,7 @@ class AlertService
             'title'           => $title,
             'description'     => $desc,
             'meta'            => $meta,
-            'created_by'      => Auth()->id,
+            'created_by'      => auth()->id(),
         ]);
 
         $student = $enrollment->student;
@@ -165,7 +165,7 @@ class AlertService
             'title'           => $title,
             'description'     => $desc,
             'meta'            => $meta,
-            'created_by'      => auth()->id,
+            'created_by'      => auth()->id(),
         ]);
 
         $users = collect([$staff->user])->filter();

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log; // 👈 استدعاء الـ Log لتسجي
 use App\Services\User\AlertService;
 use Carbon\Carbon;
 use App\Models\User;
-
+use GPBMetadata\Google\Api\Auth as ApiAuth;
 
 class PaymentService
 {
@@ -110,7 +110,7 @@ class PaymentService
                 'payment_method'       => $data['paymentMethod'],
                 'paper_receipt_no'     => $data['paperReceiptNo'] ?? null,
                 'digital_reference'    => $data['digitalReference'] ?? null,
-                'collected_by_user_id' => Auth::id(), // المحاسب الذي قام بالعملية
+                'collected_by_user_id' => Auth::user()->id, // المحاسب الذي قام بالعملية
             ]);
            
             $enrollment = $account->student->enrollments()->latest()->first();

@@ -190,7 +190,7 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         try{
         $newStatus = $service->toggleAccountStatus($id);
 
-        return $this->successResponse(['record_status' => $newStatus], 'تم تغيير حالة القيد بنجاح.');
+        return $this->successResponse(['account_status' => $newStatus], 'تم تغيير حالة القيد بنجاح.');
         }catch(Exception $e)
         {
             return $this->errorResponse($e->getMessage(), 404);

@@ -57,7 +57,7 @@ class FinancialSettingsService
         return DB::transaction(function () use ($id, $data) {
             $policy = InstallmentPolicy::findOrFail($id);
 
-            $isUsed = \App\Models\FeePlan::where('installment_policy_id', $id)->exists() ||
+            $isUsed = 
                       \App\Models\FinancialAccount::where('installment_policy_id', $id)->exists();
 
             if ($isUsed) {
@@ -91,7 +91,7 @@ class FinancialSettingsService
     {
         $policy = InstallmentPolicy::findOrFail($id);
 
-        $isUsed = \App\Models\FeePlan::where('installment_policy_id', $id)->exists() ||
+        $isUsed = 
                   \App\Models\FinancialAccount::where('installment_policy_id', $id)->exists();
 
         if ($isUsed) {

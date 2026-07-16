@@ -52,7 +52,7 @@ class RolesAndPermissionsSeeder extends Seeder
                     'adviser:create', 'adviser:edit', 'adviser:delete', 'adviser:view', 'adviser:assign_class',
                     'secretary:create', 'secretary:edit', 'secretary:delete', 'secretary:view',
                     'service_staff:create', 'service_staff:edit', 'service_staff:delete', 'service_staff:view',
-                    'counselor:create', 'counselor:edit', 'counselor:delete', 'counselor:view'
+                    'counselor:create', 'counselor:edit', 'counselor:delete', 'counselor:view','staff:create'
                 ]
             ],
             'attendance' => [

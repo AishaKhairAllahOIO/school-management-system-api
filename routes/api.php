@@ -18,6 +18,7 @@ use App\Http\Controllers\Setting\GradeAndClassroomController;
 use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
 use App\Models\School;
+use App\Http\Controllers\Admin\Staff\StaffController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -240,6 +241,7 @@ Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
     Route::get('/import-batches/history', [StudentController::class, 'getBatchesHistory']);
 });
 
+
 ///////////////////////////////////////////////////////////
 Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function () {
 
@@ -263,6 +265,26 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
         ->middleware('can:account:toggle_status');
 });
 
+Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
+    
+    Route::post('/register', [StaffController::class, 'store']); 
+    Route::post('/import', [StaffController::class, 'importExcel']);
+    Route::get('/import-batches/{batch}/errors/export',[StaffController::class,'exportErrors']);
+    Route::get('/import-batches/{batch}/status',[StaffController::class,'getImportStatus']);
+
+    Route::get('/search', [StaffController::class, 'search']);  
+    Route::get('/alphabetical', [StaffController::class, 'alphabetical']);  
+
+    Route::get('/showAllStaff',[StaffController::class,'index']);
+    Route::get('/showStaff/{staffId}',[StaffController::class,'show']);
+
+    Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
+    Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
+
+    Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
+    Route::delete('/{staff}', [StaffController::class, 'destroy']);
+   
+});
 
 /// ////////////////////////////////////////////////////////////////////////////////// ///
 

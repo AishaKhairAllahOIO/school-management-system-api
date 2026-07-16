@@ -22,7 +22,7 @@ class GradeConfiguration extends Model
     {
         return $this->belongsTo(AcademicYear::class);
     }
-    public function supervisor()
+    public function adviser()
     {
         return $this->belongsTo(User::class, 'supervisor_id');
     }

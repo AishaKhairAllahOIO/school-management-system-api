@@ -75,9 +75,7 @@ class StudentRegisterService
                 $studentPhotoPath = $data['student']['photo_url']->store('users/students', 'public');
             }
 
-            // =========================================================
-            // 👤 1. حساب ولي الأمر
-            // =========================================================
+
             $guardianPhone = $data['guardian']['phone_number'];
             $guardianUser  = User::where('phone_number', $guardianPhone)->first();
 
@@ -105,7 +103,6 @@ class StudentRegisterService
                 $guardianUser->assignRole('guardian');
                 $guardianRecord = Guardian::create(['user_id' => $guardianUser->id]);
             } else {
-                // البحث مباشرة عن سجل ولي الأمر أو إنشاؤه لتفادي خطأ الـ Builder Instance
                 $guardianRecord = Guardian::firstOrCreate(['user_id' => $guardianUser->id]);
                 
                 if (!$guardianUser->hasRole('guardian')) {
@@ -118,9 +115,7 @@ class StudentRegisterService
                     ['user_id'   => $guardianUser->id]
                 );
             }
-            // =========================================================
-            // 🎓 2. حساب الطالب
-            // =========================================================
+
             $studentUser = User::create([
                 'first_name'     => $data['student']['first_name'],
                 'last_name'      => $data['student']['last_name'],

@@ -16,61 +16,59 @@ class StudentManagementService
 
 public function filterStudents(array $filters)
 {
-$query = Student::with([
-            'user:id,first_name,last_name,father_name,mother_name,phone_number', 
-            'enrollments.gradeLevel', 
-            'enrollments.classRoom'
+ $query = Enrollment::withTrashed()->with([
+            'student.user:id,first_name,last_name,father_name,mother_name,phone_number', 
+            'gradeLevel', 
+            'classRoom'
         ]);
 
-
         if (isset($filters['level'])) {
-            $query->whereHas('enrollments.gradeLevel', function ($q) use ($filters) {
+            $query->whereHas('gradeLevel', function ($q) use ($filters) {
                 $q->where('level', $filters['level']);
             });
         }
 
         if (!empty($filters['classroom_name'])) {
-            $query->whereHas('enrollments.classRoom', function ($q) use ($filters) {
+            $query->whereHas('classRoom', function ($q) use ($filters) {
                 $q->where('name', 'like', "%{$filters['classroom_name']}%");
             });
         }
 
         if (!empty($filters['status'])) {
-            $query->whereHas('enrollments', function ($q) use ($filters) {
-                $q->where('enrollment_status', $filters['status']);
-            });
+            $query->where('enrollment_status', $filters['status']);
         }
 
         $direction = (isset($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
         
-        $query->join('users', 'students.user_id', '=', 'users.id')
-              ->select('students.*') // 🛡️ مهم جداً لمنع تداخل الـ IDs بين الجدولين
+        $query->join('students', 'enrollments.student_id', '=', 'students.id')
+              ->join('users', 'students.user_id', '=', 'users.id')
+              ->select('enrollments.*') 
               ->orderBy('users.first_name', $direction)
               ->orderBy('users.father_name', $direction)
-              ->orderBy('users.last_name', $direction);        // الترتيب تصاعدي أو تنازلي (حسب تاريخ الإنشاء)
-
+              ->orderBy('users.last_name', $direction);
 
         return $query->paginate(15);
 }
  public function searchStudents(string $searchTerm)
     {
-        $query = Student::with([
-            'user:id,first_name,last_name,father_name,mother_name,phone_number', 
-            'enrollments.gradeLevel', 
-            'enrollments.classRoom'
+       $query = Enrollment::withTrashed()->with([
+            'student.user:id,first_name,last_name,father_name,mother_name,phone_number', 
+            'gradeLevel', 
+            'classRoom'
         ]);
 
         $safe = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
         
-        $query->whereHas('user', function ($q) use ($safe) {
+        $query->whereHas('student.user', function ($q) use ($safe) {
             $q->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'like', "%{$safe}%")
               ->orWhere('first_name', 'like', "%{$safe}%")
               ->orWhere('father_name', 'like', "%{$safe}%")
               ->orWhere('last_name', 'like', "%{$safe}%");
         });
 
-        $query->join('users', 'students.user_id', '=', 'users.id')
-              ->select('students.*')
+        $query->join('students', 'enrollments.student_id', '=', 'students.id')
+              ->join('users', 'students.user_id', '=', 'users.id')
+              ->select('enrollments.*')
               ->orderBy('users.first_name', 'asc')
               ->orderBy('users.father_name', 'asc')
               ->orderBy('users.last_name', 'asc');
@@ -79,7 +77,7 @@ $query = Student::with([
     }
    public function getStudentPersonalProfile($studentId)
     {
-        $student = Student::with([
+        $student = Student::withTrashed()->with([
             'user', 
             'guardian.user'
         ])->find($studentId);

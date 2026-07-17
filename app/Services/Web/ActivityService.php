@@ -107,7 +107,7 @@ class ActivityService
             throw new HttpResponseException($this->errorResponse('Activity not found.', 404));
         $activity->delete();
     }
-    private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
+private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
     {
         if ($user->student) {
             $enrollment = $user->student->enrollments()
@@ -121,8 +121,11 @@ class ActivityService
             return Activity::query()
                 ->where('grade_level_id', $enrollment->grade_level_id)
                 ->where(function ($q) use ($enrollment) {
-                    $q->whereNull('class_room_id')
-                        ->orWhere('class_room_id', $enrollment->class_room_id);
+                    // استخدام العلاقة بدلاً من العمود المباشر
+                    $q->doesntHave('classRooms')
+                      ->orWhereHas('classRooms', function ($subQ) use ($enrollment) {
+                          $subQ->where('class_rooms.id', $enrollment->class_room_id);
+                      });
                 });
         }
 
@@ -148,8 +151,11 @@ class ActivityService
                     $query->orWhere(function ($q) use ($enrollment) {
                         $q->where('grade_level_id', $enrollment->grade_level_id)
                             ->where(function ($subQ) use ($enrollment) {
-                                $subQ->whereNull('class_room_id')
-                                    ->orWhere('class_room_id', $enrollment->class_room_id);
+                                // استخدام العلاقة بدلاً من العمود المباشر
+                                $subQ->doesntHave('classRooms')
+                                     ->orWhereHas('classRooms', function ($cq) use ($enrollment) {
+                                         $cq->where('class_rooms.id', $enrollment->class_room_id);
+                                     });
                             });
                     });
                 }
@@ -157,8 +163,7 @@ class ActivityService
         }
 
         return Activity::query()->where('id', '<', 0);
-    }
-    public function unreadCount(User $user, ?int $studentId = null): int
+    }    public function unreadCount(User $user, ?int $studentId = null): int
     {
         return $this->getBaseQueryForUser($user, $studentId)
             ->whereDoesntHave('readers', function ($q) use ($user) {

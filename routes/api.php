@@ -19,6 +19,7 @@ use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
 use App\Models\School;
 use App\Http\Controllers\Admin\Staff\StaffController;
+use App\Http\Controllers\Setting\SubjectController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -315,6 +316,8 @@ Route::post('/activity', [ActivityController::class, 'store']);
 Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
 Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
 Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
+
+Route::get('/subject/show',[SubjectController::class,'index']);
 
 
 /// /////////////////////////////////////Mobile/////////////////////////////////////// ///

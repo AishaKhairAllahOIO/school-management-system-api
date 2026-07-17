@@ -4,7 +4,7 @@ namespace App\Http\Requests\Web;
 
 use App\Models\Announcement;
 use App\Models\ClassRoom;
-use Dotenv\Validator;
+use Illuminate\Validation\Validator;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

@@ -6,7 +6,6 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use App\Models\ClassRoom;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
-
 class CreateActivitiesRequest extends FormRequest
 {
     /**

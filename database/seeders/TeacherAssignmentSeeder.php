@@ -15,25 +15,19 @@ class TeacherAssignmentSeeder extends Seeder
     {
         TeacherAssignment::updateOrCreate([
             'staff_id' => 1,
-            'subject_id' => 1,
+            'grade_subject_id' => 1,
             'class_room_id' => 1,
-            'academic_year_id' => 1,
-            'semester_id' => 1,
         ]);
 
          TeacherAssignment::updateOrCreate([
             'staff_id' => 1,
-            'subject_id' => 2,
+            'grade_subject_id' => 2,
             'class_room_id' => 1,
-            'academic_year_id' => 1,
-            'semester_id' => 1,
         ]);
          TeacherAssignment::updateOrCreate([
             'staff_id' => 1,
-            'subject_id' => 2,
+            'grade_subject_id' => 2,
             'class_room_id' => 2,
-            'academic_year_id' => 1,
-            'semester_id' => 1,
         ]);
     }
 }

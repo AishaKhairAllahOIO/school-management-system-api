@@ -193,5 +193,5 @@ class ActivityService
             ->paginate(20);
     }
 
-    
+
 }

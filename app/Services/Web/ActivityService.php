@@ -60,7 +60,6 @@ class ActivityService
 
         return $activity->load(['gradeLevel:id,name', 'classRooms:id,name']);
     }
-
     public function showActivities(Student $student): LengthAwarePaginator
     {
         $enrollment = $student->enrollments()
@@ -107,7 +106,7 @@ class ActivityService
             throw new HttpResponseException($this->errorResponse('Activity not found.', 404));
         $activity->delete();
     }
-private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
+    private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
     {
         if ($user->student) {
             $enrollment = $user->student->enrollments()
@@ -121,11 +120,10 @@ private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
             return Activity::query()
                 ->where('grade_level_id', $enrollment->grade_level_id)
                 ->where(function ($q) use ($enrollment) {
-                    // استخدام العلاقة بدلاً من العمود المباشر
                     $q->doesntHave('classRooms')
-                      ->orWhereHas('classRooms', function ($subQ) use ($enrollment) {
-                          $subQ->where('class_rooms.id', $enrollment->class_room_id);
-                      });
+                        ->orWhereHas('classRooms', function ($subQ) use ($enrollment) {
+                            $subQ->where('class_rooms.id', $enrollment->class_room_id);
+                        });
                 });
         }
 
@@ -151,11 +149,10 @@ private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
                     $query->orWhere(function ($q) use ($enrollment) {
                         $q->where('grade_level_id', $enrollment->grade_level_id)
                             ->where(function ($subQ) use ($enrollment) {
-                                // استخدام العلاقة بدلاً من العمود المباشر
                                 $subQ->doesntHave('classRooms')
-                                     ->orWhereHas('classRooms', function ($cq) use ($enrollment) {
-                                         $cq->where('class_rooms.id', $enrollment->class_room_id);
-                                     });
+                                    ->orWhereHas('classRooms', function ($cq) use ($enrollment) {
+                                        $cq->where('class_rooms.id', $enrollment->class_room_id);
+                                    });
                             });
                     });
                 }
@@ -163,7 +160,8 @@ private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
         }
 
         return Activity::query()->where('id', '<', 0);
-    }    public function unreadCount(User $user, ?int $studentId = null): int
+    }
+    public function unreadCount(User $user, ?int $studentId = null): int
     {
         return $this->getBaseQueryForUser($user, $studentId)
             ->whereDoesntHave('readers', function ($q) use ($user) {
@@ -197,6 +195,4 @@ private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
             ->orderBy('start_time', 'desc')
             ->paginate(20);
     }
-
-
 }

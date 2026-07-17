@@ -56,7 +56,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
         Route::get('/documents/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
 
-        Route::middleware('role:secretary')->group(function(){
+        Route::middleware('role:secretary')->group(function () {
             Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
             Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
         });
@@ -283,21 +283,20 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 
     Route::post('/register', [StaffController::class, 'store']);
     Route::post('/import', [StaffController::class, 'importExcel']);
-    Route::get('/import-batches/{batch}/errors/export',[StaffController::class,'exportErrors']);
-    Route::get('/import-batches/{batch}/status',[StaffController::class,'getImportStatus']);
+    Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
+    Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
 
     Route::get('/search', [StaffController::class, 'search']);
     Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
 
-    Route::get('/showAllStaff',[StaffController::class,'index']);
-    Route::get('/showStaff/{staffId}',[StaffController::class,'show']);
+    Route::get('/showAllStaff', [StaffController::class, 'index']);
+    Route::get('/showStaff/{staffId}', [StaffController::class, 'show']);
 
     Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
     Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
 
     Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
     Route::delete('/{staff}', [StaffController::class, 'destroy']);
-
 });
 
 /// ////////////////////////////////////////////////////////////////////////////////// ///

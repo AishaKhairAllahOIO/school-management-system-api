@@ -5,6 +5,50 @@ use App\Models\Staff;
 use Illuminate\Support\Facades\DB;
 
 class StaffManagementService{
+     public function getStaffRoleCounts(): array
+    {
+        $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff', 'super_admin'];
+        $counts = [];
+
+        foreach ($roles as $role) {
+            $counts[$role] = Staff::whereHas('user', function ($query) use ($role) {
+                $query->role($role);
+            })->count();
+        }
+
+        $counts['total'] = Staff::count();
+
+        return $counts;
+    }
+
+    /**
+     * 2. جلب قائمة الموظفين الذين يحملون دوراً محدداً
+     */
+    public function getStaffByRole(string $roleName, int $perPage = 15)
+    {
+        return Staff::withTrashed()
+            ->whereHas('user', function ($query) use ($roleName) {
+                $query->role($roleName);
+            })
+            ->with(['user.roles'])
+            ->paginate($perPage);
+    }
+
+    /**
+     * 3. جلب الملف الشخصي الكامل لموظف محدد
+     */
+    public function ownProfile()
+    {
+       $user=auth()->user()->staff(); 
+       return $user;
+
+    }
+    public function getStaffProfile(int $id): Staff
+    {
+        // تم تضمين user.roles للتعرف على الدور في الفرونت إند
+        return Staff::withTrashed()->with(['user.roles'])->findOrFail($id);
+    }
+
     public function getAllStaff($perPage = 15)
     {
         return Staff::withTrashed()->with('user')->paginate($perPage);

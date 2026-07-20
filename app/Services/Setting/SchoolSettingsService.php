@@ -42,16 +42,16 @@ class SchoolSettingsService
 
             // 4. تجهيز البيانات للإنشاء أو التعديل
             $mappedData = [
-                'school_name'            => $validatedData['schoolName'],
-                'short_name'             => $validatedData['shortName'],
+                'school_name'            => $validatedData['schoolName']?? null,
+                'short_name'             => $validatedData['shortName']?? null,
                 'description'            => $validatedData['description'] ?? null,
-                'phone_number'           => $validatedData['phoneNumber'],
+                'phone_number'           => $validatedData['phoneNumber']?? null,
                 'emergency_phone_number' => $validatedData['emergencyPhoneNumber'] ?? null,
-                'email'                  => $validatedData['email'],
+                'email'                  => $validatedData['email']?? null,
                 'website'                => $validatedData['website'] ?? null,
-                'address'                => $validatedData['address'],
-                'city'                   => $validatedData['city'],
-                'country'                => $validatedData['country'],
+                'address'                => $validatedData['address']?? null,
+                'city'                   => $validatedData['city']?? null,
+                'country'                => $validatedData['country']?? null,
                 'latitude'               => $validatedData['location']['latitude'] ?? null,
                 'longitude'              => $validatedData['location']['longitude'] ?? null,
                 'logo_url'               => $logoPath, // مسار الصورة الجديد أو القديم

@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('staff', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->enum('degree', ['diploma', 'bachelor', 'master', 'phd', 'other']);
-            $table->string('specialization', 100);
-            $table->string('university');
-            $table->unsignedSmallInteger('graduation_year');
+            $table->enum('degree', ['diploma', 'bachelor', 'master', 'phd', 'other'])->nullable();
+            $table->string('specialization', 100)->nullable();
+            $table->string('university')->nullable();
+            $table->unsignedSmallInteger('graduation_year')->nullable();
             $table->date('hire_date');
             $table->unsignedTinyInteger('experience_years')->default(0);
+            $table->string('service_type', 100)->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

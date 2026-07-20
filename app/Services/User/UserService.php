@@ -192,6 +192,26 @@ class UserService
             'children_cards' => $childrenCards
         ];
     }
+        public function getRoleCounts(): array
+    {
+        $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff', 'super_admin','student'];
+        $counts = [];
+
+        foreach ($roles as $role) {
+            $counts[$role] = User::role($role)->count();
+        }
+        $counts['total'] = User::role($roles)->count();
+
+        return $counts;
+    }
+
+
+    public function getUsersByRole(string $roleName, int $perPage = 15)
+    {
+        return User::role($roleName)
+            ->with(['roles']) // جلب علاقة staff إذا كان لديه تفاصيل موظف
+            ->paginate($perPage);
+    }
 
 
 

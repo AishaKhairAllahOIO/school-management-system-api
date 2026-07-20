@@ -79,7 +79,27 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
     // ==========================================
     // 2. إدارة الموظفين (CRUD & Management)
     // ==========================================
+ public function roleCounts(): JsonResponse
+    {
+        try {
+            $counts = $this->managementService->getStaffRoleCounts();
+            return $this->successResponse($counts, 'تم جلب إحصائيات الموظفين بنجاح.');
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب الإحصائيات.', 500, ['error' => $e->getMessage()]);
+        }
+    }
 
+    public function getByRole(string $role, Request $request): JsonResponse
+    {
+        try {
+            $perPage = $request->query('per_page', 15);
+            $staff = $this->managementService->getStaffByRole($role, $perPage);
+            // استخدمنا Resource Collection إذا كانت النتائج Paginated
+            return $this->successResponse($staff, "تم جلب موظفي قسم الـ {$role} بنجاح.");
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب الموظفين.', 500, ['error' => $e->getMessage()]);
+        }
+    }
     public function index(): JsonResponse
     {
         try {
@@ -103,6 +123,7 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             return $this->errorResponse('حدث خطأ أثناء عرض بيانات الموظف.', 500, ['error' => $e->getMessage()]);
         }
     }
+ 
 
     public function updatePersonal(UpdateGeneralPersonalRequest $request, int $staff): JsonResponse
     {
@@ -139,30 +160,32 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             }
             $perPage = $request->query('per_page', 15);
             $results = $this->managementService->searchStaffByFullName($fullName, $perPage);
-            return $this->successResponse($results, 'تم جلب نتائج البحث بنجاح.');
+            return $this->successResponse(StaffProfileResource::collection($results), 'تم جلب نتائج البحث بنجاح.');
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء إجراء عملية البحث.', 500, ['error' => $e->getMessage()]);
         }
     }
 
     public function alphabetical(Request $request): JsonResponse
-    {
-        try {
-            // الكنترولر يمرر المتغيرات كما هي، والسيرفس هو من يفلتر اللوجيك الخاطئ!
+    { 
+       try {
             $direction = $request->query('direction', 'asc');
             $perPage = $request->query('per_page', 15);
 
             $staff = $this->managementService->getAllStaffAlphabetically($direction, $perPage);
-            return $this->successResponse($staff, 'تم جلب الموظفين مرتبين أبجدياً بنجاح.');
+            return $this->successResponse(StaffProfileResource::collection($staff), 'تم جلب الموظفين مرتبين أبجدياً بنجاح.');
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء ترتيب الموظفين أبجدياً.', 500, ['error' => $e->getMessage()]);
         }
+    }
+    public function ownProfile(StaffManagementService $service)
+    {
+        return $this->successResponse(new StaffProfileResource($service->ownProfile()),'تم جلب البروفايل',200);
     }
 
     public function toggleStatus(int $staff): JsonResponse
     {
         try {
-            // السيرفس يقوم بالتبديل ويعيد النص الجاهز (مفعل/معطل)
             $statusText = $this->managementService->toggleAccountStatus($staff);
             return $this->successResponse(null, "تم تغيير حالة حساب الموظف بنجاح إلى: {$statusText}.");
         }catch (ModelNotFoundException $e) {

@@ -8,11 +8,13 @@ use App\Http\Requests\User\UpdatePersonalImageRequest;
 use App\Http\Resources\Auth\ProfileResource;
 use App\Http\Resources\User\TeacherProfileResource;
 use App\Models\User;
+use Exception;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\User\UpdateStaffRequest;
 use App\Http\Resources\Auth\AcademicProfileResource;
+use App\Http\Resources\Auth\UserResource;
 use App\Http\Resources\User\CounselorProfileResource;
 
 class UserController extends Controller
@@ -23,6 +25,30 @@ class UserController extends Controller
     public function __construct(UserService $userService)
     {
         $this->userService = $userService;
+    }
+        public function roleCounts()
+    {
+        try {
+            $counts = $this->userService->getRoleCounts();
+            return $this->successResponse($counts, 'تم جلب إحصائيات الأدوار بنجاح.');
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب الإحصائيات.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * جلب قائمة المستخدمين بناءً على دور محدد
+     */
+    public function getByRole(string $role, Request $request)
+    {
+        try {
+            $perPage = $request->query('per_page', 15);
+            $users = $this->userService->getUsersByRole($role, $perPage);
+            
+            return $this->successResponse(UserResource::collection($users), "تم جلب مستخدمي دور الـ {$role} بنجاح.");
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب المستخدمين.', 500, ['error' => $e->getMessage()]);
+        }
     }
 
     public function getUserInfo(Request $request)
@@ -42,26 +68,6 @@ class UserController extends Controller
 
         return $this->successResponse($result, 'تم جلب بيانات لوحةالتحكم بنجاح', 200);
     }
-    // public function myProfile()
-    // {
-
-    //     $user = $this->userService->getAuthenticatedProfile(Auth::user());
-
-    //     return $this->successResponse(new AcademicProfileResource($user), 'تم استعراض الملف الشخصي بنجاح', 200);
-    // }
-    // public function updateMyAdminProfile(UpdateStaffRequest $request)
-    // {
-    // ;
-    //     $updatedAdmin = $this->userService->updateStaffRecord(
-    //         Auth::user(),
-    //         $request->validated()
-    //     );
-
-    //     return $this->successResponse(
-    //          new AcademicProfileResource($updatedAdmin),
-    //         'تم تحديث بيانات الملف الشخصي للمدير العام بنجاح', 200
-    //     );
-    // }
 
     public function teacherProfile(Request $request)
     {

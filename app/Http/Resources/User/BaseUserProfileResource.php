@@ -14,8 +14,7 @@ class BaseUserProfileResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // 1. $this يمثل كائن الطالب (Student Model)
-        // 2. $this->user يمثل كائن المستخدم المرتبط (User Model)
+      
         $user = $this->user;
 
         // حماية إضافية: في حال (لسبب ما) لم يكن هناك يوزر مرتبط

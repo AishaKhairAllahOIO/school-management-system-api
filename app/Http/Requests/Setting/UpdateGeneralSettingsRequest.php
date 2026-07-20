@@ -27,16 +27,16 @@ class UpdateGeneralSettingsRequest extends BaseRequest
     public function rules(): array
     {
       return [
-            'schoolName' => 'required|string|max:255',
-            'shortName' => 'required|string|max:50',
+            'schoolName' => 'nullable|string|max:255',
+            'shortName' => 'nullable|string|max:50',
             'description' => 'nullable|string',
-            'phoneNumber' => 'required|string',
+            'phoneNumber' => 'nullable|string',
             'emergencyPhoneNumber' => 'nullable|string',
-            'email' => 'required|email',
+            'email' => 'nullable|email',
             'website' => 'nullable|url',
-            'address' => 'required|string',
-            'city' => 'required|string',
-            'country' => 'required|string',
+            'address' => 'nullable|string',
+            'city' => 'nullable|string',
+            'country' => 'nullable|string',
             'location.latitude' => 'nullable|numeric',
             'location.longitude' => 'nullable|numeric',
             'logo'                 => ['nullable', 'image', 'mimes:jpeg,png,jpg,svg,webp']];

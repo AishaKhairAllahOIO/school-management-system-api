@@ -19,6 +19,8 @@ class UpdateEmploymentStaffRequest extends BaseRequest
             'graduation_year'  => ['sometimes', 'integer'],
             'hire_date'        => ['sometimes', 'date'],
             'experience_years' => ['sometimes', 'integer', 'min:0'],
+            'service_type'     => ['sometimes','string'], 
+
         ];
     }
 }

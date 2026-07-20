@@ -31,12 +31,17 @@ public function toArray(Request $request): array
                 ?->groupBy('class_room_id')
                 ?->map(function ($assignments) {
                     $first = $assignments->first();
+
                     return [
                         'class_room'    => $first->classRoom?->name,
-                        'academic_year' => $first->academicYear?->year_name,
-                        'semester'      => $first->semester?->semester_name,
+                        'academic_year' => $first->gradeSubject?->academicYear?->year_name,
+                        'semester'      => $first->gradeSubject?->semester?->semester_name,
 
-                        'subjects'      => $assignments->map(fn($a) => $a->subject?->subject_name)->filter()->unique()->values()->toArray(),
+                        'subjects'      => $assignments->map(fn($a) => $a->gradeSubject?->subject?->subject_name)
+                                            ->filter()
+                                            ->unique()
+                                            ->values()
+                                            ->toArray(),
                     ];
                 })?->values()?->toArray() ?? [],
 

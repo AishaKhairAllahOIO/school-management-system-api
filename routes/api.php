@@ -19,6 +19,7 @@ use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
 use App\Models\School;
 use App\Http\Controllers\Admin\Staff\StaffController;
+use App\Http\Controllers\Setting\SubjectController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -55,6 +56,25 @@ Route::prefix('auth')->group(function () {
         Route::post('/personal-image', [UserController::class, 'uploadImage']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
         Route::get('/documents/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
+
+        Route::middleware('role:secretary')->group(function () {
+            Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
+            Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
+        });
+
+        Route::middleware('role:adviser')->group(function () {
+            Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
+            Route::post('/announcements',   [UserAnnouncementController::class, 'store']);
+            Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
+            Route::post('/alerts', [UserAlertController::class, 'store']);
+            Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
+            Route::get('/activity/{id}', [ActivityController::class, 'showActivity']);
+            Route::delete('/activity/{id}', [ActivityController::class, 'destroy']);
+            Route::post('/activity', [ActivityController::class, 'store']);
+            Route::get('/activities/all', [ActivityController::class, 'showAllActivity']);
+            Route::post('/activity/update/{id}', [ActivityController::class, 'updateActivity']);
+        });
+
 
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
@@ -150,15 +170,12 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
-
-
-
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/', [SchoolSettingsController::class, 'show']);
-    Route::get('/basic',[SchoolSettingsController::class,'index']);
+    Route::get('/basic', [SchoolSettingsController::class, 'index']);
     Route::post('/', [SchoolSettingsController::class, 'update']);
     Route::get('/images', [SchoolSettingsController::class, 'indexImages']);
     Route::get('/images/{image}', [SchoolSettingsController::class, 'showImage']);
@@ -168,8 +185,6 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::post('/images/{image}', [SchoolSettingsController::class, 'updateImage']);
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
     Route::delete('/', [SchoolSettingsController::class, 'destroy']);
-
-
 });
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
 
@@ -216,7 +231,7 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     Route::post('/{accountId}', [FinancialContractController::class, 'update']);
     Route::post('/payments/{id}', [PaymentController::class, 'update']);
     Route::delete('/payments/{id}', [PaymentController::class, 'destroy']);
-    });
+});
 
 //////////////////////////////////////////////////
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {
@@ -266,17 +281,17 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
 });
 
 Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
-    
-    Route::post('/register', [StaffController::class, 'store']); 
+
+    Route::post('/register', [StaffController::class, 'store']);
     Route::post('/import', [StaffController::class, 'importExcel']);
-    Route::get('/import-batches/{batch}/errors/export',[StaffController::class,'exportErrors']);
-    Route::get('/import-batches/{batch}/status',[StaffController::class,'getImportStatus']);
+    Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
+    Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
 
-    Route::get('/search', [StaffController::class, 'search']);  
-    Route::get('/alphabetical', [StaffController::class, 'alphabetical']);  
+    Route::get('/search', [StaffController::class, 'search']);
+    Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
 
-    Route::get('/showAllStaff',[StaffController::class,'index']);
-    Route::get('/showStaff/{staffId}',[StaffController::class,'show']);
+    Route::get('/showAllStaff', [StaffController::class, 'index']);
+    Route::get('/showStaff/{staffId}', [StaffController::class, 'show']);
 
     Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
     Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
@@ -288,7 +303,6 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 
     Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
     Route::delete('/{staff}', [StaffController::class, 'destroy']);
-   
 });
 
 /// ////////////////////////////////////////////////////////////////////////////////// ///
@@ -308,10 +322,10 @@ Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts
 Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
 Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
 
+Route::get('/subject/show',[SubjectController::class,'index']);
+
 
 /// /////////////////////////////////////Mobile/////////////////////////////////////// ///
-
-
 
 Route::prefix('user')->group(function () {
     Route::post('login', [UserAuthController::class, 'login']);
@@ -322,11 +336,12 @@ Route::prefix('user')->group(function () {
         Route::get('get-user-data', [UserController::class, 'getUserInfo']);
         Route::get('/my-activities', [ActivityController::class, 'show']);
         Route::get('/child-activities', [ActivityController::class, 'guardianViewActivities']);
-        Route::get('/activity-unread-count',[ActivityController::class,'getUnreadCount']);
-        Route::post('/activity-mark-all-read',[ActivityController::class,'markAllAsRead']);
+        Route::get('/activity-unread-count', [ActivityController::class, 'getUnreadCount']);
+        Route::post('/activity-mark-all-read', [ActivityController::class, 'markAllAsRead']);
         Route::post('/personal-image', [UserController::class, 'uploadImage']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
         Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
+        Route::get('/guardian/student/{studentId}/photo', [UserController::class, 'childPersonalPhotoUrl']);
         Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
         Route::get('/my-alerts', [UserAlertController::class, 'myAlerts']);

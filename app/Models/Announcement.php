@@ -29,8 +29,8 @@ class Announcement extends Model
         return $this->belongsTo(GradeLevel::class);
     }
 
-    public function classRoom()
+    public function classRooms()
     {
-        return $this->belongsTo(ClassRoom::class);
+        return $this->belongsToMany(ClassRoom::class, 'announcement_class_room');
     }
 }

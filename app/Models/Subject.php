@@ -8,6 +8,10 @@ class Subject extends Model
 {
 
     protected $guarded = [];
-
     
+ public function gradeSubjects()
+    {
+        return $this->hasMany(GradeSubject::class);
+    }
+
 }

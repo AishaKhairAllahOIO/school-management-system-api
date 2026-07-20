@@ -120,7 +120,6 @@ class UserController extends Controller
             'photo_url' => $this->getPhotoUrl($user),
         ], 'تم جلب رابط الصورة الشخصية بنجاح', 200);
     }
-
     private function getPhotoUrl(User $user): ?string
     {
         if (!$user->personal_photo) {
@@ -132,5 +131,33 @@ class UserController extends Controller
         }
 
         return url('/api/auth/documents/' . ltrim($user->personal_photo, '/'));
+    }
+    public function childPersonalPhotoUrl(Request $request, int $studentId)
+    {
+        $user = $request->user();
+
+        if (!$user->hasRole('guardian') || !$user->guardian) {
+            return $this->errorResponse('غير مصرح لك بالوصول. هذا المسار مخصص لأولياء الأمور.', 403);
+        }
+
+        $student = $user->guardian->students()->find($studentId);
+
+        if (!$student) {
+            return $this->errorResponse('الطالب غير موجود أو لا يتبع لك.', 404);
+        }
+
+        $studentUser = $student->user;
+
+        if (!$studentUser || !$studentUser->personal_photo) {
+            return $this->successResponse([
+                'photo_url' => null,
+            ], 'الطالب لا يملك صورة شخصية.', 200);
+        }
+
+        $photoUrl = url('/api/user/photos/' . ltrim($studentUser->personal_photo, '/'));
+
+        return $this->successResponse([
+            'photo_url' => $photoUrl,
+        ], 'تم جلب رابط صورة الابن بنجاح', 200);
     }
 }

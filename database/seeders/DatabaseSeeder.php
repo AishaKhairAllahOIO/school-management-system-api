@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\GradeSubject;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -35,8 +36,9 @@ class DatabaseSeeder extends Seeder
             FinancialTestSeeder::class,
             ScheduleTimeSlotSeeder::class,
             StaffSeeder::class,
-            TeacherAssignmentSeeder::class,
             AlertSeeder::class,
+            GradeSubjectSeeder::class,
+            TeacherAssignmentSeeder::class,
             TeacherWorkLoadSeeder::class,
             AnnouncementSeeder::class
 

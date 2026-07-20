@@ -6,7 +6,9 @@ use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GuardianViewActivitiesRequest;
 use App\Http\Requests\Web\CreateActivitiesRequest;
+use App\Http\Requests\Web\UpdateActivityRequest;
 use App\Http\Resources\Web\ActivityResource;
+use App\Models\Activity;
 use App\Models\Enrollment;
 use App\Models\Student;
 use App\Services\Web\ActivityService;
@@ -92,5 +94,51 @@ class ActivityController extends Controller
     {
         $this->activityService->markAllAsRead($request->user(), $request->student_id);
         return $this->successResponse(null, 'تم تصفير عداد الأنشطة', 200);
+    }
+
+    public function showAllActivity(Request $request)
+    {
+        // $user = $request->user();
+        // if (!$user->hasRole('advisor') || $user->hasRole('super_admin')) {
+        //     return $this->errorResponse('Not allowed to access here', 403, null);
+        // }
+
+        $activities = $this->activityService->getAllActivities();
+
+        return $this->paginatedResponse(
+            ActivityResource::collection($activities),
+            'those are the activities.',
+            200
+        );
+    }
+
+    public function updateActivity(UpdateActivityRequest $updateActivityRequest, int $id)
+    {
+        $activity = Activity::find($id);
+        if (!$activity) {
+            return $this->errorResponse('Activity not found', 404, null);
+        }
+
+        $updatedActivity = $this->activityService->updateActivity(
+            $activity,
+            $updateActivityRequest->validated()
+        );
+        return $this->successResponse(
+            new ActivityResource($updatedActivity),
+            'Activity updated successfully',
+            200
+        );
+    }
+
+    public function showActivity(Request $request, int $id)
+    {
+        $activity = Activity::find($id);
+        if (!$activity) {
+            return $this->errorResponse('Activity not found', 404, null);
+        }
+
+        return $this->successResponse(new ActivityResource($activity),
+        'activity shown successfuly',
+        200);
     }
 }

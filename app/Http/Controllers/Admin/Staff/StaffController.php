@@ -178,9 +178,21 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             return $this->errorResponse('حدث خطأ أثناء ترتيب الموظفين أبجدياً.', 500, ['error' => $e->getMessage()]);
         }
     }
-    public function ownProfile(StaffManagementService $service)
+    public function myProfile(Request $request): JsonResponse
     {
-        return $this->successResponse(new StaffProfileResource($service->ownProfile()),'تم جلب البروفايل',200);
+        try {
+            $user = $request->user();
+            
+            $staffRecord = Staff::where('user_id', $user->id)->firstOrFail();
+
+            $staffData = $this->managementService->getStaffProfile($staffRecord->id);
+            
+            return $this->successResponse(new StaffProfileResource($staffData), 'تم جلب ملفك الشخصي بنجاح.');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('حسابك الحالي غير مسجل كموظف في النظام.', 404);
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب الملف الشخصي.', 500, ['error' => $e->getMessage()]);
+        }
     }
 
     public function toggleStatus(int $staff): JsonResponse

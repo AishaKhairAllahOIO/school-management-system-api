@@ -284,7 +284,7 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::get('/counts/roles', [StaffController::class, 'roleCounts']); 
     Route::get('/role/{role}', [StaffController::class, 'getByRole']);
 
-    Route::get('/profile',[StaffController::class,'ownProfile']);
+    Route::get('/profile',[StaffController::class,'myProfile']);
 
     Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
     Route::delete('/{staff}', [StaffController::class, 'destroy']);

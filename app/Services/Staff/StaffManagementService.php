@@ -39,8 +39,8 @@ class StaffManagementService{
      */
     public function ownProfile()
     {
-       $user=auth()->user()->staff(); 
-       return $user;
+       $user=auth()->user()->staff; 
+       return $user->load('user.roles');
 
     }
     public function getStaffProfile(int $id): Staff

@@ -26,7 +26,14 @@ class AcademicSettingsService
     use ApiResource;
  public function getAcademicViewData()
     {
-    $settings = AcademicSetting::first();
+  $settings = AcademicSetting::firstOrCreate(
+            ['id' => 1], 
+            [
+                'current_academic_year_id' => null,
+                'current_semester_id' => null,
+                'schedule_settings' => json_encode([]), // قيمة افتراضية لتجنب خطأ الـ null
+            ]
+        );
 
    return  $settings;
     }

@@ -104,7 +104,7 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
     {
         try {
             $staff = $this->managementService->getAllStaff();
-            return $this->successResponse(StaffProfileResource::collection($staff), 'تم جلب بيانات الموظفين بنجاح.');
+            return $this->successResponse(StaffProfileResource::collection($staff)->response()->getData(true), 'تم جلب بيانات الموظفين بنجاح.');
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء جلب قائمة الموظفين.', 500, ['error' => $e->getMessage()]);
         }
@@ -173,7 +173,7 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             $perPage = $request->query('per_page', 15);
 
             $staff = $this->managementService->getAllStaffAlphabetically($direction, $perPage);
-            return $this->successResponse(StaffProfileResource::collection($staff), 'تم جلب الموظفين مرتبين أبجدياً بنجاح.');
+            return $this->successResponse(StaffProfileResource::collection($staff)->response()->getData(true), 'تم جلب الموظفين مرتبين أبجدياً بنجاح.');
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء ترتيب الموظفين أبجدياً.', 500, ['error' => $e->getMessage()]);
         }

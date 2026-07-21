@@ -54,15 +54,20 @@ class ProcessStaffImportJob implements ShouldQueue
                             'gender'       => strtolower($row['gender'] ?? 'male'),
                             'nationality'  => strtolower($row['nationality'] ?? 'syrian'),
                             'phone_number' => (string) ($row['phone_number'] ?? ''),
-                            'email'       =>$row['email']??'',
+                            'email'        => !empty($row['email']) ? trim($row['email']) : null,
+                            
+                            'role'             => strtolower($row['role']),
+                            'password'         => $row['password'] ?? null,
                         
                         
-                            'degree'           => strtolower($row['degree'] ?? 'bachelor'),
-                            'specialization'   => $row['specialization'] ?? '',
-                            'university'       => $row['university'] ?? '',
-                            'graduation_year'  => (int) ($row['graduation_year'] ?? 2000),
-                            'hire_date'        => isset($row['hire_date']) ? \Carbon\Carbon::parse($row['hire_date'])->format('Y-m-d') : now()->format('Y-m-d'),
-                            'experience_years' => (int) ($row['experience_years'] ?? 0),
+                        'degree'           => !empty($row['degree']) ? strtolower($row['degree']) : null,
+                        'specialization'   => $row['specialization'] ?? null,
+                        'university'       => $row['university'] ?? null,
+                        'graduation_year'  => !empty($row['graduation_year']) ? (int) $row['graduation_year'] : null,
+                        
+                        'hire_date'        => isset($row['hire_date']) ? \Carbon\Carbon::parse($row['hire_date'])->format('Y-m-d') : now()->format('Y-m-d'),
+                        'experience_years' => (int) ($row['experience_years'] ?? 0),
+                        'service_type'     => $row['service_type'] ?? null,
                         
                     ];
 

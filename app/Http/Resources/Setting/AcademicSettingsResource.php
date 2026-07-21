@@ -14,6 +14,16 @@ class AcademicSettingsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // if (is_null($this->resource)) {
+        //     return [
+        //         'id'                    => null,
+        //         'currentAcademicYearId' => '',
+        //         'currentSemesterId'     => '',
+        //         'scheduleSettings'      => null,
+        //         'createdAt'             => null,
+        //         'updatedAt'             => null,
+        //     ];
+        // }
         $schedule = is_string($this->schedule_settings) 
                     ? json_decode($this->schedule_settings, true) 
                     : $this->schedule_settings;

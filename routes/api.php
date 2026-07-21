@@ -319,6 +319,11 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
     Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
 
+    Route::get('/counts/roles', [StaffController::class, 'roleCounts']); 
+    Route::get('/role/{role}', [StaffController::class, 'getByRole']);
+
+    Route::get('/profile',[StaffController::class,'myProfile']);
+
     Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
     Route::delete('/{staff}', [StaffController::class, 'destroy']);
 });
@@ -372,5 +377,9 @@ Route::prefix('user')->group(function () {
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::post('logout', [UserAuthController::class, 'logout']);
+        // انا شهد ضفت هال Apis هدول:
+        Route::get('/counts/roles', [UserController::class, 'roleCounts']); 
+        Route::get('/role/{role}', [UserController::class, 'getByRole']);
+
     });
 });

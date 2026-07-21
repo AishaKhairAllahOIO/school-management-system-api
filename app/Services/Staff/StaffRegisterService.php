@@ -22,6 +22,10 @@ class StaffRegisterService
             if (isset($data['photo_url']) && $data['photo_url'] instanceof UploadedFile) {
                 $photoPath = $data['photo_url']->store('users/staff', 'public');
             }
+            $password = !empty($data['password']) 
+                        ? bcrypt($data['password']) 
+                        : bcrypt(env('DEFAULT_USER_PASSWORD', 'password'));
+
 
             $user = User::create([
                 'first_name'     => $data['first_name'],
@@ -32,27 +36,28 @@ class StaffRegisterService
                 'birth_place'    => $data['birth_place'],
                 'address'        => $data['address'],
                 'gender'         => $data['gender'],
-                'email'          =>$data['email'],
+                'email'          => !empty($data['email']) ? trim($data['email']) : null,
                 'nationality'    => $data['nationality'] ?? 'syrian',
                 'phone_number'   => $data['phone_number'],
                 'photo_url'      => $photoPath,
-                'password'       => bcrypt(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password'       => $password,
                 'account_status' => 'enabled', 
                 'record_status'  => 'active',
             ]);
 
-            //$user->assignRole('staff');
+           $role = $data['role'] ;
+            $user->assignRole($role);
 
-            $staff = Staff::create([
+               $staff = Staff::create([
                 'user_id'          => $user->id,
-                'degree'           => $data['degree'],
-                'specialization'   => $data['specialization'],
-                'university'       => $data['university'],
-                'graduation_year'  => $data['graduation_year'],
+                'degree'           => $data['degree'] ?? null,
+                'specialization'   => $data['specialization'] ?? null,
+                'university'       => $data['university'] ?? null,
+                'graduation_year'  => $data['graduation_year'] ?? null,
                 'hire_date'        => $data['hire_date'],
                 'experience_years' => $data['experience_years'] ?? 0,
+                'service_type'     => $data['service_type'] ?? null,
             ]);
-
             return $staff->load('user');
         });
     }

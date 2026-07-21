@@ -14,12 +14,13 @@ class StaffProfileResource extends JsonResource
         return [
             'id'               => (string) $this->id,
             'userId'           => (string) $user->id,
+            'role'             => $user->getRoleNames(),
             
             'fullName'         => trim($user->first_name . ' ' . $user->father_name . ' ' . $user->last_name),
             'firstName'        => $user->first_name,
             'lastName'         => $user->last_name,
             'phoneNumber'      => $user->phone_number,
-            'email'=>$user->email,
+            'email'            =>$user->email ?:null,
             'gender'           => $user->gender,
             'birthDate'        => $user->birth_date,
             'address'          => $user->address,
@@ -32,6 +33,7 @@ class StaffProfileResource extends JsonResource
             'graduationYear'   => (int) $this->graduation_year,
             'hireDate'         => $this->hire_date,
             'experienceYears'  => (int) $this->experience_years,
+            'serviceType'      =>$this->service_type,
             'isDeleted'       =>$this->trashed(),
             'deletedAt' =>$this->deleted_at?->toIso8601String(),
 

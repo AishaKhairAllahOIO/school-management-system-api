@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AssessmentComponent extends Model
 {
@@ -13,8 +14,8 @@ class AssessmentComponent extends Model
         'weight_percentage' => 'float',
     ];
 
-    public function gradeSubject()
+  public function gradeSubject(): BelongsTo
     {
-        return $this->belongsTo(GradeSubject::class);
+        return $this->belongsTo(GradeSubject::class, 'grade_subject_id');
     }
 }

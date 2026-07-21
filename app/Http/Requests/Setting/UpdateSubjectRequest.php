@@ -15,11 +15,11 @@ class UpdateSubjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [
+            'subject_name' => [
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('subjects', 'name')->ignore($this->route('subject')),
+                Rule::unique('subjects', 'subject_name')->ignore($this->route('subject')),
             ],
         ];
     }

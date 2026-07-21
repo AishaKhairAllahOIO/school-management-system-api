@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\Student\StudentController;
 use App\Http\Controllers\Auth\SystemAccessController;
+use App\Http\Controllers\Setting\AssessmentComponentController;
+use App\Http\Controllers\Setting\GradeSubjectController;
 use App\Http\Controllers\Setting\SchoolSettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +22,7 @@ use App\Http\Controllers\Finance\FinancialContractController;
 use App\Models\School;
 use App\Http\Controllers\Admin\Staff\StaffController;
 use App\Http\Controllers\Setting\SubjectController;
+use GuzzleHttp\Middleware;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -64,7 +67,7 @@ Route::prefix('auth')->group(function () {
 
         Route::middleware('role:adviser')->group(function () {
             Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
-            Route::post('/announcements',   [UserAnnouncementController::class, 'store']);
+            Route::post('/announcements', [UserAnnouncementController::class, 'store']);
             Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
             Route::post('/alerts', [UserAlertController::class, 'store']);
             Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
@@ -170,6 +173,29 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
+});
+
+Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () {
+    Route::middleware('role:super_admin')->group(function () {
+        Route::post('/subject/store', [SubjectController::class, 'store']);
+        Route::get('/subjects/show', [SubjectController::class, 'index']);
+        Route::delete('/subject/delete/{id}', [SubjectController::class, 'destroy']);
+        Route::post('/subjects/update/{id}', [SubjectController::class, 'update']);
+
+        Route::get('grade/subjects/show', [GradeSubjectController::class, 'index']);
+        Route::delete('grade/subject/delete/{id}', [GradeSubjectController::class, 'destroy']);
+        Route::post('grade/subject/store', [GradeSubjectController::class, 'store']);
+        Route::get('grade/subjects/show/{id}', [GradeSubjectController::class, 'show']);
+        Route::post('grade/subjects/update/{id}', [GradeSubjectController::class, 'update']);
+
+        Route::get('assessment/subjects/show',[AssessmentComponentController::class,'index']);
+        Route::get('assessment/subject/show/{id}',[AssessmentComponentController::class,'show']);
+        Route::post('assessment/subject/store',[AssessmentComponentController::class,'store']);
+        Route::post('assessment/subject/update/{id}',[AssessmentComponentController::class,'update']);
+        Route::delete('assessment/subject/delete{id}',[AssessmentComponentController::class,'destroy']);
+        Route::get('assessment/subjects/grouped',[AssessmentComponentController::class,'groupedBySubject']);
+
+    });
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
@@ -296,7 +322,7 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
     Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
 
-    Route::get('/counts/roles', [StaffController::class, 'roleCounts']); 
+    Route::get('/counts/roles', [StaffController::class, 'roleCounts']);
     Route::get('/role/{role}', [StaffController::class, 'getByRole']);
 
     Route::get('/profile',[StaffController::class,'myProfile']);
@@ -308,7 +334,7 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 /// ////////////////////////////////////////////////////////////////////////////////// ///
 
 
-Route::post('/announcements',   [UserAnnouncementController::class, 'store']);
+Route::post('/announcements', [UserAnnouncementController::class, 'store']);
 Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
 
 Route::post('/alerts', [UserAlertController::class, 'store']);
@@ -322,7 +348,8 @@ Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts
 Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
 Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
 
-Route::get('/subject/show',[SubjectController::class,'index']);
+
+
 
 
 /// /////////////////////////////////////Mobile/////////////////////////////////////// ///
@@ -354,7 +381,7 @@ Route::prefix('user')->group(function () {
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::post('logout', [UserAuthController::class, 'logout']);
         // انا شهد ضفت هال Apis هدول:
-        Route::get('/counts/roles', [UserController::class, 'roleCounts']); 
+        Route::get('/counts/roles', [UserController::class, 'roleCounts']);
         Route::get('/role/{role}', [UserController::class, 'getByRole']);
 
     });

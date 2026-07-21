@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class AlertService
 {
@@ -138,7 +139,7 @@ class AlertService
             'title'           => $title,
             'description'     => $desc,
             'meta'            => $meta,
-            'created_by'      => auth()->id(),
+            'created_by'      => Auth::id(),
         ]);
 
         $student = $enrollment->student;
@@ -165,7 +166,7 @@ class AlertService
             'title'           => $title,
             'description'     => $desc,
             'meta'            => $meta,
-            'created_by'      => auth()->id(),
+            'created_by'      => Auth::id(),
         ]);
 
         $users = collect([$staff->user])->filter();

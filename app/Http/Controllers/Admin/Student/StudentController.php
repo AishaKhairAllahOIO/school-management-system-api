@@ -21,6 +21,7 @@ use App\ApiResource;
 use Illuminate\Http\Request;
 
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class StudentController extends Controller
 {
@@ -173,13 +174,17 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
     /**
      * FR-07: شطب طالب من المدرسة (Soft أو Hard حسب السياسة)
      */
-    public function destroy($id, StudentManagementService $service)
+    public function destroy(int $id, StudentManagementService $service)
     {
         try{
         $service->deleteStudent($id);
 
         return $this->successResponse(null, 'تم شطب الطالب من النظام بنجاح.');
-        }catch(Exception $e) {
+        }catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse('تسجيل الطالب  غير موجود',404);
+        }
+        catch(Exception $e) {
             return $this->errorResponse($e->getMessage(), 404);
         }
     }

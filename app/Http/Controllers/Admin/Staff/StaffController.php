@@ -178,6 +178,7 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             return $this->errorResponse('حدث خطأ أثناء ترتيب الموظفين أبجدياً.', 500, ['error' => $e->getMessage()]);
         }
     }
+    
     public function myProfile(Request $request): JsonResponse
     {
         try {

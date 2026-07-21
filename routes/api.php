@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Student\StudentController;
 use App\Http\Controllers\Auth\SystemAccessController;
+use App\Http\Controllers\Setting\AssessmentComponentController;
 use App\Http\Controllers\Setting\GradeSubjectController;
 use App\Http\Controllers\Setting\SchoolSettingsController;
 use Illuminate\Http\Request;
@@ -187,10 +188,12 @@ Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () 
         Route::get('grade/subjects/show/{id}', [GradeSubjectController::class, 'show']);
         Route::post('grade/subjects/update/{id}', [GradeSubjectController::class, 'update']);
 
-
-
-
-
+        Route::get('assessment/subjects/show',[AssessmentComponentController::class,'index']);
+        Route::get('assessment/subject/show/{id}',[AssessmentComponentController::class,'show']);
+        Route::post('assessment/subject/store',[AssessmentComponentController::class,'store']);
+        Route::post('assessment/subject/update/{id}',[AssessmentComponentController::class,'update']);
+        Route::delete('assessment/subject/delete{id}',[AssessmentComponentController::class,'destroy']);
+        Route::get('assessment/subjects/grouped',[AssessmentComponentController::class,'groupedBySubject']);
 
     });
 });
@@ -319,7 +322,7 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
     Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
 
-    Route::get('/counts/roles', [StaffController::class, 'roleCounts']); 
+    Route::get('/counts/roles', [StaffController::class, 'roleCounts']);
     Route::get('/role/{role}', [StaffController::class, 'getByRole']);
 
     Route::get('/profile',[StaffController::class,'myProfile']);
@@ -378,7 +381,7 @@ Route::prefix('user')->group(function () {
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::post('logout', [UserAuthController::class, 'logout']);
         // انا شهد ضفت هال Apis هدول:
-        Route::get('/counts/roles', [UserController::class, 'roleCounts']); 
+        Route::get('/counts/roles', [UserController::class, 'roleCounts']);
         Route::get('/role/{role}', [UserController::class, 'getByRole']);
 
     });

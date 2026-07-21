@@ -31,6 +31,7 @@ class GradeSubjectResource extends JsonResource
 
             'createdAt' => $this->created_at->toISOString(),
             'updatedAt' => $this->updated_at->toISOString(),
-        ];
+
+      ];
     }
 }

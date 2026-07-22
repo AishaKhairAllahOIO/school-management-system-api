@@ -52,5 +52,24 @@ class StaffSeeder extends Seeder
                 'experience_years' => 5,
                 'hire_date' => '2015-09-01',
             ]);
+                Staff::create([
+                'user_id' => 9,
+                'degree' => 'bachelor',
+                'specialization' => 'توجيه',
+                'university' => 'جامعة دمشق',
+                'graduation_year' => 2015,
+                'experience_years' => 6,
+                'hire_date' => '2015-09-01',
+            ]);
+                Staff::create([
+                'user_id' => 10,
+                'degree' => 'bachelor',
+                'specialization' => 'اداة المكاتب',
+                'university' => 'جامعة دمشق',
+                'graduation_year' => 2015,
+                'experience_years' => 6,
+                'hire_date' => '2015-09-01',
+            ]);
+
     }
 }

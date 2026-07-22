@@ -388,9 +388,7 @@ Route::prefix('user')->group(function () {
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::post('logout', [UserAuthController::class, 'logout']);
-        // انا شهد ضفت هال Apis هدول:
-        Route::get('/counts/roles', [UserController::class, 'roleCounts']);
-        Route::get('/role/{role}', [UserController::class, 'getByRole']);
+ 
 
     });
 });

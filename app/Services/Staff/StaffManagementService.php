@@ -2,21 +2,19 @@
 namespace App\Services\Staff;
 use App\Models\User;
 use App\Models\Staff;
+use App\Models\Student;
 use Illuminate\Support\Facades\DB;
 
 class StaffManagementService{
      public function getStaffRoleCounts(): array
     {
-        $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff', 'super_admin'];
+         $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff','student'];
         $counts = [];
 
         foreach ($roles as $role) {
-            $counts[$role] = Staff::whereHas('user', function ($query) use ($role) {
-                $query->role($role);
-            })->count();
+            $counts[$role] = User::role($role)->count();
         }
-
-        $counts['total'] = Staff::count();
+        $counts['total'] = User::role($roles)->count();
 
         return $counts;
     }
@@ -26,8 +24,15 @@ class StaffManagementService{
      */
     public function getStaffByRole(string $roleName, int $perPage = 15)
     {
-        return Staff::withTrashed()
-            ->whereHas('user', function ($query) use ($roleName) {
+        if($roleName==='student')
+            return Student::
+            whereHas('user', function ($query) use ($roleName) {
+                $query->role($roleName);
+            })
+            ->with(['user.roles'])
+            ->paginate($perPage);
+        return Staff::
+            whereHas('user', function ($query) use ($roleName) {
                 $query->role($roleName);
             })
             ->with(['user.roles'])
@@ -155,6 +160,7 @@ class StaffManagementService{
     {
         DB::transaction(function () use ($id) {
             $staff=Staff::findOrFail($id);
+            $staff->user->update(['account_status'=>'disabled']);
             $staff->user()->delete(); 
             $staff->delete();
         });

@@ -209,7 +209,8 @@ class UserService
     public function getUsersByRole(string $roleName, int $perPage = 15)
     {
         return User::role($roleName)
-            ->with(['roles']) // جلب علاقة staff إذا كان لديه تفاصيل موظف
+            ->with(['roles']) 
+            //->whereNull('users.deleted_at')// جلب علاقة staff إذا كان لديه تفاصيل موظف
             ->paginate($perPage);
     }
 

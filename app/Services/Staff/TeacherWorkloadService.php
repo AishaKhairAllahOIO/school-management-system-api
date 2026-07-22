@@ -34,22 +34,21 @@ class TeacherWorkloadService
             ->get();
     }
 
-    // 🔥 دالة تعديل النصاب
  public function updateWorkload(int $id, array $data)
     {
         $workload=TeacherWorkload::find($id);
-        // 1. نضع البيانات في الذاكرة
         $workload->fill($data);
 
-        // 2. 🛡️ حماية سيادية: هل يحاول المدير تغيير هوية المعلم أو السنة؟
         if ($workload->isDirty(['teacher_id', 'academic_year_id'])) {
-            // إذا كان المعلم قد بدأ بالتدريس ولديه حصص، نمنع التغيير لكي لا تضيع تكليفاته!
             if ($workload->assigned_monthly_periods > 0) {
                 throw new Exception("لا يمكن تغيير المعلم أو السنة الدراسية لهذا النصاب لوجود تكليفات فعلية مرتبطة به. يرجى تعديل التكليفات أولاً.");
             }
         }
+        if($data['required_monthly_periods'])
+            {
+                $workload['remaining_monthly_periods']=$data['required_monthly_periods']-$workload->assigned_monthly_periods;
+            }
 
-        // 3. نحفظ التعديلات بأمان
         $workload->save();
         
         return $workload;

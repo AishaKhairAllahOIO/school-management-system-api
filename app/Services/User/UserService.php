@@ -194,7 +194,7 @@ class UserService
     }
         public function getRoleCounts(): array
     {
-        $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff', 'super_admin','student'];
+        $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff','student'];
         $counts = [];
 
         foreach ($roles as $role) {

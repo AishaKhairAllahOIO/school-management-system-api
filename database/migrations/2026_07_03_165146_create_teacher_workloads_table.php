@@ -13,12 +13,14 @@ return new class extends Migration
     {
         Schema::create('teacher_workloads', function (Blueprint $table) {
             $table->id();
-            $table->integer('required_monthly_periods');
-            $table->foreignId('staff_id')->constrained('staff')->cascadeOnDelete();
             $table->foreignId('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
-            $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
-            $table->unique(['staff_id', 'academic_year_id', 'semester_id'], 'teacher_semester_workload_unique');
+            $table->foreignId('teacher_id')->constrained('staff')->cascadeOnDelete();
+            $table->integer('required_monthly_periods');
+            $table->integer('assigned_monthly_periods')->default(0);
+            $table->integer('remaining_monthly_periods')->virtualAs('required_monthly_periods - assigned_monthly_periods');
             $table->timestamps();
+            $table->unique(['academic_year_id', 'teacher_id'], 'unique_workload_per_year');
+       
         });
     }
 

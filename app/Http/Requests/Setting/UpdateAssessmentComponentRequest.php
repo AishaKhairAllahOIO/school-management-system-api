@@ -25,38 +25,50 @@ class UpdateAssessmentComponentRequest extends FormRequest
         ];
     }
 
-      public function withValidator(Validator $validator): void
+public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
-            $gradeSubjectId = $this->input('grade_subject_id');
-            $newMaxMark = (float) $this->input('max_mark');
-            $newWeightPercentage = (float) $this->input('weight_percentage');
 
-            if ($gradeSubjectId) {
-                $gradeSubject = GradeSubject::find($gradeSubjectId);
+           $componentId = $this->route('id');
 
-                if ($gradeSubject) {
-                    $existingMarks = AssessmentComponent::where('grade_subject_id', $gradeSubjectId)->sum('max_mark');
-                    $totalMarks = $existingMarks + $newMaxMark;
+            $currentComponent = AssessmentComponent::find($componentId);
 
-                    if ($totalMarks > $gradeSubject->max_mark) {
-                        $remainingMark = $gradeSubject->max_mark - $existingMarks;
-                        $validator->errors()->add(
-                            'max_mark',
-                            "مجموع العلامات ({$totalMarks}) يتجاوز العلامة العظمى للمادة ({$gradeSubject->max_mark}). العلامة المتبقية المتاحة هي: {$remainingMark}"
-                        );
-                    }
+            if (!$currentComponent) return;
 
-                    $existingWeight = AssessmentComponent::where('grade_subject_id', $gradeSubjectId)->sum('weight_percentage');
-                    $totalWeight = $existingWeight + $newWeightPercentage;
+            $gradeSubjectId = $this->input('grade_subject_id', $currentComponent->grade_subject_id);
+            $newMaxMark = $this->has('max_mark') ? (float) $this->input('max_mark') : $currentComponent->max_mark;
+            $newWeightPercentage = $this->has('weight_percentage') ? (float) $this->input('weight_percentage') : $currentComponent->weight_percentage;
 
-                    if ($totalWeight > 100) {
-                        $remainingWeight = 100 - $existingWeight;
-                        $validator->errors()->add(
-                            'weight_percentage',
-                            "النسبة المئوية الإجمالية ({$totalWeight}%) تتجاوز 100%. النسبة المتبقية المتاحة هي: {$remainingWeight}%"
-                        );
-                    }
+            $gradeSubject = GradeSubject::find($gradeSubjectId);
+
+            if ($gradeSubject) {
+
+                $existingMarks = AssessmentComponent::where('grade_subject_id', $gradeSubjectId)
+                    ->where('id', '!=', $componentId)
+                    ->sum('max_mark');
+
+                $totalMarks = $existingMarks + $newMaxMark;
+
+                if ($totalMarks > $gradeSubject->max_mark) {
+                    $remainingMark = $gradeSubject->max_mark - $existingMarks;
+                    $validator->errors()->add(
+                        'max_mark',
+                        "مجموع العلامات ({$totalMarks}) يتجاوز العلامة العظمى للمادة ({$gradeSubject->max_mark}). العلامة المتبقية المتاحة هي: {$remainingMark}"
+                    );
+                }
+
+                $existingWeight = AssessmentComponent::where('grade_subject_id', $gradeSubjectId)
+                    ->where('id', '!=', $componentId)
+                    ->sum('weight_percentage');
+
+                $totalWeight = $existingWeight + $newWeightPercentage;
+
+                if ($totalWeight > 100) {
+                    $remainingWeight = 100 - $existingWeight;
+                    $validator->errors()->add(
+                        'weight_percentage',
+                        "النسبة المئوية الإجمالية ({$totalWeight}%) تتجاوز 100%. النسبة المتبقية المتاحة هي: {$remainingWeight}%"
+                    );
                 }
             }
         });

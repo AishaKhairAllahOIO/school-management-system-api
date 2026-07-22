@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('planned_classrooms_count');
             $table->integer('planned_students_capacity')->default(0);
             $table->timestamps();
-    
+
     $table->unique(['academic_year_id', 'grade_level_id']);
         });
     }

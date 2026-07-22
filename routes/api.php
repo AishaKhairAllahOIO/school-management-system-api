@@ -44,7 +44,6 @@ Route::prefix('auth')->group(function () {
     Route::post('/password/verify-otp', [SystemAccessController::class, 'verifyPassword']);
     Route::post('password/resend-otp', [SystemAccessController::class, 'forgotPassword']);
     Route::post('/password/reset', [SystemAccessController::class, 'resetPassword']);
-    // Route::post('grade-levels/structure',[AcademicSettingsController::class,])
 
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -60,25 +59,28 @@ Route::prefix('auth')->group(function () {
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
         Route::get('/documents/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
 
-        Route::middleware('role:secretary')->group(function () {
+        Route::middleware('role:secretary|super_admin')->group(function () {
             Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
             Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
         });
 
-        Route::middleware('role:adviser')->group(function () {
+        Route::middleware('role:adviser|super_admin')->group(function () {
             Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
-            Route::post('/announcements', [UserAnnouncementController::class, 'store']);
-            Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
             Route::post('/alerts', [UserAlertController::class, 'store']);
             Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
+            Route::post('/announcements', [UserAnnouncementController::class, 'store']);
+            Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
+            Route::post('/announcement/update/{id}',[UserAnnouncementController::class,'update']);
+            Route::get('creater/show/announcements',[UserAnnouncementController::class,'adminAnnouncements']);
+        });
+
+        Route::middleware('role:adviser|super_admin|teacher')->group(function () {
             Route::get('/activity/{id}', [ActivityController::class, 'showActivity']);
             Route::delete('/activity/{id}', [ActivityController::class, 'destroy']);
             Route::post('/activity', [ActivityController::class, 'store']);
             Route::get('/activities/all', [ActivityController::class, 'showAllActivity']);
             Route::post('/activity/update/{id}', [ActivityController::class, 'updateActivity']);
         });
-
-
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
             Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
@@ -120,7 +122,6 @@ Route::prefix('auth')->group(function () {
         Route::delete('/logout', [SystemAccessController::class, 'logout']);
     });
 });
-//////////////////////////////////////////////////////////
 Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
 
@@ -142,10 +143,8 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
     Route::post('/grades', [GradeAndClassroomController::class, 'storeGrade']);
     Route::post('/grades/{grade}', [GradeAndClassroomController::class, 'updateGrade']);
-    // Grade Configurations
     Route::post('/configurations', [GradeAndClassroomController::class, 'storeConfiguration']);
     Route::post('/configurations/{config}', [GradeAndClassroomController::class, 'updateConfiguration']);
-    // Classrooms
     Route::post('/classrooms', [GradeAndClassroomController::class, 'storeClassroom']);
     Route::post('/classrooms/{classroom}', [GradeAndClassroomController::class, 'updateClassroom']);
 
@@ -188,12 +187,12 @@ Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () 
         Route::get('grade/subjects/show/{id}', [GradeSubjectController::class, 'show']);
         Route::post('grade/subjects/update/{id}', [GradeSubjectController::class, 'update']);
 
-        Route::get('assessment/subjects/show',[AssessmentComponentController::class,'index']);
-        Route::get('assessment/subject/show/{id}',[AssessmentComponentController::class,'show']);
-        Route::post('assessment/subject/store',[AssessmentComponentController::class,'store']);
-        Route::post('assessment/subject/update/{id}',[AssessmentComponentController::class,'update']);
-        Route::delete('assessment/subject/delete/{id}',[AssessmentComponentController::class,'destroy']);
-        Route::get('assessment/subjects/grouped',[AssessmentComponentController::class,'groupedBySubject']);
+        Route::get('assessment/subjects/show', [AssessmentComponentController::class, 'index']);
+        Route::get('assessment/subject/show/{id}', [AssessmentComponentController::class, 'show']);
+        Route::post('assessment/subject/store', [AssessmentComponentController::class, 'store']);
+        Route::post('assessment/subject/update/{id}', [AssessmentComponentController::class, 'update']);
+        Route::delete('assessment/subject/delete/{id}', [AssessmentComponentController::class, 'destroy']);
+        Route::get('assessment/subjects/grouped', [AssessmentComponentController::class, 'groupedBySubject']);
 
     });
 });
@@ -309,7 +308,7 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
         Route::post('/import', [StaffController::class, 'importExcel']);
         Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
         Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
-        
+
         Route::get('/search', [StaffController::class, 'search']);
         Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
 
@@ -331,32 +330,13 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
         Route::get('/{staff}/workloads', [StaffController::class, 'getWorkloads']);
         Route::put('/{staff}/workloads/{workload}', [StaffController::class, 'updateWorkload']);
         Route::delete('/{staff}/workloads/{workload}', [StaffController::class, 'destroyWorkload']);
-        
+
         Route::post('/{staff}/assignments', [StaffController::class, 'assignClassrooms']);
         Route::get('/{staff}/assignments', [StaffController::class, 'getAssignments']);
         Route::put('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
         Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment']);
 
 });
-
-/// ////////////////////////////////////////////////////////////////////////////////// ///
-
-
-Route::post('/announcements', [UserAnnouncementController::class, 'store']);
-Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
-
-Route::post('/alerts', [UserAlertController::class, 'store']);
-
-Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
-
-Route::delete('/activity/{id}', [ActivityController::class, 'destroy']);
-Route::post('/activity', [ActivityController::class, 'store']);
-
-Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
-Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
-Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
-
-
 
 
 

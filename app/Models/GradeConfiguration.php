@@ -26,18 +26,18 @@ class GradeConfiguration extends Model
     {
         return $this->belongsTo(User::class, 'supervisor_id');
     }
-public function getActualClassroomsCountAttribute()
+    public function getActualClassroomsCountAttribute()
     {
         return Classroom::where('grade_level_id', $this->grade_level_id) // تعديل هنا
-                        ->where('academic_year_id', $this->academic_year_id)
-                        ->count();
+            ->where('academic_year_id', $this->academic_year_id)
+            ->count();
     }
 
     public function getActualStudentsCountAttribute()
     {
         return Enrollment::where('grade_level_id', $this->grade_level_id) // تعديل هنا
-                         ->where('academic_year_id', $this->academic_year_id)
-                         ->where('enrollment_status', 'enrolled')
-                         ->count();
+            ->where('academic_year_id', $this->academic_year_id)
+            ->where('enrollment_status', 'enrolled')
+            ->count();
     }
 }

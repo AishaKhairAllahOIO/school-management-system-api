@@ -5,7 +5,9 @@ namespace App\Services\Web;
 use App\ApiResource;
 use App\Jobs\SendPushNotification;
 use App\Models\Activity;
+use App\Models\ClassRoom;
 use App\Models\Enrollment;
+use App\Models\GradeConfiguration;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -187,11 +189,47 @@ class ActivityService
             $user->readActivities()->syncWithoutDetaching($syncData);
         }
     }
-    public function getAllActivities(): LengthAwarePaginator
+public function getAllActivities(User $user): LengthAwarePaginator
     {
-        return Activity::query()
-            ->with(['gradeLevel:id,name', 'classRooms:id,name'])
-            ->orderBy('activity_date', 'desc')
+        $query = Activity::query()->with(['gradeLevel:id,name', 'classRooms:id,name']);
+
+        if ($user->hasRole('super_admin')) {
+        }
+
+        elseif ($user->hasRole('advisor')) {
+            $advisorGradeIds = GradeConfiguration::where('supervisor_id', $user->id)
+                ->whereHas('academicYear', function ($q) {
+                    $q->where('is_current', true);
+                })
+                ->pluck('grade_level_id')
+                ->toArray();
+
+            $query->whereIn('grade_level_id', $advisorGradeIds);
+        }
+
+        elseif ($user->hasRole('teacher')) {
+            $teacherClassRooms = $user->staff->teacherAssignments()
+                ->pluck('class_room_id')
+                ->toArray();
+
+            $teacherGrades = ClassRoom::whereIn('id', $teacherClassRooms)
+                ->pluck('grade_level_id')
+                ->toArray();
+
+            $query->where(function ($q) use ($teacherGrades, $teacherClassRooms) {
+                $q->whereIn('grade_level_id', $teacherGrades)
+                  ->doesntHave('classRooms')
+                  ->orWhereHas('classRooms', function ($subQ) use ($teacherClassRooms) {
+                      $subQ->whereIn('class_room_id', $teacherClassRooms);
+                  });
+            });
+        }
+
+        else {
+            $query->where('id', '<', 0);
+        }
+
+        return $query->orderBy('activity_date', 'desc')
             ->orderBy('start_time', 'desc')
             ->paginate(20);
     }

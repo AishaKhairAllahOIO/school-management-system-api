@@ -58,7 +58,7 @@ class UserSeeder extends Seeder
         $user3 = User::updateOrCreate(
             ['phone_number' => '0960657750'],
             [
-                'email' => 'nnnnahhmad@gmail.com',
+                'email' => 'aishakhairallah3@gmail.com',
                 'first_name' => 'aisha',
                 'last_name' => 'khair allah',
                 'father_name' => 'emad aldeen',
@@ -158,7 +158,8 @@ class UserSeeder extends Seeder
             ]
         );
         $user7->assignRole('super_admin');
-                $user7 = User::updateOrCreate(
+        
+        $user7 = User::updateOrCreate(
             ['phone_number' => '0983846541'],
             [
                 'first_name' => 'aisha',
@@ -171,7 +172,7 @@ class UserSeeder extends Seeder
                 'nationality' => 'syrian',
                 'gender' => 'male',
                 'photo_url' => 'https://example.com/photo5.jpg',
-                'email' => 'aishakhairallah3@gmail.com',
+                'email' => 'nnnnahhmad@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),

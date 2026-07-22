@@ -2,28 +2,34 @@
 
 namespace App\Http\Requests\Web;
 
+use App\ApiResource;
 use App\Models\Announcement;
 use App\Models\ClassRoom;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Validator;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class AnnouncementRequset extends FormRequest
+class AnnouncementRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+  use ApiResource;
+
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('create', [
+            Announcement::class,
+            $this->input('audience'),
+            $this->input('grade_level_id') ? (int) $this->input('grade_level_id') : null,
+            $this->input('class_room_ids')
+        ]);
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    protected function failedAuthorization()
+    {
+        throw new HttpResponseException(
+            $this->errorResponse('غير مصرح لك بنشر هذا الإعلان. تأكد من نوع الإعلان وصلاحياتك ضمن المرحلة الدراسية.', 403)
+        );
+    }
     public function rules(): array
     {
         return [
@@ -34,7 +40,7 @@ class AnnouncementRequset extends FormRequest
             ])],
             'title'          => ['required', 'string', 'max:255'],
             'description'    => ['nullable', 'string', 'max:2000'],
-            'grade_level_id'   => ['required', 'integer', 'exists:grade_levels,id'],
+            'grade_level_id'   => ['required_if:audience,' . Announcement::AUDIENCE_STUDENT,'nullable', 'integer', 'exists:grade_levels,id'],
             'class_room_ids'   => ['nullable', 'array'],
             'class_room_ids.*' => ['integer', 'exists:class_rooms,id'],
         ];

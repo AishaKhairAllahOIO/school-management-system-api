@@ -4,8 +4,10 @@ namespace App\Http\Controllers\User;
 
 use App\ApiResource;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Web\AnnouncementRequset;
+use App\Http\Requests\Web\AnnouncementRequest;
+use App\Http\Requests\Web\UpdateAnnouncementRequest;
 use App\Http\Resources\User\AnnouncementResource;
+use App\Models\Announcement;
 use App\Services\User\AnnouncementService;
 use Illuminate\Http\Request;
 
@@ -14,10 +16,10 @@ class UserAnnouncementController extends Controller
     use ApiResource;
     public function __construct(
         private readonly AnnouncementService $service
-    ) {}
+    ) {
+    }
 
-    // ---------- إنشاء (المدير) ----------
-    public function store(AnnouncementRequset $request)
+    public function store(AnnouncementRequest $request)
     {
         $announcement = $this->service->create($request->validated());
 
@@ -25,6 +27,17 @@ class UserAnnouncementController extends Controller
             new AnnouncementResource($announcement),
             'تم نشر الإعلان بنجاح.',
             201
+        );
+    }
+
+    public function update(UpdateAnnouncementRequest $request, int $id)
+    {
+        $announcement = $this->service->update($id, $request->validated());
+
+        return $this->successResponse(
+            new AnnouncementResource($announcement),
+            'تم تعديل الإعلان بنجاح.',
+            200
         );
     }
 
@@ -87,12 +100,32 @@ class UserAnnouncementController extends Controller
         );
     }
 
-    public function destroy(int $id)
+    public function adminAnnouncements(Request $request)
     {
-        $this->service->delete($id);
-        return $this->successResponse(null, 'تم حذف الإعلان بنجاح.');
+        if (!$request->user()->hasAnyRole(['super_admin', 'adviser'])) {
+            return $this->errorResponse('غير مصرح لك بالوصول', 403);
+        }
+
+        $announcements = $this->service->getAdminAnnouncements($request->user());
+        return $this->paginatedResponse(AnnouncementResource::collection($announcements), 'إعلانات الطلاب (لوحة الإدارة)');
     }
 
+    public function destroy(Request $request, int $id)
+    {
+        $announcement = Announcement::find($id);
+
+        if (!$announcement) {
+            return $this->errorResponse('الإعلان غير موجود.', 404);
+        }
+
+        if (!$request->user()->can('delete', $announcement)) {
+            return $this->errorResponse('غير مصرح لك بحذف هذا الإعلان.', 403);
+        }
+
+        $this->service->delete($id);
+
+        return $this->successResponse(null, 'تم حذف الإعلان بنجاح.');
+    }
 
     public function getUnreadCount(Request $request)
     {
@@ -105,4 +138,6 @@ class UserAnnouncementController extends Controller
         $this->service->markAllAsRead($request->user(), $request->student_id);
         return $this->successResponse(null, 'تم تصفير عداد الإعلانات', 200);
     }
+
+    
 }

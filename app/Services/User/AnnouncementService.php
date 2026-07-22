@@ -2,9 +2,10 @@
 
 namespace App\Services\User;
 
+use App\Jobs\SendPushNotification;
 use App\Models\Announcement;
+use App\Models\GradeConfiguration;
 use Illuminate\Pagination\LengthAwarePaginator;
-use App\Jobs\SendAnnouncementNotification;
 use App\Models\Enrollment;
 use App\Models\User;
 use Illuminate\Support\Arr;
@@ -22,12 +23,52 @@ class AnnouncementService
             $announcement->classRooms()->attach($classRoomIds);
         }
 
-        SendAnnouncementNotification::dispatch(
-            $announcement->id,
-            $announcement->audience,
-            $announcement->title,
-            $announcement->description ?? ''
-        );
+
+        $targetUserIds = [];
+
+        if (in_array($announcement->audience, [Announcement::AUDIENCE_STAFF, Announcement::AUDIENCE_BOTH])) {
+            $staffUserIds = User::whereHas('staff')->pluck('id')->toArray();
+            $targetUserIds = array_merge($targetUserIds, $staffUserIds);
+        }
+
+        if (in_array($announcement->audience, [Announcement::AUDIENCE_STUDENT, Announcement::AUDIENCE_BOTH])) {
+            $enrollmentsQuery = Enrollment::whereHas('academicYear', function ($q) {
+                $q->whereDate('start_date', '<=', now())
+                    ->whereDate('end_date', '>=', now());
+            });
+
+            if ($announcement->grade_level_id) {
+                $enrollmentsQuery->where('grade_level_id', $announcement->grade_level_id);
+            }
+
+            if (!empty($classRoomIds)) {
+                $enrollmentsQuery->whereIn('class_room_id', $classRoomIds);
+            }
+
+            $studentIds = $enrollmentsQuery->pluck('student_id');
+
+            $studentAndGuardianIds = User::whereHas('student', function ($q) use ($studentIds) {
+                $q->whereIn('id', $studentIds);
+            })->orWhereHas('guardian', function ($q) use ($studentIds) {
+                $q->whereHas('students', function ($sq) use ($studentIds) {
+                    $sq->whereIn('id', $studentIds);
+                });
+            })->pluck('id')->toArray();
+
+            $targetUserIds = array_merge($targetUserIds, $studentAndGuardianIds);
+        }
+
+        $targetUserIds = array_unique($targetUserIds);
+
+
+        if (!empty($targetUserIds)) {
+            SendPushNotification::dispatch(
+                $targetUserIds,
+                'إعلان إداري جديد',
+                $announcement->title,
+                ['announcement_id' => (string) $announcement->id, 'type' => 'announcement']
+            );
+        }
 
         return $announcement;
     }
@@ -38,45 +79,61 @@ class AnnouncementService
         $announcement->delete();
     }
 
+    public function update(int $id, array $data): Announcement
+    {
+        $announcement = Announcement::findOrFail($id);
+
+        $classRoomIds = $data['class_room_ids'] ?? null;
+        $announcementData = Arr::except($data, ['class_room_ids']);
+
+        $announcement->update($announcementData);
+
+        if ($classRoomIds !== null) {
+            $announcement->classRooms()->sync($classRoomIds);
+        }
+
+        return $announcement;
+    }
+
     private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
     {
         if ($user->student) {
             $enrollment = $user->student->enrollments()
                 ->whereHas('academicYear', function ($q) {
                     $q->whereDate('start_date', '<=', now())
-                      ->whereDate('end_date', '>=', now());
+                        ->whereDate('end_date', '>=', now());
                 })->latest()->first();
 
             if (!$enrollment) {
                 return Announcement::query()->where(function ($q) {
                     $q->where('audience', Announcement::AUDIENCE_BOTH)
-                      ->orWhere(function ($sq) {
-                          $sq->where('audience', Announcement::AUDIENCE_STUDENT)
-                             ->whereNull('grade_level_id')
-                             ->doesntHave('classRooms'); // التعديل هنا
-                      });
+                        ->orWhere(function ($sq) {
+                            $sq->where('audience', Announcement::AUDIENCE_STUDENT)
+                                ->whereNull('grade_level_id')
+                                ->doesntHave('classRooms'); // التعديل هنا
+                        });
                 });
             }
 
             return Announcement::query()->where(function ($query) use ($enrollment) {
                 $query->where('audience', Announcement::AUDIENCE_BOTH)
-                      ->orWhere(function ($q) use ($enrollment) {
-                          $q->where('audience', Announcement::AUDIENCE_STUDENT)
+                    ->orWhere(function ($q) use ($enrollment) {
+                        $q->where('audience', Announcement::AUDIENCE_STUDENT)
                             ->where(function ($subQ) use ($enrollment) {
                                 // إعلان عام لجميع الطلاب
                                 $subQ->whereNull('grade_level_id')
-                                     // أو إعلان مخصص لصف الطالب وشعبته
-                                     ->orWhere(function ($gq) use ($enrollment) {
-                                         $gq->where('grade_level_id', $enrollment->grade_level_id)
-                                            ->where(function ($cq) use ($enrollment) {
-                                                $cq->doesntHave('classRooms') // لكل شعب الصف
-                                                   ->orWhereHas('classRooms', function ($rq) use ($enrollment) {
-                                                       $rq->where('class_rooms.id', $enrollment->class_room_id); // لشعبة الطالب تحديداً
-                                                   });
-                                            });
-                                     });
+                                    // أو إعلان مخصص لصف الطالب وشعبته
+                                    ->orWhere(function ($gq) use ($enrollment) {
+                                    $gq->where('grade_level_id', $enrollment->grade_level_id)
+                                        ->where(function ($cq) use ($enrollment) {
+                                            $cq->doesntHave('classRooms') // لكل شعب الصف
+                                                ->orWhereHas('classRooms', function ($rq) use ($enrollment) {
+                                                    $rq->where('class_rooms.id', $enrollment->class_room_id); // لشعبة الطالب تحديداً
+                                                });
+                                        });
+                                });
                             });
-                      });
+                    });
             });
         }
 
@@ -92,44 +149,44 @@ class AnnouncementService
             $enrollments = Enrollment::whereIn('student_id', $studentIds)
                 ->whereHas('academicYear', function ($q) {
                     $q->whereDate('start_date', '<=', now())
-                      ->whereDate('end_date', '>=', now());
+                        ->whereDate('end_date', '>=', now());
                 })->get();
 
             if ($enrollments->isEmpty()) {
                 return Announcement::query()->where(function ($q) {
                     $q->where('audience', Announcement::AUDIENCE_BOTH)
-                      ->orWhere(function ($sq) {
-                          $sq->where('audience', Announcement::AUDIENCE_STUDENT)
-                             ->whereNull('grade_level_id')
-                             ->doesntHave('classRooms');
-                      });
+                        ->orWhere(function ($sq) {
+                            $sq->where('audience', Announcement::AUDIENCE_STUDENT)
+                                ->whereNull('grade_level_id')
+                                ->doesntHave('classRooms');
+                        });
                 });
             }
 
             return Announcement::query()->where(function ($query) use ($enrollments) {
                 $query->where('audience', Announcement::AUDIENCE_BOTH)
-                      ->orWhere(function ($q) use ($enrollments) {
-                          $q->where('audience', Announcement::AUDIENCE_STUDENT)
+                    ->orWhere(function ($q) use ($enrollments) {
+                        $q->where('audience', Announcement::AUDIENCE_STUDENT)
                             ->where(function ($subQ) use ($enrollments) {
                                 $subQ->whereNull('grade_level_id');
 
                                 foreach ($enrollments as $enrollment) {
                                     $subQ->orWhere(function ($gq) use ($enrollment) {
                                         $gq->where('grade_level_id', $enrollment->grade_level_id)
-                                           ->where(function ($cq) use ($enrollment) {
-                                               $cq->doesntHave('classRooms') // لكل شعب الصف
-                                                  ->orWhereHas('classRooms', function ($rq) use ($enrollment) {
-                                                      $rq->where('class_rooms.id', $enrollment->class_room_id); // لشعبة الابن تحديداً
-                                                  });
-                                           });
+                                            ->where(function ($cq) use ($enrollment) {
+                                                $cq->doesntHave('classRooms')
+                                                    ->orWhereHas('classRooms', function ($rq) use ($enrollment) {
+                                                        $rq->where('class_rooms.id', $enrollment->class_room_id);
+                                                    });
+                                            });
                                     });
                                 }
                             });
-                      });
+                    });
             });
         }
 
-        if ($user->staff) {
+        if ($user->hasAnyRole(['super_admin', 'adviser', 'teacher']) || $user->staff) {
             return Announcement::query()->whereIn('audience', [Announcement::AUDIENCE_STAFF, Announcement::AUDIENCE_BOTH]);
         }
 
@@ -161,7 +218,7 @@ class AnnouncementService
 
     public function unreadCount(User $user, ?int $studentId = null): int
     {
-       return $this->getBaseQueryForUser($user, $studentId)
+        return $this->getBaseQueryForUser($user, $studentId)
             ->whereDoesntHave('readers', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -185,5 +242,32 @@ class AnnouncementService
         if (!empty($syncData)) {
             $user->readAnnouncements()->syncWithoutDetaching($syncData);
         }
+    }
+
+    public function getAdminAnnouncements(User $user): LengthAwarePaginator
+    {
+        $query = Announcement::query()->with(['gradeLevel:id,name', 'classRooms:id,name']);
+
+        if ($user->hasRole('super_admin')) {
+        }
+
+        elseif ($user->hasRole('adviser')) {
+            $advisorGradeIds = GradeConfiguration::where('supervisor_id', $user->id)
+                ->whereHas('academicYear', function ($q) {
+                    $q->where('is_current', true);
+                })
+                ->pluck('grade_level_id')
+                ->toArray();
+
+            $query->whereIn('audience', [Announcement::AUDIENCE_STUDENT])
+                ->where(function ($q) use ($advisorGradeIds) {
+                    $q->whereIn('grade_level_id', $advisorGradeIds)
+                        ->orWhereNull('grade_level_id');
+                });
+        } else {
+            $query->where('id', '<', 0);
+        }
+
+        return $query->latest()->paginate(20);
     }
 }

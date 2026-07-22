@@ -2,39 +2,47 @@
 
 namespace App\Http\Requests\Web;
 
+use App\ApiResource;
+use App\Models\Activity;
 use Illuminate\Contracts\Validation\ValidationRule;
 use App\Models\ClassRoom;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Validator;
 class CreateActivitiesRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
+    use ApiResource;
+  public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('create', [
+            Activity::class,
+            (int) $this->input('grade_level_id'),
+            $this->input('class_room_ids')
+        ]);
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    protected function failedAuthorization()
+    {
+        throw new HttpResponseException(
+            $this->errorResponse(
+                'عذراً، غير مصرح لك! إما أنك اخترت شعبة لا تدرسها، أو مرحلة لا تشرف عليها.',
+                403
+            )
+        );
+    }
+
     public function rules(): array
     {
         return [
-            'grade_level_id' => ['required', 'integer', 'exists:grade_levels,id'],
+            'grade_level_id'   => ['required', 'integer', 'exists:grade_levels,id'],
             'class_room_ids'   => ['nullable', 'array'],
             'class_room_ids.*' => ['integer', 'exists:class_rooms,id'],
-            'type'           => ['required', 'string', 'max:255'],
-            'activity_name'           => ['required', 'string', 'max:255'],
-            'activity_date'           => ['required', 'date', 'after:today'],
-            'start_time'     => ['required', 'date_format:H:i'],
-            'end_time'       => ['required', 'date_format:H:i', 'after:start_time'],
-            'description'    => ['nullable', 'string',],
-
-
+            'type'             => ['required', 'string', 'max:255'],
+            'activity_name'    => ['required', 'string', 'max:255'],
+            'activity_date'    => ['required', 'date', 'after:today'],
+            'start_time'       => ['required', 'date_format:H:i'],
+            'end_time'         => ['required', 'date_format:H:i', 'after:start_time'],
+            'description'      => ['nullable', 'string'],
         ];
     }
 

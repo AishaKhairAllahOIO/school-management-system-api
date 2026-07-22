@@ -29,6 +29,10 @@ class Semester extends Model
     {
         return $this->hasMany(ScheduleTimeSlot::class);
     }
+        public function teacherAssignments()
+    {
+        return $this->hasMany(TeacherAssignment::class, 'academic_term_id'); // تأكدي من اسم الفورين كي لديكم
+    }
 
 
 }

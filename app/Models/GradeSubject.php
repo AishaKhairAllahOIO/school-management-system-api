@@ -39,4 +39,8 @@ class GradeSubject extends Model
     {
         return $this->hasMany(AssessmentComponent::class, 'grade_subject_id');
     }
+        public function teacherAssignments(): HasMany
+    {
+        return $this->hasMany(TeacherAssignment::class, 'grade_subject_id');
+    }
 }

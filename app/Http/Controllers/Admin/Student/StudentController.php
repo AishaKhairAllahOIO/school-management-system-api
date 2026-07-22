@@ -13,18 +13,21 @@ use App\Services\Student\StudentManagementService;
 use App\Http\Resources\Student\StudentProfileWithEnrollmentResource;
 use App\Http\Resources\Student\StudentProfileResource;
 use App\Http\Requests\Admin\Student\UpdateEnrollmentRequest;
-use App\Http\Requests\Admin\Student\UpdateGeneralPersonalRequest;
 use App\Http\Resources\Student\StudentFilterResource;
 use App\Http\Requests\Admin\Student\IndexStudentRequest;
+use App\Http\Requests\Admin\Student\UpdateGuardianPersonalDataRequest;
+use App\Http\Requests\Admin\Student\UpdateStudentPersonalDataRequest;
 use App\Models\ImportBatch;
 use App\ApiResource;
 use Illuminate\Http\Request;
 
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class StudentController extends Controller
 {
 use ApiResource;
+
 
     public function store(StudentRegisterService $service,StoreStudentRegisterRequest $request) {
         try{
@@ -135,37 +138,50 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         }
     }
 
-   public function updatePersonal(UpdateGeneralPersonalRequest $request, $student,StudentManagementService $studentService)
+   public function updatePersonal(UpdateStudentPersonalDataRequest $request, int $student,StudentManagementService $studentService)
     {
         try{
         $updatedStudent = $studentService->updateStudentPersonalData($student, $request->validated());
 
         return $this->successResponse(new BaseUserProfileResource($updatedStudent), 'تم تحديث بيانات الطالب بنجاح.',201);
-        }catch(Exception $e){
+        }catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse('المستخدم غير موجود',404);
+        }
+        catch(Exception $e){
             return $this->errorResponse($e->getMessage(), 404);
         }
     }
 
-    public function updateEnrollment(UpdateEnrollmentRequest $request, $enrollmentId,StudentManagementService $studentService)
+    public function updateEnrollment(UpdateEnrollmentRequest $request, int $enrollmentId,StudentManagementService $studentService)
     {
         try{
         $updatedEnrollment = $studentService->updateEnrollmentData($enrollmentId, $request->validated());
 
         return $this->successResponse(new StudentEnrollmentResource($updatedEnrollment), 'تم تحديث بيانات القيد الأكاديمي بنجاح.',201);
-        }catch(Exception $e){
+        }catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse('السجل غير موجود');
+        }
+        catch(Exception $e){
             return $this->errorResponse($e->getMessage(), 404);
         }
     }
 
 
-    public function updateGuardian(UpdateGeneralPersonalRequest $request, $guardianId,StudentManagementService $studentService)
+    public function updateGuardian(UpdateGuardianPersonalDataRequest $request,int  $guardianId,StudentManagementService $studentService)
     {
         try{
         $updatedGuardian = $studentService->updateGuardianPersonalData($guardianId, $request->validated());
 
         return $this->successResponse(new BaseUserProfileResource($updatedGuardian), 'تم تحديث بيانات ولي الأمر بنجاح.',201);
     
-        }catch(Exception $e){
+        }
+        catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse('المستخدم غير موجود',404);
+        }
+        catch(Exception $e){
             return $this->errorResponse($e->getMessage(), 404);
         }
         }
@@ -173,13 +189,17 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
     /**
      * FR-07: شطب طالب من المدرسة (Soft أو Hard حسب السياسة)
      */
-    public function destroy($id, StudentManagementService $service)
+    public function destroy(int $id, StudentManagementService $service)
     {
         try{
         $service->deleteStudent($id);
 
         return $this->successResponse(null, 'تم شطب الطالب من النظام بنجاح.');
-        }catch(Exception $e) {
+        }catch(ModelNotFoundException $e)
+        {
+            return $this->errorResponse('تسجيل الطالب  غير موجود',404);
+        }
+        catch(Exception $e) {
             return $this->errorResponse($e->getMessage(), 404);
         }
     }

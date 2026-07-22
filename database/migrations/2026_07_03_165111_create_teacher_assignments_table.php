@@ -13,13 +13,11 @@ return new class extends Migration
     { {
             Schema::create('teacher_assignments', function (Blueprint $table) {
                 $table->id();
-
-                $table->foreignId('staff_id')->constrained('staff')->cascadeOnDelete();
-
+                $table->foreignId('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
+                $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
+                $table->foreignId('teacher_id')->constrained('staff')->cascadeOnDelete();
                 $table->foreignId('class_room_id')->constrained('class_rooms')->cascadeOnDelete();
-
                 $table->foreignId('grade_subject_id')->constrained('grade_subjects')->cascadeOnDelete();
-
                 $table->timestamps();
 
                 $table->unique(['class_room_id', 'grade_subject_id'], 'unique_class_subject_assignment');

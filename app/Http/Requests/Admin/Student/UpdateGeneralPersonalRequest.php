@@ -23,7 +23,7 @@ class UpdateGeneralPersonalRequest extends FormRequest
     public function rules(): array
     {
         return [
-          'phone_number'  => ['sometimes', 'string', 'max:20', 'different:guardian.phone_number', 'unique:users,phone_number'],
+           'phone_number'  => ['sometimes', 'string', 'max:20', 'different:guardian.phone_number', 'unique:users,phone_number'],
             'first_name'    => ['sometimes', 'string', 'max:50'],
             'last_name'     => ['sometimes', 'string', 'max:50'],
             'father_name'   => ['sometimes', 'string', 'max:50'],

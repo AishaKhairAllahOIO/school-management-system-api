@@ -32,6 +32,15 @@ class AcademicYear extends Model
     public function academicSetting() {
     return $this->hasOne(AcademicSetting::class, 'current_academic_year_id');
 }
+    public function teacherWorkloads()
+    {
+        return $this->hasMany(TeacherWorkload::class);
+    }
+
+    public function teacherAssignments()
+    {
+        return $this->hasMany(TeacherAssignment::class);
+    }
 
 
 }

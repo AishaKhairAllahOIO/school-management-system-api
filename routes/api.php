@@ -264,11 +264,7 @@ Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(fun
     Route::get('/systemModules', [RoleController::class, 'getSystemModules']);
     Route::put('/{id}/permissions', [RoleController::class, 'sync']);
 });
-//////////////////////////////////////////////////
-Route::middleware('auth:sanctum', 'role:super_admin')->prefix('data')->group(function () {
-    Route::get('/super_admin', [UserController::class, 'myProfile']);
-    Route::put('/super_admin', [UserController::class, 'updateMyAdminProfile']);
-});
+
 ///////////////////////////////////////////////////////
 Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
 
@@ -307,27 +303,39 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
 
 Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 
-    Route::post('/register', [StaffController::class, 'store']);
-    Route::post('/import', [StaffController::class, 'importExcel']);
-    Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
-    Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
+        Route::post('/register', [StaffController::class, 'store']);
 
-    Route::get('/search', [StaffController::class, 'search']);
-    Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
+        Route::post('/import', [StaffController::class, 'importExcel']);
+        Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
+        Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
 
-    Route::get('/showAllStaff', [StaffController::class, 'index']);
-    Route::get('/showStaff/{staffId}', [StaffController::class, 'show']);
+        Route::get('/search', [StaffController::class, 'search']);
+        Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
 
-    Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
-    Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
+        Route::get('/showAllStaff', [StaffController::class, 'index']);
+        Route::get('/showStaff/{staffId}', [StaffController::class, 'show']);
 
-    Route::get('/counts/roles', [StaffController::class, 'roleCounts']);
-    Route::get('/role/{role}', [StaffController::class, 'getByRole']);
+        Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
+        Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
 
-    Route::get('/profile', [StaffController::class, 'myProfile']);
+        Route::get('/counts/roles', [StaffController::class, 'roleCounts']);
+        Route::get('/role/{role}', [StaffController::class, 'getByRole']);
 
-    Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
-    Route::delete('/{staff}', [StaffController::class, 'destroy']);
+        Route::get('/profile',[StaffController::class,'myProfile']);
+
+        Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
+        Route::delete('/{staff}', [StaffController::class, 'destroy']);
+
+        Route::post('/{staff}/workloads', [StaffController::class, 'setWorkload']);
+        Route::get('/{staff}/workloads', [StaffController::class, 'getWorkloads']);
+        Route::put('/{staff}/workloads/{workload}', [StaffController::class, 'updateWorkload']);
+        Route::delete('/{staff}/workloads/{workload}', [StaffController::class, 'destroyWorkload']);
+
+        Route::post('/{staff}/assignments', [StaffController::class, 'assignClassrooms']);
+        Route::get('/{staff}/assignments', [StaffController::class, 'getAssignments']);
+        Route::put('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
+        Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment']);
+
 });
 
 

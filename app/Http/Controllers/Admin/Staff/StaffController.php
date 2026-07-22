@@ -16,9 +16,17 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\QueryException;
 use Exception;
-use App\Http\Requests\Admin\Student\UpdateGeneralPersonalRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Nette\Schema\ValidationException;
+use App\Services\Staff\TeacherWorkloadService;
+use App\Http\Resources\Staff\TeacherWorkloadResource;
+use App\Http\Requests\Admin\Staff\StoreTeacherWorkloadRequest;
+use App\Http\Requests\Admin\Staff\UpdateTeacherWorkloadRequest;
+use App\Models\TeacherAssignment;
+use App\Http\Resources\Staff\TeacherAssignmentResource;
+use App\Http\Requests\Admin\Staff\UpdateTeacherAssignmentRequest;
+use App\Http\Requests\Admin\Staff\StoreTeacherAssignmentRequest;
+use App\Http\Requests\Admin\Staff\UpdateStaffPersonalDataRequest;
 
 class StaffController extends Controller
 {
@@ -27,8 +35,106 @@ class StaffController extends Controller
     // حقن السيرفسين معاً بشكل نظيف
     public function __construct(
         private StaffRegisterService $registerService,
-        private StaffManagementService $managementService
+        private StaffManagementService $managementService,
+        private TeacherWorkloadService $workloadService 
+
     ) {}
+     public function setWorkload(StoreTeacherWorkloadRequest $request): JsonResponse
+    {
+        try {
+            $workload = $this->workloadService->createWorkload($request->validated());
+            return $this->successResponse(new TeacherWorkloadResource($workload), 'تم تعيين نصاب المعلم بنجاح.', 201);
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء تعيين النصاب.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function getWorkloads(int $staff): JsonResponse
+    {
+        try {
+            $workloads = $this->workloadService->getTeacherWorkloads($staff);
+            return $this->successResponse(TeacherWorkloadResource::collection($workloads), 'تم جلب سجلات النصاب بنجاح.');
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب النصاب.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    // 🔥 دالة التعديل للنصاب
+    public function updateWorkload(UpdateTeacherWorkloadRequest $request, int $staff,  int $workload): JsonResponse
+    {
+        try {
+            $updatedWorkload = $this->workloadService->updateWorkload($workload, $request->validated());
+            return $this->successResponse(new TeacherWorkloadResource($updatedWorkload), 'تم تحديث النصاب بنجاح.');
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء تحديث النصاب.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    // 🔥 دالة الحذف للنصاب
+    public function destroyWorkload(int $staff,  int $workload): JsonResponse
+    {
+        try {
+            $this->workloadService->deleteWorkload($workload);
+            return $this->successResponse(null, 'تم حذف النصاب بنجاح.');
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء حذف النصاب.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+     public function assignClassrooms(StoreTeacherAssignmentRequest $request): JsonResponse
+    {
+        try {
+            $assignments = $this->workloadService->assignTeacher($request->validated());
+            return $this->successResponse(TeacherAssignmentResource::collection($assignments), 'تم التكليف وتحديث نصاب المعلم آلياً بنجاح.', 201);
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
+    }
+
+    public function getAssignments(int $staff, Request $request): JsonResponse
+    {
+        try {
+            $yearId = $request->query('academic_year_id');
+            if (!$yearId) {
+                return $this->errorResponse('يرجى تحديد السنة الدراسية (academic_year_id).', 422);
+            }
+
+            $assignments = $this->workloadService->getTeacherAssignments($staff, $yearId);
+            return $this->successResponse(TeacherAssignmentResource::collection($assignments), 'تم جلب تفاصيل تكليف المعلم بنجاح.');
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب التكليفات.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    // 🔥 تعديل السينيور: استقبال ID كـ int
+    public function updateAssignment(UpdateTeacherAssignmentRequest $request, int $staff, int $assignmentId): JsonResponse
+    {
+        try {
+            $assignment = TeacherAssignment::findOrFail($assignmentId);
+            $updatedAssignment = $this->workloadService->updateAssignment($assignment, $request->validated());
+            return $this->successResponse(new TeacherAssignmentResource($updatedAssignment), 'تم تحديث التكليف بنجاح.');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('سجل التكليف غير موجود في النظام.', 404);
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء تحديث التكليف.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    // 🔥 التنظيف النهائي: إزالة الاعتماد على temporary_periods_count من الفرونت إند تماماً
+    public function destroyAssignment(Request $request, int $staff, int $assignmentId): JsonResponse
+    {
+        try {
+            $assignment = TeacherAssignment::findOrFail($assignmentId);
+            
+            // السيرفس الآن يعتمد على الداتابيز لحساب ما يجب استرجاعه من حصص
+            $this->workloadService->deleteAssignment($assignment);
+            
+            return $this->successResponse(null, 'تم حذف التكليف واسترجاع الحصص للنصاب بنجاح.');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('سجل التكليف غير موجود في النظام.', 404);
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء حذف التكليف.', 500, ['error' => $e->getMessage()]);
+        }
+    }
 
  public function store(StoreStaffRequest $request): JsonResponse
     {
@@ -125,7 +231,7 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
     }
  
 
-    public function updatePersonal(UpdateGeneralPersonalRequest $request, int $staff): JsonResponse
+    public function updatePersonal(UpdateStaffPersonalDataRequest $request, int $staff): JsonResponse
     {
         try {
             $updated = $this->managementService->updatePersonalData($staff, $request->validated());
@@ -178,6 +284,7 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             return $this->errorResponse('حدث خطأ أثناء ترتيب الموظفين أبجدياً.', 500, ['error' => $e->getMessage()]);
         }
     }
+    
     public function myProfile(Request $request): JsonResponse
     {
         try {

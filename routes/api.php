@@ -192,7 +192,7 @@ Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () 
         Route::get('assessment/subject/show/{id}',[AssessmentComponentController::class,'show']);
         Route::post('assessment/subject/store',[AssessmentComponentController::class,'store']);
         Route::post('assessment/subject/update/{id}',[AssessmentComponentController::class,'update']);
-        Route::delete('assessment/subject/delete{id}',[AssessmentComponentController::class,'destroy']);
+        Route::delete('assessment/subject/delete/{id}',[AssessmentComponentController::class,'destroy']);
         Route::get('assessment/subjects/grouped',[AssessmentComponentController::class,'groupedBySubject']);
 
     });

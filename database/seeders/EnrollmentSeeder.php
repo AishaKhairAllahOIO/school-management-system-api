@@ -16,6 +16,8 @@ class EnrollmentSeeder extends Seeder
         // 1. التحقق الفعلي من وجود البيانات الأساسية قبل زراعة التسجيل
         $student1 = Student::find(1);
         $student2 = Student::find(2);
+        $student3 = Student::find(3);
+        $student4 = Student::find(4);
         $year = AcademicYear::find(1);
 
         if (!$year) {
@@ -41,6 +43,34 @@ class EnrollmentSeeder extends Seeder
             Enrollment::updateOrCreate(
                 [
                     'student_id' => 2,
+                    'academic_year_id' => 1,
+                ],
+                [
+                    'grade_level_id' => 2,
+                    'class_room_id' => 3,
+                    'enrollment_status' => 'enrolled',
+                    'enrollment_date' => now(),
+                ]
+            );
+        }
+                if ($student3) {
+            Enrollment::updateOrCreate(
+                [
+                    'student_id' => 3,
+                    'academic_year_id' => 1,
+                ],
+                [
+                    'grade_level_id' => 2,
+                    'class_room_id' => 3,
+                    'enrollment_status' => 'enrolled',
+                    'enrollment_date' => now(),
+                ]
+            );
+        }
+                if ($student4) {
+            Enrollment::updateOrCreate(
+                [
+                    'student_id' => 4,
                     'academic_year_id' => 1,
                 ],
                 [

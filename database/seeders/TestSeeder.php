@@ -40,7 +40,7 @@ class TestSeeder extends Seeder
                 'address'        => 'دمشق - المزة',
                 'gender'         => 'male',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]
@@ -76,7 +76,7 @@ class TestSeeder extends Seeder
                 'address'        => 'حلب - الشهباء',
                 'gender'         => 'male',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]
@@ -108,7 +108,7 @@ class TestSeeder extends Seeder
                 'address'        => 'حلب - الشهباء',
                 'gender'         => 'male',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]
@@ -144,7 +144,7 @@ class TestSeeder extends Seeder
                 'address'        => 'حمص - الإنشاءات',
                 'gender'         => 'female',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]
@@ -178,7 +178,7 @@ class TestSeeder extends Seeder
                 'address'        => 'حمص - الإنشاءات',
                 'gender'         => 'female',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]
@@ -212,7 +212,7 @@ class TestSeeder extends Seeder
                 'address'        => 'حمص - الإنشاءات',
                 'gender'         => 'female',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]
@@ -246,7 +246,7 @@ class TestSeeder extends Seeder
                 'address'        => 'حمص - الإنشاءات',
                 'gender'         => 'female',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]
@@ -284,7 +284,7 @@ class TestSeeder extends Seeder
                 'address'        => 'اللاذقية - المشروع السابع',
                 'gender'         => 'male',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]
@@ -320,7 +320,7 @@ class TestSeeder extends Seeder
                 'address'        => 'حماة - باغية',
                 'gender'         => 'male',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]
@@ -348,7 +348,7 @@ class TestSeeder extends Seeder
                 'address'        => 'حماة - باغية',
                 'gender'         => 'male',
                 'nationality'    => 'syrian',
-                'photo_url'      => 'users\staff\1ijKaa9OWZhMM0pL2dOWyGTyGGVtuuhuSshHjugS.png',
+                'photo_url'      => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password'       => $defaultPassword,
                 'account_status' => 'enabled',
             ]

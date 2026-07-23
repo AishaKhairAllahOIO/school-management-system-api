@@ -44,9 +44,7 @@ class TeacherWorkloadService
                 throw new Exception("لا يمكن تغيير المعلم أو السنة الدراسية لهذا النصاب لوجود تكليفات فعلية مرتبطة به. يرجى تعديل التكليفات أولاً.");
             }
         }
-        if($data['required_monthly_periods'])
-            {
-                $workload['remaining_monthly_periods']=$data['required_monthly_periods']-$workload->assigned_monthly_periods;
+    if (isset($data['required_weekly_periods'])) {
             }
 
         $workload->save();
@@ -74,9 +72,9 @@ class TeacherWorkloadService
                 'teacher_id'       => $data['teacher_id'],
             ])->first();
 
-            if (!$workload) {
-                throw new Exception("لا يمكن إتمام التكليف: لم يتم تحديد النصاب الأساسي لهذا المعلم في هذه السنة الدراسية بعد.");
-            }
+            // if (!$workload) {
+            //     throw new Exception("لا يمكن إتمام التكليف: لم يتم تحديد النصاب الأساسي لهذا المعلم في هذه السنة الدراسية بعد.");
+            // }
 
             $assignmentsToInsert = [];
             $now = now();

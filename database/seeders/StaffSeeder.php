@@ -53,7 +53,7 @@ class StaffSeeder extends Seeder
                 'hire_date' => '2015-09-01',
             ]);
                 Staff::create([
-                'user_id' => 9,
+                'user_id' => 10,
                 'degree' => 'bachelor',
                 'specialization' => 'توجيه',
                 'university' => 'جامعة دمشق',
@@ -62,13 +62,23 @@ class StaffSeeder extends Seeder
                 'hire_date' => '2015-09-01',
             ]);
                 Staff::create([
-                'user_id' => 10,
+                'user_id' => 11,
                 'degree' => 'bachelor',
                 'specialization' => 'اداة المكاتب',
                 'university' => 'جامعة دمشق',
                 'graduation_year' => 2015,
                 'experience_years' => 6,
                 'hire_date' => '2015-09-01',
+            ]);
+             Staff::create([
+                'user_id' => 9,
+                'degree' => null,
+                'specialization' => null,
+                'university' => null,
+                'graduation_year' => null,
+                'experience_years' => 0,
+                'hire_date' => '2015-09-01',
+                'service_type'=>'cleaner'
             ]);
 
     }

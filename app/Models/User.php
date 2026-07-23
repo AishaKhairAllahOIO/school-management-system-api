@@ -9,6 +9,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
 use Illuminate\Database\Eloquent\SoftDeletes; // 👈 1. الاستدعاء الصحيح
 
 class User extends Authenticatable
@@ -40,7 +42,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
+     
+protected function photoUrl(): Attribute
+{
+    return Attribute::make(
+        get: fn ($value) => $value ? (filter_var($value, FILTER_VALIDATE_URL) ? $value : asset('storage/' . $value)) : null
+    );
+}
 
     public function student()
     {

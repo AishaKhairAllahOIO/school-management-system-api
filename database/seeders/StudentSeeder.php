@@ -23,6 +23,11 @@ class StudentSeeder extends Seeder
         'user_id'=>2,
         'guardian_id'=>1,
     ]);
+     Student::create([
+        'user_id'=>12,
+        'guardian_id'=>2,
+    ]);
+
 
 
     }

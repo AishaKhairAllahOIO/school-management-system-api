@@ -60,12 +60,12 @@ Route::prefix('auth')->group(function () {
         Route::middleware('role:secretary|super_admin')->group(function () {
             Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
             Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
+
         });
 
         Route::middleware('role:adviser|super_admin')->group(function () {
             Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
             Route::post('/alerts', [UserAlertController::class, 'store']);
-            Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
             Route::post('/announcements', [UserAnnouncementController::class, 'store']);
             Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
             Route::post('/announcement/update/{id}', [UserAnnouncementController::class, 'update']);
@@ -82,6 +82,7 @@ Route::prefix('auth')->group(function () {
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
             Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
+
         });
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
@@ -116,6 +117,8 @@ Route::prefix('auth')->group(function () {
             //         Route::put('/classrooms/{id}',         [AcademicSettingsController::class, 'updateClassroom']);
             //         Route::delete('/classrooms/{id}',      [AcademicSettingsController::class, 'destroyClassroom']);
         });
+        Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy'])->middleware('role:teacher|super_admin|adviser|secretary');
+
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::delete('/logout', [SystemAccessController::class, 'logout']);
     });
@@ -372,7 +375,7 @@ Route::prefix('user')->group(function () {
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::post('logout', [UserAuthController::class, 'logout']);
- 
+
 
     });
 });

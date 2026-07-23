@@ -19,10 +19,8 @@ use App\Http\Controllers\web\ActivityController;
 use App\Http\Controllers\Setting\GradeAndClassroomController;
 use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
-use App\Models\School;
 use App\Http\Controllers\Admin\Staff\StaffController;
 use App\Http\Controllers\Setting\SubjectController;
-use GuzzleHttp\Middleware;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -70,8 +68,8 @@ Route::prefix('auth')->group(function () {
             Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy']);
             Route::post('/announcements', [UserAnnouncementController::class, 'store']);
             Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
-            Route::post('/announcement/update/{id}',[UserAnnouncementController::class,'update']);
-            Route::get('creater/show/announcements',[UserAnnouncementController::class,'adminAnnouncements']);
+            Route::post('/announcement/update/{id}', [UserAnnouncementController::class, 'update']);
+            Route::get('creater/show/announcements', [UserAnnouncementController::class, 'adminAnnouncements']);
         });
 
         Route::middleware('role:adviser|super_admin|teacher')->group(function () {
@@ -122,6 +120,8 @@ Route::prefix('auth')->group(function () {
         Route::delete('/logout', [SystemAccessController::class, 'logout']);
     });
 });
+
+
 Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
 
@@ -174,6 +174,7 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
 });
 
+
 Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () {
     Route::middleware('role:super_admin')->group(function () {
         Route::post('/subject/store', [SubjectController::class, 'store']);
@@ -197,6 +198,7 @@ Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () 
     });
 });
 
+
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/', [SchoolSettingsController::class, 'show']);
@@ -211,6 +213,8 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
     Route::delete('/', [SchoolSettingsController::class, 'destroy']);
 });
+
+
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
 
     // سياسات التقسيط
@@ -258,14 +262,14 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     Route::delete('/payments/{id}', [PaymentController::class, 'destroy']);
 });
 
-//////////////////////////////////////////////////
+
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {
     Route::get('/systemRoles', [RoleController::class, 'index']);
     Route::get('/systemModules', [RoleController::class, 'getSystemModules']);
     Route::put('/{id}/permissions', [RoleController::class, 'sync']);
 });
 
-///////////////////////////////////////////////////////
+
 Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
 
     Route::post('/register', [StudentController::class, 'store']);
@@ -278,7 +282,6 @@ Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
 });
 
 
-///////////////////////////////////////////////////////////
 Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function () {
 
     Route::get('/filter', [StudentController::class, 'filter'])
@@ -301,40 +304,41 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
         ->middleware('can:account:toggle_status');
 });
 
+
 Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 
-        Route::post('/register', [StaffController::class, 'store']);
+    Route::post('/register', [StaffController::class, 'store']);
 
-        Route::post('/import', [StaffController::class, 'importExcel']);
-        Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
-        Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
+    Route::post('/import', [StaffController::class, 'importExcel']);
+    Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
+    Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
 
-        Route::get('/search', [StaffController::class, 'search']);
-        Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
+    Route::get('/search', [StaffController::class, 'search']);
+    Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
 
-        Route::get('/showAllStaff', [StaffController::class, 'index']);
-        Route::get('/showStaff/{staffId}', [StaffController::class, 'show']);
+    Route::get('/showAllStaff', [StaffController::class, 'index']);
+    Route::get('/showStaff/{staffId}', [StaffController::class, 'show']);
 
-        Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
-        Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
+    Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
+    Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
 
-        Route::get('/counts/roles', [StaffController::class, 'roleCounts']);
-        Route::get('/role/{role}', [StaffController::class, 'getByRole']);
+    Route::get('/counts/roles', [StaffController::class, 'roleCounts']);
+    Route::get('/role/{role}', [StaffController::class, 'getByRole']);
 
-        Route::get('/profile',[StaffController::class,'myProfile']);
+    Route::get('/profile', [StaffController::class, 'myProfile']);
 
-        Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
-        Route::delete('/{staff}', [StaffController::class, 'destroy']);
+    Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
+    Route::delete('/{staff}', [StaffController::class, 'destroy']);
 
-        Route::post('/{staff}/workloads', [StaffController::class, 'setWorkload']);
-        Route::get('/{staff}/workloads', [StaffController::class, 'getWorkloads']);
-        Route::put('/{staff}/workloads/{workload}', [StaffController::class, 'updateWorkload']);
-        Route::delete('/{staff}/workloads/{workload}', [StaffController::class, 'destroyWorkload']);
+    Route::post('/{staff}/workloads', [StaffController::class, 'setWorkload']);
+    Route::get('/{staff}/workloads', [StaffController::class, 'getWorkloads']);
+    Route::put('/{staff}/workloads/{workload}', [StaffController::class, 'updateWorkload']);
+    Route::delete('/{staff}/workloads/{workload}', [StaffController::class, 'destroyWorkload']);
 
-        Route::post('/{staff}/assignments', [StaffController::class, 'assignClassrooms']);
-        Route::get('/{staff}/assignments', [StaffController::class, 'getAssignments']);
-        Route::put('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
-        Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment']);
+    Route::post('/{staff}/assignments', [StaffController::class, 'assignClassrooms']);
+    Route::get('/{staff}/assignments', [StaffController::class, 'getAssignments']);
+    Route::put('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
+    Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment']);
 
 });
 

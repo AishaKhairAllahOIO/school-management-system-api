@@ -58,6 +58,17 @@ class ActivityController extends Controller
         return $this->successResponse(null, 'تم حذف النشاط بنجاح.', 200);
     }
 
+    public function show(Request $request){
+        $student = $request->user()->student;
+
+        if(!$student){
+             return $this->errorResponse('student not found', 404, null);
+        }
+        $activities= $this->activityService->showActivities($student);
+
+        return $this->paginatedResponse(ActivityResource::collection($activities), 'student activities', 200);
+    }
+
  public function showAllActivity(Request $request)
     {
         if (!$request->user()->can('viewAny', Activity::class)) {

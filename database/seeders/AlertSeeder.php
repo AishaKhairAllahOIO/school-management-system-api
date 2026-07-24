@@ -127,7 +127,7 @@ class AlertSeeder extends Seeder
         Alert::updateOrCreate(
             [
                 'notifiable_type' => Staff::class,
-                'notifiable_id'   => 1,
+                'notifiable_id'   => 9,
                 'type'            => Alert::TYPE_SALARY,
             ],
             [
@@ -144,7 +144,7 @@ class AlertSeeder extends Seeder
         Alert::updateOrCreate(
             [
                 'notifiable_type' => Staff::class,
-                'notifiable_id'   => 1,
+                'notifiable_id'   => 9,
                 'type'            => Alert::TYPE_ABSENCE,
             ],
             [
@@ -160,7 +160,7 @@ class AlertSeeder extends Seeder
         Alert::updateOrCreate(
             [
                 'notifiable_type' => Staff::class,
-                'notifiable_id'   => 1,
+                'notifiable_id'   => 9,
                 'type'            => Alert::TYPE_LATE,
             ],
             [

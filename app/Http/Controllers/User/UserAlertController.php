@@ -6,6 +6,7 @@ use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\AlertRequest;
 use App\Http\Resources\User\AlertResource;
+use App\Models\Alert;
 use App\Models\Enrollment;
 use App\Services\User\AlertService;
 use Illuminate\Http\Request;
@@ -19,7 +20,6 @@ class UserAlertController extends Controller
     use ApiResource;
 
     public function __construct(protected AlertService $alertService) {}
-
 
     private function getGuardianStudent(Request $request, int $studentId)
     {
@@ -48,9 +48,15 @@ class UserAlertController extends Controller
 
     private function getAuthStaff(Request $request)
     {
-        $staff = $request->user()->staff;
+        $user = $request->user();
+        $staff = $user->staff;
+
+        if (!$staff && !$user->hasAnyRole(['super_admin', 'adviser', 'teacher'])) {
+            throw new InvalidArgumentException('هذا الحساب ليس لموظف أو معلم أو موجه مسجل.', 403);
+        }
+
         if (!$staff) {
-            throw new InvalidArgumentException('هذا الحساب ليس لموظف أو معلم.', 403);
+            throw new InvalidArgumentException('حسابك كأدمن/موجه ليس له ملف موظف (Staff Profile) مرتبط لعرض تنبيهاته الشخصية.', 403);
         }
 
         return $staff;
@@ -161,15 +167,15 @@ class UserAlertController extends Controller
     public function store(AlertRequest $request): JsonResponse
     {
         try {
-            $alert = $this->alertService->createManual($request->validated());
+            $alerts = $this->alertService->createManual($request->validated());
             return $this->successResponse(
-                new AlertResource($alert),
-                'تم إنشاء التنبيه بنجاح.',
+                AlertResource::collection($alerts),
+                'تم إنشاء التنبيهات بنجاح.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيه.',
+                'حدث خطأ أثناء إنشاء التنبيهات.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -179,15 +185,15 @@ class UserAlertController extends Controller
     public function advisorCreateAlerts(AlertRequest $request): JsonResponse
     {
         try {
-            $alert = $this->alertService->advisorAlerts($request->validated());
+            $alerts = $this->alertService->advisorAlerts($request->validated());
             return $this->successResponse(
-                new AlertResource($alert),
-                'تم إنشاء التنبيه بنجاح.',
+                AlertResource::collection($alerts),
+                'تم إنشاء التنبيهات بنجاح.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيه.',
+                'حدث خطأ أثناء إنشاء التنبيهات.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -197,22 +203,21 @@ class UserAlertController extends Controller
     public function teacherCreateAlerts(AlertRequest $request): JsonResponse
     {
         try {
-            $enrollment = Enrollment::findOrFail($request->validated()['enrollment_id'] ?? null);
-            $alert = $this->alertService->createStudentHomework($enrollment, $request->validated());
+            $validated = $request->validated();
+            $alerts = $this->alertService->createBatchStudentAlerts(
+                $validated['enrollment_ids'],
+                Alert::TYPE_HOMEWORK,
+                $validated['meta'] ?? []
+            );
 
             return $this->successResponse(
-                new AlertResource($alert),
-                'تم إنشاء التنبيه بنجاح.',
+                AlertResource::collection($alerts),
+                'تم إنشاء تنبيهات الواجب للطلاب بنجاح.',
                 201
-            );
-        } catch (ModelNotFoundException $e) {
-            return $this->errorResponse(
-                'سجل تسجيل الطالب المطلوب غير موجود.',
-                404
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيه.',
+                'حدث خطأ أثناء إنشاء التنبيهات.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -222,15 +227,15 @@ class UserAlertController extends Controller
     public function staffAlerts(AlertRequest $request): JsonResponse
     {
         try {
-            $alert = $this->alertService->createStaffAlerts($request->validated());
+            $alerts = $this->alertService->createStaffAlerts($request->validated());
             return $this->successResponse(
-                new AlertResource($alert),
-                'تم إنشاء التنبيه بنجاح.',
+                AlertResource::collection($alerts),
+                'تم إنشاء التنبيهات بنجاح.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيه.',
+                'حدث خطأ أثناء إنشاء التنبيهات.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -240,21 +245,20 @@ class UserAlertController extends Controller
     public function paymentAlerts(AlertRequest $request): JsonResponse
     {
         try {
-            $alert = $this->alertService->createPaymentAlerts($request->validated());
+            $alerts = $this->alertService->createPaymentAlerts($request->validated());
             return $this->successResponse(
-                new AlertResource($alert),
-                'تم إنشاء التنبيه بنجاح.',
+                AlertResource::collection($alerts),
+                'تم إنشاء التنبيهات بنجاح.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيه.',
+                'حدث خطأ أثناء إنشاء التنبيهات.',
                 500,
                 ['error' => $e->getMessage()]
             );
         }
     }
-
 
     public function markAllAlertsRead(Request $request): JsonResponse
     {

@@ -171,14 +171,14 @@ class UserSeeder extends Seeder
                 'address' => '654 Maple Ave, Metropolis',
                 'nationality' => 'syrian',
                 'gender' => 'male',
-                'photo_url' => 'https://example.com/photo5.jpg',
+                'photo_url' => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'email' => 'aishakhairallah3@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
-        $user7->assignRole('super_admin');
+        $user7->assignRole('secretary');
 
         $user8 = User::updateOrCreate(
             ['phone_number' => '0994416082'],

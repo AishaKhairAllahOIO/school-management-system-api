@@ -46,8 +46,8 @@ class EnrollmentSeeder extends Seeder
                     'academic_year_id' => 1,
                 ],
                 [
-                    'grade_level_id' => 2,
-                    'class_room_id' => 3,
+                    'grade_level_id' => 1,
+                    'class_room_id' => 1,
                     'enrollment_status' => 'enrolled',
                     'enrollment_date' => now(),
                 ]
@@ -60,8 +60,8 @@ class EnrollmentSeeder extends Seeder
                     'academic_year_id' => 1,
                 ],
                 [
-                    'grade_level_id' => 2,
-                    'class_room_id' => 3,
+                    'grade_level_id' => 1,
+                    'class_room_id' => 2,
                     'enrollment_status' => 'enrolled',
                     'enrollment_date' => now(),
                 ]

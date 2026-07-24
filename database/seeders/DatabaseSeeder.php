@@ -43,6 +43,8 @@ class DatabaseSeeder extends Seeder
             TeacherWorkLoadSeeder::class,
             AnnouncementSeeder::class,
             AssessmentComponentSeeder::class,
+            HomeworkSeeder::class,
+            GradeConfigurationSeeder::class
 
 
         ]);

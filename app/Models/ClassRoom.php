@@ -28,9 +28,19 @@ class ClassRoom extends Model
     {
         return max(0, $this->capacity - $this->current_students_count);
     }
-    public function teacherAssignments(){
+    public function teacherAssignments()
+    {
         return $this->hasMany(TeacherAssignment::class);
     }
+    public function homeworks()
+    {
+        return $this->belongsToMany(
+            Homework::class,
+            'class_room_homework',
+            'class_room_id',
+            'homework_id'
+        )->withTimestamps();
+    }
 
-    
+
 }

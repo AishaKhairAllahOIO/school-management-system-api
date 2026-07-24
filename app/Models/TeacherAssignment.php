@@ -11,7 +11,7 @@ class TeacherAssignment extends Model
 
     public function staff()
     {
-        return $this->belongsTo(Staff::class);
+        return $this->belongsTo(Staff::class,'teacher_id');
     }
 
     public function alerts()
@@ -19,20 +19,20 @@ class TeacherAssignment extends Model
         return $this->hasMany(Alert::class);
     }
 
-    public function gradeSubject()
-    {
-        return $this->belongsTo(GradeSubject::class);
-    }
+public function gradeSubject()
+{
+    return $this->belongsTo(GradeSubject::class, 'grade_subject_id');
+}
 
-    public function classRoom()
-    {
-        return $this->belongsTo(ClassRoom::class);
-    }
-    public function academicYear()
-    {
-        return $this->belongsTo(AcademicYear::class);
-    }
+public function classRoom()
+{
+    return $this->belongsTo(ClassRoom::class, 'class_room_id');
+}
 
+public function academicYear()
+{
+    return $this->belongsTo(AcademicYear::class, 'academic_year_id');
+}
     public function semester(){
         return $this->belongsTo(Semester::class);
     }

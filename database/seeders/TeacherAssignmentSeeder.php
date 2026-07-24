@@ -19,9 +19,9 @@ class TeacherAssignmentSeeder extends Seeder
                 'class_room_id'    => 1,
             ],
             [
-                'academic_year_id' => 1, 
-                'semester_id'      => 1, 
-                'teacher_id'       => 1, 
+                'academic_year_id' => 1,
+                'semester_id'      => 1,
+                'teacher_id'       => 9,
             ]
         );
 
@@ -33,7 +33,7 @@ class TeacherAssignmentSeeder extends Seeder
             [
                 'academic_year_id' => 1,
                 'semester_id'      => 1,
-                'teacher_id'       => 1,
+                'teacher_id'       => 9,
             ]
         );
 
@@ -45,7 +45,7 @@ class TeacherAssignmentSeeder extends Seeder
             [
                 'academic_year_id' => 1,
                 'semester_id'      => 1,
-                'teacher_id'       => 1,
+                'teacher_id'       => 9,
             ]
         );
     }

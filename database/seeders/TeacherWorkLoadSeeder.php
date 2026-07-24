@@ -15,7 +15,7 @@ class TeacherWorkLoadSeeder extends Seeder
       TeacherWorkload::updateOrCreate(
             [
                 'academic_year_id' => 1,
-                'teacher_id'       => 1, 
+                'teacher_id'       => 9,
             ],
             [
                 'required_monthly_periods' => 10,

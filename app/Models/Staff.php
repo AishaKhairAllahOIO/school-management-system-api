@@ -14,7 +14,7 @@ class Staff extends Model
     use SoftDeletes;
     protected $guarded = [];
 
-   public function user()
+    public function user()
     {
         return $this->belongsTo(User::class)->withTrashed();
     }
@@ -25,18 +25,17 @@ class Staff extends Model
     }
 
     public function alerts()
-{
-    return $this->morphMany(Alert::class, 'notifiable');
-}
-
-public function teacherAssignments()
     {
-        return $this->hasMany(TeacherAssignment::class);
+        return $this->morphMany(Alert::class, 'notifiable');
+    }
+
+    public function teacherAssignments()
+    {
+        return $this->hasMany(TeacherAssignment::class, 'teacher_id');
     }
 
     public function teacherWorkloads()
     {
-        return $this->hasMany(TeacherWorkload::class);
+        return $this->hasMany(TeacherWorkload::class, 'teacher_id');
     }
-
 }

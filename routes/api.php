@@ -21,6 +21,8 @@ use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
 use App\Http\Controllers\Admin\Staff\StaffController;
 use App\Http\Controllers\Setting\SubjectController;
+use App\Http\Controllers\Teacher\HomeworkController;
+use App\Http\Controllers\Teacher\TeacherDropdownController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -82,6 +84,12 @@ Route::prefix('auth')->group(function () {
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
             Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
+            Route::get('/subjects-tree', [TeacherDropdownController::class, 'subjectsTree']);
+            Route::post('/create/homeworks',[HomeworkController::class,'store']);
+            Route::get('/show/all/homeworks',[HomeworkController::class,'index']);
+            Route::post('/update/homework/{id}',[HomeworkController::class,'update']);
+            Route::delete('/delete/homework/{id}',[HomeworkController::class,'destroy']);
+            Route::get('/show/one/homework/{id}',[HomeworkController::class,'show']);
 
         });
 
@@ -375,6 +383,8 @@ Route::prefix('user')->group(function () {
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::post('logout', [UserAuthController::class, 'logout']);
+        Route::get('/show/own/homeworks',[HomeworkController::class,'studentIndex']);
+        Route::get('/show/child/homeworks/{id}',[HomeworkController::class,'guardianChildIndex']);
 
 
     });

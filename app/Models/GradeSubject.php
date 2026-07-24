@@ -31,10 +31,10 @@ class GradeSubject extends Model
     {
         return $this->belongsTo(GradeLevel::class);
     }
-    public function subject()
-    {
-        return $this->belongsTo(Subject::class);
-    }
+public function subject()
+{
+    return $this->belongsTo(Subject::class, 'subject_id');
+}
     public function assessmentComponents(): HasMany
     {
         return $this->hasMany(AssessmentComponent::class, 'grade_subject_id');
@@ -43,4 +43,9 @@ class GradeSubject extends Model
     {
         return $this->hasMany(TeacherAssignment::class, 'grade_subject_id');
     }
+
+    public function homeworks()
+{
+    return $this->hasMany(Homework::class, 'grade_subject_id');
+}
 }

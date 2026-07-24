@@ -70,11 +70,11 @@ class UserSeeder extends Seeder
                 'gender' => 'female',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
-                'photo_url' => 'aisha.png',
+                'photo_url' => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
-        $user3->assignRole('teacher');
+        $user3->assignRole('secretary');
 
         $user4 = User::updateOrCreate(
             ['phone_number' => '0960657741'],
@@ -91,7 +91,7 @@ class UserSeeder extends Seeder
                 'address' => '456 Oak Ave, Townsville',
                 'nationality' => 'syrian',
                 'gender' => 'female',
-                'photo_url' => 'mohammed.png',
+                'photo_url' => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
@@ -150,14 +150,14 @@ class UserSeeder extends Seeder
                 'address' => '654 Maple Ave, Metropolis',
                 'nationality' => 'syrian',
                 'gender' => 'male',
-                'photo_url' => 'https://example.com/photo5.jpg',
+                'photo_url' => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
                 'email' => 'shadooalkhateeb1234@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
-        $user7->assignRole('super_admin');
+        $user7->assignRole('adviser');
         
         $user7 = User::updateOrCreate(
             ['phone_number' => '0983846541'],

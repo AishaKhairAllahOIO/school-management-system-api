@@ -88,5 +88,11 @@ protected function photoUrl(): Attribute
         return $this->belongsToMany(Activity::class, 'activity_user')->withPivot('read_at');
     }
 
+    public function readHomeworks()
+    {
+        return $this->belongsToMany(Homework::class, 'homework_user_reads', 'user_id', 'homework_id')
+                    ->withPivot('read_at');
+    }
+
 
 }

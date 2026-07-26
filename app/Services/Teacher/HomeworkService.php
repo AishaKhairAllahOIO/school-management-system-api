@@ -72,23 +72,13 @@ class HomeworkService
     }
     public function getStudentHomeworks(User $studentUser, int $perPage = 15): LengthAwarePaginator
     {
-        $student = $studentUser->student;
-
-        if (!$student) {
+        if (!$studentUser->student) {
             throw new NotFoundHttpException('ملف الطالب غير موجود.');
         }
 
-        $classRoomId = Enrollment::where('student_id', $student->id)
-            ->latest()
-            ->value('class_room_id');
-
-        if (!$classRoomId) {
-            throw new NotFoundHttpException('لا يوجد تسجيل دراسي أو شعبة مرتبطة بهذا الطالب حالياً.');
-        }
-
-        return Homework::whereHas('classRooms', fn($q) => $q->where('class_room_id', $classRoomId))
-            ->whereHas('gradeSubject.academicYear', fn($ay) => $ay->where('is_current', true))
-            ->with(['gradeSubject.subject:id,subject_name', 'staff.user:id,first_name,last_name'])
+        return $this->getBaseQueryForUser($studentUser)
+            ->withExists(['readers as is_read' => fn($q) => $q->where('user_id', $studentUser->id)])
+            ->with(['gradeSubject.subject:id,subject_name'])
             ->latest()
             ->paginate($perPage);
     }
@@ -102,17 +92,9 @@ class HomeworkService
             throw new AccessDeniedHttpException('غير مصرح لك بالوصول إلى بيانات هذا الطالب لأنه غير مسجل تحت رعايتك.');
         }
 
-        $classRoomId = Enrollment::where('student_id', $child->id)
-            ->latest()
-            ->value('class_room_id');
-
-        if (!$classRoomId) {
-            throw new NotFoundHttpException('هذا الطالب غير موزع على شعبة دراسية بعد.');
-        }
-
-        return Homework::whereHas('classRooms', fn($q) => $q->where('class_room_id', $classRoomId))
-            ->whereHas('gradeSubject.academicYear', fn($ay) => $ay->where('is_current', true))
-            ->with(['gradeSubject.subject:id,subject_name', 'staff.user:id,first_name,last_name'])
+        return $this->getBaseQueryForUser($guardianUser, $studentId)
+            ->withExists(['readers as is_read' => fn($q) => $q->where('user_id', $guardianUser->id)])
+            ->with(['gradeSubject.subject:id,subject_name'])
             ->latest()
             ->paginate($perPage);
     }
@@ -166,6 +148,83 @@ class HomeworkService
                     'grade_subject_id' => $homework->grade_subject_id,
                 ]
             )->afterCommit();
+        }
+    }
+
+    private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
+    {
+
+        if ($user->hasRole('student') && $user->student) {
+            $classRoomId = Enrollment::where('student_id', $user->student->id)
+                ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
+                ->latest()
+                ->value('class_room_id');
+
+            if (!$classRoomId) {
+                return Homework::query()->where('id', '<', 0);
+            }
+
+            return Homework::whereHas('classRooms', fn($q) => $q->where('class_rooms.id', $classRoomId))
+                ->whereHas('gradeSubject.academicYear', fn($ay) => $ay->where('is_current', true));
+        }
+
+        if ($user->hasRole('guardian') && $user->guardian) {
+            $studentsQuery = $user->guardian->students();
+
+
+            if ($specificStudentId) {
+                $isMyChild = $user->guardian->students()->where('students.id', $specificStudentId)->exists();
+
+                if (!$isMyChild) {
+                    throw new AccessDeniedHttpException('هذا الطالب لا يتبع لرعايتك، غير مصرح لك بالوصول لبياناته.');
+                }
+
+                $studentsQuery->where('students.id', $specificStudentId);
+            }
+
+            $studentIds = $studentsQuery->pluck('students.id');
+
+            $classRoomIds = Enrollment::whereIn('student_id', $studentIds)
+                ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
+                ->pluck('class_room_id')
+                ->unique();
+
+            if ($classRoomIds->isEmpty()) {
+                return Homework::query()->where('id', '<', 0);
+            }
+
+            return Homework::whereHas('classRooms', fn($q) => $q->whereIn('class_rooms.id', $classRoomIds))
+                ->whereHas('gradeSubject.academicYear', fn($ay) => $ay->where('is_current', true));
+        }
+
+        return Homework::query()->where('id', '<', 0);
+    }
+
+    public function unreadCount(User $user, ?int $studentId = null): int
+    {
+        return $this->getBaseQueryForUser($user, $studentId)
+            ->whereDoesntHave('readers', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->count();
+    }
+
+    public function markAllAsRead(User $user, ?int $studentId = null): void
+    {
+        $homeworkIds = $this->getBaseQueryForUser($user, $studentId)
+            ->whereDoesntHave('readers', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->pluck('id');
+
+        $syncData = [];
+        $now = now();
+        foreach ($homeworkIds as $id) {
+            $syncData[$id] = ['read_at' => $now];
+        }
+
+        if (!empty($syncData)) {
+            $user->readHomeworks()->syncWithoutDetaching($syncData);
         }
     }
 }

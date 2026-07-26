@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class AlertService
 {
@@ -324,29 +325,40 @@ class AlertService
         $alert->delete();
     }
 
-    private function getBaseAlertQueryForUser(User $user, ?int $studentId = null)
+private function getBaseAlertQueryForUser(User $user, ?int $studentId = null)
     {
+       
         if ($user->hasRole('student') && $user->student) {
             $enrollmentIds = $user->student->enrollments()->pluck('id');
             return Alert::where('notifiable_type', Enrollment::class)->whereIn('notifiable_id', $enrollmentIds);
         }
 
+   
         if ($user->hasRole('guardian') && $user->guardian) {
             $studentsQuery = $user->guardian->students();
 
+        
             if ($studentId) {
+                $isMyChild = $user->guardian->students()->where('students.id', $studentId)->exists();
+                
+                if (!$isMyChild) {
+                    throw new AccessDeniedHttpException('هذا الطالب لا يتبع لرعايتك، غير مصرح لك بالوصول لبياناته.');
+                }
+
+  
                 $studentsQuery->where('students.id', $studentId);
             }
 
-            $studentIds = $studentsQuery->pluck('students.id')->toArray();
-            $enrollmentIds = Enrollment::whereIn('student_id', $studentIds)->pluck('id')->toArray();
+            $studentIds = $studentsQuery->pluck('students.id');
+            $enrollmentIds = Enrollment::whereIn('student_id', $studentIds)->pluck('id');
 
             return Alert::where('notifiable_type', Enrollment::class)->whereIn('notifiable_id', $enrollmentIds);
         }
 
-        // تم إصلاح مشكلة الـ Null Pointer هنا باستخدام optional
+     
         if ($user->hasAnyRole(['super_admin', 'adviser', 'teacher']) || $user->staff) {
-            $staffId = optional($user->staff)->id;
+            $staffId = $user->staff?->id;
+            
             if ($staffId) {
                 return Alert::where('notifiable_type', Staff::class)->where('notifiable_id', $staffId);
             }
@@ -354,7 +366,6 @@ class AlertService
 
         return Alert::where('id', '<', 0);
     }
-
     public function unreadCountForUser(User $user, ?int $studentId = null): array
     {
         $baseQuery = $this->getBaseAlertQueryForUser($user, $studentId)

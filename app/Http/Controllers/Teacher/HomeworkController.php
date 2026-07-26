@@ -24,9 +24,11 @@ class HomeworkController extends Controller
     use AuthorizesRequests;
     use ApiResource;
 
-    public function __construct(protected HomeworkService $homeworkService)
-    {
-    }
+    public function __construct(protected HomeworkService $homeworkService) {}
+
+    // ==========================================================
+    // 🔒 الدوال المساعدة للتحقق من هوية وحالة المستخدم (Auth Helpers)
+    // ==========================================================
 
     private function getAuthStaff(Request $request)
     {
@@ -69,6 +71,13 @@ class HomeworkController extends Controller
         return $student;
     }
 
+    // ==========================================================
+    // 🏫 مسارات المعلم (Teacher Endpoints)
+    // ==========================================================
+
+    /**
+     * 1. عرض جميع وظائف المعلم
+     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -87,6 +96,9 @@ class HomeworkController extends Controller
         }
     }
 
+    /**
+     * 2. إنشاء وظيفة جديدة
+     */
     public function store(StoreHomeworkRequest $request): JsonResponse
     {
         try {
@@ -105,12 +117,16 @@ class HomeworkController extends Controller
         }
     }
 
+    /**
+     * 3. عرض تفاصيل وظيفة واحدة
+     */
     public function show($id): JsonResponse
     {
         try {
             $homework = Homework::findOrFail($id);
             $this->authorize('view', $homework);
 
+            // 🚀 تحميل العلاقات المطلوبة للـ Resource فقط (بدون استعلام بيانات المعلم)
             return $this->successResponse(
                 new HomeworkResource($homework->load([
                     'gradeSubject.subject',
@@ -122,13 +138,16 @@ class HomeworkController extends Controller
             );
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('الوظيفة المدرسية المطلوبة غير موجودة.', 404);
-        } catch (AuthorizationException | AccessDeniedHttpException $e) { // 👈 2. صيد AuthorizationException وتصحيح النص
+        } catch (AuthorizationException | AccessDeniedHttpException $e) {
             return $this->errorResponse('غير مصرح لك بعرض تفاصيل هذه الوظيفة المدرسية.', 403);
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء جلب تفاصيل الوظيفة المدرسية.', 500, ['error' => $e->getMessage()]);
         }
     }
 
+    /**
+     * 4. تعديل وظيفة
+     */
     public function update(UpdateHomeworkRequest $request, $id): JsonResponse
     {
         try {
@@ -149,6 +168,9 @@ class HomeworkController extends Controller
         }
     }
 
+    /**
+     * 5. حذف وظيفة
+     */
     public function destroy(Request $request, $id): JsonResponse
     {
         try {
@@ -163,12 +185,13 @@ class HomeworkController extends Controller
             );
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('الوظيفة المدرسية المطلوبة غير موجودة.', 404);
-        } catch (AuthorizationException | AccessDeniedHttpException $e) { // 👈 3. صيد AuthorizationException وتصحيح النص
+        } catch (AuthorizationException | AccessDeniedHttpException $e) {
             return $this->errorResponse('غير مصرح لك بحذف هذه الوظيفة المدرسية.', 403);
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء حذف الوظيفة المدرسية.', 500, ['error' => $e->getMessage()]);
         }
     }
+
 
     public function studentIndex(Request $request): JsonResponse
     {
@@ -190,11 +213,12 @@ class HomeworkController extends Controller
         }
     }
 
-    public function guardianChildIndex(Request $request, $id): JsonResponse
+
+    public function guardianChildIndex(Request $request, int $studentId): JsonResponse
     {
         try {
-            $this->getGuardianStudent($request, $id);
-            $homeworks = $this->homeworkService->getGuardianChildHomeworks($request->user(), $id);
+            $this->getGuardianStudent($request, $studentId);
+            $homeworks = $this->homeworkService->getGuardianChildHomeworks($request->user(), $studentId);
 
             return $this->paginatedResponse(
                 HomeworkResource::collection($homeworks),
@@ -209,6 +233,46 @@ class HomeworkController extends Controller
             return $this->errorResponse($e->getMessage(), 404);
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء جلب وظائف الابن.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+
+    public function studentUnreadCount(Request $request): JsonResponse
+    {
+        try {
+            $this->getAuthStudent($request);
+            $count = $this->homeworkService->unreadCount($request->user());
+
+            return $this->successResponse(['unread_count' => $count], 'تم جلب عدد الوظائف غير المقروءة بنجاح.');
+        } catch (InvalidArgumentException $e) {
+            return $this->errorResponse($e->getMessage(), $e->getCode());
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب العداد.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function unreadCount(Request $request): JsonResponse
+    {
+        try {
+            $count = $this->homeworkService->unreadCount($request->user(), $request->input('student_id'));
+
+            return $this->successResponse(['unread_count' => $count], 'تم جلب عدد الوظائف غير المقروءة بنجاح.');
+        } catch (AccessDeniedHttpException $e) {
+            return $this->errorResponse($e->getMessage(), 403);
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب العداد.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+    public function markAllAsRead(Request $request): JsonResponse
+    {
+        try {
+            $this->homeworkService->markAllAsRead($request->user(), $request->input('student_id'));
+
+            return $this->successResponse(null, 'تم تحديد كافة الوظائف كمقروءة بنجاح.');
+        } catch (AccessDeniedHttpException $e) {
+            return $this->errorResponse($e->getMessage(), 403);
+        } catch (Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء تحديث حالة القراءة.', 500, ['error' => $e->getMessage()]);
         }
     }
 }

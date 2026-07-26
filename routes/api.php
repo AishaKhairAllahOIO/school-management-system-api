@@ -62,7 +62,6 @@ Route::prefix('auth')->group(function () {
         Route::middleware('role:secretary|super_admin')->group(function () {
             Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
             Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
-
         });
 
         Route::middleware('role:adviser|super_admin')->group(function () {
@@ -85,12 +84,11 @@ Route::prefix('auth')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
             Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
             Route::get('/subjects-tree', [TeacherDropdownController::class, 'subjectsTree']);
-            Route::post('/create/homeworks',[HomeworkController::class,'store']);
-            Route::get('/show/all/homeworks',[HomeworkController::class,'index']);
-            Route::post('/update/homework/{id}',[HomeworkController::class,'update']);
-            Route::delete('/delete/homework/{id}',[HomeworkController::class,'destroy']);
-            Route::get('/show/one/homework/{id}',[HomeworkController::class,'show']);
-
+            Route::post('/create/homeworks', [HomeworkController::class, 'store']);
+            Route::get('/show/all/homeworks', [HomeworkController::class, 'index']);
+            Route::post('/update/homework/{id}', [HomeworkController::class, 'update']);
+            Route::delete('/delete/homework/{id}', [HomeworkController::class, 'destroy']);
+            Route::get('/show/one/homework/{id}', [HomeworkController::class, 'show']);
         });
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
@@ -205,7 +203,6 @@ Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () 
         Route::post('assessment/subject/update/{id}', [AssessmentComponentController::class, 'update']);
         Route::delete('assessment/subject/delete/{id}', [AssessmentComponentController::class, 'destroy']);
         Route::get('assessment/subjects/grouped', [AssessmentComponentController::class, 'groupedBySubject']);
-
     });
 });
 
@@ -350,7 +347,6 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::get('/{staff}/assignments', [StaffController::class, 'getAssignments']);
     Route::put('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
     Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment']);
-
 });
 
 
@@ -383,9 +379,9 @@ Route::prefix('user')->group(function () {
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::post('logout', [UserAuthController::class, 'logout']);
-        Route::get('/show/own/homeworks',[HomeworkController::class,'studentIndex']);
-        Route::get('/show/child/homeworks/{id}',[HomeworkController::class,'guardianChildIndex']);
-
-
+        Route::get('/show/own/homeworks', [HomeworkController::class, 'studentIndex'])->middleware('role:student');
+        Route::get('/show/child/homeworks/{id}', [HomeworkController::class, 'guardianChildIndex'])->middleware('role:guardian');
+        Route::get('/homeworks/unread-count', [HomeworkController::class, 'unreadCount']);
+        Route::post('/homeworks/mark-all-read', [HomeworkController::class, 'markAllAsRead']);
     });
 });

@@ -44,7 +44,7 @@ class StoreStaffRequest extends BaseRequest
                 'string', 
                 'min:6'
             ],
-         'service_type'     => ['required_if:role,service_staff', 'nullable', 'string', 'in:cleaner,other,security,maintenance,kitchen_staff'], 
+         'service_type'     => [ 'nullable', 'string', 'in:cleaner,other,security,maintenance,kitchen_staff'], 
 
         ];
     }

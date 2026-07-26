@@ -40,4 +40,10 @@ class Homework extends Model
             'class_room_id'
         )->withTimestamps();
     }
+
+    public function readers()
+    {
+        return $this->belongsToMany(User::class, 'homework_user_reads', 'homework_id', 'user_id')
+                    ->withPivot('read_at');
+    }
 }

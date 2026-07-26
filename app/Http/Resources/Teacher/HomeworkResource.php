@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class HomeworkResource extends JsonResource
 {
 
-   public function toArray(Request $request): array
+    public function toArray(Request $request): array
     {
         return [
             'id'          => $this->id,
@@ -26,6 +26,7 @@ class HomeworkResource extends JsonResource
                     'class_room_name' => $room->name,
                 ];
             })->toArray(),
+            'is_read'          => (bool) ($this->is_read ?? false),
         ];
     }
 }

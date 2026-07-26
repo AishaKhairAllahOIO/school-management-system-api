@@ -16,15 +16,21 @@ class TeacherWorkloadService
 
     public function createWorkload(array $data)
     {
-        return TeacherWorkload::updateOrCreate(
-            [
-                'academic_year_id' => $data['academic_year_id'],
-                'teacher_id'       => $data['teacher_id'],
-            ],
-            [
-                'required_monthly_periods' => $data['required_monthly_periods'],
-            ]
-        );
+return DB::transaction(function () use ($data) {
+            $exists = TeacherWorkload::where('teacher_id', $data['teacher_id'])
+                ->where('academic_year_id', $data['academic_year_id'])
+                ->exists();
+
+            if ($exists) {
+                http_response_code(422);
+                throw new Exception('يوجد بالفعل نصاب محدد لهذا المعلم في هذه السنة الدراسية.');
+            }
+
+            $data['assigned_monthly_periods'] = 0;
+            $data['remaining_monthly_periods'] = $data['required_monthly_periods'];
+
+            return TeacherWorkload::create($data);
+        });
     }
 
     public function getTeacherWorkloads(int $teacherId)
@@ -44,8 +50,7 @@ class TeacherWorkloadService
                 throw new Exception("لا يمكن تغيير المعلم أو السنة الدراسية لهذا النصاب لوجود تكليفات فعلية مرتبطة به. يرجى تعديل التكليفات أولاً.");
             }
         }
-    if (isset($data['required_weekly_periods'])) {
-            }
+
 
         $workload->save();
         

@@ -321,14 +321,13 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
     Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
 
-    Route::get('/search', [StaffController::class, 'search']);
+    Route::get('/role/{role}/search', [StaffController::class, 'search']);
     Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
 
     Route::get('/showAllStaff', [StaffController::class, 'index']);
     Route::get('/showStaff/{staffId}', [StaffController::class, 'show']);
 
     Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
-    Route::post('/{staff}/employment', [StaffController::class, 'updateEmployment']);
 
     Route::get('/counts/roles', [StaffController::class, 'roleCounts']);
     Route::get('/role/{role}', [StaffController::class, 'getByRole']);

@@ -42,6 +42,13 @@ class UpdateStaffPersonalDataRequest extends FormRequest
             'gender'       => ['sometimes', 'in:male,female'],
             'nationality'  => ['sometimes', 'in:syrian,lebanese,palestinian,jordanian,other'],
             'photo_url'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
+            'degree'           => ['sometimes', 'in:diploma,bachelor,master,phd,other'],
+            'specialization'   => ['sometimes', 'string'],
+            'university'       => ['sometimes', 'string'],
+            'graduation_year'  => ['sometimes', 'integer'],
+            'hire_date'        => ['sometimes', 'date'],
+            'experience_years' => ['sometimes', 'integer', 'min:0'],
+            'service_type'     => ['sometimes','string'], 
             
             // 🔥 تجاهل رقم الهاتف لهذا المستخدم تحديداً
             'phone_number' => [

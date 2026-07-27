@@ -143,7 +143,7 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         try{
         $updatedStudent = $studentService->updateStudentPersonalData($student, $request->validated());
 
-        return $this->successResponse(new BaseUserProfileResource($updatedStudent), 'تم تحديث بيانات الطالب بنجاح.',201);
+        return $this->successResponse(new StudentProfileWithEnrollmentResource($updatedStudent), 'تم تحديث بيانات الطالب بنجاح.',201);
         }catch(ModelNotFoundException $e)
         {
             return $this->errorResponse('المستخدم غير موجود',404);
@@ -153,20 +153,20 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         }
     }
 
-    public function updateEnrollment(UpdateEnrollmentRequest $request, int $enrollmentId,StudentManagementService $studentService)
-    {
-        try{
-        $updatedEnrollment = $studentService->updateEnrollmentData($enrollmentId, $request->validated());
+    // public function updateEnrollment(UpdateEnrollmentRequest $request, int $enrollmentId,StudentManagementService $studentService)
+    // {
+    //     try{
+    //     $updatedEnrollment = $studentService->updateEnrollmentData($enrollmentId, $request->validated());
 
-        return $this->successResponse(new StudentEnrollmentResource($updatedEnrollment), 'تم تحديث بيانات القيد الأكاديمي بنجاح.',201);
-        }catch(ModelNotFoundException $e)
-        {
-            return $this->errorResponse('السجل غير موجود');
-        }
-        catch(Exception $e){
-            return $this->errorResponse($e->getMessage(), 404);
-        }
-    }
+    //     return $this->successResponse(new StudentEnrollmentResource($updatedEnrollment), 'تم تحديث بيانات القيد الأكاديمي بنجاح.',201);
+    //     }catch(ModelNotFoundException $e)
+    //     {
+    //         return $this->errorResponse('السجل غير موجود');
+    //     }
+    //     catch(Exception $e){
+    //         return $this->errorResponse($e->getMessage(), 404);
+    //     }
+    // }
 
 
     public function updateGuardian(UpdateGuardianPersonalDataRequest $request,int  $guardianId,StudentManagementService $studentService)

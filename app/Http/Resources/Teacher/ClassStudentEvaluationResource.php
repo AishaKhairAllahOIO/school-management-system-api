@@ -34,7 +34,9 @@ class ClassStudentEvaluationResource extends JsonResource
                 return [
                     'id'             => $student?->id,
                     'full_name'      => $user ? trim("{$user->first_name} {$user->father_name} {$user->last_name}") : 'طالب غير معرف',
-                    'personal_photo' => $user?->url_photo ? url('api/user/photos/urls/' . $user->url_photo) : null,
+                    'personal_photo' => $user->photo_url
+                    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))
+                    : null,
                 ];
             }),
 

@@ -16,7 +16,7 @@ class ClassStudentEvaluationService
     public function getTeacherEvaluations(User $teacherUser, int $perPage = 15): LengthAwarePaginator
     {
         return ClassStudentEvaluation::where('teacher_id', $teacherUser->staff->id)
-            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,father_name,personal_image', 'enrollment.classRoom:id,name'])
+            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,father_name,photo_url', 'enrollment.classRoom:id,name'])
             ->latest()
             ->paginate($perPage);
     }
@@ -132,7 +132,7 @@ class ClassStudentEvaluationService
 
         return $this->getBaseQueryForUser($studentUser)
             ->withExists(['readers as is_read' => fn($q) => $q->where('user_id', $studentUser->id)])
-            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,father_name,personal_photo', 'enrollment.classRoom:id,name'])
+            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,father_name,photo_url', 'enrollment.classRoom:id,name'])
             ->latest()
             ->paginate($perPage);
     }
@@ -149,7 +149,7 @@ class ClassStudentEvaluationService
 
         return $this->getBaseQueryForUser($guardianUser, $studentId)
             ->withExists(['readers as is_read' => fn($q) => $q->where('user_id', $guardianUser->id)])
-            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,father_name,personal_photo', 'enrollment.classRoom:id,name'])
+            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,father_name,photo_url', 'enrollment.classRoom:id,name'])
             ->latest()
             ->paginate($perPage);
     }

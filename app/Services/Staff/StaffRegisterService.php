@@ -13,50 +13,51 @@ use App\Models\ImportError;
 
 class StaffRegisterService
 {
-   
+
     public function registerSingleStaff(array $data): Staff
     {
         return DB::transaction(function () use ($data) {
-            
-            $photoPath = 'defaults/staff.png'; 
+
+            $photoPath = 'defaults/staff.png';
+            $photoPath = 'defaults/staff.png';
             if (isset($data['photo_url']) && $data['photo_url'] instanceof UploadedFile) {
-                $photoPath = $data['photo_url']->store('users/staff', 'public');
+                $photoPath = $data['photo_url']->store('users/staff', 'local');
             }
-            $password = !empty($data['password']) 
-                        ? bcrypt($data['password']) 
-                        : bcrypt(env('DEFAULT_USER_PASSWORD', 'password'));
+            $password = !empty($data['password'])
+                ? bcrypt($data['password'])
+                : bcrypt(env('DEFAULT_USER_PASSWORD', 'password'));
 
 
             $user = User::create([
-                'first_name'     => $data['first_name'],
-                'last_name'      => $data['last_name'],
-                'father_name'    => $data['father_name'],
-                'mother_name'    => $data['mother_name'],
-                'birth_date'     => $data['birth_date'],
-                'birth_place'    => $data['birth_place'],
-                'address'        => $data['address'],
-                'gender'         => $data['gender'],
-                'email'          => !empty($data['email']) ? trim($data['email']) : null,
-                'nationality'    => $data['nationality'] ?? 'syrian',
-                'phone_number'   => $data['phone_number'],
-                'photo_url'      => $photoPath,
-                'password'       => $password,
-                'account_status' => 'enabled', 
-                'record_status'  => 'active',
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+                'father_name' => $data['father_name'],
+                'mother_name' => $data['mother_name'],
+                'birth_date' => $data['birth_date'],
+                'birth_place' => $data['birth_place'],
+                'address' => $data['address'],
+                'gender' => $data['gender'],
+                'email' => !empty($data['email']) ? trim($data['email']) : null,
+                'nationality' => $data['nationality'] ?? 'syrian',
+                'phone_number' => $data['phone_number'],
+                'photo_url' => $photoPath,
+                'password' => $password,
+                'account_status' => 'enabled',
+                'record_status' => 'active',
             ]);
 
-           $role = $data['role'] ;
+            $role = $data['role'];
             $user->assignRole($role);
 
-               $staff = Staff::create([
-                'user_id'          => $user->id,
-                'degree'           => $data['degree'] ?? null,
-                'specialization'   => $data['specialization'] ?? null,
-                'university'       => $data['university'] ?? null,
-                'graduation_year'  => $data['graduation_year'] ?? null,
-                'hire_date'        => $data['hire_date'],
+            $staff = Staff::create([
+                'user_id' => $user->id,
+                'degree' => $data['degree'] ?? null,
+                'specialization' => $data['specialization'] ?? null,
+                'university' => $data['university'] ?? null,
+                'graduation_year' => $data['graduation_year'] ?? null,
+                'hire_date' => $data['hire_date'],
                 'experience_years' => $data['experience_years'] ?? 0,
-                'service_type'     => $data['service_type'] ?? null,
+                'service_type' => $data['service_type'] ?? null,
             ]);
             return $staff->load('user');
         });
@@ -66,23 +67,23 @@ class StaffRegisterService
     public function initiateStaffExcelImport(UploadedFile $file, int $adminId): ImportBatch
     {
         $filePath = $file->storeAs(
-            'imports/staff', 
+            'imports/staff',
             'staff_import_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension(),
             'local'
         );
 
         $batch = ImportBatch::create([
-            'batch_title'         => $file->getClientOriginalName(),
-            'file_path'           => $filePath,
-            'imported_by_user_id' => $adminId, // ✅ تم التصحيح هنا: يجب أن نمرر الـ ID الخاص بالمدير   
-            'status'              => 'pending'
+            'batch_title' => $file->getClientOriginalName(),
+            'file_path' => $filePath,
+            'imported_by_user_id' => $adminId, // ✅ تم التصحيح هنا: يجب أن نمرر الـ ID الخاص بالمدير
+            'status' => 'pending'
         ]);
 
         ProcessStaffImportJob::dispatch($batch->id);
 
         return $batch;
     }
-        public function downloadBatchErrors(ImportBatch $batch)
+    public function downloadBatchErrors(ImportBatch $batch)
     {
         $errors = ImportError::where('import_batch_id', $batch->id)->get();
 
@@ -91,13 +92,13 @@ class StaffRegisterService
         }
 
         $exportData = $errors->map(function ($errorRecord) {
-            $originalRow = is_array($errorRecord->row_data) 
-                ? $errorRecord->row_data 
+            $originalRow = is_array($errorRecord->row_data)
+                ? $errorRecord->row_data
                 : json_decode($errorRecord->row_data, true);
 
             return array_merge([
-                'EXCEL_ROW_NUMBER'  => $errorRecord->row_number,
-                'REJECTION_REASON'  => $errorRecord->error_message,
+                'EXCEL_ROW_NUMBER' => $errorRecord->row_number,
+                'REJECTION_REASON' => $errorRecord->error_message,
             ], $originalRow ?? []);
         });
 

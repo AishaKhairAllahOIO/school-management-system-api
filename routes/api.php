@@ -31,7 +31,9 @@ Route::get('/user', function (Request $request) {
 
 
 
-
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/documents/photos/{path}', [DocumentController::class, 'showPhoto'])->where('path', '.*');
+});
 
 
 
@@ -56,9 +58,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/payment-alerts', [UserAlertController::class, 'getStaffPaymentAlerts']);
         Route::post('/alerts/mark-all-read', [UserAlertController::class, 'markAllAlertsRead']);
         Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
-        Route::post('/personal-image', [UserController::class, 'uploadImage']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
-        Route::get('/documents/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
 
         Route::middleware('role:secretary|super_admin')->group(function () {
             Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
@@ -337,9 +337,7 @@ Route::prefix('user')->group(function () {
         Route::get('/child-activities', [ActivityController::class, 'guardianViewActivities']);
         Route::get('/activity-unread-count', [ActivityController::class, 'getUnreadCount']);
         Route::post('/activity-mark-all-read', [ActivityController::class, 'markAllAsRead']);
-        Route::post('/personal-image', [UserController::class, 'uploadImage']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
-        Route::get('/photos/{filename}', [DocumentController::class, 'showPersonalPhoto'])->where('filename', '.*');
         Route::get('/guardian/student/{studentId}/photo', [UserController::class, 'childPersonalPhotoUrl']);
         Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
@@ -357,9 +355,9 @@ Route::prefix('user')->group(function () {
         Route::get('/homeworks/unread-count', [HomeworkController::class, 'unreadCount']);
         Route::post('/homeworks/mark-all-read', [HomeworkController::class, 'markAllAsRead']);
         Route::get('/show/own/evaluations',[ClassStudentEvaluationController::class,'studentIndex']);
-        Route::get('/show/child/evaluation/{id}',[ClassStudentEvaluationController::class,'guardianChildIndex']);
-         Route::get('/evaluation/unread-count', [HomeworkController::class, 'unreadCount']);
-        Route::post('/evaluation/mark-all-read', [HomeworkController::class, 'markAllAsRead']);
+        Route::get('/show/child/evaluations/{id}',[ClassStudentEvaluationController::class,'guardianChildIndex']);
+         Route::get('/evaluation/unread-count', [ClassStudentEvaluationController::class, 'unreadCount']);
+        Route::post('/evaluation/mark-all-read', [ClassStudentEvaluationController::class, 'markAllAsRead']);
 
     });
 });

@@ -25,7 +25,7 @@ class BaseUserProfileResource extends JsonResource
         }
 
         return [
-            'id'             => $this->id,              
+            'id'             => $this->id,
             'user_id'        => $user->id,
             'full_name'      => $user->first_name . ' ' . $user->last_name,
             'father_name'    => $user->father_name,
@@ -36,8 +36,9 @@ class BaseUserProfileResource extends JsonResource
             'phone_number'   => $user->phone_number,
             'nationality'    => $user->nationality,
             'gender'         => $user->gender,
-            'photo_url'      => $user->photo_url? (str_starts_with($user->photo_url, 'http') ? $user->photo_url : asset('storage/' . $user->photo_url)) : null,        // اريد ان اجلب الصورة من الstorage
-
+            'photo_url'      => $user->photo_url
+    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))
+    : null,
             'account_status' => $user->account_status,
             'record_status'  => $user->record_status,
         ];

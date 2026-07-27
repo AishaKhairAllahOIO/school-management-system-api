@@ -43,12 +43,12 @@ class User extends Authenticatable
         ];
     }
 
-    protected function photoUrl(): Attribute
-    {
-        return Attribute::make(
-            get: fn($value) => $value ? (filter_var($value, FILTER_VALIDATE_URL) ? $value : asset('storage/' . $value)) : null
-        );
-    }
+    // protected function photoUrl(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn($value) => $value ? (filter_var($value, FILTER_VALIDATE_URL) ? $value : asset('storage/' . $value)) : null
+    //     );
+    // }
 
     public function student()
     {

@@ -9,16 +9,16 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Guardian;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
-
+use Illuminate\Support\Facades\Storage;
 
 class StudentManagementService
 {
 
-public function filterStudents(array $filters)
-{
- $query = Enrollment::withTrashed()->with([
-            'student.user:id,first_name,last_name,father_name,mother_name,phone_number', 
-            'gradeLevel', 
+    public function filterStudents(array $filters)
+    {
+        $query = Enrollment::withTrashed()->with([
+            'student.user:id,first_name,last_name,father_name,mother_name,phone_number',
+            'gradeLevel',
             'classRoom'
         ]);
 
@@ -39,46 +39,46 @@ public function filterStudents(array $filters)
         }
 
         $direction = (isset($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
-        
+
         $query->join('students', 'enrollments.student_id', '=', 'students.id')
-              ->join('users', 'students.user_id', '=', 'users.id')
-              ->select('enrollments.*') 
-              ->orderBy('users.first_name', $direction)
-              ->orderBy('users.father_name', $direction)
-              ->orderBy('users.last_name', $direction);
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->select('enrollments.*')
+            ->orderBy('users.first_name', $direction)
+            ->orderBy('users.father_name', $direction)
+            ->orderBy('users.last_name', $direction);
 
         return $query->paginate(15);
-}
- public function searchStudents(string $searchTerm)
+    }
+    public function searchStudents(string $searchTerm)
     {
-       $query = Enrollment::withTrashed()->with([
-            'student.user:id,first_name,last_name,father_name,mother_name,phone_number', 
-            'gradeLevel', 
+        $query = Enrollment::withTrashed()->with([
+            'student.user:id,first_name,last_name,father_name,mother_name,phone_number',
+            'gradeLevel',
             'classRoom'
         ]);
 
         $safe = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
-        
+
         $query->whereHas('student.user', function ($q) use ($safe) {
             $q->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'like', "%{$safe}%")
-              ->orWhere('first_name', 'like', "%{$safe}%")
-              ->orWhere('father_name', 'like', "%{$safe}%")
-              ->orWhere('last_name', 'like', "%{$safe}%");
+                ->orWhere('first_name', 'like', "%{$safe}%")
+                ->orWhere('father_name', 'like', "%{$safe}%")
+                ->orWhere('last_name', 'like', "%{$safe}%");
         });
 
         $query->join('students', 'enrollments.student_id', '=', 'students.id')
-              ->join('users', 'students.user_id', '=', 'users.id')
-              ->select('enrollments.*')
-              ->orderBy('users.first_name', 'asc')
-              ->orderBy('users.father_name', 'asc')
-              ->orderBy('users.last_name', 'asc');
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->select('enrollments.*')
+            ->orderBy('users.first_name', 'asc')
+            ->orderBy('users.father_name', 'asc')
+            ->orderBy('users.last_name', 'asc');
 
         return $query->paginate(15);
     }
-   public function getStudentPersonalProfile(int $studentId)
+    public function getStudentPersonalProfile(int $studentId)
     {
         $student = Student::with([
-            'user', 
+            'user',
             'guardian.user'
         ])->find($studentId);
 
@@ -89,7 +89,7 @@ public function filterStudents(array $filters)
         return $student;
     }
 
-   
+
     public function getStudentFullProfile($enrollmentId)
     {
         $enrollment = Enrollment::withTrashed()->with([
@@ -110,27 +110,35 @@ public function filterStudents(array $filters)
 
     public function updateStudentPersonalData(int $studentId, array $data)
     {
-        
-            return DB::transaction(function () use ($studentId, $data) {
-            
+
+        return DB::transaction(function () use ($studentId, $data) {
+
             // بما أن الـ $studentId قد يكون هو نفسه الـ student_id أو قادم من الـ Enrollment
             $student = Student::with(['user', 'guardian.user'])->findOrFail($studentId);
 
-            // 1. معالجة رفع الصورة الشخصية للطالب إن وجدت
             if (isset($data['photo_url']) && $data['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
                 if ($student->user->photo_url && !str_contains($student->user->photo_url, 'defaults/')) {
-                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($student->user->photo_url)) {
-                        \Illuminate\Support\Facades\Storage::disk('public')->delete($student->user->photo_url);
+                    if (Storage::disk('local')->exists($student->user->photo_url)) {
+                        Storage::disk('local')->delete($student->user->photo_url);
                     }
                 }
-                $data['photo_url'] = $data['photo_url']->store('users/students', 'public');
+                $data['photo_url'] = $data['photo_url']->store('users/students', 'local');
             }
 
             // 2. تحديث بيانات المستخدم (الطالب)
             $studentUserFields = [
-                'first_name', 'last_name', 'father_name', 'mother_name', 
-                'birth_date', 'birth_place', 'address', 'gender', 
-                'nationality', 'photo_url', 'phone_number', 'email'
+                'first_name',
+                'last_name',
+                'father_name',
+                'mother_name',
+                'birth_date',
+                'birth_place',
+                'address',
+                'gender',
+                'nationality',
+                'photo_url',
+                'phone_number',
+                'email'
             ];
             $studentUserData = array_intersect_key($data, array_flip($studentUserFields));
             if (!empty($studentUserData)) {
@@ -140,11 +148,20 @@ public function filterStudents(array $filters)
             // 3. تحديث كامل بيانات ولي الأمر
             if ($student->guardian && $student->guardian->user) {
                 $guardianUserFields = [
-                    'first_name', 'last_name', 'father_name', 'mother_name', 
-                    'birth_date', 'birth_place', 'address', 'gender', 
-                    'nationality', 'phone_number', 'email', 'national_id'
+                    'first_name',
+                    'last_name',
+                    'father_name',
+                    'mother_name',
+                    'birth_date',
+                    'birth_place',
+                    'address',
+                    'gender',
+                    'nationality',
+                    'phone_number',
+                    'email',
+                    'national_id'
                 ];
-                
+
                 $guardianData = [];
                 foreach ($guardianUserFields as $field) {
                     $requestKey = 'guardian_' . $field;
@@ -161,7 +178,7 @@ public function filterStudents(array $filters)
             // 4. تحديث بيانات القيد الأكاديمي (Enrollment)
             $enrollmentFields = ['class_room_id', 'grade_level_id', 'enrollment_status'];
             $enrollmentData = array_intersect_key($data, array_flip($enrollmentFields));
-            
+
             $enrollment = Enrollment::where('student_id', $student->id)->latest()->first();
             if (!empty($enrollmentData) && $enrollment) {
                 $enrollment->update($enrollmentData);
@@ -182,10 +199,10 @@ public function filterStudents(array $filters)
     {
         return DB::transaction(function () use ($enrollmentId, $enrollmentData) {
             $enrollment = Enrollment::findOrFail($enrollmentId);
-            if(!$enrollment)
+            if (!$enrollment)
                 throw new Exception('سجل القيد الأكاديمي غير موجود.', 404);
             $enrollment->update($enrollmentData);
-            
+
             return $enrollment->fresh(['gradeLevel', 'classRoom']);
         });
     }
@@ -195,19 +212,19 @@ public function filterStudents(array $filters)
     {
         return DB::transaction(function () use ($guardianId, $guardianUserData) {
             $guardian = Guardian::with('user')->findOrFail($guardianId);
-            if(!$guardian)
-                throw new Exception('ولي الامر غير موجود',404);
+            if (!$guardian)
+                throw new Exception('ولي الامر غير موجود', 404);
             $guardian->user()->update($guardianUserData);
-            
+
             return $guardian->fresh('user');
         });
     }
 
-public function deleteStudent($enrollmentId)
+    public function deleteStudent($enrollmentId)
     {
         return DB::transaction(function () use ($enrollmentId) {
             $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
-            
+
             $enrollment->update(['enrollment_status' => 'suspended']);
 
             if ($enrollment->student && $enrollment->student->user) {
@@ -223,7 +240,7 @@ public function deleteStudent($enrollmentId)
     public function toggleAccountStatus($enrollmentId)
     {
         $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
-        if(!$enrollment)
+        if (!$enrollment)
             throw new Exception('سجل القيد الأكاديمي غير موجود.', 404);
         $user = $enrollment->student->user;
 

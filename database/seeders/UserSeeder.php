@@ -74,7 +74,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
-        $user3->assignRole('secretary');
+        $user3->assignRole('teacher');
 
         $user4 = User::updateOrCreate(
             ['phone_number' => '0960657741'],
@@ -158,7 +158,7 @@ class UserSeeder extends Seeder
             ]
         );
         $user7->assignRole('adviser');
-        
+
         $user7 = User::updateOrCreate(
             ['phone_number' => '0983846541'],
             [
@@ -256,7 +256,6 @@ class UserSeeder extends Seeder
             'record_status' => 'active',
             'gender' => 'male',
             'photo_url' => 'yazan.png',
-            'personal_photo' => 'nour.png',
             'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
 

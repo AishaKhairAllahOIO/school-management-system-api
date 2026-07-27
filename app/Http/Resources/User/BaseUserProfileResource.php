@@ -14,10 +14,9 @@ class BaseUserProfileResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-      
+
         $user = $this->user;
 
-        // حماية إضافية: في حال (لسبب ما) لم يكن هناك يوزر مرتبط
         if (!$user) {
             return [
                 'id' => $this->id,
@@ -26,8 +25,8 @@ class BaseUserProfileResource extends JsonResource
         }
 
         return [
-            'id'             => $this->id,               // ID الخاص بجدول Student أو الموظف
-            'user_id'        => $user->id,               // ID الخاص بجدول Users
+            'id'             => $this->id,              
+            'user_id'        => $user->id,
             'full_name'      => $user->first_name . ' ' . $user->last_name,
             'father_name'    => $user->father_name,
             'mother_name'    => $user->mother_name,
@@ -35,12 +34,12 @@ class BaseUserProfileResource extends JsonResource
             'birth_place'    => $user->birth_place,
             'address'        => $user->address,
             'phone_number'   => $user->phone_number,
-            'nationality'    => $user->nationality,   
+            'nationality'    => $user->nationality,
             'gender'         => $user->gender,
             'photo_url'      => $user->photo_url? (str_starts_with($user->photo_url, 'http') ? $user->photo_url : asset('storage/' . $user->photo_url)) : null,        // اريد ان اجلب الصورة من الstorage
-            
-            'account_status' => $user->account_status,   // تعديل: جلب الحالة من الـ user
-            'record_status'  => $user->record_status,    // تعديل: جلب حالة السجل من الـ user
+
+            'account_status' => $user->account_status,
+            'record_status'  => $user->record_status,
         ];
     }
 }

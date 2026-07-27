@@ -175,7 +175,6 @@ class UserService
 
             'user' . 'student';
 
-            // إرجاع بيانات البطاقة الواحدة مسطحة (Flat) لتسهيل عرضها في الفرونت إند
             return [
                 'id' => $student->id,
                 'first_name'      => $student->user->first_name,
@@ -209,7 +208,7 @@ class UserService
     public function getUsersByRole(string $roleName, int $perPage = 15)
     {
         return User::role($roleName)
-            ->with(['roles']) 
+            ->with(['roles'])
             //->whereNull('users.deleted_at')// جلب علاقة staff إذا كان لديه تفاصيل موظف
             ->paginate($perPage);
     }

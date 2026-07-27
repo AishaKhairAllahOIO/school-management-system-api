@@ -18,7 +18,7 @@ class User extends Authenticatable
 
 
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasRoles,SoftDeletes;
+    use HasFactory, Notifiable, HasApiTokens, HasRoles, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -42,13 +42,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-     
-protected function photoUrl(): Attribute
-{
-    return Attribute::make(
-        get: fn ($value) => $value ? (filter_var($value, FILTER_VALIDATE_URL) ? $value : asset('storage/' . $value)) : null
-    );
-}
+
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value ? (filter_var($value, FILTER_VALIDATE_URL) ? $value : asset('storage/' . $value)) : null
+        );
+    }
 
     public function student()
     {
@@ -91,8 +91,13 @@ protected function photoUrl(): Attribute
     public function readHomeworks()
     {
         return $this->belongsToMany(Homework::class, 'homework_user_reads', 'user_id', 'homework_id')
-                    ->withPivot('read_at');
+            ->withPivot('read_at');
     }
 
+    public function readEvaluations()
+    {
+        return $this->belongsToMany(ClassStudentEvaluation::class, 'evaluation_user_reads', 'user_id', 'class_student_evaluation_id')
+            ->withPivot('read_at');
+    }
 
 }

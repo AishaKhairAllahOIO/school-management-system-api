@@ -2,28 +2,39 @@
 
 namespace App\Http\Requests\Teacher;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\ApiResource;
+use App\Models\ClassStudentEvaluation;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class StoreClassStudentEvaluationRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    use ApiResource;
+
     public function authorize(): bool
     {
-        return false;
+        return $this->user()->can('create', [
+            ClassStudentEvaluation::class,
+            (int) $this->input('grade_subject_id'),
+            (int) $this->input('enrollment_id')
+        ]);
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    protected function failedAuthorization()
+    {
+        throw new HttpResponseException(
+            $this->errorResponse('غير مصرح لك بتقييم هذا الطالب، المادة أو الشعبة لا تقع ضمن نصابك التدريسي الفعال.', 403)
+        );
+    }
+
     public function rules(): array
     {
         return [
-            //
+            'grade_subject_id' => ['required', 'integer', 'exists:grade_subjects,id'],
+            'enrollment_id'    => ['required', 'integer', 'exists:enrollments,id'],
+            'rating'           => ['required', 'string', Rule::in(['excellent', 'very_good', 'good', 'average', 'weak'])],
+            'notes'            => ['nullable', 'string', 'max:500'],
         ];
     }
 }

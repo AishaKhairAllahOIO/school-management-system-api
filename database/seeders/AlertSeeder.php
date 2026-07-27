@@ -91,7 +91,6 @@ class AlertSeeder extends Seeder
             ]
         );
 
-        // تنبيه دفع
         Alert::updateOrCreate(
             [
                 'notifiable_type' => Enrollment::class,

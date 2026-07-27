@@ -36,15 +36,13 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * جلب قائمة المستخدمين بناءً على دور محدد
-     */
+
     public function getByRole(string $role, Request $request)
     {
         try {
             $perPage = $request->query('per_page', 15);
             $users = $this->userService->getUsersByRole($role, $perPage);
-            
+
             return $this->successResponse(UserResource::collection($users), "تم جلب مستخدمي دور الـ {$role} بنجاح.");
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء جلب المستخدمين.', 500, ['error' => $e->getMessage()]);

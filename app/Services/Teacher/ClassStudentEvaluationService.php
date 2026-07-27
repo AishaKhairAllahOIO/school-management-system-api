@@ -15,9 +15,8 @@ class ClassStudentEvaluationService
 {
     public function getTeacherEvaluations(User $teacherUser, int $perPage = 15): LengthAwarePaginator
     {
-        // 🚀 تم إعفاء السيرفر من استعلام المعلم هنا
         return ClassStudentEvaluation::where('teacher_id', $teacherUser->staff->id)
-            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,avatar', 'enrollment.classRoom:id,name'])
+            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,father_name,personal_image', 'enrollment.classRoom:id,name'])
             ->latest()
             ->paginate($perPage);
     }
@@ -79,7 +78,7 @@ class ClassStudentEvaluationService
 
             if ($specificStudentId) {
                 $isMyChild = $user->guardian->students()->where('students.id', $specificStudentId)->exists();
-                
+
                 if (!$isMyChild) {
                     throw new AccessDeniedHttpException('هذا الطالب لا يتبع لرعايتك، غير مصرح لك بالوصول لتقييماته.');
                 }
@@ -133,8 +132,7 @@ class ClassStudentEvaluationService
 
         return $this->getBaseQueryForUser($studentUser)
             ->withExists(['readers as is_read' => fn($q) => $q->where('user_id', $studentUser->id)])
-            // 🚀 تم حذف تحميل المعلم من استعلام الطالب
-            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,avatar', 'enrollment.classRoom:id,name'])
+            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,father_name,personal_photo', 'enrollment.classRoom:id,name'])
             ->latest()
             ->paginate($perPage);
     }
@@ -151,8 +149,7 @@ class ClassStudentEvaluationService
 
         return $this->getBaseQueryForUser($guardianUser, $studentId)
             ->withExists(['readers as is_read' => fn($q) => $q->where('user_id', $guardianUser->id)])
-            // 🚀 تم حذف تحميل المعلم من استعلام ولي الأمر أيضاً
-            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,avatar', 'enrollment.classRoom:id,name'])
+            ->with(['gradeSubject.subject:id,subject_name', 'enrollment.student.user:id,first_name,last_name,father_name,personal_photo', 'enrollment.classRoom:id,name'])
             ->latest()
             ->paginate($perPage);
     }

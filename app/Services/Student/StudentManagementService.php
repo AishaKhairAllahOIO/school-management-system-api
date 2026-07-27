@@ -75,9 +75,9 @@ public function filterStudents(array $filters)
 
         return $query->paginate(15);
     }
-   public function getStudentPersonalProfile($studentId)
+   public function getStudentPersonalProfile(int $studentId)
     {
-        $student = Student::withTrashed()->with([
+        $student = Student::with([
             'user', 
             'guardian.user'
         ])->find($studentId);
@@ -108,27 +108,73 @@ public function filterStudents(array $filters)
     }
 
 
-    public function updateStudentPersonalData($studentId, array $userData)
+    public function updateStudentPersonalData(int $studentId, array $data)
     {
         
-        return DB::transaction(function () use ($studentId, $userData) {
+            return DB::transaction(function () use ($studentId, $data) {
             
-            $student = Student::with('user')->findOrFail($studentId);
-            $user = $student->user;
+            // بما أن الـ $studentId قد يكون هو نفسه الـ student_id أو قادم من الـ Enrollment
+            $student = Student::with(['user', 'guardian.user'])->findOrFail($studentId);
 
-            if (isset($userData['photo_url']) && $userData['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
-                
-                if ($user->photo_url && !str_contains($user->photo_url, 'defaults/')) {
-                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($user->photo_url)) {
-                        \Illuminate\Support\Facades\Storage::disk('public')->delete($user->photo_url);
+            // 1. معالجة رفع الصورة الشخصية للطالب إن وجدت
+            if (isset($data['photo_url']) && $data['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
+                if ($student->user->photo_url && !str_contains($student->user->photo_url, 'defaults/')) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($student->user->photo_url)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($student->user->photo_url);
                     }
                 }
-                $userData['photo_url'] = $userData['photo_url']->store('users/students', 'public');
-                unset($userData['photo_url']); 
+                $data['photo_url'] = $data['photo_url']->store('users/students', 'public');
             }
 
-            $user->update($userData);
-            return $student->fresh('user');
+            // 2. تحديث بيانات المستخدم (الطالب)
+            $studentUserFields = [
+                'first_name', 'last_name', 'father_name', 'mother_name', 
+                'birth_date', 'birth_place', 'address', 'gender', 
+                'nationality', 'photo_url', 'phone_number', 'email'
+            ];
+            $studentUserData = array_intersect_key($data, array_flip($studentUserFields));
+            if (!empty($studentUserData)) {
+                $student->user->update($studentUserData);
+            }
+
+            // 3. تحديث كامل بيانات ولي الأمر
+            if ($student->guardian && $student->guardian->user) {
+                $guardianUserFields = [
+                    'first_name', 'last_name', 'father_name', 'mother_name', 
+                    'birth_date', 'birth_place', 'address', 'gender', 
+                    'nationality', 'phone_number', 'email', 'national_id'
+                ];
+                
+                $guardianData = [];
+                foreach ($guardianUserFields as $field) {
+                    $requestKey = 'guardian_' . $field;
+                    if (array_key_exists($requestKey, $data)) {
+                        $guardianData[$field] = $data[$requestKey];
+                    }
+                }
+
+                if (!empty($guardianData)) {
+                    $student->guardian->user->update($guardianData);
+                }
+            }
+
+            // 4. تحديث بيانات القيد الأكاديمي (Enrollment)
+            $enrollmentFields = ['class_room_id', 'grade_level_id', 'enrollment_status'];
+            $enrollmentData = array_intersect_key($data, array_flip($enrollmentFields));
+            
+            $enrollment = Enrollment::where('student_id', $student->id)->latest()->first();
+            if (!empty($enrollmentData) && $enrollment) {
+                $enrollment->update($enrollmentData);
+            }
+
+            // 🔥 الإرجاع الجراحي السليم: إرجاع أحدث Enrollment محملاً بكافة العلاقات ليتوافق مع الـ Resource مباشرة
+            return Enrollment::withTrashed()->with([
+                'student.user',
+                'student.guardian.user',
+                'gradeLevel',
+                'classRoom',
+                'academicYear'
+            ])->findOrFail($enrollment->id);
         });
     }
 

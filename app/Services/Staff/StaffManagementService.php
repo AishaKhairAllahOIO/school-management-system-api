@@ -12,9 +12,9 @@ class StaffManagementService{
         $counts = [];
 
         foreach ($roles as $role) {
-            $counts[$role] = User::role($role)->count();
+            $counts[$role] = User::withTrashed()->role($role)->count();
         }
-        $counts['total'] = User::role($roles)->count();
+        $counts['total'] = User::withTrashed()->role($roles)->count();
 
         return $counts;
     }
@@ -29,9 +29,11 @@ class StaffManagementService{
             whereHas('user', function ($query) use ($roleName) {
                 $query->role($roleName);
             })
-            ->with(['user.roles'])
+            ->with(['user.roles','enrollments' => function ($query) {
+                    $query->withTrashed();
+                }])
             ->paginate($perPage);
-        return Staff::
+        return Staff::withTrashed()->
             whereHas('user', function ($query) use ($roleName) {
                 $query->role($roleName);
             })
@@ -93,47 +95,81 @@ class StaffManagementService{
     
     public function updatePersonalData(int $id, array $data): Staff
     {
-        return DB::transaction(function () use ($id, $data) {
-      $staff = Staff::withTrashed()->findOrFail($id);
+return DB::transaction(function () use ($id, $data) {
+            $staff = Staff::with('user')->findOrFail($id);
 
-        if ($staff->trashed()) {
-            throw new \Exception('لا يمكن تعديل بيانات موظف تم حذفه من النظام.');
-        }
+            if ($staff->trashed()) {
+                throw new \Exception('لا يمكن تعديل بيانات موظف تم حذفه من النظام.');
+            }
 
-        $user = $staff->user;
-            // معالجة رفع الصورة الشخصية إن وجدت
+            $user = $staff->user;
+
+            // 1. معالجة رفع الصورة الشخصية إن وجدت
             if (isset($data['photo_url']) && $data['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
+                if ($user->photo_url && !str_contains($user->photo_url, 'defaults/')) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($user->photo_url)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($user->photo_url);
+                    }
+                }
                 $data['photo_url'] = $data['photo_url']->store('users/staff', 'public');
             }
 
-            $user->update($data);
+            // 2. فصل حقول جدول users عن حقول جدول staff لضمان عدم حدوث خطأ في الأعمدة
+            $userFields = [
+                'first_name', 'last_name', 'father_name', 'mother_name', 
+                'birth_date', 'birth_place', 'address', 'gender', 
+                'nationality', 'photo_url', 'phone_number', 'email', 'account_status'
+            ];
+
+            $staffFields = [
+                'degree', 'specialization', 'university', 
+                'graduation_year', 'hire_date', 'experience_years', 'service_type'
+            ];
+
+            // استخراج وتحديث بيانات جدول users فقط
+            $userData = array_intersect_key($data, array_flip($userFields));
+            if (!empty($userData)) {
+                $user->update($userData);
+            }
+
+            // استخراج وتحديث بيانات جدول staff فقط
+            $staffData = array_intersect_key($data, array_flip($staffFields));
+            if (!empty($staffData)) {
+                $staff->update($staffData);
+            }
 
             return $staff->refresh()->load('user');
         });
     }
 
    
-    public function updateEmploymentData(int $id, array $data): Staff
+    // public function updateEmploymentData(int $id, array $data): Staff
+    // {
+    //     return DB::transaction(function () use ($id, $data) {
+    //     $staff = Staff::withTrashed()->findOrFail($id);
+    //      if ($staff->trashed()) {
+    //         throw new \Exception('لا يمكن تعديل بيانات موظف تم حذفه من النظام.');
+    //     }
+    //         $staff->update($data);
+
+    //         return $staff->refresh()->load('user');
+    //     });
+    // }
+
+
+public function searchStaffByRoleAndName(string $roleName, string $fullName, int $perPage = 15)
     {
-        return DB::transaction(function () use ($id, $data) {
-        $staff = Staff::withTrashed()->findOrFail($id);
-         if ($staff->trashed()) {
-            throw new \Exception('لا يمكن تعديل بيانات موظف تم حذفه من النظام.');
-        }
-            $staff->update($data);
+        return Staff::withTrashed()
+            ->whereHas('user', function ($query) use ($roleName, $fullName) {
+                $query->role($roleName);
 
-            return $staff->refresh()->load('user');
-        });
+                if (!empty($fullName)) {
+                    $query->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'LIKE', "%{$fullName}%");
+                }
+            })
+            ->with(['user.roles'])
+            ->paginate($perPage);
     }
-
-
-    public function searchStaffByFullName(string $fullName, $perPage = 15)
-    {
-        return Staff::withTrashed()->whereHas('user', function ($query) use ($fullName) {
-            $query->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'LIKE', "%{$fullName}%");
-        })->with('user')->paginate($perPage);
-    }
-
 
     public function getAllStaffAlphabetically(string $direction = 'asc', $perPage = 15)
     {
@@ -163,6 +199,33 @@ class StaffManagementService{
             $staff->user->update(['account_status'=>'disabled']);
             $staff->user()->delete(); 
             $staff->delete();
+        });
+    }
+    public function restoreStaff(int $staffId)
+    {
+        return DB::transaction(function () use ($staffId) {
+            
+            // 1. البحث عن الموظف ضمن السجلات المحذوفة (Soft Deleted) باستخدام withTrashed()
+            $staff = Staff::withTrashed()->with('user')->findOrFail($staffId);
+
+            if (!$staff->trashed()) {
+                throw new \Exception('هذا الموظف غير محذوف أصلاً لكي يتم استرجاعُه.', 422);
+            }
+
+            $staff->restore();
+
+            if ($staff->user) {
+                if (method_exists($staff->user, 'trashed') && $staff->user->trashed()) {
+                    $staff->user->restore();
+                }
+                
+                $staff->user->update([
+                    'account_status' => 'enabled'
+                ]);
+            }
+
+            // 4. إرجاع السجل كاملاً مع علاقاته ليعرضه الـ Resource بالشكل السليم
+            return Staff::with(['user.roles'])->findOrFail($staff->id);
         });
     }
 

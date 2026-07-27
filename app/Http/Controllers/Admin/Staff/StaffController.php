@@ -243,21 +243,21 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
         }
     }
 
-    public function updateEmployment(UpdateEmploymentStaffRequest $request, int $staff): JsonResponse
-    {
-        try {
-            $updated = $this->managementService->updateEmploymentData($staff, $request->validated());
-            return $this->successResponse(new StaffProfileResource($updated), 'تم تحديث البيانات الوظيفية للموظف بنجاح.');
-        } 
-        catch (ModelNotFoundException $e) {
-            return $this->errorResponse('المستخدم غير مموجود ', 404);
-        }
-        catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تحديث البيانات الوظيفية.', 500, ['error' => $e->getMessage()]);
-        }
-    }
+    // public function updateEmployment(UpdateEmploymentStaffRequest $request, int $staff): JsonResponse
+    // {
+    //     try {
+    //         $updated = $this->managementService->updateEmploymentData($staff, $request->validated());
+    //         return $this->successResponse(new StaffProfileResource($updated), 'تم تحديث البيانات الوظيفية للموظف بنجاح.');
+    //     } 
+    //     catch (ModelNotFoundException $e) {
+    //         return $this->errorResponse('المستخدم غير مموجود ', 404);
+    //     }
+    //     catch (Exception $e) {
+    //         return $this->errorResponse('حدث خطأ أثناء تحديث البيانات الوظيفية.', 500, ['error' => $e->getMessage()]);
+    //     }
+    // }
 
-    public function search(Request $request): JsonResponse
+    public function search(string $role,Request $request): JsonResponse
     {
         try {
             $fullName = $request->query('name');
@@ -265,7 +265,7 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
                 return $this->errorResponse('يرجى تحديد اسم للبحث عنه.', 422);
             }
             $perPage = $request->query('per_page', 15);
-            $results = $this->managementService->searchStaffByFullName($fullName, $perPage);
+            $results = $this->managementService->searchStaffByRoleAndName($role,$fullName, $perPage);
             return $this->successResponse(StaffProfileResource::collection($results), 'تم جلب نتائج البحث بنجاح.');
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء إجراء عملية البحث.', 500, ['error' => $e->getMessage()]);

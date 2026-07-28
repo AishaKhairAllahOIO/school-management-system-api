@@ -205,7 +205,6 @@ public function searchStaffByRoleAndName(string $roleName, string $fullName, int
     {
         return DB::transaction(function () use ($staffId) {
             
-            // 1. البحث عن الموظف ضمن السجلات المحذوفة (Soft Deleted) باستخدام withTrashed()
             $staff = Staff::withTrashed()->with('user')->findOrFail($staffId);
 
             if (!$staff->trashed()) {
@@ -224,10 +223,10 @@ public function searchStaffByRoleAndName(string $roleName, string $fullName, int
                 ]);
             }
 
-            // 4. إرجاع السجل كاملاً مع علاقاته ليعرضه الـ Resource بالشكل السليم
             return Staff::with(['user.roles'])->findOrFail($staff->id);
         });
     }
+    
 
 
 }

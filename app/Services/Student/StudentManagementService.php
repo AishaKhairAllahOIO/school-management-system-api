@@ -208,7 +208,7 @@ public function deleteStudent($enrollmentId)
         return DB::transaction(function () use ($enrollmentId) {
             $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
             
-            $enrollment->update(['enrollment_status' => 'suspended']);
+           // $enrollment->update(['enrollment_status' => 'suspended']);
 
             if ($enrollment->student && $enrollment->student->user) {
                 $enrollment->student->user->update(['account_status' => 'disabled']);
@@ -231,5 +231,33 @@ public function deleteStudent($enrollmentId)
         $user->update(['account_status' => $newStatus]);
 
         return $newStatus;
+    }
+    public function restoreStudent(int $enrollmentId)
+    {
+        return DB::transaction(function () use ($enrollmentId) {
+            
+            $enrollment = Enrollment::withTrashed()->with('student.user')->findOrFail($enrollmentId);
+
+            if (!$enrollment->trashed()) {
+                throw new Exception('هذا القيد غير محذوف أصلاً لكي يتم استرجاعُه.', 422);
+            }
+
+            $enrollment->restore();
+         //   $enrollment->update(['enrollment_status' => 'confirmed']);
+
+            // 3. إعادة تفعيل حساب المستخدم (User) الخاص بالطالب
+            if ($enrollment->student && $enrollment->student->user) {
+                $enrollment->student->user->update(['account_status' => 'enabled']);
+            }
+
+            // 4. إرجاع السجل كاملاً مع علاقاته ليعرضه الـ Resource بالشكل السليم
+            return Enrollment::with([
+                'student.user',
+                'student.guardian.user',
+                'gradeLevel',
+                'classRoom',
+                'academicYear'
+            ])->findOrFail($enrollment->id);
+        });
     }
 }

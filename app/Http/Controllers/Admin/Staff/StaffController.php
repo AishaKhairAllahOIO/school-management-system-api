@@ -326,4 +326,21 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             return $this->errorResponse('حدث خطأ أثناء محاولة حذف الموظف.', 500, ['error' => $e->getMessage()]);
         }
     }
+    public function restore(int $staff, StaffManagementService $staffService): JsonResponse
+    {
+        try {
+            $restoredStaff = $staffService->restoreStaff($staff);
+
+            return $this->successResponse(
+                new StaffProfileResource($restoredStaff),
+                'تم استرجاع الموظف وتفعيل حسابه بنجاح.',
+                200
+            );
+
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('سجل الموظف المطلوب غير موجود.', 404);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
+    }
 }

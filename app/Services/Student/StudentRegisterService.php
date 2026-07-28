@@ -19,7 +19,7 @@ use App\Models\FinancialAccount;
 
 class StudentRegisterService
 {
-    public function registerStudentWithGuardian(array $data): User
+    public function registerStudentWithGuardian(array $data)
     {
         return DB::transaction(function () use ($data) {
             
@@ -43,7 +43,7 @@ class StudentRegisterService
             if ($classroomId) {
                 $classroom = Classroom::findOrFail($classroomId);
                 
-                $classroomGradeId = $classroom->grade_level_id ?? $classroom->grade_id; // دعم للمسميين
+                $classroomGradeId = $classroom->grade_level_id; // دعم للمسميين
     
             if ($classroom->academic_year_id != $academicYearId || $classroomGradeId != $gradeId) {
                 throw new Exception("عذراً، الشعبة المحددة ({$classroom->name}) لا تنتمي للصف أو العام الدراسي المحدد للطالب.", 422);
@@ -159,8 +159,18 @@ class StudentRegisterService
                 'academic_year_id' => $academicYearId,
             ]);
 
-            return $studentUser->fresh(['student.guardian.user', 'student.enrollments']);
-        });
+$enrollment = Enrollment::where('student_id', $studentRecord->id)
+        ->with([
+            'student.user',
+            'student.guardian.user',
+            'gradeLevel',
+            'classRoom',
+            'academicYear'
+        ])
+        ->latest()
+        ->first();
+
+    return $enrollment;        });
     }
 
     public function initiateExcelImport(UploadedFile $file, int $importerId)

@@ -310,6 +310,8 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
         ->middleware('can:student:delete');
     Route::post('/{enrollmentId}/toggle-account-status', [StudentController::class, 'toggleAccountStatus'])
         ->middleware('can:account:toggle_status');
+    Route::post('/{enrollment}/student/restore', [StudentController::class, 'restore']);
+    
 });
 
 
@@ -346,6 +348,7 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::get('/{staff}/assignments', [StaffController::class, 'getAssignments']);
     Route::put('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
     Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment']);
+    Route::post('/{staff}/restore', [StaffController::class, 'restore']);
 });
 
 

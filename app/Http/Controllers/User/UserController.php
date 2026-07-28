@@ -26,34 +26,9 @@ class UserController extends Controller
     {
         $this->userService = $userService;
     }
-        public function roleCounts()
-    {
-        try {
-            $counts = $this->userService->getRoleCounts();
-            return $this->successResponse($counts, 'تم جلب إحصائيات الأدوار بنجاح.');
-        } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب الإحصائيات.', 500, ['error' => $e->getMessage()]);
-        }
-    }
-
-    /**
-     * جلب قائمة المستخدمين بناءً على دور محدد
-     */
-    public function getByRole(string $role, Request $request)
-    {
-        try {
-            $perPage = $request->query('per_page', 15);
-            $users = $this->userService->getUsersByRole($role, $perPage);
-            
-            return $this->successResponse(UserResource::collection($users), "تم جلب مستخدمي دور الـ {$role} بنجاح.");
-        } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب المستخدمين.', 500, ['error' => $e->getMessage()]);
-        }
-    }
 
     public function getUserInfo(Request $request)
     {
-
         $user = $request->user();
 
         if (!$user) {
@@ -62,11 +37,10 @@ class UserController extends Controller
 
         if ($user->hasRole('student'))
             $result = $this->userService->getStudent($user);
-
         else if ($user->hasRole('guardian'))
             $result = $this->userService->getGuardian($user);
 
-        return $this->successResponse($result, 'تم جلب بيانات لوحةالتحكم بنجاح', 200);
+        return $this->successResponse($result, 'تم جلب بيانات لوحة التحكم بنجاح', 200);
     }
 
     public function teacherProfile(Request $request)
@@ -82,6 +56,7 @@ class UserController extends Controller
 
         return $this->successResponse(new TeacherProfileResource($user), 'تم جلب بيانات المستخدم بنجاح', 200);
     }
+
     public function counselorProfile(Request $request)
     {
         $user = $request->user();
@@ -95,18 +70,6 @@ class UserController extends Controller
 
         return $this->successResponse(new CounselorProfileResource($user), 'تم جلب بيانات المستخدم بنجاح', 200);
     }
-    public function uploadImage(UpdatePersonalImageRequest $request)
-    {
-        $user = $request->user();
-        if (!$user) {
-            return $this->errorResponse('User not found.', 404);
-        }
-        $updatedUser = $this->userService->updateProfileImage($user, $request->file('personal_image'));
-
-        return $this->successResponse([
-            'photo_url' => $this->getPhotoUrl($updatedUser),
-        ], 'تم تعيين الصورة الشخصية بنجاح', 200);
-    }
 
     public function myPersonalPhotoUrl(Request $request)
     {
@@ -118,20 +81,19 @@ class UserController extends Controller
 
         return $this->successResponse([
             'photo_url' => $this->getPhotoUrl($user),
-        ], 'تم جلب رابط الصورة الشخصية بنجاح', 200);
+        ], 'تم جلب رابط الصورة بنجاح', 200);
     }
+
+    // 🚀 التعديل الجوهري: تبسيط الدالة وتوجيهها لـ photo_url والمسار العالمي المحمي
     private function getPhotoUrl(User $user): ?string
     {
-        if (!$user->personal_photo) {
+        if (!$user->photo_url) {
             return null;
         }
 
-        if ($user->hasRole('student') || $user->hasRole('guardian')) {
-            return url('/api/user/photos/' . ltrim($user->personal_photo, '/'));
-        }
-
-        return url('/api/auth/documents/' . ltrim($user->personal_photo, '/'));
+        return url('/api/documents/photos/' . ltrim($user->photo_url, '/'));
     }
+
     public function childPersonalPhotoUrl(Request $request, int $studentId)
     {
         $user = $request->user();
@@ -148,13 +110,14 @@ class UserController extends Controller
 
         $studentUser = $student->user;
 
-        if (!$studentUser || !$studentUser->personal_photo) {
+        // 🚀 الاعتماد على photo_url بدلاً من personal_photo
+        if (!$studentUser || !$studentUser->photo_url) {
             return $this->successResponse([
                 'photo_url' => null,
-            ], 'الطالب لا يملك صورة شخصية.', 200);
+            ], 'الطالب لا يملك صورة في النظام.', 200);
         }
 
-        $photoUrl = url('/api/user/photos/' . ltrim($studentUser->personal_photo, '/'));
+        $photoUrl = url('/api/documents/photos/' . ltrim($studentUser->photo_url, '/'));
 
         return $this->successResponse([
             'photo_url' => $photoUrl,

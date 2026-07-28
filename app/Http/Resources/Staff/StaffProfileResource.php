@@ -12,36 +12,39 @@ class StaffProfileResource extends JsonResource
         $user = $this->user;
 
         return [
-            'id'               => (string) $this->id,
-            'userId'           => (string) $user->id,
-            'role'             => $user->getRoleNames(),
-            
-            'fullName'         => trim($user->first_name . ' ' . $user->father_name . ' ' . $user->last_name),
-            'firstName'        => $user->first_name,
-            'lastName'         => $user->last_name,
-            'fatherName'      =>$user->father_name,
-            'motherName'      =>$user->mother_name,
-            'phoneNumber'      => $user->phone_number,
-            'email'            =>$user->email ?:null,
-            'gender'           => $user->gender,
-            'birthDate'        => $user->birth_date,
-            'birthPlace'       =>$user->birth_place,
-            'address'          => $user->address,
-            'photoUrl'         => $user->photo_url ? (str_starts_with($user->photo_url, 'http') ? $user->photo_url : asset('storage/' . $user->photo_url)) : null,
-            'accountStatus'    => $user->account_status,
-            
-            'degree'           => $this->degree??null,
-            'specialization'   => $this->specialization??null,
-            'university'       => $this->university??null,
-            'graduationYear'   => (int) $this->graduation_year??null,
-            'hireDate'         => $this->hire_date,
-            'experienceYears'  => (int) $this->experience_years??null,
-            'serviceType'      =>$this->service_type?? null,
-            'isDeleted'       =>$this->trashed(),
-            'deletedAt' =>$this->deleted_at?->toIso8601String(),
+            'id' => (string) $this->id,
+            'userId' => (string) $user->id,
+            'role' => $user->getRoleNames(),
 
-            
-            'createdAt'        => $this->created_at?->toIso8601String(),
+            'fullName' => trim(preg_replace('/\s+/', ' ', "{$user->first_name} {$user->father_name} {$user->last_name}")),
+            'firstName' => $user->first_name,
+            'lastName' => $user->last_name,
+            'fatherName' => $user->father_name,
+            'motherName' => $user->mother_name,
+            'phoneNumber' => $user->phone_number,
+            'email' => $user->email ?: null,
+            'gender' => $user->gender,
+            'birthDate' => $user->birth_date,
+            'birthPlace' => $user->birth_place,
+            'address' => $user->address,
+
+            'photoUrl' => $user->photo_url
+                ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))
+                : null,
+
+            'accountStatus' => $user->account_status,
+
+            'degree' => $this->degree ?? null,
+            'specialization' => $this->specialization ?? null,
+            'university' => $this->university ?? null,
+            'graduationYear' => $this->graduation_year ? (int) $this->graduation_year : null,
+            'hireDate' => $this->hire_date,
+            'experienceYears' => $this->experience_years ? (int) $this->experience_years : null,
+            'serviceType' => $this->service_type ?? null,
+
+            'isDeleted' => $this->trashed(),
+            'deletedAt' => $this->deleted_at?->toIso8601String(),
+            'createdAt' => $this->created_at?->toIso8601String(),
         ];
     }
 }

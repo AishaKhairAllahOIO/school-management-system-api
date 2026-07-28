@@ -13,7 +13,6 @@ class EnrollmentSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. التحقق الفعلي من وجود البيانات الأساسية قبل زراعة التسجيل
         $student1 = Student::find(1);
         $student2 = Student::find(2);
         $student3 = Student::find(3);

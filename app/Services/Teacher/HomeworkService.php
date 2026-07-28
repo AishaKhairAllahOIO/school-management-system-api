@@ -150,7 +150,6 @@ class HomeworkService
             )->afterCommit();
         }
     }
-
     private function getBaseQueryForUser(User $user, ?int $specificStudentId = null)
     {
 
@@ -199,7 +198,6 @@ class HomeworkService
 
         return Homework::query()->where('id', '<', 0);
     }
-
     public function unreadCount(User $user, ?int $studentId = null): int
     {
         return $this->getBaseQueryForUser($user, $studentId)
@@ -208,7 +206,6 @@ class HomeworkService
             })
             ->count();
     }
-
     public function markAllAsRead(User $user, ?int $studentId = null): void
     {
         $homeworkIds = $this->getBaseQueryForUser($user, $studentId)

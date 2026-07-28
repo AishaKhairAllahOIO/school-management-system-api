@@ -3,6 +3,7 @@
 namespace App\Services\Teacher;
 
 use App\Models\ClassRoom;
+use App\Models\Enrollment;
 use App\Models\GradeLevel;
 use App\Models\Subject;
 use App\Models\User;
@@ -56,6 +57,26 @@ class TeacherDropdownService
                 })->values(),
             ];
         })->values();
+    }
+
+    public function getClassroomStudents(int $classRoomId): Collection
+    {
+        return Enrollment::where('class_room_id', $classRoomId)
+            ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
+            ->with(['student.user:id,first_name,father_name,last_name,photo_url'])
+            ->get()
+            ->map(function ($enrollment) {
+                return [
+                    'enrollment_id' => $enrollment->id,
+                    'student_id'    => $enrollment->student_id,
+                    'full_name'     => $enrollment->student?->user
+                        ? ($enrollment->student->user->first_name . ' ' . $enrollment->student->user->father_name . ' ' . $enrollment->student->user->last_name)
+                        : 'طالب غير معرف',
+                    'personal_photo'        => $enrollment->student?->user?->photo_url
+                    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $enrollment->student->user->photo_url), '/'))
+                    : null,
+                ];
+            });
     }
 
 }

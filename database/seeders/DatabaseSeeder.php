@@ -44,7 +44,8 @@ class DatabaseSeeder extends Seeder
             AnnouncementSeeder::class,
             AssessmentComponentSeeder::class,
             HomeworkSeeder::class,
-            GradeConfigurationSeeder::class
+            GradeConfigurationSeeder::class,
+            ClassStudentEvaluationSeeder::class
 
 
         ]);

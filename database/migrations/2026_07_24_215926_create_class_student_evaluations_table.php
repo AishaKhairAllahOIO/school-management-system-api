@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,6 +12,11 @@ return new class extends Migration
     {
         Schema::create('class_student_evaluations', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('teacher_id')->constrained('staff')->cascadeOnDelete();
+            $table->foreignId('grade_subject_id')->constrained('grade_subjects')->cascadeOnDelete();
+            $table->foreignId('enrollment_id')->constrained('enrollments')->cascadeOnDelete();
+            $table->enum('rating', ['excellent','very_good', 'good', 'average', 'weak']);
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }

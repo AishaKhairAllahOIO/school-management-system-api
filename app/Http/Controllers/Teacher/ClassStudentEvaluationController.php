@@ -53,7 +53,6 @@ class ClassStudentEvaluationController extends Controller
             return $this->errorResponse('حدث خطأ أثناء جلب قائمة التقييمات.', 500, ['error' => $e->getMessage()]);
         }
     }
-
     public function store(StoreClassStudentEvaluationRequest $request): JsonResponse
     {
         try {
@@ -71,7 +70,6 @@ class ClassStudentEvaluationController extends Controller
             return $this->errorResponse('حدث خطأ أثناء حفظ التقييم.', 500, ['error' => $e->getMessage()]);
         }
     }
-
     public function show($id): JsonResponse
     {
         try {
@@ -93,7 +91,6 @@ class ClassStudentEvaluationController extends Controller
             return $this->errorResponse('حدث خطأ أثناء جلب تفاصيل التقييم.', 500, ['error' => $e->getMessage()]);
         }
     }
-
     public function update(UpdateClassStudentEvaluationRequest $request, $id): JsonResponse
     {
         try {
@@ -113,7 +110,6 @@ class ClassStudentEvaluationController extends Controller
             return $this->errorResponse('حدث خطأ أثناء تعديل التقييم.', 500, ['error' => $e->getMessage()]);
         }
     }
-
     public function destroy(Request $request, $id): JsonResponse
     {
         try {
@@ -130,8 +126,6 @@ class ClassStudentEvaluationController extends Controller
             return $this->errorResponse('حدث خطأ أثناء حذف التقييم.', 500, ['error' => $e->getMessage()]);
         }
     }
-
-
     public function studentIndex(Request $request): JsonResponse
     {
         try {
@@ -148,11 +142,10 @@ class ClassStudentEvaluationController extends Controller
             return $this->errorResponse('حدث خطأ أثناء جلب تقييمات الطالب.', 500, ['error' => $e->getMessage()]);
         }
     }
-
-    public function guardianChildIndex(Request $request, int $studentId): JsonResponse
+    public function guardianChildIndex(Request $request, int $id): JsonResponse
     {
         try {
-            $evaluations = $this->evaluationService->getGuardianChildEvaluations($request->user(), $studentId);
+            $evaluations = $this->evaluationService->getGuardianChildEvaluations($request->user(), $id);
 
             return $this->paginatedResponse(
                 ClassStudentEvaluationResource::collection($evaluations),
@@ -167,8 +160,6 @@ class ClassStudentEvaluationController extends Controller
             return $this->errorResponse('حدث خطأ أثناء جلب تقييمات الابن.', 500, ['error' => $e->getMessage()]);
         }
     }
-
-
     public function unreadCount(Request $request): JsonResponse
     {
         try {
@@ -181,8 +172,6 @@ class ClassStudentEvaluationController extends Controller
             return $this->errorResponse('حدث خطأ أثناء جلب العداد.', 500, ['error' => $e->getMessage()]);
         }
     }
-
-
     public function markAllAsRead(Request $request): JsonResponse
     {
         try {

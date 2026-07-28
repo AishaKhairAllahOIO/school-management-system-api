@@ -29,7 +29,7 @@ class UserSeeder extends Seeder
                 'gender' => 'female',
                 'record_status' => 'active',
                 'account_status' => 'enabled',
-                'photo_url' => 'nour.png',
+                'photo_url' => 'defaults/guardian.jpg',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
@@ -49,7 +49,7 @@ class UserSeeder extends Seeder
                 'gender' => 'female',
                 'record_status' => 'active',
                 'account_status' => 'enabled',
-                'photo_url' => 'https://example.com/photo.jpg',
+                'photo_url' => 'defaults/student_female.jpg',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
@@ -70,11 +70,11 @@ class UserSeeder extends Seeder
                 'gender' => 'female',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
-                'photo_url' => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
+                'photo_url' => 'defaults/teacher.jpg',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
-        $user3->assignRole('secretary');
+        $user3->assignRole('teacher');
 
         $user4 = User::updateOrCreate(
             ['phone_number' => '0960657741'],
@@ -91,7 +91,7 @@ class UserSeeder extends Seeder
                 'address' => '456 Oak Ave, Townsville',
                 'nationality' => 'syrian',
                 'gender' => 'female',
-                'photo_url' => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
+                'photo_url' => 'defaults/admin.jpg',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
@@ -111,7 +111,7 @@ class UserSeeder extends Seeder
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'male',
-                'photo_url' => 'yazan.png',
+                'photo_url' => 'defaults/student_male.jpg',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
             ]
         );
@@ -129,7 +129,7 @@ class UserSeeder extends Seeder
                 'address' => '321 Elm St, Hamletville',
                 'nationality' => 'syrian',
                 'gender' => 'female',
-                'photo_url' => 'alice.png',
+                'photo_url' => 'defaults/counselor.jpg',
                 'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
                 'email' => 'nournour.ahmad.1284@gmail.com',
                 'account_status' => 'enabled',
@@ -150,7 +150,7 @@ class UserSeeder extends Seeder
                 'address' => '654 Maple Ave, Metropolis',
                 'nationality' => 'syrian',
                 'gender' => 'male',
-                'photo_url' => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
+                'photo_url' => 'defaults/adviser.jpg',
                 'email' => 'shadooalkhateeb1234@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
@@ -158,7 +158,7 @@ class UserSeeder extends Seeder
             ]
         );
         $user7->assignRole('adviser');
-        
+
         $user7 = User::updateOrCreate(
             ['phone_number' => '0983846541'],
             [
@@ -171,7 +171,7 @@ class UserSeeder extends Seeder
                 'address' => '654 Maple Ave, Metropolis',
                 'nationality' => 'syrian',
                 'gender' => 'male',
-                'photo_url' => 'users/staff/f1a0FxZD3ldwKgyAvGIQBSrr7ZJd4A6mKCkn4kY8.png',
+                'photo_url' => 'defaults/secretary.jpg',
                 'email' => 'aishakhairallah3@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
@@ -255,8 +255,8 @@ class UserSeeder extends Seeder
             'account_status' => 'enabled',
             'record_status' => 'active',
             'gender' => 'male',
-            'photo_url' => 'yazan.png',
-            'personal_photo' => 'nour.png',
+            'photo_url' => 'yazan.jpg
+            ',
             'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
         ]);
 

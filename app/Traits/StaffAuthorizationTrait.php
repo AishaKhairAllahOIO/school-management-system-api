@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Models\ClassRoom;
+use App\Models\Enrollment;
 use App\Models\User;
 use App\Models\GradeConfiguration;
 
@@ -77,6 +78,28 @@ trait StaffAuthorizationTrait
             }
 
             return true;
+        }
+
+        return false;
+    }
+
+    public function checkTeacherEvaluationAccess(User $user, int $gradeSubjectId, int $enrollmentId): bool
+    {
+        if ($user->hasRole('super_admin') || $user->hasRole('adviser')) {
+            return true;
+        }
+
+        if ($user->hasRole('teacher') && $user->staff) {
+            $enrollment = Enrollment::find($enrollmentId);
+            if (!$enrollment) {
+                return false;
+            }
+
+            return $user->staff->teacherAssignments()
+                ->where('grade_subject_id', $gradeSubjectId)
+                ->where('class_room_id', $enrollment->class_room_id)
+                ->whereHas('academicYear', fn($query) => $query->where('is_current', true))
+                ->exists();
         }
 
         return false;

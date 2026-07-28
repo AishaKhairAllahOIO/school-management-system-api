@@ -4,11 +4,13 @@ use App\Models\User;
 use App\Models\Staff;
 use App\Models\Student;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
-class StaffManagementService{
-     public function getStaffRoleCounts(): array
+class StaffManagementService
+{
+    public function getStaffRoleCounts(): array
     {
-         $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff','student'];
+        $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff', 'student'];
         $counts = [];
 
         foreach ($roles as $role) {
@@ -24,15 +26,18 @@ class StaffManagementService{
      */
     public function getStaffByRole(string $roleName, int $perPage = 15)
     {
-        if($roleName==='student')
+        if ($roleName === 'student')
             return Student::
-            whereHas('user', function ($query) use ($roleName) {
-                $query->role($roleName);
-            })
-            ->with(['user.roles','enrollments' => function ($query) {
-                    $query->withTrashed();
-                }])
-            ->paginate($perPage);
+                whereHas('user', function ($query) use ($roleName) {
+                    $query->role($roleName);
+                })
+                ->with([
+                    'user.roles',
+                    'enrollments' => function ($query) {
+                        $query->withTrashed();
+                    }
+                ])
+                ->paginate($perPage);
         return Staff::withTrashed()->
             whereHas('user', function ($query) use ($roleName) {
                 $query->role($roleName);
@@ -46,8 +51,8 @@ class StaffManagementService{
      */
     public function ownProfile()
     {
-       $user=auth()->user()->staff; 
-       return $user->load('user.roles');
+        $user = auth()->user()->staff;
+        return $user->load('user.roles');
 
     }
     public function getStaffProfile(int $id): Staff
@@ -63,7 +68,7 @@ class StaffManagementService{
 
     public function getStaffById(int $id)
     {
-        $staff=Staff::withTrashed()->findOrFail($id);
+        $staff = Staff::withTrashed()->findOrFail($id);
         return $staff;
     }
 
@@ -71,11 +76,11 @@ class StaffManagementService{
 
     // {
     //     return DB::transaction(function () use ($staff, $data) {
-            
+
     //         // 1. تحديث صورة المستخدم إن وجدت
     //         if (isset($data['photo_url']) && $data['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
     //             $data['user']['photo_url'] = $data['photo_url']->store('users/staff', 'public');
-    //             unset($data['photo_url']); 
+    //             unset($data['photo_url']);
     //         }
 
     //         $userData = array_intersect_key($data, array_flip(['first_name', 'last_name', 'phone_number', 'email', 'birth_date', 'address', 'photo_url']));
@@ -92,10 +97,10 @@ class StaffManagementService{
     //     });
     // }
 
-    
+
     public function updatePersonalData(int $id, array $data): Staff
     {
-return DB::transaction(function () use ($id, $data) {
+        return DB::transaction(function () use ($id, $data) {
             $staff = Staff::with('user')->findOrFail($id);
 
             if ($staff->trashed()) {
@@ -104,26 +109,39 @@ return DB::transaction(function () use ($id, $data) {
 
             $user = $staff->user;
 
-            // 1. معالجة رفع الصورة الشخصية إن وجدت
             if (isset($data['photo_url']) && $data['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
-                if ($user->photo_url && !str_contains($user->photo_url, 'defaults/')) {
-                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($user->photo_url)) {
-                        \Illuminate\Support\Facades\Storage::disk('public')->delete($user->photo_url);
-                    }
-                }
-                $data['photo_url'] = $data['photo_url']->store('users/staff', 'public');
-            }
+    if ($user->photo_url && !str_contains($user->photo_url, 'defaults/')) {
+        if (Storage::disk('local')->exists($user->photo_url)) {
+            Storage::disk('local')->delete($user->photo_url);
+        }
+    }
+    $data['photo_url'] = $data['photo_url']->store('users/staff', 'local');
+}
 
-            // 2. فصل حقول جدول users عن حقول جدول staff لضمان عدم حدوث خطأ في الأعمدة
             $userFields = [
-                'first_name', 'last_name', 'father_name', 'mother_name', 
-                'birth_date', 'birth_place', 'address', 'gender', 
-                'nationality', 'photo_url', 'phone_number', 'email', 'account_status'
+                'first_name',
+                'last_name',
+                'father_name',
+                'mother_name',
+                'birth_date',
+                'birth_place',
+                'address',
+                'gender',
+                'nationality',
+                'photo_url',
+                'phone_number',
+                'email',
+                'account_status'
             ];
 
             $staffFields = [
-                'degree', 'specialization', 'university', 
-                'graduation_year', 'hire_date', 'experience_years', 'service_type'
+                'degree',
+                'specialization',
+                'university',
+                'graduation_year',
+                'hire_date',
+                'experience_years',
+                'service_type'
             ];
 
             // استخراج وتحديث بيانات جدول users فقط
@@ -142,7 +160,7 @@ return DB::transaction(function () use ($id, $data) {
         });
     }
 
-   
+
     // public function updateEmploymentData(int $id, array $data): Staff
     // {
     //     return DB::transaction(function () use ($id, $data) {
@@ -157,7 +175,7 @@ return DB::transaction(function () use ($id, $data) {
     // }
 
 
-public function searchStaffByRoleAndName(string $roleName, string $fullName, int $perPage = 15)
+    public function searchStaffByRoleAndName(string $roleName, string $fullName, int $perPage = 15)
     {
         return Staff::withTrashed()
             ->whereHas('user', function ($query) use ($roleName, $fullName) {
@@ -178,33 +196,34 @@ public function searchStaffByRoleAndName(string $roleName, string $fullName, int
             ->orderBy('users.first_name', $direction)
             ->orderBy('users.father_name', $direction)
             ->orderBy('users.last_name', $direction)
-            ->with('user') 
+            ->with('user')
             ->paginate($perPage);
     }
     public function toggleAccountStatus(int $id)
     {
-        $staff=Staff::findOrFail($id);
+        $staff = Staff::findOrFail($id);
         $user = $staff->user;
         $newStatus = ($user->account_status === 'enabled') ? 'disabled' : 'enabled';
-        
-         $user->update(['account_status' => $newStatus]);
-         return $newStatus;
-          
+
+        $user->update(['account_status' => $newStatus]);
+        return $newStatus;
+
     }
 
     public function deleteStaff(int $id): void
     {
         DB::transaction(function () use ($id) {
-            $staff=Staff::findOrFail($id);
-            $staff->user->update(['account_status'=>'disabled']);
-            $staff->user()->delete(); 
+            $staff = Staff::findOrFail($id);
+            $staff->user->update(['account_status' => 'disabled']);
+            $staff->user()->delete();
             $staff->delete();
         });
     }
     public function restoreStaff(int $staffId)
     {
         return DB::transaction(function () use ($staffId) {
-            
+
+            // 1. البحث عن الموظف ضمن السجلات المحذوفة (Soft Deleted) باستخدام withTrashed()
             $staff = Staff::withTrashed()->with('user')->findOrFail($staffId);
 
             if (!$staff->trashed()) {
@@ -217,7 +236,7 @@ public function searchStaffByRoleAndName(string $roleName, string $fullName, int
                 if (method_exists($staff->user, 'trashed') && $staff->user->trashed()) {
                     $staff->user->restore();
                 }
-                
+
                 $staff->user->update([
                     'account_status' => 'enabled'
                 ]);

@@ -145,10 +145,10 @@ class StaffController extends Controller
             return $this->errorResponse('حدث خطأ أثناء التسجيل.', 500, ['error' => $e->getMessage()]);
         }
     }
-    public function importExcel(ImportExalSheetStudentRequest $request): JsonResponse
+    public function importExcel(ImportExalSheetStudentRequest $request,string $role): JsonResponse
     {
         try {
-            $batch = $this->registerService->initiateStaffExcelImport($request->file('excel_file'), $request->user()->id);
+            $batch = $this->registerService->initiateStaffExcelImport($request->file('excel_file'), $role,$request->user()->id);
             return $this->successResponse(['batch_id' => $batch->id], 'تم استلام الملف بنجاح، جاري معالجة بيانات الموظفين في الخلفية.', 202);
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء رفع الملف.', 500, ['error' => $e->getMessage()]);

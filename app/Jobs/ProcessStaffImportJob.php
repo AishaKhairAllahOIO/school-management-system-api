@@ -19,7 +19,8 @@ class ProcessStaffImportJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(protected int $batchId) {}
+    // 🔥 استقبال الـ batchId والدور القادم من الـ URL
+    public function __construct(protected int $batchId, protected string $role) {}
 
     public function handle(StaffRegisterService $staffService): void
     {
@@ -33,49 +34,54 @@ class ProcessStaffImportJob implements ShouldQueue
         $successCount = 0;
         $failedCount = 0;
 
+        // الأدوار التي تتطلب إلزاميّاً كلمة سر في ملف الإكسل
+        $requiresPassword = in_array($this->role, ['secretary', 'adviser']);
+
         try {
             if (!Storage::disk('local')->exists($batch->file_path)) {
                 throw new \Exception("ملف الإكسل غير موجود.");
             }
 
-            (new FastExcel)->import($fullPath, function ($row) use ($staffService, $batch, &$processedCount, &$successCount, &$failedCount) {
+            (new FastExcel)->import($fullPath, function ($row) use ($staffService, $batch, $requiresPassword, &$processedCount, &$successCount, &$failedCount) {
                 $processedCount++;
 
                 try {
+                    // 🔥 التحقق من إلزامية كلمة السر لأمين السر والموجه ومدير النظام
+                    if ($requiresPassword && empty($row['password'])) {
+                        throw new \Exception("كلمة المرور إجبارية في ملف الإكسل للدور الوظيفي: {$this->role}");
+                    }
+
                     $formattedData = [
-                      
-                            'first_name'   => $row['first_name'] ?? '',
-                            'last_name'    => $row['last_name'] ?? '',
-                            'father_name'  => $row['father_name'] ?? '',
-                            'mother_name'  => $row['mother_name'] ?? '',
-                            'birth_date'   => isset($row['birth_date']) ? \Carbon\Carbon::parse($row['birth_date'])->format('Y-m-d') : null,
-                            'birth_place'  => $row['birth_place'] ?? '',
-                            'address'      => $row['address'] ?? '',
-                            'gender'       => strtolower($row['gender'] ?? 'male'),
-                            'nationality'  => strtolower($row['nationality'] ?? 'syrian'),
-                            'phone_number' => (string) ($row['phone_number'] ?? ''),
-                            'email'        => !empty($row['email']) ? trim($row['email']) : null,
-                            
-                            'role'             => strtolower($row['role']),
-                            'password'         => $row['password'] ?? null,
+                        'first_name'       => $row['first_name'] ?? '',
+                        'last_name'        => $row['last_name'] ?? '',
+                        'father_name'      => $row['father_name'] ?? '',
+                        'mother_name'      => $row['mother_name'] ?? '',
+                        'birth_date'       => isset($row['birth_date']) ? \Carbon\Carbon::parse($row['birth_date'])->format('Y-m-d') : null,
+                        'birth_place'      => $row['birth_place'] ?? '',
+                        'address'          => $row['address'] ?? '',
+                        'gender'           => strtolower($row['gender'] ?? 'male'),
+                        'nationality'      => strtolower($row['nationality'] ?? 'syrian'),
+                        'phone_number'     => (string) ($row['phone_number'] ?? ''),
+                        'email'            => !empty($row['email']) ? trim($row['email']) : null,
                         
-                        
+                        // 🔥 فرض الرول القادم حصرياً من الـ URL وتجاهل أي عمود role داخل الملف
+                        'role'             => $this->role,
+                        'password'         => $row['password'] ?? null,
+                    
                         'degree'           => !empty($row['degree']) ? strtolower($row['degree']) : null,
                         'specialization'   => $row['specialization'] ?? null,
                         'university'       => $row['university'] ?? null,
                         'graduation_year'  => !empty($row['graduation_year']) ? (int) $row['graduation_year'] : null,
-                        
                         'hire_date'        => isset($row['hire_date']) ? \Carbon\Carbon::parse($row['hire_date'])->format('Y-m-d') : now()->format('Y-m-d'),
                         'experience_years' => (int) ($row['experience_years'] ?? 0),
                         'service_type'     => $row['service_type'] ?? null,
-                        
                     ];
 
                     $staffService->registerSingleStaff($formattedData);
                     $successCount++;
                     
                 } catch (\Throwable $e) { 
-                 $failedCount++;
+                    $failedCount++;
                     $friendlyErrorMessage = $this->translateError($e);
                     $safeErrorMessage = mb_substr($friendlyErrorMessage, 0, 250, 'UTF-8');
 
@@ -113,9 +119,14 @@ class ProcessStaffImportJob implements ShouldQueue
             $batch->update(['status' => 'failed']);
         }
     }
+
     private function translateError(\Throwable $e): string
     {
         $message = $e->getMessage();
+
+        if (str_contains($message, 'كلمة المرور إجبارية')) {
+            return $message;
+        }
 
         if ($e instanceof QueryException && $e->getCode() == 23000) {
             if (str_contains($message, 'users_phone_number_unique')) {

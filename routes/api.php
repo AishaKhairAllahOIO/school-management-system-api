@@ -293,7 +293,7 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 
     Route::post('/register', [StaffController::class, 'store']);
 
-    Route::post('/import', [StaffController::class, 'importExcel']);
+    Route::post('/import/{role}', [StaffController::class, 'importExcel']);
     Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
     Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
 

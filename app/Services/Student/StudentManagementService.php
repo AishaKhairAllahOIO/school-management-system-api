@@ -224,13 +224,8 @@ class StudentManagementService
     {
         return DB::transaction(function () use ($enrollmentId) {
             $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
-<<<<<<< HEAD
             
            // $enrollment->update(['enrollment_status' => 'suspended']);
-=======
-
-            $enrollment->update(['enrollment_status' => 'suspended']);
->>>>>>> f79a00222ecfef688e076bdca5a88406d2450699
 
             if ($enrollment->student && $enrollment->student->user) {
                 $enrollment->student->user->update(['account_status' => 'disabled']);
@@ -282,4 +277,4 @@ class StudentManagementService
             ])->findOrFail($enrollment->id);
         });
     }
-}
+}  

@@ -24,13 +24,13 @@ class StoreTeacherAssignmentRequest extends FormRequest
     {
         return [
             'academic_year_id' => ['required', 'exists:academic_years,id'],
-            'academic_term_id' => ['required', 'exists:academic_terms,id'], // أو semesters حسب جدولكم
+            'semester_id' => ['required', 'exists:semesters,id'],
             'teacher_id'       => ['required', 'exists:staff,id'],
             
             'grade_subject_id' => ['required', 'exists:grade_subjects,id'], 
             
-            'classroom_ids'    => ['required', 'array', 'min:1'],
-            'classroom_ids.*'  => ['integer', 'exists:class_rooms,id'], 
+            'class_room_ids'    => ['required', 'array', 'min:1'],
+            'class_room_ids.*'  => ['integer', 'exists:class_rooms,id'], 
         ];
     }
     

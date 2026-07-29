@@ -18,7 +18,8 @@ class TeacherWorkLoadSeeder extends Seeder
                 'teacher_id'       => 9,
             ],
             [
-                'required_monthly_periods' => 10,
+                'assigned_monthly_periods'=>13,
+                'required_monthly_periods' => 20,
             ]
         );
     }

@@ -315,12 +315,12 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 
     Route::post('/{staff}/workloads', [StaffController::class, 'setWorkload']);
     Route::get('/{staff}/workloads', [StaffController::class, 'getWorkloads']);
-    Route::put('/{staff}/workloads/{workload}', [StaffController::class, 'updateWorkload']);
+    Route::post('/{staff}/workloads/{workload}', [StaffController::class, 'updateWorkload']);
     Route::delete('/{staff}/workloads/{workload}', [StaffController::class, 'destroyWorkload']);
 
     Route::post('/{staff}/assignments', [StaffController::class, 'assignClassrooms']);
     Route::get('/{staff}/assignments', [StaffController::class, 'getAssignments']);
-    Route::put('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
+    Route::post('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
     Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment']);
     Route::post('/{staff}/restore', [StaffController::class, 'restore']);
 });

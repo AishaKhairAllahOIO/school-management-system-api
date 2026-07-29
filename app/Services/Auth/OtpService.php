@@ -17,7 +17,7 @@ use Carbon\Carbon;
 class OtpService
 {
     use ApiResource;
-    private string $apiKey  = 'cuFkoGNJS3uWuYodSmJnjE:APA91bGkSruRXt0q0HXy_0dr_oL54i35dHRYmU4KU3GDgU_11ZgL51CVsthzZEKbTmXCfI0MRJFg5WrcozL27e2I625PlQeBQZWM_gp1CRy8cKlL87oNPKo';
+    private string $apiKey  = 'eGRVd_FlR-mu8PomGIUC9i:APA91bFg7T6ZjuCTAD9GzTpZ6-x3suiGfYwnxOqHdUcS2cin3olkt0cGtYftFHDf2sFcHOyiA7rf8xs3wNgBERt2lUX06XWkoHlH8PT5VG9r_VDJWkE-fB4';
     private string $apiUrl = 'https://www.traccar.org/sms/';
     private string $appleReviewPhone = '+15555550123';
     private string $appleStaticOtp   = '12345';
@@ -197,7 +197,7 @@ class OtpService
             'token' => $token,
         ];
     }
-   
+
     public function logout(): void
     {
 

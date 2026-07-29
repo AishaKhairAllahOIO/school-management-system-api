@@ -242,10 +242,10 @@ class StaffManagementService
                 ]);
             }
 
-            // 4. إرجاع السجل كاملاً مع علاقاته ليعرضه الـ Resource بالشكل السليم
             return Staff::with(['user.roles'])->findOrFail($staff->id);
         });
     }
+    
 
 
 }

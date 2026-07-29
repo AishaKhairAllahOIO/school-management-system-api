@@ -145,10 +145,10 @@ class StaffController extends Controller
             return $this->errorResponse('حدث خطأ أثناء التسجيل.', 500, ['error' => $e->getMessage()]);
         }
     }
-    public function importExcel(ImportExalSheetStudentRequest $request): JsonResponse
+    public function importExcel(ImportExalSheetStudentRequest $request,string $role): JsonResponse
     {
         try {
-            $batch = $this->registerService->initiateStaffExcelImport($request->file('excel_file'), $request->user()->id);
+            $batch = $this->registerService->initiateStaffExcelImport($request->file('excel_file'), $role,$request->user()->id);
             return $this->successResponse(['batch_id' => $batch->id], 'تم استلام الملف بنجاح، جاري معالجة بيانات الموظفين في الخلفية.', 202);
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء رفع الملف.', 500, ['error' => $e->getMessage()]);
@@ -324,6 +324,23 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             return $this->errorResponse('المستخدم غير مموجود ', 404);
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء محاولة حذف الموظف.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+    public function restore(int $staff, StaffManagementService $staffService): JsonResponse
+    {
+        try {
+            $restoredStaff = $staffService->restoreStaff($staff);
+
+            return $this->successResponse(
+                new StaffProfileResource($restoredStaff),
+                'تم استرجاع الموظف وتفعيل حسابه بنجاح.',
+                200
+            );
+
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('سجل الموظف المطلوب غير موجود.', 404);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e->getMessage(), 422);
         }
     }
 }

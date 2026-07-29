@@ -216,4 +216,21 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
             return $this->errorResponse($e->getMessage(), 404);
         }
     } 
+    public function restore(int $id, StudentManagementService $studentService)
+    {
+        try {
+            $restoredEnrollment = $studentService->restoreStudent($id);
+
+            return $this->successResponse(
+                new StudentProfileWithEnrollmentResource($restoredEnrollment),
+                'تم استرجاع قيد الطالب وتفعيل حسابه بنجاح.',
+                200
+            );
+
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('سجل القيد المطلوب غير موجود.', 404);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
+    }
 }

@@ -64,7 +64,7 @@ class StaffRegisterService
     }
 
 
-    public function initiateStaffExcelImport(UploadedFile $file, int $adminId): ImportBatch
+    public function initiateStaffExcelImport(UploadedFile $file, string $role,int $adminId): ImportBatch
     {
         $filePath = $file->storeAs(
             'imports/staff',
@@ -79,7 +79,7 @@ class StaffRegisterService
             'status' => 'pending'
         ]);
 
-        ProcessStaffImportJob::dispatch($batch->id);
+        ProcessStaffImportJob::dispatch($batch->id,$role);
 
         return $batch;
     }

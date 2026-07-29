@@ -19,7 +19,7 @@ use App\Models\FinancialAccount;
 
 class StudentRegisterService
 {
-    public function registerStudentWithGuardian(array $data): User
+    public function registerStudentWithGuardian(array $data)
     {
         return DB::transaction(function () use ($data) {
 
@@ -157,8 +157,18 @@ class StudentRegisterService
                 'academic_year_id' => $academicYearId,
             ]);
 
-            return $studentUser->fresh(['student.guardian.user', 'student.enrollments']);
-        });
+$enrollment = Enrollment::where('student_id', $studentRecord->id)
+        ->with([
+            'student.user',
+            'student.guardian.user',
+            'gradeLevel',
+            'classRoom',
+            'academicYear'
+        ])
+        ->latest()
+        ->first();
+
+    return $enrollment;        });
     }
 
     public function initiateExcelImport(UploadedFile $file, int $importerId)

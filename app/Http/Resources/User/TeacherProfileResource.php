@@ -17,7 +17,7 @@ class TeacherProfileResource extends JsonResource
     {
         return [
             ...(new UserResource($this))->resolve(),
-            'email' => $this->user->email,
+            'email' => $this?->email,
 
             'professional_info' => [
                 'degree' => $this->staff?->degree,

@@ -5,6 +5,7 @@ namespace App\Services\User;
 use App\Jobs\SendPushNotification;
 use App\Models\Alert;
 use App\Models\Enrollment;
+use App\Models\SchoolLaw;
 use App\Models\Staff;
 use App\Models\Student;
 use App\Models\User;
@@ -18,12 +19,66 @@ class AlertService
 {
     public function createStudentAbsence(Enrollment $enrollment, array $meta = []): Alert
     {
-        return $this->createStudentAlert(
+        $alert = $this->createStudentAlert(
             $enrollment,
             Alert::TYPE_ABSENCE,
             'تنبيه غياب',
             'تم تسجيل غياب الطالب اليوم.',
             array_merge(['date' => now()->toDateString()], $meta)
+        );
+
+        $absenceCount = Alert::where('notifiable_type', Enrollment::class)
+            ->where('notifiable_id', $enrollment->id)
+            ->where('type', Alert::TYPE_ABSENCE)
+            ->count();
+
+            if ($absenceCount == 5) {
+            $this->createStudentWarning(
+                $enrollment,
+                $meta,
+                'تحذير: اقتراب تجاوز الحد المسموح للغياب',
+                'يرجى الانتباه: لقد بلغت عدد مرات غياب الطالب 5 مرات. عند الوصول إلى 7 غيابات سيتم إصدار قرار فصل بحق الطالب وإيقاف حسابه في نهاية الفصل الدراسي ما لم يتم التبرير.'
+            );
+        }
+
+            if ($absenceCount == 7) {
+            $this->createStudentExpulsion($enrollment, ['law_id' => 3]);
+
+        }
+
+        return $alert;
+
+    }
+
+    public function createStudentExpulsion(Enrollment $enrollment, array $meta = []): Alert
+    {
+        $law = SchoolLaw::find($meta['law_id'] ?? null);
+        $lawTitle = $law ? $law->title : 'تجاوز الحد الأقصى للغياب';
+
+        return $this->createStudentAlert(
+            $enrollment,
+            Alert::TYPE_EXPULSION,
+            'قرار فصل',
+            "تم إصدار قرار فصل بحق الطالب لمخالفته القانون المدرسي: {$lawTitle}",
+            $meta
+        );
+    }
+
+    public function createStudentWarning(Enrollment $enrollment, array $meta = [], ?string $title = null, ?string $description = null): Alert
+    {
+        $absenceCount = Alert::where('notifiable_type', Enrollment::class)
+            ->where('notifiable_id', $enrollment->id)
+            ->where('type', Alert::TYPE_ABSENCE)
+            ->count();
+
+        $meta['absence_count'] = $absenceCount;
+
+        return $this->createStudentAlert(
+            $enrollment,
+            Alert::TYPE_WARNING,
+            $title ?? 'تنبيه تحذيري',
+            $description ?? 'يرجى الانتباه لوضع الطالب لتجنب الإجراءات الإدارية.',
+            $meta
         );
     }
 

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Enrollment extends Model
 {
-    use HasFactory, SoftDeletes; // 👈 2. تفعيل الحذف المرن داخل الموديل
+    use HasFactory, SoftDeletes;
 
     protected $guarded = [];
 

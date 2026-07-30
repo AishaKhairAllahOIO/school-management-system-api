@@ -192,7 +192,7 @@ $enrollment = Enrollment::where('student_id', $studentRecord->id)
         $errors = ImportError::where('import_batch_id', $batch->id)->get();
 
         if ($errors->isEmpty()) {
-            throw new \Exception('لا توجد أخطاء مسجلة لهذه الدفعة.');
+            throw new Exception('لا توجد أخطاء مسجلة لهذه الدفعة.');
         }
 
         $exportData = $errors->map(function ($errorRecord) {

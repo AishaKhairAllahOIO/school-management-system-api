@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Guardian;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class StudentManagementService
@@ -113,10 +114,9 @@ class StudentManagementService
 
         return DB::transaction(function () use ($studentId, $data) {
 
-            // بما أن الـ $studentId قد يكون هو نفسه الـ student_id أو قادم من الـ Enrollment
             $student = Student::with(['user', 'guardian.user'])->findOrFail($studentId);
 
-            if (isset($data['photo_url']) && $data['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
+            if (isset($data['photo_url']) && $data['photo_url'] instanceof UploadedFile) {
                 if ($student->user->photo_url && !str_contains($student->user->photo_url, 'defaults/')) {
                     if (Storage::disk('local')->exists($student->user->photo_url)) {
                         Storage::disk('local')->delete($student->user->photo_url);
@@ -125,7 +125,6 @@ class StudentManagementService
                 $data['photo_url'] = $data['photo_url']->store('users/students', 'local');
             }
 
-            // 2. تحديث بيانات المستخدم (الطالب)
             $studentUserFields = [
                 'first_name',
                 'last_name',
@@ -145,7 +144,6 @@ class StudentManagementService
                 $student->user->update($studentUserData);
             }
 
-            // 3. تحديث كامل بيانات ولي الأمر
             if ($student->guardian && $student->guardian->user) {
                 $guardianUserFields = [
                     'first_name',
@@ -175,7 +173,6 @@ class StudentManagementService
                 }
             }
 
-            // 4. تحديث بيانات القيد الأكاديمي (Enrollment)
             $enrollmentFields = ['class_room_id', 'grade_level_id', 'enrollment_status'];
             $enrollmentData = array_intersect_key($data, array_flip($enrollmentFields));
 
@@ -184,7 +181,6 @@ class StudentManagementService
                 $enrollment->update($enrollmentData);
             }
 
-            // 🔥 الإرجاع الجراحي السليم: إرجاع أحدث Enrollment محملاً بكافة العلاقات ليتوافق مع الـ Resource مباشرة
             return Enrollment::withTrashed()->with([
                 'student.user',
                 'student.guardian.user',
@@ -224,8 +220,7 @@ class StudentManagementService
     {
         return DB::transaction(function () use ($enrollmentId) {
             $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
-            
-           // $enrollment->update(['enrollment_status' => 'suspended']);
+
 
             if ($enrollment->student && $enrollment->student->user) {
                 $enrollment->student->user->update(['account_status' => 'disabled']);
@@ -252,7 +247,7 @@ class StudentManagementService
     public function restoreStudent(int $enrollmentId)
     {
         return DB::transaction(function () use ($enrollmentId) {
-            
+
             $enrollment = Enrollment::withTrashed()->with('student.user')->findOrFail($enrollmentId);
 
             if (!$enrollment->trashed()) {
@@ -277,4 +272,4 @@ class StudentManagementService
             ])->findOrFail($enrollment->id);
         });
     }
-}  
+}

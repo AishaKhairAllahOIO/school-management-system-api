@@ -58,7 +58,7 @@ class UserSeeder extends Seeder
         $user3 = User::updateOrCreate(
             ['phone_number' => '0960657750'],
             [
-                'email' => 'nnnnahhmad@gmail.com',
+                'email' => 'shahdeslim0@gmail.com',
                 'first_name' => 'aisha',
                 'last_name' => 'khair allah',
                 'father_name' => 'emad aldeen',
@@ -79,7 +79,7 @@ class UserSeeder extends Seeder
         $user4 = User::updateOrCreate(
             ['phone_number' => '0960657741'],
             [
-                'email' => 'shahdeslim0@gmail.com',
+                'email' => 'nnnnahhmad@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'first_name' => 'Mohammed',
@@ -261,5 +261,48 @@ class UserSeeder extends Seeder
         ]);
 
         $user11->assignRole('student');
+
+
+        $user12 = User::updateOrCreate([
+            'phone_number' => '0935026786',
+            'first_name' => 'Majeda',
+            'last_name' => 'Al_Shalabi',
+            'father_name' => 'Mohammed',
+            'mother_name' => 'Nour',
+            'birth_date' => '1985-12-10',
+            'birth_place' => 'Villageburg',
+            'address' => '789 Pine Rd, Villageburg',
+            'nationality' => 'syrian',
+            'account_status' => 'enabled',
+            'record_status' => 'active',
+            'gender' => 'female',
+            'email' => 'alshalabimajeda@gmail.com',
+            'photo_url' => 'defaults/teacher.jpg
+            ',
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
+        ]);
+
+        $user12->assignRole('teacher');
+
+        $user11 = User::updateOrCreate([
+            'phone_number' => '0992006689',
+            'first_name' => 'Mariam',
+            'last_name' => 'Al_khalid',
+            'father_name' => 'Salem',
+            'mother_name' => 'Lisa Johnson',
+            'birth_date' => '1985-12-10',
+            'birth_place' => 'Villageburg',
+            'address' => '789 Pine Rd, Villageburg',
+            'nationality' => 'syrian',
+            'account_status' => 'enabled',
+            'record_status' => 'active',
+            'gender' => 'female',
+            'email' => 'mouhamedalshalabi@gmail.com',
+            'photo_url' => 'defaults/counselor.jpg
+            ',
+            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
+        ]);
+
+        $user11->assignRole('counselor');
     }
 }

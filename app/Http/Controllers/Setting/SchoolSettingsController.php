@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Setting\UpdateGeneralSettingsRequest;
 use App\Http\Resources\Setting\GeneralSettingsResource;
 use App\Services\Setting\SchoolSettingsService;
-use App\ApiResource; 
+use App\ApiResource;
 use Illuminate\Validation\ValidationException;
 use Exception;
 use App\Http\Requests\Setting\AddSchoolImageRequest;
@@ -24,17 +24,17 @@ class SchoolSettingsController extends Controller
     {
         try {
             $settings = $service->getSettings();
-            
+
             // if (!$settings) {
             //     return $this->errorResponse('School settings have not been initialized yet.', 404);
             // }
-            
+
             return $this->successResponse(
-                new GeneralSettingsResource($settings), 
-                'Settings retrieved successfully.', 
+                new GeneralSettingsResource($settings),
+                'Settings retrieved successfully.',
                 200
             );
-            
+
         }catch(ModelNotFoundException $e)
         {
             return $this->errorResponse($e->getMessage(),404);
@@ -48,13 +48,13 @@ class SchoolSettingsController extends Controller
     {
         try {
             $updatedSettings = $service->updateSettings($request->validated());
-            
+
             return $this->successResponse(
-                new GeneralSettingsResource($updatedSettings), 
-                'General settings updated successfully.', 
+                new GeneralSettingsResource($updatedSettings),
+                'General settings updated successfully.',
                 200
             );
-            
+
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422, $e->errors());
         } catch (Exception $e) {
@@ -72,7 +72,7 @@ class SchoolSettingsController extends Controller
         );
     }
 
-    // 👈 دالة عرض صورة محددة
+
 public function showImage(int $id, SchoolSettingsService $service)
     {
         try {
@@ -83,7 +83,7 @@ public function showImage(int $id, SchoolSettingsService $service)
             );
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('الصورة المطلوبة غير موجودة في المعرض.', 404);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ غير متوقع.', 500, ['error' => $e->getMessage()]);
         }
     }
@@ -146,5 +146,5 @@ public function showImage(int $id, SchoolSettingsService $service)
         return $this->successResponse($service->index(),'تم جلب البيانات ',200);
     }
 
-    
+
 }

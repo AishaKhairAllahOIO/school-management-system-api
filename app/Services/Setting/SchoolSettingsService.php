@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace App\Services\Setting;
 use App\Models\School;
 use Exception;
@@ -12,11 +12,10 @@ class SchoolSettingsService
 {
     public function getSettings()
     {
-        //اريد ان تعيد لا شي اذا لم يوجد هذا الاعداد:
 
         $setting= School::with('images')->first();
         if (!$setting) {
-            return new School(); 
+            return new School();
         }
         return $setting;
     }
@@ -24,18 +23,18 @@ class SchoolSettingsService
     public function updateSettings(array $validatedData)
     {
         return DB::transaction(function () use ($validatedData) {
-            
+
             $settings = School::find(1);
 
             $logoPath = $settings ? $settings->logo_url : null;
 
             if (isset($validatedData['logo']) && $validatedData['logo'] instanceof \Illuminate\Http\UploadedFile) {
-                
+
                 // حذف الشعار القديم من السيرفر إذا كان موجوداً
                 if ($logoPath && !str_starts_with($logoPath, 'http') && Storage::disk('public')->exists($logoPath)) {
                     Storage::disk('public')->delete($logoPath);
                 }
-                
+
                 // رفع الشعار الجديد وتحديث مساره
                 $logoPath = $validatedData['logo']->store('school_logos', 'public');
             }
@@ -59,8 +58,8 @@ class SchoolSettingsService
 
             // 5. ✨ السحر الخاص بكِ: إنشاء إذا لم يوجد، وتحديث إذا وجد!
             $updatedSettings = School::updateOrCreate(
-                ['id' => 1], 
-                $mappedData  
+                ['id' => 1],
+                $mappedData
             );
 
             // إرجاع الإعدادات مع صور المعرض
@@ -72,24 +71,24 @@ class SchoolSettingsService
         $settings = School::firstOrCreate(['id' => 1]);
         return $settings->images;
     }
-   
+
 public function getImageById(int $id)
     {
         // findOrFail ترمي ModelNotFoundException إذا لم تجد الصورة
         return \App\Models\SchoolImage::findOrFail($id);
-    } 
+    }
 
 
     public function addSchoolImages(array $data)
     {
-        $settings = \App\Models\School::first(); 
+        $settings = \App\Models\School::first();
         if(!$settings)
             throw new ModelNotFoundException("إعدادات المدرسة غير موجودة.");
         $imagesData = [];
 
         foreach ($data['images'] as $imageData) {
             $path = $imageData['file']->store('school_images', 'public');
-            
+
             $imagesData[] = [
                 'url'  => $path, // نحفظ المسار الجديد
                 'name' => $imageData['name'],
@@ -131,7 +130,7 @@ public function getImageById(int $id)
         if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
             Storage::disk('public')->delete($image->url);
         }
-        
+
         $image->delete();
     }
         public function deleteSettings(): void

@@ -17,12 +17,14 @@ class CounselorProfileResource extends JsonResource
     {
         return [
             ...(new UserResource($this))->resolve(),
+            'email' => $this->user->email,
+
             'professional_info' => [
-                'degree'           => $this->staff?->degree,
-                'specialization'   => $this->staff?->specialization,
-                'university'       => $this->staff?->university,
-                'graduation_year'  => $this->staff?->graduation_year,
-                'hire_date'        => $this->staff?->hire_date,
+                'degree' => $this->staff?->degree,
+                'specialization' => $this->staff?->specialization,
+                'university' => $this->staff?->university,
+                'graduation_year' => $this->staff?->graduation_year,
+                'hire_date' => $this->staff?->hire_date,
                 'experience_years' => $this->staff?->experience_years,
             ],
         ];

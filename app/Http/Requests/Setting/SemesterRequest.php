@@ -18,7 +18,6 @@ class SemesterRequest extends BaseRequest
             'semesterName'     => 'required|string|max:255',
             'startDate'      => 'required|date',
             'endDate'        => 'required|date|after:startDate',
-           // 'order'          => 'required|integer|min:1',
             'isCurrent'      => 'required|boolean',
             'isFinalTerm'    => 'required|boolean',
         ];

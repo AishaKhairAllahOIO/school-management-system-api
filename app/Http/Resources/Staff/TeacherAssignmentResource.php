@@ -17,10 +17,10 @@ class TeacherAssignmentResource extends JsonResource
       return [
             'id'             => $this->id,
             'academicYearId' => $this->academic_year_id,
-            'academicTermId' => $this->academic_term_id, // أو semesterId حسب ما يتوقعه الفرونت
+            'academicTermId' => $this->semester_id, // أو semesterId حسب ما يتوقعه الفرونت
             'teacherId'      => $this->teacher_id,
             'gradeSubjectId' => $this->grade_subject_id,
-            'classroomId'    => $this->classroom_id, // أصبحت مفردة كما اتفقنا
+            'classroomId'    => $this->class_room_id, // أصبحت مفردة كما اتفقنا
             'createdAt'      => $this->created_at,
             'updatedAt'      => $this->updated_at,
         ];

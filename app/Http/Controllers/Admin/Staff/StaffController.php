@@ -93,12 +93,12 @@ class StaffController extends Controller
     public function getAssignments(int $staff, Request $request): JsonResponse
     {
         try {
-            $yearId = $request->query('academic_year_id');
-            if (!$yearId) {
-                return $this->errorResponse('يرجى تحديد السنة الدراسية (academic_year_id).', 422);
-            }
+            // $yearId = $request->query('academic_year_id');
+            // if (!$yearId) {
+            //     return $this->errorResponse('يرجى تحديد السنة الدراسية (academic_year_id).', 422);
+            // }
 
-            $assignments = $this->workloadService->getTeacherAssignments($staff, $yearId);
+            $assignments = $this->workloadService->getTeacherAssignments($staff);
             return $this->successResponse(TeacherAssignmentResource::collection($assignments), 'تم جلب تفاصيل تكليف المعلم بنجاح.');
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء جلب التكليفات.', 500, ['error' => $e->getMessage()]);
@@ -148,7 +148,7 @@ class StaffController extends Controller
     public function importExcel(ImportExalSheetStudentRequest $request,string $role): JsonResponse
     {
         try {
-            $batch = $this->registerService->initiateStaffExcelImport($request->file('excel_file'), $role,$request->user()->id);
+            $batch = $this->registerService->initiateStaffExcelImport($request->file('excel_file'), $role ,$request->user()->id);
             return $this->successResponse(['batch_id' => $batch->id], 'تم استلام الملف بنجاح، جاري معالجة بيانات الموظفين في الخلفية.', 202);
         } catch (Exception $e) {
             return $this->errorResponse('حدث خطأ أثناء رفع الملف.', 500, ['error' => $e->getMessage()]);

@@ -284,5 +284,30 @@ class UserSeeder extends Seeder
             ]
         );
         $user13->assignRole('teacher');
+
+        $user14 = User::updateOrCreate(
+            [
+                'phone_number' => '0992006689',
+            ],
+            [
+                'first_name' => 'Mariam',
+                'last_name' => 'Al_khalid',
+                'father_name' => 'Salem',
+                'mother_name' => 'Lisa Johnson',
+                'birth_date' => '1985-12-10',
+                'birth_place' => 'Villageburg',
+                'address' => '789 Pine Rd, Villageburg',
+                'nationality' => 'syrian',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'gender' => 'female',
+                'email' => 'mouhamedalshalabi@gmail.com',
+                'photo_url' => 'defaults/counselor.jpg
+            ',
+                'password' => $defaultPassword,
+            ]
+        );
+
+        $user14->assignRole('counselor');
     }
 }

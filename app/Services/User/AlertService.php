@@ -134,18 +134,18 @@ class AlertService
         array $meta
     ): Alert {
         $alert = Alert::create([
-            'notifiable_id'   => $enrollment->id,
+            'notifiable_id' => $enrollment->id,
             'notifiable_type' => Enrollment::class,
-            'type'            => $type,
-            'audience'        => Alert::AUDIENCE_STUDENT,
-            'title'           => $title,
-            'description'     => $desc,
-            'meta'            => $meta,
-            'created_by'      => Auth::id(),
+            'type' => $type,
+            'audience' => Alert::AUDIENCE_STUDENT,
+            'title' => $title,
+            'description' => $desc,
+            'meta' => $meta,
+            'created_by' => Auth::id(),
         ]);
 
         $student = $enrollment->student;
-        $users   = collect([$student->user, $student->guardian?->user])->filter();
+        $users = collect([$student->user, $student->guardian?->user])->filter();
 
         $this->dispatch($alert, $users);
 
@@ -160,14 +160,14 @@ class AlertService
         array $meta
     ): Alert {
         $alert = Alert::create([
-            'notifiable_id'   => $staff->id,
+            'notifiable_id' => $staff->id,
             'notifiable_type' => Staff::class,
-            'type'            => $type,
-            'audience'        => Alert::AUDIENCE_STAFF,
-            'title'           => $title,
-            'description'     => $desc,
-            'meta'            => $meta,
-            'created_by'      => Auth::id(),
+            'type' => $type,
+            'audience' => Alert::AUDIENCE_STAFF,
+            'title' => $title,
+            'description' => $desc,
+            'meta' => $meta,
+            'created_by' => Auth::id(),
         ]);
 
         $users = collect([$staff->user])->filter();
@@ -188,9 +188,9 @@ class AlertService
             $alert->title,
             $alert->description,
             [
-                'alert_id'   => (string) $alert->id,
+                'alert_id' => (string) $alert->id,
                 'alert_type' => $alert->type,
-                'audience'   => $alert->audience,
+                'audience' => $alert->audience,
             ]
         );
     }
@@ -235,9 +235,6 @@ class AlertService
             ->paginate(20);
     }
 
-    // =========================================================================
-    // دوال الإرسال الجماعي (Batch Processing) الجديدة
-    // =========================================================================
 
     public function createBatchStudentAlerts(array $enrollmentIds, string $type, array $meta = [], ?string $title = null, ?string $description = null): Collection
     {
@@ -246,14 +243,14 @@ class AlertService
 
         foreach ($enrollments as $enrollment) {
             $alert = match ($type) {
-                Alert::TYPE_ABSENCE  => $this->createStudentAbsence($enrollment, $meta),
-                Alert::TYPE_LATE     => $this->createStudentLate($enrollment, $meta),
+                Alert::TYPE_ABSENCE => $this->createStudentAbsence($enrollment, $meta),
+                Alert::TYPE_LATE => $this->createStudentLate($enrollment, $meta),
                 Alert::TYPE_BEHAVIOR => $this->createStudentBehavior($enrollment, $meta),
-                Alert::TYPE_PAYMENT  => $this->createStudentPayment($enrollment, $meta),
-                Alert::TYPE_PAYED    => $this->createStudentPayed($enrollment, $meta),
-                Alert::TYPE_ESCAPE   => $this->createStudentEscape($enrollment, $meta),
+                Alert::TYPE_PAYMENT => $this->createStudentPayment($enrollment, $meta),
+                Alert::TYPE_PAYED => $this->createStudentPayed($enrollment, $meta),
+                Alert::TYPE_ESCAPE => $this->createStudentEscape($enrollment, $meta),
                 Alert::TYPE_HOMEWORK => $this->createStudentHomework($enrollment, $meta),
-                default              => $this->createStudentAlert($enrollment, $type, $title ?? '', $description ?? '', $meta),
+                default => $this->createStudentAlert($enrollment, $type, $title ?? '', $description ?? '', $meta),
             };
             $alerts->push($alert);
         }
@@ -269,19 +266,15 @@ class AlertService
         foreach ($staffMembers as $staff) {
             $alert = match ($type) {
                 Alert::TYPE_ABSENCE => $this->createStaffAbsence($staff, $meta),
-                Alert::TYPE_LATE    => $this->createStaffLate($staff, $meta),
-                Alert::TYPE_SALARY  => $this->createStaffSalary($staff, $meta),
-                default             => $this->createStaffAlert($staff, $type, $title ?? '', $description ?? '', $meta),
+                Alert::TYPE_LATE => $this->createStaffLate($staff, $meta),
+                Alert::TYPE_SALARY => $this->createStaffSalary($staff, $meta),
+                default => $this->createStaffAlert($staff, $type, $title ?? '', $description ?? '', $meta),
             };
             $alerts->push($alert);
         }
 
         return $alerts;
     }
-
-    // =========================================================================
-    // تحديث الدوال لتعيد Collection بدلاً من Alert واحد
-    // =========================================================================
 
     public function createManual(array $data): Collection
     {
@@ -306,17 +299,35 @@ class AlertService
 
     public function advisorAlerts(array $data): Collection
     {
-        return $this->createBatchStudentAlerts($data['enrollment_ids'], $data['type'], $data['meta'] ?? [], $data['title'] ?? null, $data['description'] ?? null);
+        return $this->createBatchStudentAlerts(
+            $data['enrollment_ids'],
+            $data['type'],
+            $data['meta'] ?? [],
+            $data['title'] ?? null,
+            $data['description'] ?? null
+        );
     }
 
     public function createPaymentAlerts(array $data): Collection
     {
-        return $this->createBatchStudentAlerts($data['enrollment_ids'], $data['type'], $data['meta'] ?? [], $data['title'] ?? null, $data['description'] ?? null);
+        return $this->createBatchStudentAlerts(
+            $data['enrollment_ids'],
+            $data['type'],
+            $data['meta'] ?? [],
+            $data['title'] ?? null,
+            $data['description'] ?? null
+        );
     }
 
     public function createStaffAlerts(array $data): Collection
     {
-        return $this->createBatchStaffAlerts($data['staff_ids'], $data['type'], $data['meta'] ?? [], $data['title'] ?? null, $data['description'] ?? null);
+        return $this->createBatchStaffAlerts(
+            $data['staff_ids'],
+            $data['type'],
+            $data['meta'] ?? [],
+            $data['title'] ?? null,
+            $data['description'] ?? null
+        );
     }
 
     public function deleteAlert(int $id): void
@@ -325,27 +336,27 @@ class AlertService
         $alert->delete();
     }
 
-private function getBaseAlertQueryForUser(User $user, ?int $studentId = null)
+    private function getBaseAlertQueryForUser(User $user, ?int $studentId = null)
     {
-       
+
         if ($user->hasRole('student') && $user->student) {
             $enrollmentIds = $user->student->enrollments()->pluck('id');
             return Alert::where('notifiable_type', Enrollment::class)->whereIn('notifiable_id', $enrollmentIds);
         }
 
-   
+
         if ($user->hasRole('guardian') && $user->guardian) {
             $studentsQuery = $user->guardian->students();
 
-        
+
             if ($studentId) {
                 $isMyChild = $user->guardian->students()->where('students.id', $studentId)->exists();
-                
+
                 if (!$isMyChild) {
                     throw new AccessDeniedHttpException('هذا الطالب لا يتبع لرعايتك، غير مصرح لك بالوصول لبياناته.');
                 }
 
-  
+
                 $studentsQuery->where('students.id', $studentId);
             }
 
@@ -355,10 +366,10 @@ private function getBaseAlertQueryForUser(User $user, ?int $studentId = null)
             return Alert::where('notifiable_type', Enrollment::class)->whereIn('notifiable_id', $enrollmentIds);
         }
 
-     
+
         if ($user->hasAnyRole(['super_admin', 'adviser', 'teacher']) || $user->staff) {
             $staffId = $user->staff?->id;
-            
+
             if ($staffId) {
                 return Alert::where('notifiable_type', Staff::class)->where('notifiable_id', $staffId);
             }
@@ -376,11 +387,10 @@ private function getBaseAlertQueryForUser(User $user, ?int $studentId = null)
         $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
 
         return [
-            'alerts'         => (clone $baseQuery)->whereNotIn('type', $financialTypes)->count(),
+            'alerts' => (clone $baseQuery)->whereNotIn('type', $financialTypes)->count(),
             'payment_alerts' => (clone $baseQuery)->whereIn('type', $financialTypes)->count(),
         ];
     }
-
     public function markAllReadForUser(User $user, string $category = 'all', ?int $studentId = null): array
     {
         $baseQuery = $this->getBaseAlertQueryForUser($user, $studentId)
@@ -410,4 +420,5 @@ private function getBaseAlertQueryForUser(User $user, ?int $studentId = null)
 
         return $this->unreadCountForUser($user, $studentId);
     }
+
 }

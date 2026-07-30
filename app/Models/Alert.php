@@ -14,7 +14,6 @@ class Alert extends Model
         'is_read' => 'boolean',
     ];
 
-    // أنواع التنبيهات
     public const TYPE_ABSENCE  = 'absence';
     public const TYPE_BEHAVIOR = 'behavior';
     public const TYPE_LATE     = 'late';
@@ -23,12 +22,12 @@ class Alert extends Model
     public const TYPE_SALARY = 'salary';
     public const TYPE_HOMEWORK = 'homework';
     public const TYPE_PAYED = 'payed';
-
-    // الجمهور
+    public const TYPE_EXPULSION = 'expulsion';
     public const AUDIENCE_STUDENT = 'student';
     public const AUDIENCE_STAFF   = 'staff';
+    public const TYPE_WARNING = 'warning';
 
-  
+
     public function notifiable(): MorphTo
     {
         return $this->morphTo();

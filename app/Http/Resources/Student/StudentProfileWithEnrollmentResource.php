@@ -61,7 +61,7 @@ class StudentProfileWithEnrollmentResource extends JsonResource
 
                 'academicYear' => $enrollment->academicYear ? [
                     'id' => (string) $enrollment->academicYear->id,
-                    'name' => $enrollment->academicYear->name,
+                    'name' => $enrollment->academicYear->year_name,
                     'startDate' => $enrollment->academicYear->start_date ? Carbon::parse($enrollment->academicYear->start_date)->toDateString() : null,
                     'endDate' => $enrollment->academicYear->end_date ? Carbon::parse($enrollment->academicYear->end_date)->toDateString() : null,
                 ] : null,

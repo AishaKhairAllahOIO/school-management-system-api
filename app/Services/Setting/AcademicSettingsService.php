@@ -17,6 +17,7 @@ use App\Models\AcademicStage;
 use App\Models\Enrollment;
 use Exception;
 use App\Models\GradeConfiguration;
+use App\Models\Subject;
 
 class AcademicSettingsService
 {
@@ -272,6 +273,14 @@ class AcademicSettingsService
         }
     }
 
+    public function getAcademicStatistics(): array
+    {
+        return [
+            'subjectsCount' => Subject::count(),
+            'gradeLevelsCount' => GradeLevel::count(),
+            'classRoomsCount' => ClassRoom::count(),
+        ];
+    }
 
 
 

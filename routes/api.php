@@ -35,9 +35,8 @@ Route::get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/documents/photos/{path}', [DocumentController::class, 'showPhoto'])
-    ->where('path', '.*');
+        ->where('path', '.*');
 });
-
 
 
 
@@ -114,12 +113,12 @@ Route::prefix('auth')->group(function () {
             Route::get('/show-profile', [UserController::class, 'counselorProfile']);
         });
 
-          Route::middleware('permission:account:toggle_status')->prefix('expulsions')->group(function () {
+        Route::middleware('permission:account:toggle_status')->prefix('expulsions')->group(function () {
 
-                Route::get('/pending', [ExpulsionController::class, 'getPending']);
-                Route::post('/confirm', [ExpulsionController::class, 'confirm']);
+            Route::get('/pending', [ExpulsionController::class, 'getPending']);
+            Route::post('/confirm', [ExpulsionController::class, 'confirm']);
 
-            });
+        });
         Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy'])->middleware('role:teacher|super_admin|adviser|secretary');
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::delete('/logout', [SystemAccessController::class, 'logout']);
@@ -177,6 +176,9 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
+
+    Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
+
 });
 
 

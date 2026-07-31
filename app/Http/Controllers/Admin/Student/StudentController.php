@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin\Student;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Student\StoreStudentRegisterRequest;
-use App\Http\Resources\Student\StudentEnrollmentResource;
 use App\Http\Resources\User\BaseUserProfileResource;
 use App\Services\Student\StudentRegisterService;
 use App\Http\Requests\Admin\Student\ImportExalSheetStudentRequest;
@@ -12,7 +11,6 @@ use App\Http\Requests\Admin\Student\GetBatchesHistoryExalFilesRequest;
 use App\Services\Student\StudentManagementService;
 use App\Http\Resources\Student\StudentProfileWithEnrollmentResource;
 use App\Http\Resources\Student\StudentProfileResource;
-use App\Http\Requests\Admin\Student\UpdateEnrollmentRequest;
 use App\Http\Resources\Student\StudentFilterResource;
 use App\Http\Requests\Admin\Student\IndexStudentRequest;
 use App\Http\Requests\Admin\Student\UpdateGuardianPersonalDataRequest;
@@ -35,7 +33,7 @@ use ApiResource;
         return $this->successResponse(new StudentProfileWithEnrollmentResource($data), 'تم تسجيل الطالب وولي أمره بنجاح.', 201);
         }catch (Exception $e) {
         return $this->errorResponse('حدث خطا اثناء التسجيل', $e->getCode(), ['exception_message' => $e->getMessage()]);
- 
+
     }
 }
 public function importExcel(ImportExalSheetStudentRequest $request,StudentRegisterService $service)
@@ -46,8 +44,8 @@ public function importExcel(ImportExalSheetStudentRequest $request,StudentRegist
         );
 
         return $this->successResponse(
-            ['batch_id' => $batch->id], 
-            'تم استلام الملف بنجاح، جاري معالجة البيانات في الخلفية', 
+            ['batch_id' => $batch->id],
+            'تم استلام الملف بنجاح، جاري معالجة البيانات في الخلفية',
             202
         );
     }
@@ -60,18 +58,18 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         {
             return $this->successResponse(null,'No error to show',200);
         }
-    }  
+    }
     public function getImportStatus($batch)
     {
-       $batch = ImportBatch::find($batch); 
+       $batch = ImportBatch::find($batch);
 
      if(!$batch) {
-            return $this->errorResponse('لا يوجد ملف كهذا', 404); // يُفضل كود 404 وليس 422
-        }        
+            return $this->errorResponse('لا يوجد ملف كهذا', 404);
+        }
         return $this->successResponse([
             'batch_id'        => $batch->id,
             'file_name'       => $batch->batch_title,
-            'status'          => $batch->status, // (pending, processing, completed, failed)
+            'status'          => $batch->status,
             'total_rows'      => $batch->total_rows,
             'processed_rows'  => $batch->processed_rows,
             'successful_rows' => $batch->successful_rows,
@@ -80,11 +78,11 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         ], 'تم جلب حالة الحزمة بنجاح.');
     }
 
-    public function getBatchesHistory(GetBatchesHistoryExalFilesRequest $request, StudentRegisterService $service) 
+    public function getBatchesHistory(GetBatchesHistoryExalFilesRequest $request, StudentRegisterService $service)
     {        $batches = $service->getImportBatchesArchive($request->validated());
 
         return $this->successResponse($batches, 'تم جلب الأرشيف التاريخي لعمليات الرفع بنجاح.');
-    } 
+    }
 
 
 
@@ -95,7 +93,7 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         $students = $service->filterStudents($request->validated());
 
         return $this->successResponse(
-            StudentFilterResource::collection($students)->response()->getData(true), 
+            StudentFilterResource::collection($students)->response()->getData(true),
             'تم جلب سجلات الطلاب المفلترة بنجاح.'
         );
     }
@@ -103,15 +101,14 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
 
     public function search(Request $request,StudentManagementService $service)
     {
-        // إجبار الفرونت إند على إرسال حرفين على الأقل للبحث لعدم إرهاق الداتابيز
         $request->validate([
-            'q' => 'required|string|min:2' 
+            'q' => 'required|string|min:2'
         ]);
 
         $students = $service->searchStudents($request->q);
 
         return $this->successResponse(
-            StudentFilterResource::collection($students)->response()->getData(true), 
+            StudentFilterResource::collection($students)->response()->getData(true),
             'تم جلب نتائج البحث بنجاح.'
         );
     }
@@ -175,7 +172,7 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         $updatedGuardian = $studentService->updateGuardianPersonalData($guardianId, $request->validated());
 
         return $this->successResponse(new BaseUserProfileResource($updatedGuardian), 'تم تحديث بيانات ولي الأمر بنجاح.',201);
-    
+
         }
         catch(ModelNotFoundException $e)
         {
@@ -186,9 +183,6 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         }
         }
 
-    /**
-     * FR-07: شطب طالب من المدرسة (Soft أو Hard حسب السياسة)
-     */
     public function destroy(int $id, StudentManagementService $service)
     {
         try{
@@ -215,7 +209,7 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
         {
             return $this->errorResponse($e->getMessage(), 404);
         }
-    } 
+    }
     public function restore(int $id, StudentManagementService $studentService)
     {
         try {
@@ -233,4 +227,7 @@ public function exportErrors(ImportBatch $batch, StudentRegisterService $service
             return $this->errorResponse($e->getMessage(), 422);
         }
     }
+
+
+    
 }

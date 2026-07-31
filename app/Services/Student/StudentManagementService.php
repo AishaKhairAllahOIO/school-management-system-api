@@ -144,7 +144,6 @@ class StudentManagementService
             }
 
             if ($student->guardian && $student->guardian->user) {
-                // معالجة صورة ولي الأمر
                 if (
                     isset($data['guardian_photo_url']) &&
                     $data['guardian_photo_url'] instanceof UploadedFile

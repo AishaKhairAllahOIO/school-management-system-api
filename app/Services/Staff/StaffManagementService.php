@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class StaffManagementService
 {
- 
+
     private function formatUserPhotoUrls($paginator)
     {
         $paginator->getCollection()->transform(function ($item) {
@@ -35,7 +35,6 @@ class StaffManagementService
 
         return $counts;
     }
-
 
     public function getStaffByRole(string $roleName, int $perPage = 15)
     {
@@ -63,7 +62,6 @@ class StaffManagementService
 
         return $this->formatUserPhotoUrls($paginator);
     }
-
 
     public function ownProfile()
     {

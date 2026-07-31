@@ -62,8 +62,6 @@ class StaffRegisterService
             return $staff->load('user');
         });
     }
-
-
     public function initiateStaffExcelImport(UploadedFile $file, string $role,int $adminId): ImportBatch
     {
         $filePath = $file->storeAs(
@@ -75,7 +73,7 @@ class StaffRegisterService
         $batch = ImportBatch::create([
             'batch_title' => $file->getClientOriginalName(),
             'file_path' => $filePath,
-            'imported_by_user_id' => $adminId, // ✅ تم التصحيح هنا: يجب أن نمرر الـ ID الخاص بالمدير
+            'imported_by_user_id' => $adminId,
             'status' => 'pending'
         ]);
 

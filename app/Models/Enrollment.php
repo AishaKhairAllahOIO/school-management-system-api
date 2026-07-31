@@ -42,4 +42,8 @@ class Enrollment extends Model
 {
     return $this->morphMany(Alert::class, 'notifiable');
 }
+
+public function studentMarks(){
+    return $this->hasMany(StudentMark::class);
+}
 }

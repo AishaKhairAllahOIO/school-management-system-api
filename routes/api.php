@@ -22,8 +22,10 @@ use App\Http\Controllers\Finance\FinancialContractController;
 use App\Http\Controllers\Admin\Staff\StaffController;
 use App\Http\Controllers\Admin\Student\ExpulsionController;
 use App\Http\Controllers\Setting\SubjectController;
+use App\Http\Controllers\Student\StudentMarkDisplayController;
 use App\Http\Controllers\Teacher\ClassStudentEvaluationController;
 use App\Http\Controllers\Teacher\HomeworkController;
+use App\Http\Controllers\Teacher\MarkController;
 use App\Http\Controllers\Teacher\TeacherDropdownController;
 use App\Http\Controllers\Web\SchoolLawController;
 
@@ -105,7 +107,8 @@ Route::prefix('auth')->group(function () {
             Route::post('/update/evaluation/{id}', [ClassStudentEvaluationController::class, 'update']);
             Route::delete('/delete/evaluation/{id}', [ClassStudentEvaluationController::class, 'destroy']);
             Route::get('/show/one/evaluation/{id}', [ClassStudentEvaluationController::class, 'show']);
-
+            Route::post('/gradebook/marks', [MarkController::class, 'storeMarks']);
+            Route::get('/gradebook/subject/{gradeSubjectId}/classroom/{classRoomId}', [MarkController::class, 'getGradebook']);
 
         });
 
@@ -386,6 +389,11 @@ Route::prefix('user')->group(function () {
         Route::post('/evaluation/mark-all-read', [ClassStudentEvaluationController::class, 'markAllAsRead']);
         Route::get('/school/laws/all/show', [SchoolLawController::class, 'index']);
         Route::get('/school/law/one/show/{id}', [SchoolLawController::class, 'show']);
+        Route::get('/marks/show/all', [StudentMarkDisplayController::class, 'index']);
+        Route::get('/marks/unread-count', [StudentMarkDisplayController::class, 'unreadCount']);
+        Route::post('/marks/mark-all-read', [StudentMarkDisplayController::class, 'markAllAsRead']);
+
+
 
     });
 });

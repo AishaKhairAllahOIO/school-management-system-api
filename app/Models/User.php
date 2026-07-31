@@ -11,7 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-use Illuminate\Database\Eloquent\SoftDeletes; 
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -85,7 +85,7 @@ class User extends Authenticatable
     }
     public function readMarks()
     {
-        return $this->belongsToMany(StudentMark::class, 'evaluation_user_reads', 'user_id', 'class_student_evaluation_id')
+        return $this->belongsToMany(StudentMark::class, 'mark_user_reads', 'user_id', 'student_mark_id')
             ->withPivot('read_at');
     }
 

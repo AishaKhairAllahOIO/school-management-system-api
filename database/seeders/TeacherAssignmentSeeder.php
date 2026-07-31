@@ -48,5 +48,27 @@ class TeacherAssignmentSeeder extends Seeder
                 'teacher_id'       => 9,
             ]
         );
+        TeacherAssignment::updateOrCreate(
+            [
+                'grade_subject_id' => 1,
+                'class_room_id'    => 5,
+            ],
+            [
+                'academic_year_id' => 1,
+                'semester_id'      => 1,
+                'teacher_id'       => 16,
+            ]
+        );
+        TeacherAssignment::updateOrCreate(
+            [
+                'grade_subject_id' => 2,
+                'class_room_id'    => 6,
+            ],
+            [
+                'academic_year_id' => 1,
+                'semester_id'      => 1,
+                'teacher_id'       => 16,
+            ]
+        );
     }
 }

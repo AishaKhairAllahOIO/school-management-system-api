@@ -5,16 +5,15 @@ namespace App\Http\Controllers\Teacher;
 use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teacher\StoreMarksRequest;
-use App\Policies\MarkPolicy;
 use App\Services\Teacher\MarkService;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Traits\StaffAuthorizationTrait; // 👈 قمنا باستدعاء التريت الخاص بك
 use Exception;
 use Illuminate\Http\Request;
 
 class MarkController extends Controller
 {
-    use ApiResource, AuthorizesRequests;
-
+    // 👈 استخدمنا التريت هنا مباشرة
+    use ApiResource, StaffAuthorizationTrait;
 
     protected MarkService $markService;
 
@@ -26,14 +25,16 @@ class MarkController extends Controller
     public function getGradebook(Request $request, $gradeSubjectId, $classRoomId)
     {
         try {
-            $this->authorize('viewGradebook', [MarkPolicy::class, (int) $gradeSubjectId, (int) $classRoomId]);
+            // 🔒 فحص الأمان المباشر والصريح باستخدام التريت
+            if (!$this->checkTeacherMarkAccess($request->user(), (int) $gradeSubjectId, (int) $classRoomId)) {
+                return $this->errorResponse('غير مصرح لك بالوصول لعلامات هذه الشعبة.', 403);
+            }
 
             $matrix = $this->markService->getGradebookMatrix((int) $gradeSubjectId, (int) $classRoomId);
-            return $this->successResponse($matrix, 'Grade book shown successfully.', 200);
+            return $this->successResponse($matrix, 'تم جلب دفتر العلامات بنجاح.', 200);
 
         } catch (Exception $e) {
-            $code = $e->getCode() == 403 ? 403 : 500;
-            return $this->errorResponse($e->getMessage() ?: 'غير مصرح لك بالوصول لعلامات هذه الشعبة.', $code);
+            return $this->errorResponse($e->getMessage(), 500);
         }
     }
 
@@ -43,7 +44,9 @@ class MarkController extends Controller
             $validated = $request->validated();
             $user = $request->user();
 
-            $this->authorize('updateMarks', [MarkPolicy::class, (int) $validated['grade_subject_id'], (int) $validated['class_room_id']]);
+            if (!$this->checkTeacherMarkAccess($user, (int) $validated['grade_subject_id'], (int) $validated['class_room_id'])) {
+                return $this->errorResponse('غير مصرح لك بتعديل علامات هذه الشعبة.', 403);
+            }
 
             $staffId = $user->staff->id;
             $this->markService->saveMarksBulk($validated, $staffId);
@@ -51,7 +54,7 @@ class MarkController extends Controller
             return $this->successResponse(null, 'تم رصد وتحديث العلامات بنجاح.', 200);
 
         } catch (Exception $e) {
-            $code = in_array($e->getCode(), [423, 422, 403]) ? $e->getCode() : 500;
+            $code = $e->getCode() == 422 ? 422 : 500;
             return $this->errorResponse($e->getMessage(), $code);
         }
     }

@@ -2,6 +2,7 @@
 
 namespace App\Services\Teacher;
 
+use App\Jobs\SendPushNotification;
 use App\Models\AssessmentComponent;
 use App\Models\Enrollment;
 use App\Models\GradeSubject;
@@ -30,16 +31,16 @@ class MarkService
 
         return [
             'subject_info' => [
-                'subject_name'    => $gradeSubject->subject->subject_name,
-                'grade_name'      => $gradeSubject->gradeLevel->name,
-                'class_room_id'   => $classRoomId,
+                'subject_name' => $gradeSubject->subject->subject_name,
+                'grade_name' => $gradeSubject->gradeLevel->name,
+                'class_room_id' => $classRoomId,
             ],
 
             'columns' => $components->map(function ($comp) {
                 return [
-                    'id'       => $comp->id,
-                    'name'     => $comp->name,
-                    'type'     => $comp->type,
+                    'id' => $comp->id,
+                    'name' => $comp->name,
+                    'type' => $comp->type,
                     'max_mark' => (float) $comp->max_mark,
                 ];
             }),
@@ -50,7 +51,7 @@ class MarkService
                 $marksDictionary = [];
                 foreach ($enrollment->studentMarks as $mark) {
                     $marksDictionary[$mark->assessment_component_id] = [
-                        'mark'  => $mark->mark !== null ? (float) $mark->mark : null,
+                        'mark' => $mark->mark !== null ? (float) $mark->mark : null,
                         'notes' => $mark->notes,
                     ];
                 }
@@ -61,9 +62,9 @@ class MarkService
 
                 return [
                     'enrollment_id' => $enrollment->id,
-                    'student_name'  => trim(preg_replace('/\s+/', ' ', "{$user->first_name} {$user->father_name} {$user->last_name}")),
-                    'photo_url'     => $photoUrl,
-                    'marks'         => (object) $marksDictionary,
+                    'student_name' => trim(preg_replace('/\s+/', ' ', "{$user->first_name} {$user->father_name} {$user->last_name}")),
+                    'photo_url' => $photoUrl,
+                    'marks' => (object) $marksDictionary,
                 ];
             }),
         ];
@@ -73,28 +74,52 @@ class MarkService
     {
         return DB::transaction(function () use ($data, $staffId) {
             $marksToUpsert = [];
-
             $componentIds = collect($data['marks'])->pluck('assessment_component_id')->unique()->toArray();
-            $componentsMaxMarks = AssessmentComponent::whereIn('id', $componentIds)->pluck('max_mark', 'id');
+            $enrollmentIds = collect($data['marks'])->pluck('enrollment_id')->unique()->toArray();
+
+            $components = AssessmentComponent::with('gradeSubject.subject')
+                ->whereIn('id', $componentIds)
+                ->get()
+                ->keyBy('id');
+
+            $existingMarks = StudentMark::whereIn('enrollment_id', $enrollmentIds)
+                ->whereIn('assessment_component_id', $componentIds)
+                ->get()
+                ->keyBy(fn($item) => $item->enrollment_id . '_' . $item->assessment_component_id);
+
+            $notificationsToDispatch = [];
 
             foreach ($data['marks'] as $markData) {
                 $compId = $markData['assessment_component_id'];
+                $enrollmentId = $markData['enrollment_id'];
                 $providedMark = $markData['mark'] ?? null;
+                $component = $components->get($compId);
 
-                if ($providedMark !== null && isset($componentsMaxMarks[$compId])) {
-                    if ($providedMark > $componentsMaxMarks[$compId]) {
-                        throw new Exception("العلامة المدخلة ({$providedMark}) تتجاوز النهاية العظمى ({$componentsMaxMarks[$compId]}).", 422);
+                if ($providedMark !== null && $component) {
+                    if ($providedMark > $component->max_mark) {
+                        throw new Exception("The entered mark ({$providedMark}) exceeds the maximum limit ({$component->max_mark}).", 422);
+                    }
+
+                    if (in_array($component->type, ['quiz1', 'quiz2', 'exam'])) {
+                        $markKey = $enrollmentId . '_' . $compId;
+                        $isUpdate = $existingMarks->has($markKey);
+
+                        $notificationsToDispatch[] = [
+                            'enrollment_id' => $enrollmentId,
+                            'component' => $component,
+                            'isUpdate' => $isUpdate
+                        ];
                     }
                 }
 
                 $marksToUpsert[] = [
-                    'enrollment_id'           => $markData['enrollment_id'],
+                    'enrollment_id' => $enrollmentId,
                     'assessment_component_id' => $compId,
-                    'teacher_id'              => $staffId,
-                    'mark'                    => $providedMark,
-                    'notes'                   => $markData['notes'] ?? null,
-                    'created_at'              => now(),
-                    'updated_at'              => now(),
+                    'teacher_id' => $staffId,
+                    'mark' => $providedMark,
+                    'notes' => $markData['notes'] ?? null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
 
@@ -104,7 +129,73 @@ class MarkService
                 ['mark', 'notes', 'teacher_id', 'updated_at']
             );
 
+            if (!empty($notificationsToDispatch)) {
+                $this->dispatchNotifications($notificationsToDispatch);
+            }
+
             return true;
         });
+    }
+
+    private function dispatchNotifications(array $notificationsData): void
+    {
+        $enrollmentIds = collect($notificationsData)->pluck('enrollment_id')->unique()->toArray();
+
+        $enrollments = Enrollment::whereIn('id', $enrollmentIds)
+            ->with(['student.user:id', 'student.guardian.user:id'])
+            ->get()
+            ->keyBy('id');
+
+        foreach ($notificationsData as $data) {
+            $enrollment = $enrollments->get($data['enrollment_id']);
+            if (!$enrollment || !$enrollment->student)
+                continue;
+
+            $userIds = [];
+            if ($enrollment->student->user_id) {
+                $userIds[] = $enrollment->student->user_id;
+            }
+            if ($enrollment->student->guardian && $enrollment->student->guardian->user_id) {
+                $userIds[] = $enrollment->student->guardian->user_id;
+            }
+
+            if (!empty($userIds)) {
+                $component = $data['component'];
+                $subjectName = $component->gradeSubject?->subject?->subject_name ?? 'Subject';
+                $isUpdate = $data['isUpdate'];
+
+                $title = $isUpdate
+                    ? "Mark Update: {$subjectName}"
+                    : "New Mark: {$subjectName}";
+
+                $componentTypeName = $this->getComponentTypeName($component->type);
+                $body = $isUpdate
+                    ? "The {$componentTypeName} mark for {$subjectName} has been updated."
+                    : "A new {$componentTypeName} mark for {$subjectName} has been recorded.";
+
+                $type = $isUpdate ? 'update_mark' : 'new_mark';
+
+                SendPushNotification::dispatch(
+                    array_unique($userIds),
+                    $title,
+                    $body,
+                    [
+                        'type' => $type,
+                        'enrollment_id' => $enrollment->id,
+                        'assessment_component_id' => $component->id,
+                    ]
+                )->afterCommit();
+            }
+        }
+    }
+
+    private function getComponentTypeName(string $type): string
+    {
+        return match ($type) {
+            'quiz1' => 'First Quiz',
+            'quiz2' => 'Second Quiz',
+            'exam' => 'Exam',
+            default => 'Test'
+        };
     }
 }

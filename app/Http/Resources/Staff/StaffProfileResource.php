@@ -27,6 +27,10 @@ class StaffProfileResource extends JsonResource
             'birthDate' => $user->birth_date,
             'birthPlace' => $user->birth_place,
             'address' => $user->address,
+            'nationality' => $user->nationality,
+            
+
+
 
             'photoUrl' => $user->photo_url
                 ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))

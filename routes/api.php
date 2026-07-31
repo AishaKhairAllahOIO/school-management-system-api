@@ -181,7 +181,6 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
 });
 
-
 Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () {
     Route::middleware('role:super_admin')->group(function () {
         Route::post('/subject/store', [SubjectController::class, 'store']);

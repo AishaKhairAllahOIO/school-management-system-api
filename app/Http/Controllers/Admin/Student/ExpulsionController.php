@@ -19,13 +19,13 @@ class ExpulsionController extends Controller
     }
 
 
-  public function getPending(): JsonResponse
+    public function getPending(): JsonResponse
     {
         try {
             $candidates = $this->alertService->getPendingExpulsions();
 
             return $this->paginatedResponse(
-                PendingExpulsionResource::collection($candidates), 
+                PendingExpulsionResource::collection($candidates),
                 'Pending expulsion list retrieved successfully.',
                 200
             );
@@ -37,8 +37,6 @@ class ExpulsionController extends Controller
             );
         }
     }
-
-
     public function confirm(Request $request): JsonResponse
     {
         try {
@@ -63,4 +61,6 @@ class ExpulsionController extends Controller
             );
         }
     }
+
+
 }

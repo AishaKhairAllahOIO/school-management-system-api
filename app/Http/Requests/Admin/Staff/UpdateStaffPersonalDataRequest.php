@@ -25,8 +25,8 @@ class UpdateStaffPersonalDataRequest extends FormRequest
      */
     public function rules(): array
     {
-        $staffId = $this->route('staff'); 
-        
+        $staffId = $this->route('staff');
+
         // 2. جلب سجل الموظف لمعرفة الـ user_id الخاص به في جدول users
         $staff = Staff::find($staffId);
         $userId = $staff ? $staff->user_id : null;
@@ -42,26 +42,24 @@ class UpdateStaffPersonalDataRequest extends FormRequest
             'gender'       => ['sometimes', 'in:male,female'],
             'nationality'  => ['sometimes', 'in:syrian,lebanese,palestinian,jordanian,other'],
             'photo_url'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
-            'degree'           => ['sometimes', 'in:diploma,bachelor,master,phd,other'],
-            'specialization'   => ['sometimes', 'string'],
-            'university'       => ['sometimes', 'string'],
-            'graduation_year'  => ['sometimes', 'integer'],
-            'hire_date'        => ['sometimes', 'date'],
-            'experience_years' => ['sometimes', 'integer', 'min:0'],
-            'service_type'     => ['sometimes','string'], 
-            
-            // 🔥 تجاهل رقم الهاتف لهذا المستخدم تحديداً
+            'degree'           => ['sometimes','nullable', 'in:diploma,bachelor,master,phd,other'],
+            'specialization'   => ['sometimes','nullable', 'string'],
+            'university'       => ['sometimes','nullable', 'string'],
+            'graduation_year'  => ['sometimes','nullable', 'integer'],
+            'hire_date'        => ['sometimes','nullable', 'date'],
+            'experience_years' => ['sometimes','nullable', 'integer', 'min:0'],
+            'service_type'     => ['sometimes','nullable','string'],
+
             'phone_number' => [
-                'sometimes', 
-                'string', 
-                'max:20', 
+                'sometimes',
+                'string',
+                'max:20',
                 Rule::unique('users', 'phone_number')->ignore($userId)
             ],
-            
-            // 🔥 تجاهل الإيميل لهذا المستخدم تحديداً
+
             'email' => [
-                'nullable', 
-                'email', 
+                'nullable',
+                'email',
                 Rule::unique('users', 'email')->ignore($userId)
             ],
         ];

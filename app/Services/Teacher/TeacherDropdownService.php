@@ -2,10 +2,7 @@
 
 namespace App\Services\Teacher;
 
-use App\Models\ClassRoom;
 use App\Models\Enrollment;
-use App\Models\GradeLevel;
-use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Support\Collection;
 class TeacherDropdownService

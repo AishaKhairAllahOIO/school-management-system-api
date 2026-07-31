@@ -86,6 +86,9 @@ class AlertRequest extends FormRequest
                 'meta.reason' => ['nullable', 'string', 'max:255'],
                 'meta.absence_count' => ['nullable', 'integer']
             ],
+            Alert::TYPE_SYSTEM_NOTICE => [
+                'meta.action' => ['nullable','string']
+            ],
 
             default => [],
         };

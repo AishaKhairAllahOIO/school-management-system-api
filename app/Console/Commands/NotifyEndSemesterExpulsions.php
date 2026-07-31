@@ -12,7 +12,8 @@ use Illuminate\Console\Command;
 class NotifyEndSemesterExpulsions extends Command
 {
     protected $signature = 'school:notify-expulsions';
-    protected $description = 'To cheack the end of the semester to send notification.';
+    protected $description = 'To check the end of the semester and send a notification to admins.';
+
     public function handle(AlertService $alertService)
     {
         $today = now()->toDateString();
@@ -22,7 +23,7 @@ class NotifyEndSemesterExpulsions extends Command
             ->first();
 
         if (!$endingSemester) {
-            $this->info('Today not the end of the semester.');
+            $this->info('Today is not the end of the semester.');
             return;
         }
 
@@ -31,7 +32,7 @@ class NotifyEndSemesterExpulsions extends Command
         })->count();
 
         if ($expulsionCount === 0) {
-            $this->info('There is no student in the expulsion list.');
+            $this->info('There are no students in the expulsion list.');
             return;
         }
 
@@ -41,16 +42,21 @@ class NotifyEndSemesterExpulsions extends Command
             });
         })->get();
 
+        if ($admins->isEmpty()) {
+            $this->warn('No admins found with the required permissions to disable accounts!');
+            return;
+        }
+
         foreach ($admins as $admin) {
             $alertService->createStaffAlerts([
                 'staff_ids' => [$admin->id],
-                'type' => 'system_notice',
+                'type' => Alert::TYPE_SYSTEM_NOTICE,
                 'title' => 'إجراء مطلوب: مراجعة قرارات الفصل',
                 'description' => "انتهى الفصل الدراسي. يوجد {$expulsionCount} طالب(ة) استحقوا قرار الفصل بسبب الغياب أو المخالفات. يرجى الدخول لمراجعة القائمة واعتماد التعطيل.",
                 'meta' => ['action' => 'review_expulsions']
             ]);
         }
 
-        $this->info('Notification sent successfuly to the dashbourd.');
+        $this->info('Notification sent successfully to the dashboard.');
     }
 }

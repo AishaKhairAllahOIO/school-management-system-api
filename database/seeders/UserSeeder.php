@@ -138,7 +138,7 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
             ]
         );
-        $user6->assignRole('counselor');
+        $user6->assignRole('super_admin');
 
         $user7 = User::updateOrCreate(
             ['phone_number' => '0994416081'],

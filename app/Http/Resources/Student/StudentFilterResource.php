@@ -19,13 +19,18 @@ class StudentFilterResource extends JsonResource
         $user = $student ? $student->user : null;
 
         return [
-            // المعرفات الأساسية
             'studentId' => $student ? (string) $student->id : null,
             'userId' => $student ? (string) $student->user_id : null,
             'guardianId' => $student ? (string) $student->guardian_id : null,
             'enrollmentId' => (string) $enrollment->id,
 
+
             'fullName' => $user?->first_name . ' ' . $user?->father_name . ' ' . $user?->last_name,
+            'phoneNumber' => $user?->phone_number,
+            'photoUrl' => $user->photo_url
+                ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))
+                : null,
+
 
             'grade' => [
                 'id' => (string) $enrollment->grade_level_id,
@@ -33,7 +38,6 @@ class StudentFilterResource extends JsonResource
                 'level' => $enrollment->gradeLevel?->level,
             ],
 
-            // بيانات الشعبة
             'classroom' => [
                 'id' => $enrollment->class_room_id ? (string) $enrollment->class_room_id : null,
                 'name' => $enrollment->classRoom?->name,

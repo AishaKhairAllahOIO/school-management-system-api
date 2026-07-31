@@ -104,4 +104,21 @@ trait StaffAuthorizationTrait
 
         return false;
     }
+
+    public function checkTeacherMarkAccess(User $user, int $gradeSubjectId, int $classRoomId): bool
+    {
+        if ($user->hasRole('super_admin') || $user->hasRole('adviser')) {
+            return true;
+        }
+
+        if ($user->hasRole('teacher') && $user->staff) {
+            return $user->staff->teacherAssignments()
+                ->where('grade_subject_id', $gradeSubjectId)
+                ->where('class_room_id', $classRoomId)
+                ->whereHas('academicYear', fn($query) => $query->where('is_current', true))
+                ->exists();
+        }
+
+        return false;
+    }
 }

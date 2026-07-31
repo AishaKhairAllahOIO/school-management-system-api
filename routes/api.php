@@ -20,6 +20,7 @@ use App\Http\Controllers\Setting\GradeAndClassroomController;
 use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
 use App\Http\Controllers\Admin\Staff\StaffController;
+use App\Http\Controllers\Admin\Student\ExpulsionController;
 use App\Http\Controllers\Setting\SubjectController;
 use App\Http\Controllers\Teacher\ClassStudentEvaluationController;
 use App\Http\Controllers\Teacher\HomeworkController;
@@ -33,8 +34,11 @@ Route::get('/user', function (Request $request) {
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/documents/photos/{path}', [DocumentController::class, 'showPhoto'])->where('path', '.*');
+    Route::get('/documents/photos/{path}', [DocumentController::class, 'showPhoto'])
+    ->where('path', '.*');
 });
+
+
 
 
 
@@ -104,13 +108,18 @@ Route::prefix('auth')->group(function () {
             Route::get('/show/one/evaluation/{id}', [ClassStudentEvaluationController::class, 'show']);
 
 
-
-
         });
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
             Route::get('/show-profile', [UserController::class, 'counselorProfile']);
         });
+
+          Route::middleware('permission:account:toggle_status')->prefix('expulsions')->group(function () {
+
+                Route::get('/pending', [ExpulsionController::class, 'getPending']);
+                Route::post('/confirm', [ExpulsionController::class, 'confirm']);
+
+            });
         Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy'])->middleware('role:teacher|super_admin|adviser|secretary');
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::delete('/logout', [SystemAccessController::class, 'logout']);

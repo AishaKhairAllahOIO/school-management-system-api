@@ -9,7 +9,7 @@ use App\Models\SchoolLaw;
 use App\Models\Staff;
 use App\Models\Student;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
+use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -19,12 +19,25 @@ class AlertService
 {
     public function createStudentAbsence(Enrollment $enrollment, array $meta = []): Alert
     {
+
+        $absenceDate = $meta['date'] ?? now()->toDateString();
+
+        $existingAbsence = Alert::where('notifiable_type', Enrollment::class)
+            ->where('notifiable_id', $enrollment->id)
+            ->where('type', Alert::TYPE_ABSENCE)
+            ->where('meta->date', $absenceDate)
+            ->exists();
+
+        if ($existingAbsence) {
+            throw new Exception("An absence alert has already been created for this student on {$absenceDate}. You cannot create two absence alerts on the same day.");
+        }
+
         $alert = $this->createStudentAlert(
             $enrollment,
             Alert::TYPE_ABSENCE,
             'تنبيه غياب',
             'تم تسجيل غياب الطالب اليوم.',
-            array_merge(['date' => now()->toDateString()], $meta)
+            array_merge(['date' => $absenceDate], $meta)
         );
 
         $absenceCount = Alert::where('notifiable_type', Enrollment::class)
@@ -32,7 +45,7 @@ class AlertService
             ->where('type', Alert::TYPE_ABSENCE)
             ->count();
 
-            if ($absenceCount == 5) {
+        if ($absenceCount == 5) {
             $this->createStudentWarning(
                 $enrollment,
                 $meta,
@@ -41,25 +54,31 @@ class AlertService
             );
         }
 
-            if ($absenceCount == 7) {
-            $this->createStudentExpulsion($enrollment, ['law_id' => 3]);
-
+        if ($absenceCount == 7) {
+            $this->createStudentExpulsion($enrollment, ['law_id' => 1]);
         }
 
         return $alert;
-
     }
 
     public function createStudentExpulsion(Enrollment $enrollment, array $meta = []): Alert
     {
         $law = SchoolLaw::find($meta['law_id'] ?? null);
+
         $lawTitle = $law ? $law->title : 'تجاوز الحد الأقصى للغياب';
+        $lawDescription = $law ? $law->description : 'تجاوز الطالب الحد الأقصى المسموح به للغياب خلال الفصل الدراسي.';
+
+        if (isset($meta['law_id'])) {
+            unset($meta['law_id']);
+        }
+
+        $meta['law_title'] = $lawTitle;
 
         return $this->createStudentAlert(
             $enrollment,
             Alert::TYPE_EXPULSION,
             'قرار فصل',
-            "تم إصدار قرار فصل بحق الطالب لمخالفته القانون المدرسي: {$lawTitle}",
+            "تم إصدار قرار فصل بحق الطالب. السبب: {$lawDescription}",
             $meta
         );
     }
@@ -290,7 +309,6 @@ class AlertService
             ->paginate(20);
     }
 
-
     public function createBatchStudentAlerts(array $enrollmentIds, string $type, array $meta = [], ?string $title = null, ?string $description = null): Collection
     {
         $enrollments = Enrollment::with(['student.user', 'student.guardian.user'])->whereIn('id', $enrollmentIds)->get();
@@ -305,6 +323,8 @@ class AlertService
                 Alert::TYPE_PAYED => $this->createStudentPayed($enrollment, $meta),
                 Alert::TYPE_ESCAPE => $this->createStudentEscape($enrollment, $meta),
                 Alert::TYPE_HOMEWORK => $this->createStudentHomework($enrollment, $meta),
+                Alert::TYPE_WARNING => $this->createStudentWarning($enrollment, $meta, $title, $description),
+                Alert::TYPE_EXPULSION => $this->createStudentExpulsion($enrollment, $meta),
                 default => $this->createStudentAlert($enrollment, $type, $title ?? '', $description ?? '', $meta),
             };
             $alerts->push($alert);
@@ -391,26 +411,68 @@ class AlertService
         $alert->delete();
     }
 
+    public function getPendingExpulsions(): LengthAwarePaginator
+    {
+        return Enrollment::whereHas('alerts', function ($query) {
+            $query->where('type', Alert::TYPE_EXPULSION);
+        })
+            ->with([
+                'student.user',
+                'gradeLevel',
+                'classRoom',
+                'alerts' => function ($q) {
+                    $q->where('type', Alert::TYPE_EXPULSION);
+                }
+            ])->paginate(15);
+    }
+
+    public function executeConfirmedExpulsions(array $enrollmentIds): array
+    {
+        $enrollmentsToExpel = Enrollment::whereIn('id', $enrollmentIds)
+            ->with(['student.user', 'student.guardian.user', 'student.guardian.students'])
+            ->get();
+
+        $expelledCount = 0;
+
+        foreach ($enrollmentsToExpel as $enrollment) {
+            $studentUser = $enrollment->student->user;
+            $guardian = $enrollment->student->guardian;
+
+            if ($studentUser) {
+                $studentUser->update(['account_status' => 'disabled']);
+                $expelledCount++;
+            }
+
+            if ($guardian && $guardian->user) {
+                $activeStudents = $guardian->students()->whereHas('user', function ($q) {
+                    $q->where('account_status', 'enabled');
+                })->count();
+
+                if ($activeStudents === 0) {
+                    $guardian->user->update(['account_status' => 'disabled']);
+                }
+            }
+        }
+
+        return ['count' => $expelledCount];
+    }
+
     private function getBaseAlertQueryForUser(User $user, ?int $studentId = null)
     {
-
         if ($user->hasRole('student') && $user->student) {
             $enrollmentIds = $user->student->enrollments()->pluck('id');
             return Alert::where('notifiable_type', Enrollment::class)->whereIn('notifiable_id', $enrollmentIds);
         }
 
-
         if ($user->hasRole('guardian') && $user->guardian) {
             $studentsQuery = $user->guardian->students();
-
 
             if ($studentId) {
                 $isMyChild = $user->guardian->students()->where('students.id', $studentId)->exists();
 
                 if (!$isMyChild) {
-                    throw new AccessDeniedHttpException('هذا الطالب لا يتبع لرعايتك، غير مصرح لك بالوصول لبياناته.');
+                    throw new AccessDeniedHttpException('You are not allowed to access this. This child is not yours.', null, 403);
                 }
-
 
                 $studentsQuery->where('students.id', $studentId);
             }
@@ -420,7 +482,6 @@ class AlertService
 
             return Alert::where('notifiable_type', Enrollment::class)->whereIn('notifiable_id', $enrollmentIds);
         }
-
 
         if ($user->hasAnyRole(['super_admin', 'adviser', 'teacher']) || $user->staff) {
             $staffId = $user->staff?->id;
@@ -432,6 +493,7 @@ class AlertService
 
         return Alert::where('id', '<', 0);
     }
+
     public function unreadCountForUser(User $user, ?int $studentId = null): array
     {
         $baseQuery = $this->getBaseAlertQueryForUser($user, $studentId)
@@ -446,6 +508,7 @@ class AlertService
             'payment_alerts' => (clone $baseQuery)->whereIn('type', $financialTypes)->count(),
         ];
     }
+
     public function markAllReadForUser(User $user, string $category = 'all', ?int $studentId = null): array
     {
         $baseQuery = $this->getBaseAlertQueryForUser($user, $studentId)
@@ -475,5 +538,4 @@ class AlertService
 
         return $this->unreadCountForUser($user, $studentId);
     }
-
 }

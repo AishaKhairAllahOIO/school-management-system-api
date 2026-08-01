@@ -10,16 +10,20 @@ use App\Services\Quiz\PracticeQuizService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PracticeQuizController extends Controller
 {
     use ApiResource;
 
-    public function __construct(protected PracticeQuizService $quizService) {}
+    public function __construct(protected PracticeQuizService $quizService)
+    {
+    }
 
     private function getCurrentEnrollment($user)
     {
-        if (!$user->student) return null;
+        if (!$user->student)
+            return null;
         return Enrollment::where('student_id', $user->student->id)
             ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
             ->with('classRoom')
@@ -31,7 +35,8 @@ class PracticeQuizController extends Controller
     {
         try {
             $enrollment = $this->getCurrentEnrollment($request->user());
-            if (!$enrollment || !$enrollment->classRoom) return $this->errorResponse('Active enrollment not found.', 404);
+            if (!$enrollment || !$enrollment->classRoom)
+                return $this->errorResponse('Active enrollment not found.', 404);
 
             $subjects = $this->quizService->getStudentSubjects($enrollment->classRoom->grade_level_id);
             return $this->successResponse($subjects, 'Subjects retrieved successfully.', 200);
@@ -44,13 +49,23 @@ class PracticeQuizController extends Controller
     public function getQuizzesBySubject(Request $request, $gradeSubjectId)
     {
         try {
+            $perPage = $request->input('per_page', 15);
             $enrollment = $this->getCurrentEnrollment($request->user());
-            if (!$enrollment || !$enrollment->classRoom) return $this->errorResponse('Active enrollment not found.', 404);
+            if (!$enrollment || !$enrollment->classRoom) {
+                return $this->errorResponse('Active enrollment not found.', 404);
+            }
 
-            $quizzes = $this->quizService->getStudentQuizzes($gradeSubjectId, $enrollment->classRoom->grade_level_id, $enrollment->id);
-            return $this->successResponse($quizzes, 'Practice quizzes retrieved successfully.', 200);
+            $quizzes = $this->quizService->getStudentQuizzes(
+                (int) $gradeSubjectId,
+                $enrollment->classRoom->grade_level_id,
+                $enrollment->id,
+                (int) $perPage
+            );
+
+            return $this->paginatedResponse($quizzes, 'Practice quizzes retrieved successfully.', 200);
+
         } catch (Exception $e) {
-            $code = $e->getCode() === 403 ? 403 : 500;
+            $code = $this->getExceptionCode($e);
             return $this->errorResponse($e->getMessage(), $code);
         }
     }
@@ -59,7 +74,8 @@ class PracticeQuizController extends Controller
     {
         try {
             $enrollment = $this->getCurrentEnrollment($request->user());
-            if (!$enrollment || !$enrollment->classRoom) return $this->errorResponse('Active enrollment not found.', 404);
+            if (!$enrollment || !$enrollment->classRoom)
+                return $this->errorResponse('Active enrollment not found.', 404);
 
             $quiz = $this->quizService->getStudentQuizForSolving($id, $enrollment->classRoom->grade_level_id);
 
@@ -76,7 +92,8 @@ class PracticeQuizController extends Controller
     {
         try {
             $enrollment = $this->getCurrentEnrollment($request->user());
-            if (!$enrollment) return $this->errorResponse('Active enrollment not found.', 404);
+            if (!$enrollment)
+                return $this->errorResponse('Active enrollment not found.', 404);
 
             $data = $request->validated();
             $data['enrollment_id'] = $enrollment->id;
@@ -100,4 +117,7 @@ class PracticeQuizController extends Controller
         $count = $this->quizService->unreadCount($request->user());
         return $this->successResponse(['unread_count' => $count], 'Unread quizzes count retrieved.', 200);
     }
+
+
+
 }

@@ -34,6 +34,7 @@ class TeacherProfileResource extends JsonResource
                         $first = $assignments->first();
 
                         return [
+                            'grade_level' => $first->gradeSubject?->gradeLevel?->name,
                             'class_room' => $first->classRoom?->name,
                             'academic_year' => $first->gradeSubject?->academicYear?->year_name,
                             'semester' => $first->gradeSubject?->semester?->semester_name,

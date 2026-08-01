@@ -27,7 +27,8 @@ class SubjectSeeder extends Seeder
             'Computer Science',
             'Science',
             'Art',
-            'Music'
+            'Music',
+            'Sports',
         ];
 
         foreach ($defaultSubjects as $name) {

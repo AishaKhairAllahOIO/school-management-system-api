@@ -405,13 +405,14 @@ Route::prefix('user')->group(function () {
 
         Route::middleware('role:student')->group(function () {
             Route::prefix('practice-quizzes')->controller(StudentPracticeQuizController::class)->group(function () {
-                
+
                 Route::get('/student/subjects', 'getSubjects');
                 Route::get('/show/quiz/by/subjects/{gradeSubjectId}', 'getQuizzesBySubject');
                 Route::get('/quiz/unread-count', 'unreadCount');
                 Route::post('/quiz/mark-all-read', 'markAllRead');
                 Route::post('/quiz/result/submit', 'submit');
                 Route::get('/show/quiz/{id}', 'show');
+                Route::get('/show/last/quiz/attempt/{quizId}', 'getLastAttemptDetails');
 
             });
         });

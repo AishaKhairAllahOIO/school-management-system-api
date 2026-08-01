@@ -100,4 +100,29 @@ class PracticeQuizController extends Controller
         $count = $this->quizService->unreadCount($request->user());
         return $this->successResponse(['unread_count' => $count], 'Unread quizzes count retrieved.', 200);
     }
+
+    public function getLastAttemptDetails(Request $request, $quizId)
+    {
+        try {
+            $enrollment = $this->getCurrentEnrollment($request->user());
+
+            if (!$enrollment || !$enrollment->classRoom) {
+                return $this->errorResponse('Active enrollment not found.', 404);
+            }
+
+            $attemptDetails = $this->quizService->getLastQuizAttemptDetails((int) $quizId, $enrollment->id);
+
+            if (!$attemptDetails) {
+                return $this->successResponse(null, 'You have not attempted this quiz yet.', 200);
+            }
+
+            return $this->successResponse($attemptDetails, 'Last attempt details retrieved successfully.', 200);
+
+        } catch (Exception $e) {
+            $code = $this->getExceptionCode($e);
+            return $this->errorResponse($e->getMessage(), $code);
+        }
+    }
+
+
 }

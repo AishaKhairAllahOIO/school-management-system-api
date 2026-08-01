@@ -48,6 +48,7 @@ class DatabaseSeeder extends Seeder
             GradeConfigurationSeeder::class,
             ClassStudentEvaluationSeeder::class,
             StudentMarkSeeder::class,
+            PracticeQuizSeeder::class,
 
 
         ]);

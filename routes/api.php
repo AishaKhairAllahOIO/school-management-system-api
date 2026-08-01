@@ -28,7 +28,6 @@ use App\Http\Controllers\Teacher\ClassStudentEvaluationController;
 use App\Http\Controllers\Teacher\HomeworkController;
 use App\Http\Controllers\Teacher\MarkController;
 use App\Http\Controllers\Teacher\PracticeQuizController;
-use
 use App\Http\Controllers\Teacher\TeacherDropdownController;
 use App\Http\Controllers\Web\SchoolLawController;
 
@@ -112,13 +111,15 @@ Route::prefix('auth')->group(function () {
             Route::get('/show/one/evaluation/{id}', [ClassStudentEvaluationController::class, 'show']);
             Route::post('/gradebook/marks', [MarkController::class, 'storeMarks']);
             Route::get('/gradebook/subject/{gradeSubjectId}/classroom/{classRoomId}', [MarkController::class, 'getGradebook']);
-            Route::post('/quiz/create', [PracticeQuizController::class, 'store']);
-            Route::get('/quiz/subject/{gradeSubjectId}', [PracticeQuizController::class, 'getQuizzesByGradeSubject']);
-            Route::get('/quiz/{quizId}', [PracticeQuizController::class, 'getQuizDetails']);
-            Route::post('/quiz/{quizId}/toggle-status', [PracticeQuizController::class, 'toggleStatus']);
-            Route::delete('/delete/quiz/{quizId}', [PracticeQuizController::class, 'destroy']);
+            Route::prefix('practice-quizzes')->controller(PracticeQuizController::class)->group(function () {
 
+                Route::post('/create/quiz', 'store');
+                Route::get('/show/quiz/by/grade-subject/{gradeSubjectId}', 'getQuizzesByGradeSubject');
+                Route::get('/show/one/quiz/{quizId}', 'show');
+                Route::patch('/toggle-active/quiz/{id}', 'toggleActive');
+                Route::delete('/delete/quiz/{id}', 'destroy');
 
+            });
         });
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
@@ -402,12 +403,20 @@ Route::prefix('user')->group(function () {
         Route::get('/marks/unread-count', [StudentMarkDisplayController::class, 'unreadCount']);
         Route::post('/marks/mark-all-read', [StudentMarkDisplayController::class, 'markAllAsRead']);
 
-        Route::get('/practice-quizzes/subject/{gradeSubjectId}', [PracticeQuizController::class, 'getQuizzesByGradeSubject']);
-        Route::get('/practice-quiz/{quizId}', [StudentPracticeQuizController::class, 'getQuizDetails']);
-        Route::post('/practice-quiz/{quizId}/submit', [StudentPracticeQuizController::class, 'submitQuiz']);
-        Route::get('/practice-quiz/{quizId}/results', [StudentPracticeQuizController::class, 'getQuizResults']);
+        Route::middleware('role:student')->group(function () {
+            Route::prefix('practice-quizzes')->controller(StudentPracticeQuizController::class)->group(function () {
+                
+                Route::get('/student/subjects', 'getSubjects');
+                Route::get('/show/quiz/by/subjects/{gradeSubjectId}', 'getQuizzesBySubject');
+                Route::get('/quiz/unread-count', 'unreadCount');
+                Route::post('/quiz/mark-all-read', 'markAllRead');
+                Route::post('/quiz/result/submit', 'submit');
+                Route::get('/show/quiz/{id}', 'show');
 
-
+            });
+        });
 
     });
+
 });
+

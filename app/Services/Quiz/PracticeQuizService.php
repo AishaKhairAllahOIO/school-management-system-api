@@ -189,28 +189,30 @@ class PracticeQuizService
             ];
         });
     }
-    private function getBaseQueryForUser(User $user)
+private function getBaseQueryForUser(User $user)
     {
         if ($user->hasRole('student') && $user->student) {
-            $classRoomId = Enrollment::where('student_id', $user->student->id)
-                ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
-                ->latest()
-                ->value('class_room_id');
 
-            if (!$classRoomId) {
+            $enrollment = Enrollment::where('student_id', $user->student->id)
+                ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
+                ->with('classRoom')
+                ->latest()
+                ->first();
+
+            if (!$enrollment || !$enrollment->classRoom) {
                 return PracticeQuiz::query()->where('id', '<', 0);
             }
 
-            return PracticeQuiz::whereHas('gradeSubject.classRooms', function ($q) use ($classRoomId) {
-                $q->where('class_rooms.id', $classRoomId);
+            $gradeLevelId = $enrollment->classRoom->grade_level_id;
+
+            // جلب الكويزات التي تتبع للمواد الموجودة في صف هذا الطالب
+            return PracticeQuiz::whereHas('gradeSubject', function ($q) use ($gradeLevelId) {
+                $q->where('grade_level_id', $gradeLevelId);
             });
         }
 
         if ($user->hasRole('teacher') && $user->staff) {
-            return PracticeQuiz::whereHas('gradeSubject.teacherAssignments', function ($q) use ($user) {
-                $q->where('teacher_id', $user->staff->id)
-                    ->whereHas('academicYear', fn($q) => $q->where('is_current', true));
-            });
+            return PracticeQuiz::where('teacher_id', $user->staff->id);
         }
 
         return PracticeQuiz::query();
@@ -245,10 +247,9 @@ class PracticeQuizService
         return $this->unreadCount($user);
     }
 
-    public function getQuizDetails(int $quizId, User $user)
+    public function getQuizDetails(int $quizId, int $teacherId)
     {
         try {
-            $teacherId = $user->staff->id;
 
             $quiz = PracticeQuiz::where('id', $quizId)
                 ->where('teacher_id', $teacherId)
@@ -298,6 +299,132 @@ class PracticeQuizService
 
 
 
+    }
+
+    public function getTeacherQuizzes(int $gradeSubjectId, int $teacherId)
+    {
+        $isValid = GradeSubject::where('id', $gradeSubjectId)
+            ->whereHas('teacherAssignments', function ($query) use ($teacherId) {
+                $query->where('teacher_id', $teacherId)
+                      ->whereHas('academicYear', fn($q) => $q->where('is_current', true));
+            })->exists();
+
+        if (!$isValid) {
+            throw new Exception('You are not authorized to view or manage this subject.', 403);
+        }
+
+        return PracticeQuiz::where('grade_subject_id', $gradeSubjectId)
+            ->where('teacher_id', $teacherId)
+            ->withCount('attempts')
+            ->withSum('questions', 'mark')
+            ->latest()
+            ->get()
+            ->map(function ($quiz) {
+                return [
+                    'id'             => $quiz->id,
+                    'title'          => $quiz->title,
+                    'total_mark'     => (float) ($quiz->questions_sum_mark ?? 0),
+                    'attempts_count' => $quiz->attempts_count,
+                    'is_active'      => $quiz->is_active,
+                    'is_locked'      => $quiz->attempts_count > 0,
+                    'created_at'     => $quiz->created_at->format('Y-m-d H:i'),
+                ];
+            });
+    }
+
+    public function toggleQuizStatus(int $quizId, int $teacherId): bool
+    {
+        $quiz = PracticeQuiz::where('id', $quizId)
+            ->where('teacher_id', $teacherId)
+            ->firstOrFail();
+
+        $quiz->update(['is_active' => !$quiz->is_active]);
+
+        return $quiz->is_active;
+    }
+
+    public function deleteQuiz(int $quizId, int $teacherId): void
+    {
+        $quiz = PracticeQuiz::where('id', $quizId)
+            ->where('teacher_id', $teacherId)
+            ->firstOrFail();
+
+        if ($quiz->attempts()->exists()) {
+            throw new Exception('Cannot delete this quiz because students have already attempted it. You can hide it instead.', 403);
+        }
+
+        $quiz->delete();
+    }
+
+    public function getStudentSubjects(int $gradeLevelId)
+    {
+        return GradeSubject::with('subject:id,subject_name')
+            ->where('grade_level_id', $gradeLevelId)
+            ->get()
+            ->map(function ($gs) {
+                return [
+                    'grade_subject_id' => $gs->id,
+                    'subject_name'     => $gs->subject->subject_name ?? 'N/A',
+                ];
+            });
+    }
+
+    public function getStudentQuizzes(int $gradeSubjectId, int $gradeLevelId, int $enrollmentId)
+    {
+        $isValidSubject = GradeSubject::where('id', $gradeSubjectId)
+            ->where('grade_level_id', $gradeLevelId)
+            ->exists();
+
+        if (!$isValidSubject) {
+            throw new Exception('You are not authorized to view quizzes for this subject.', 403);
+        }
+
+        return PracticeQuiz::where('grade_subject_id', $gradeSubjectId)
+            ->where('is_active', true)
+            ->withSum('questions', 'mark')
+            ->with(['attempts' => function($query) use ($enrollmentId) {
+                $query->where('enrollment_id', $enrollmentId);
+            }])
+            ->latest()
+            ->get()
+            ->map(function ($quiz) {
+                $attemptsCount = $quiz->attempts->count();
+                $highScore = $attemptsCount > 0 ? $quiz->attempts->max('earned_mark') : 0;
+
+                return [
+                    'id'             => $quiz->id,
+                    'title'          => $quiz->title,
+                    'description'    => $quiz->description,
+                    'total_mark'     => (float) ($quiz->questions_sum_mark ?? 0),
+                    'attempts_count' => $attemptsCount,
+                    'high_score'     => (float) $highScore,
+                    'progress_msg'   => $attemptsCount > 0
+                                        ? "You have completed this practice {$attemptsCount} time(s)."
+                                        : "You haven't attempted this practice yet.",
+                    'created_at'     => $quiz->created_at->format('Y-m-d H:i'),
+                ];
+            });
+    }
+
+    public function getStudentQuizForSolving(int $quizId, int $gradeLevelId)
+    {
+        $quiz = PracticeQuiz::whereHas('gradeSubject', function ($query) use ($gradeLevelId) {
+                $query->where('grade_level_id', $gradeLevelId);
+            })
+            ->with(['questions' => function ($q) {
+                $q->select('id', 'practice_quiz_id', 'question_text', 'mark');
+            }, 'questions.options' => function ($q) {
+                $q->select('id', 'question_id', 'option_text');
+            }])
+            ->where('id', $quizId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$quiz) {
+            throw new ModelNotFoundException('Quiz not found or unauthorized.');
+        }
+
+        return $quiz;
     }
 
 }

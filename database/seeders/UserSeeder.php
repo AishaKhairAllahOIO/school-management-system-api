@@ -1,8 +1,8 @@
 <?php
 
 namespace Database\Seeders;
-use App\Models\Role;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,6 +15,8 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        $defaultPassword = Hash::make(env('DEFAULT_USER_PASSWORD', 'password'));
+
         $user1 = User::updateOrCreate(
             ['phone_number' => '0968661500'],
             [
@@ -30,7 +32,7 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
                 'account_status' => 'enabled',
                 'photo_url' => 'defaults/guardian.jpg',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
             ]
         );
         $user1->assignRole('guardian');
@@ -50,7 +52,7 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
                 'account_status' => 'enabled',
                 'photo_url' => 'defaults/student_female.jpg',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
             ]
         );
         $user2->assignRole('student');
@@ -71,7 +73,7 @@ class UserSeeder extends Seeder
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'photo_url' => 'defaults/teacher.jpg',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
             ]
         );
         $user3->assignRole('teacher');
@@ -92,7 +94,7 @@ class UserSeeder extends Seeder
                 'nationality' => 'syrian',
                 'gender' => 'female',
                 'photo_url' => 'defaults/admin.jpg',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
             ]
         );
         $user4->assignRole('super_admin');
@@ -112,7 +114,7 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
                 'gender' => 'male',
                 'photo_url' => 'defaults/student_male.jpg',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
             ]
         );
         $user5->assignRole('student');
@@ -130,13 +132,13 @@ class UserSeeder extends Seeder
                 'nationality' => 'syrian',
                 'gender' => 'female',
                 'photo_url' => 'defaults/counselor.jpg',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
                 'email' => 'nournour.ahmad.1284@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]
         );
-        $user6->assignRole('counselor');
+        $user6->assignRole('super_admin');
 
         $user7 = User::updateOrCreate(
             ['phone_number' => '0994416081'],
@@ -154,12 +156,12 @@ class UserSeeder extends Seeder
                 'email' => 'shadooalkhateeb1234@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
             ]
         );
         $user7->assignRole('adviser');
 
-        $user7 = User::updateOrCreate(
+        $user8 = User::updateOrCreate(
             ['phone_number' => '0983846541'],
             [
                 'first_name' => 'aisha',
@@ -175,12 +177,12 @@ class UserSeeder extends Seeder
                 'email' => 'aishakhairallah3@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
             ]
         );
-        $user7->assignRole('secretary');
+        $user8->assignRole('secretary');
 
-        $user8 = User::updateOrCreate(
+        $user9 = User::updateOrCreate(
             ['phone_number' => '0994416082'],
             [
                 'first_name' => 'Diana',
@@ -193,14 +195,14 @@ class UserSeeder extends Seeder
                 'nationality' => 'syrian',
                 'gender' => 'female',
                 'photo_url' => 'https://example.com/photo6.jpg',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]
         );
-        $user8->assignRole('service_staff');
+        $user9->assignRole('service_staff');
 
-        $user9 = User::updateOrCreate(
+        $user10 = User::updateOrCreate(
             ['phone_number' => '0994416083'],
             [
                 'first_name' => 'Ethan',
@@ -211,7 +213,7 @@ class UserSeeder extends Seeder
                 'birth_place' => 'Spy City',
                 'address' => '123 Mission St, Spy City',
                 'email' => 'ranneemmahmmadd@gmail.com',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
                 'nationality' => 'jordanian',
                 'gender' => 'male',
                 'photo_url' => 'https://example.com/photo7.jpg',
@@ -219,9 +221,9 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
             ]
         );
-        $user9->assignRole('adviser');
+        $user10->assignRole('adviser');
 
-        $user10 = User::updateOrCreate(
+        $user11 = User::updateOrCreate(
             ['phone_number' => '0994416084'],
             [
                 'first_name' => 'Fiona',
@@ -232,7 +234,7 @@ class UserSeeder extends Seeder
                 'birth_place' => 'Shameless Town',
                 'address' => '456 Chaos Ave, Shameless Town',
                 'email' => 'fidaaahmadd@gmail.com',
-                'password' => Hash::make(env('DEFAULT_USER_PASSWORD', 'password')),
+                'password' => $defaultPassword,
                 'nationality' => 'other',
                 'gender' => 'female',
                 'photo_url' => 'https://example.com/photo8.jpg',
@@ -240,26 +242,72 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
             ]
         );
-        $user10->assignRole('secretary');
+        $user11->assignRole('secretary');
 
-        $user11 = User::updateOrCreate([
-            'phone_number' => '0993790629',
-            'first_name' => 'Yazan',
-            'last_name' => 'Al_khalid',
-            'father_name' => 'Salem',
-            'mother_name' => 'Lisa Johnson',
-            'birth_date' => '1985-12-10',
-            'birth_place' => 'Villageburg',
-            'address' => '789 Pine Rd, Villageburg',
-            'nationality' => 'syrian',
-            'account_status' => 'enabled',
-            'record_status' => 'active',
-            'gender' => 'male',
-            'photo_url' => 'yazan.jpg
+        $user12 = User::updateOrCreate(
+            ['phone_number' => '0993790629'],
+            [
+                'first_name' => 'Yazan',
+                'last_name' => 'Al_khalid',
+                'father_name' => 'Salem',
+                'mother_name' => 'Lisa Johnson',
+                'birth_date' => '1985-12-10',
+                'birth_place' => 'Villageburg',
+                'address' => '789 Pine Rd, Villageburg',
+                'nationality' => 'syrian',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'gender' => 'male',
+                'photo_url' => 'yazan.jpg',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user12->assignRole('student');
+
+        $user13 = User::updateOrCreate(
+            ['phone_number' => '0935026786'],
+            [
+                'first_name' => 'Majeda',
+                'last_name' => 'Al_Shalabi',
+                'father_name' => 'Mohammed',
+                'mother_name' => 'Nour',
+                'birth_date' => '1985-12-10',
+                'birth_place' => 'Villageburg',
+                'address' => '789 Pine Rd, Villageburg',
+                'nationality' => 'syrian',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'gender' => 'female',
+                'email' => 'alshalabimajeda@gmail.com',
+                'photo_url' => 'defaults/teacher.jpg',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user13->assignRole('teacher');
+
+        $user14 = User::updateOrCreate(
+            [
+                'phone_number' => '0992006689',
+            ],
+            [
+                'first_name' => 'Mariam',
+                'last_name' => 'Al_khalid',
+                'father_name' => 'Salem',
+                'mother_name' => 'Lisa Johnson',
+                'birth_date' => '1985-12-10',
+                'birth_place' => 'Villageburg',
+                'address' => '789 Pine Rd, Villageburg',
+                'nationality' => 'syrian',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'gender' => 'female',
+                'email' => 'mouhamedalshalabi@gmail.com',
+                'photo_url' => 'defaults/counselor.jpg
             ',
-            'password' => Hash::make(env('DEFAULT_USER_PASSWORD')),
-        ]);
+                'password' => $defaultPassword,
+            ]
+        );
 
-        $user11->assignRole('student');
+        $user14->assignRole('counselor');
     }
 }

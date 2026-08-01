@@ -23,4 +23,13 @@ class UpdateSubjectRequest extends FormRequest
             ],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'subject_name.string' => 'The subject name must be a string.',
+            'subject_name.max' => 'The subject name may not be greater than 255 characters.',
+            'subject_name.unique' => 'The subject name has already been taken.',
+        ];
+    }
 }

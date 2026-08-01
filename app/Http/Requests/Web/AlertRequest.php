@@ -33,7 +33,9 @@ class AlertRequest extends FormRequest
                     Alert::TYPE_PAYMENT,
                     Alert::TYPE_SALARY,
                     Alert::TYPE_HOMEWORK,
-                    Alert::TYPE_PAYED
+                    Alert::TYPE_PAYED,
+                    Alert::TYPE_EXPULSION,
+                    Alert::TYPE_WARNING
                 ])
             ],
             'title' => ['nullable', 'string', 'max:255'],
@@ -46,7 +48,7 @@ class AlertRequest extends FormRequest
         } else {
             $rules['staff_ids'] = ['required', 'array', 'min:1'];
             $rules['staff_ids.*'] = ['integer', 'exists:staff,id'];
-            }
+        }
 
         $rules += match ($this->input('type')) {
             Alert::TYPE_PAYMENT => [
@@ -77,6 +79,17 @@ class AlertRequest extends FormRequest
             Alert::TYPE_PAYED => [
                 'meta.amount' => ['nullable', 'numeric'],
             ],
+            Alert::TYPE_EXPULSION => [
+                'meta.law_id' => ['required', 'integer', 'exists:school_laws,id']
+            ],
+            Alert::TYPE_WARNING => [
+                'meta.reason' => ['nullable', 'string', 'max:255'],
+                'meta.absence_count' => ['nullable', 'integer']
+            ],
+            Alert::TYPE_SYSTEM_NOTICE => [
+                'meta.action' => ['nullable','string']
+            ],
+
             default => [],
         };
 

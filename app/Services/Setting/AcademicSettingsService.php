@@ -11,33 +11,32 @@ use App\Models\Semester;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\ValidationException; // 👈 لا تنسي استدعاء هذه الكلاس في أعلى الملف
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use App\Models\AcademicStage;
 use App\Models\Enrollment;
 use Exception;
 use App\Models\GradeConfiguration;
+use App\Models\Subject;
 
 class AcademicSettingsService
 {
 
     use ApiResource;
- public function getAcademicViewData()
+    public function getAcademicViewData()
     {
-  $settings = AcademicSetting::firstOrCreate(
-            ['id' => 1], 
+        $settings = AcademicSetting::firstOrCreate(
+            ['id' => 1],
             [
                 'current_academic_year_id' => null,
                 'current_semester_id' => null,
-                'schedule_settings' => json_encode([]), // قيمة افتراضية لتجنب خطأ الـ null
+                'schedule_settings' => json_encode([]),
             ]
         );
 
-   return  $settings;
+        return $settings;
     }
-     public function getAllYears(): Collection
+    public function getAllYears(): Collection
     {
         return AcademicYear::orderBy('start_date', 'desc')->get();
     }
@@ -67,36 +66,34 @@ class AcademicSettingsService
         return AcademicStage::findOrFail($id);
     }
 
-    // تحديث إعدادات الجدولة
     public function updateSettings(array $data)
     {
         return DB::transaction(function () use ($data) {
-        $settings = AcademicSetting::updateOrCreate(
-            ['id' => 1],
-            [
-                'current_academic_year_id' => $data['currentAcademicYearId'] ?? null,
-                'current_semester_id' => $data['currentSemesterId'] ?? null,
-                'schedule_settings'        => $data['scheduleSettings'],
-            ] 
-        );
+            $settings = AcademicSetting::updateOrCreate(
+                ['id' => 1],
+                [
+                    'current_academic_year_id' => $data['currentAcademicYearId'] ?? null,
+                    'current_semester_id' => $data['currentSemesterId'] ?? null,
+                    'schedule_settings' => $data['scheduleSettings'],
+                ]
+            );
 
             return $settings->refresh();
         });
     }
 
-    // ---------------- عمليات العام الدراسي ----------------
 
     public function saveYear(array $data, ?AcademicYear $year = null)
     {
-        return DB::transaction(function () use ($data, $year):AcademicYear {
-            
+        return DB::transaction(function () use ($data, $year): AcademicYear {
+
             $startYear = isset($data['startDate']) ? Carbon::parse($data['startDate'])->year : Carbon::parse($year->start_date)->year;
-            $endYear   = isset($data['endDate']) ? Carbon::parse($data['endDate'])->year : Carbon::parse($year->end_date)->year;
-            
+            $endYear = isset($data['endDate']) ? Carbon::parse($data['endDate'])->year : Carbon::parse($year->end_date)->year;
+
             $yearName = "{$startYear}-{$endYear}";
 
             $existingYear = AcademicYear::where('year_name', $yearName)
-                ->when($year, fn($query) => $query->where('id', '!=', $year->id)) // تجاهل السنة الحالية لو كنا في حالة تعديل
+                ->when($year, fn($query) => $query->where('id', '!=', $year->id))
                 ->exists();
 
             if ($existingYear) {
@@ -106,13 +103,13 @@ class AcademicSettingsService
             }
 
             if (isset($data['isCurrent']) && $data['isCurrent']) {
-                AcademicYear::query()->update(['is_current' => false]); 
+                AcademicYear::query()->update(['is_current' => false]);
             }
 
             $payload = [
-                'year_name'  => $yearName,
+                'year_name' => $yearName,
                 'start_date' => $data['startDate'] ?? $year->start_date,
-                'end_date'   => $data['endDate'] ?? $year->end_date,
+                'end_date' => $data['endDate'] ?? $year->end_date,
                 'is_current' => $data['isCurrent'] ?? $year->is_current,
             ];
 
@@ -130,40 +127,37 @@ class AcademicSettingsService
         return AcademicYear::where('is_current', true)->first();
     }
 
-    // ---------------- عمليات الفصل الدراسي ----------------
-private function determineTermNameAndOrder(string $inputName): array
+    private function determineTermNameAndOrder(string $inputName): array
     {
         $nameLower = strtolower($inputName);
-        
+
         if (str_contains($nameLower, 'first') || str_contains($nameLower, 'أول') || $nameLower === '1') {
             return ['name' => Semester::FIRST_TERM, 'order' => 1];
-        } 
-        
+        }
+
         if (str_contains($nameLower, 'second') || str_contains($nameLower, 'ثاني') || $nameLower === '2') {
             return ['name' => Semester::SECOND_TERM, 'order' => 2];
         }
 
-        // قيمة افتراضية في حال تم إدخال اسم غريب جداً
-        return ['name' => $inputName, 'order' => 1]; 
+        return ['name' => $inputName, 'order' => 1];
     }
 
-    public function saveTerm(array $data, ?Semester $term = null): Semester 
+    public function saveTerm(array $data, ?Semester $term = null): Semester
     {
         return DB::transaction(function () use ($data, $term) {
-            
+
             $academicYearId = $data['academicYearId'] ?? $term->academic_year_id;
-            
+
             // 👈 أخذ الاسم المرسل من الفرونت إند
             $inputSemesterName = $data['semesterName'] ?? $term->semester_name;
 
-            // 🧠 تمرير الاسم للعقل المدبر لاستنتاج الترتيب والاسم الموحد
             $termData = $this->determineTermNameAndOrder($inputSemesterName);
             $semesterName = $termData['name'];
             $order = $termData['order'];
 
             $existingTerm = Semester::where('academic_year_id', $academicYearId)
                 ->where('semester_name', $semesterName)
-                ->when($term, fn($query) => $query->where('id', '!=', $term->id)) // تجاهل الفصل الحالي عند التعديل
+                ->when($term, fn($query) => $query->where('id', '!=', $term->id))
                 ->exists();
 
             if ($existingTerm) {
@@ -178,12 +172,12 @@ private function determineTermNameAndOrder(string $inputName): array
 
             $payload = [
                 'academic_year_id' => $academicYearId,
-                'semester_name'    => $semesterName, // 👈 الاسم الموحد والمستنتج آلياً
-                'start_date'       => $data['startDate'] ?? $term->start_date,
-                'end_date'         => $data['endDate'] ?? $term->end_date,
-                'order'            => $order,        // 👈 الترتيب المستنتج آلياً (تجاهلنا الفرونت إند تماماً هنا)
-                'is_current'       => $data['isCurrent'] ?? $term->is_current,
-                'is_final_term'    => $data['isFinalTerm'] ?? $term->is_final_term,
+                'semester_name' => $semesterName, // 👈 الاسم الموحد والمستنتج آلياً
+                'start_date' => $data['startDate'] ?? $term->start_date,
+                'end_date' => $data['endDate'] ?? $term->end_date,
+                'order' => $order,        // 👈 الترتيب المستنتج آلياً (تجاهلنا الفرونت إند تماماً هنا)
+                'is_current' => $data['isCurrent'] ?? $term->is_current,
+                'is_final_term' => $data['isFinalTerm'] ?? $term->is_final_term,
             ];
 
             if ($term) {
@@ -192,11 +186,10 @@ private function determineTermNameAndOrder(string $inputName): array
                 $term = Semester::create($payload);
             }
 
-            return $term->refresh(); 
+            return $term->refresh();
         });
     }
 
-    // ---------------- عمليات المراحل الدراسية ----------------
     public function saveStage(array $data, ?AcademicStage $stage = null)
     {
         if ($stage) {
@@ -208,75 +201,88 @@ private function determineTermNameAndOrder(string $inputName): array
     }
 
 
-  public function deleteYear(int $id): void
+    public function deleteYear(int $id): void
     {
         $year = AcademicYear::findOrFail($id);
-        if(!$year) {
+        if (!$year) {
             throw new ModelNotFoundException("العام الدراسي المحدد غير موجود.");
         }
-        
+
         $hasSemesters = Semester::where('academic_year_id', $id)->exists();
         $hasConfigurations = GradeConfiguration::where('academic_year_id', $id)->exists();
-        
+
         if ($hasSemesters || $hasConfigurations) {
             throw new Exception(
-                'لا يمكن حذف العام الدراسي لارتباطه بفصول دراسية أو إعدادات تخطيطية.', 409)
+                'لا يمكن حذف العام الدراسي لارتباطه بفصول دراسية أو إعدادات تخطيطية.',
+                409
+            )
             ;
         }
-        
+
         $year->delete();
     }
 
     public function deleteTerm(int $id): void
     {
         $term = Semester::findOrFail($id);
-        if(!$term) {
+        if (!$term) {
             throw new ModelNotFoundException("الفصل الدراسي المحدد غير موجود.");
         }
-        if($term->is_current) {
+        if ($term->is_current) {
             throw new Exception('لا يمكن حذف الفصل الدراسي الحالي.', 409);
         }
-        
+
         $term->delete();
     }
 
     public function deleteStage(int $id): void
     {
         $stage = AcademicStage::findOrFail($id);
-        if(!$stage)
+        if (!$stage)
             throw new ModelNotFoundException("المرحلة الدراسية المحددة غير موجودة.");
         $hasGrades = GradeLevel::where('academic_stage_id', $id)->exists();
-        
+
         if ($hasGrades) {
             throw new Exception(
-                'لا يمكن حذف المرحلة الدراسية لأنها تحتوي على صفوف دراسية. احذف الصفوف أولاً.', 409)
+                'لا يمكن حذف المرحلة الدراسية لأنها تحتوي على صفوف دراسية. احذف الصفوف أولاً.',
+                409
+            )
             ;
         }
-        
+
         $stage->delete();
     }
-    //i want to delete academic setting:
-  public function deleteSettings(): void
+    public function deleteSettings(): void
     {
         $settings = AcademicSetting::findOrFail(1);
-        
+
         if ($settings) {
             if ($settings->current_academic_year_id) {
                 $hasEnrollments = Enrollment::where('academic_year_id', $settings->current_academic_year_id)->exists();
 
                 if ($hasEnrollments) {
                     throw new Exception(
-                        'تحذير أمني: لا يمكن حذف الإعدادات الأكاديمية للمدرسة لوجود طلاب مسجلين بالفعل بناءً على هذه الإعدادات.', 409);
+                        'تحذير أمني: لا يمكن حذف الإعدادات الأكاديمية للمدرسة لوجود طلاب مسجلين بالفعل بناءً على هذه الإعدادات.',
+                        409
+                    );
                 }
             }
-            
+
 
             $settings->delete();
         }
     }
 
+    public function getAcademicStatistics(): array
+    {
+        return [
+            'subjectsCount' => Subject::count(),
+            'gradeLevelsCount' => GradeLevel::count(),
+            'classRoomsCount' => ClassRoom::count(),
+        ];
+    }
 
 
-   
+
 
 }

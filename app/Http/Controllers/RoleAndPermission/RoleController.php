@@ -7,6 +7,7 @@ use App\Http\Requests\RoleAndPermission\SyncRolePermissionsRequest; // (الذي
 use App\Services\RoleAndPermission\RoleManagementService;
 use App\Http\Resources\RoleAndPermission\RoleResource;
 use App\ApiResource;
+use Exception;
 use Illuminate\Http\JsonResponse;
 
 class RoleController extends Controller
@@ -21,16 +22,13 @@ class RoleController extends Controller
         $this->roleService = $roleService;
     }
 
-    /**
-     * GET: استعراض جميع الأدوار مع إحصائياتها
-     */
+
     public function index(): JsonResponse
     {
-        // 1. تشغيل السيرفيس
         $roles = $this->roleService->getRolesWithStatistics();
-        
+
         return $this->successResponse(
-            RoleResource::collection($roles), 
+            RoleResource::collection($roles),
             'Roles and statistics retrieved successfully.'
         );
     }
@@ -38,9 +36,9 @@ class RoleController extends Controller
   public function getSystemModules(): JsonResponse
     {
         $modules = $this->roleService->getSystemModules();
-        
+
         return $this->successResponse(
-            $modules, 
+            $modules,
             'System modules and permissions retrieved successfully.'
         );
     }
@@ -49,10 +47,10 @@ class RoleController extends Controller
     {
         try {
             $permission=$this->roleService->syncPermissions($id, $request->validated('permissions'));
-            
+
             return $this->successResponse($permission, 'Role permissions synchronized successfully.');
-            
-        } catch (\Exception $e) {
+
+        } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode() ?: 400);
         }
     }

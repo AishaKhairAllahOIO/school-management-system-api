@@ -22,5 +22,16 @@ class TeacherWorkLoadSeeder extends Seeder
                 'required_monthly_periods' => 20,
             ]
         );
+      TeacherWorkload::updateOrCreate(
+            [
+                'academic_year_id' => 1,
+                'teacher_id'       => 16,
+            ],
+            [
+                'assigned_monthly_periods'=>16,
+                'required_monthly_periods' => 20,
+            ]
+        );
+
     }
 }

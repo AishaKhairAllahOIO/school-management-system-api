@@ -10,12 +10,15 @@ use App\Models\ImportBatch;
 use App\Models\GradeConfiguration;
 use App\Models\Classroom;
 use App\Jobs\ProcessStudentsImportJob;
+use App\Models\DeviceToken;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Models\ImportError;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Exception;
 use App\Models\FinancialAccount;
+use DateTimeInterface;
 
 class StudentRegisterService
 {
@@ -23,46 +26,41 @@ class StudentRegisterService
     {
         return DB::transaction(function () use ($data) {
 
-            // =========================================================
-            // 🛡️ طبقة الحماية الاستباقية (Capacity Validation)
-            // =========================================================
+
             $academicYearId = $data['enrollment']['academic_year_id'];
             $gradeId = $data['enrollment']['grade_level_id'];
             $classroomId = $data['enrollment']['class_room_id'] ?? null;
 
-            // 1. هل المدرسة فتحت التسجيل لهذا الصف في هذا العام أساساً؟
             $gradeConfig = GradeConfiguration::where('academic_year_id', $academicYearId)
                 ->where('grade_level_id', $gradeId)
                 ->first();
 
             if (!$gradeConfig) {
-                throw new Exception('عذراً، لم تقم الإدارة بفتح التسجيل أو تحديد خطة استيعابية لهذا الصف في العام الدراسي المحدد.', 422);
+                throw new Exception('Registration is not open, or no capacity plan is defined for this grade in the selected academic year.', 422);
             }
 
-            // 2. فحص سعة الشعبة (إذا تم تحديد شعبة للطالب)
             if ($classroomId) {
                 $classroom = Classroom::findOrFail($classroomId);
 
-                $classroomGradeId = $classroom->grade_level_id ?? $classroom->grade_id; // دعم للمسميين
+                $classroomGradeId = $classroom->grade_level_id ?? $classroom->grade_id;
 
                 if ($classroom->academic_year_id != $academicYearId || $classroomGradeId != $gradeId) {
-                    throw new Exception("عذراً، الشعبة المحددة ({$classroom->name}) لا تنتمي للصف أو العام الدراسي المحدد للطالب.", 422);
+                    throw new Exception("The specified classroom ({$classroom->name}) does not belong to the student's selected grade or academic year.", 422);
                 }
-                // استخدام الـ Accessor الذكي
                 if ($classroom->available_seats <= 0) {
-                    throw new Exception("عذراً، الشعبة ({$classroom->name}) ممتلئة بالكامل ولا توجد مقاعد متاحة.", 422);
+                    throw new Exception("The classroom ({$classroom->name}) is fully occupied. No seats are available.", 422);
                 }
             } else {
-                // 3. فحص السعة الكلية للصف (إذا لم يتم تحديد شعبة، سيتم فرزه لاحقاً)
                 $currentEnrolledCount = Enrollment::where('academic_year_id', $academicYearId)
                     ->where('grade_level_id', $gradeId)
                     ->whereIn('enrollment_status', ['completed', 'enrolled'])
                     ->count();
 
                 if ($currentEnrolledCount >= $gradeConfig->planned_students_capacity) {
-                    throw new Exception('عذراً، لقد اكتمل العدد الكلي المسموح به لهذا الصف ولا يمكن تسجيل المزيد من الطلاب.', 422);
+                    throw new Exception('The total allowed capacity for this grade has been reached. No more students can be registered.', 422);
                 }
             }
+
             $guardianPhotoPath = 'defaults/guardian.png';
             if (isset($data['guardian']['photo_url']) && $data['guardian']['photo_url'] instanceof UploadedFile) {
                 $guardianPhotoPath = $data['guardian']['photo_url']->store('users/guardians', 'local');
@@ -83,7 +81,7 @@ class StudentRegisterService
                     'last_name' => $data['guardian']['last_name'],
                     'father_name' => $data['guardian']['father_name'] ?? 'غير مدخل',
                     'mother_name' => $data['guardian']['mother_name'] ?? 'غير مدخل',
-                    'birth_date' => $data['guardian']['birth_date'] instanceof \DateTimeInterface
+                    'birth_date' => $data['guardian']['birth_date'] instanceof DateTimeInterface
                         ? $data['guardian']['birth_date']->format('Y-m-d')
                         : $data['guardian']['birth_date'],
                     'birth_place' => $data['guardian']['birth_place'] ?? 'غير مدخل',
@@ -106,9 +104,19 @@ class StudentRegisterService
                 if (!$guardianUser->hasRole('guardian')) {
                     $guardianUser->assignRole('guardian');
                 }
+
+                if (isset($data['guardian']['photo_url']) && $data['guardian']['photo_url'] instanceof UploadedFile) {
+                    if ($guardianUser->photo_url && !str_starts_with($guardianUser->photo_url, 'defaults/')) {
+                        Storage::disk('local')->delete($guardianUser->photo_url);
+                    }
+                    $guardianUser->update(['photo_url' => $guardianPhotoPath]);
+                }
             }
+
+            $temporaryFcmToken = $data['guardian']['token_fcm'] ?? null;
+
             if (!empty($temporaryFcmToken) && $temporaryFcmToken !== "fYJpl4_2tzFTIBwb7wPXVk:APA91bF0jrkAZwR8K1ETdEfiSG6JHyD03n-i12twY-qZgVpcSOWKqNMw3GrjlsFtn_n85xkuDIYfnQ83rk7dvvoaEJnh_X7sZ5AYjzK9sby2GZ8bm6PMncQ") {
-                \App\Models\DeviceToken::updateOrCreate(
+                DeviceToken::updateOrCreate(
                     ['fcm_token' => $temporaryFcmToken],
                     ['user_id' => $guardianUser->id]
                 );
@@ -130,7 +138,7 @@ class StudentRegisterService
                 'photo_url' => $studentPhotoPath ?? 'defaults/student.png',
                 'email' => null,
                 'password' => env('DEFAULT_USER_PASSWORD', 'password'),
-                'account_status' => 'disabled', // معطل حتى يتم الدفع
+                'account_status' => 'disabled',
                 'record_status' => 'active',
             ]);
 
@@ -141,9 +149,6 @@ class StudentRegisterService
                 'guardian_id' => $guardianRecord->id,
             ]);
 
-            // =========================================================
-            // 📝 3. توثيق الالتحاق (Enrollment)
-            // =========================================================
             Enrollment::create([
                 'student_id' => $studentRecord->id,
                 'academic_year_id' => $academicYearId,
@@ -157,18 +162,19 @@ class StudentRegisterService
                 'academic_year_id' => $academicYearId,
             ]);
 
-$enrollment = Enrollment::where('student_id', $studentRecord->id)
-        ->with([
-            'student.user',
-            'student.guardian.user',
-            'gradeLevel',
-            'classRoom',
-            'academicYear'
-        ])
-        ->latest()
-        ->first();
+            $enrollment = Enrollment::where('student_id', $studentRecord->id)
+                ->with([
+                    'student.user',
+                    'student.guardian.user',
+                    'gradeLevel',
+                    'classRoom',
+                    'academicYear'
+                ])
+                ->latest()
+                ->first();
 
-    return $enrollment;        });
+            return $enrollment;
+        });
     }
 
     public function initiateExcelImport(UploadedFile $file, int $importerId)
@@ -192,7 +198,7 @@ $enrollment = Enrollment::where('student_id', $studentRecord->id)
         $errors = ImportError::where('import_batch_id', $batch->id)->get();
 
         if ($errors->isEmpty()) {
-            throw new \Exception('لا توجد أخطاء مسجلة لهذه الدفعة.');
+            throw new Exception('No errors were recorded for this batch.');
         }
 
         $exportData = $errors->map(function ($errorRecord) {

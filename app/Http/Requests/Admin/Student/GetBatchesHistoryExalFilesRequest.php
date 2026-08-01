@@ -32,9 +32,9 @@ class GetBatchesHistoryExalFilesRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status.in'          => 'حالة الملف الممررة غير صالحة.',
-            'importer_id.exists' => 'الموظف المطلوب الفلترة به غير موجود في السيستم.',
-            'per_page.max'       => 'الحد الأقصى المسموح به هو 100 سطر في الصفحة الواحدة.',
+            'status.in'          => 'accepted values are: pending, processing, completed, failed.',
+            'importer_id.exists' => 'accepted value must exist in the importers table.',
+            'per_page.max'       => 'the maximum allowed is 100 rows per page.',
         ];
     }
 }

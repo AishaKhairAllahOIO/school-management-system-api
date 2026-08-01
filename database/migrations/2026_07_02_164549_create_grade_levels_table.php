@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('grade_levels', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('academic_stage_id')->constrained('academic_stages'); // المرحلة (ابتدائي، إعدادي..)
+            $table->foreignId('academic_stage_id')->constrained('academic_stages'); 
             $table->string('name');
             $table->integer('level');
             $table->boolean('is_graduation_grade')->default(false);

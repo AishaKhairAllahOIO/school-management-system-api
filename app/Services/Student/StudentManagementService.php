@@ -4,20 +4,18 @@ namespace App\Services\Student;
 
 use App\Models\Enrollment;
 use App\Models\Student;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use App\Models\Guardian;
 use Exception;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class StudentManagementService
 {
-
     public function filterStudents(array $filters)
     {
         $query = Enrollment::withTrashed()->with([
-            'student.user:id,first_name,last_name,father_name,mother_name,phone_number',
+            'student.user:id,first_name,last_name,father_name,mother_name,phone_number,photo_url,account_status',
             'gradeLevel',
             'classRoom'
         ]);
@@ -49,10 +47,11 @@ class StudentManagementService
 
         return $query->paginate(15);
     }
+
     public function searchStudents(string $searchTerm)
     {
         $query = Enrollment::withTrashed()->with([
-            'student.user:id,first_name,last_name,father_name,mother_name,phone_number',
+            'student.user:id,first_name,last_name,father_name,mother_name,phone_number,photo_url,account_status',
             'gradeLevel',
             'classRoom'
         ]);
@@ -75,6 +74,7 @@ class StudentManagementService
 
         return $query->paginate(15);
     }
+
     public function getStudentPersonalProfile(int $studentId)
     {
         $student = Student::with([
@@ -83,7 +83,7 @@ class StudentManagementService
         ])->find($studentId);
 
         if (!$student) {
-            throw new Exception('الطالب غير موجود في النظام.', 404);
+            throw new Exception('Student not found in the system.', 404);
         }
 
         return $student;
@@ -101,7 +101,7 @@ class StudentManagementService
         ])->find($enrollmentId);
 
         if (!$enrollment) {
-            throw new Exception('سجل التسجيل الأكاديمي غير موجود.', 404);
+            throw new Exception('Academic enrollment record not found.', 404);
         }
 
         return $enrollment;
@@ -113,10 +113,9 @@ class StudentManagementService
 
         return DB::transaction(function () use ($studentId, $data) {
 
-            // بما أن الـ $studentId قد يكون هو نفسه الـ student_id أو قادم من الـ Enrollment
             $student = Student::with(['user', 'guardian.user'])->findOrFail($studentId);
 
-            if (isset($data['photo_url']) && $data['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
+            if (isset($data['photo_url']) && $data['photo_url'] instanceof UploadedFile) {
                 if ($student->user->photo_url && !str_contains($student->user->photo_url, 'defaults/')) {
                     if (Storage::disk('local')->exists($student->user->photo_url)) {
                         Storage::disk('local')->delete($student->user->photo_url);
@@ -125,7 +124,6 @@ class StudentManagementService
                 $data['photo_url'] = $data['photo_url']->store('users/students', 'local');
             }
 
-            // 2. تحديث بيانات المستخدم (الطالب)
             $studentUserFields = [
                 'first_name',
                 'last_name',
@@ -145,8 +143,24 @@ class StudentManagementService
                 $student->user->update($studentUserData);
             }
 
-            // 3. تحديث كامل بيانات ولي الأمر
             if ($student->guardian && $student->guardian->user) {
+                if (
+                    isset($data['guardian_photo_url']) &&
+                    $data['guardian_photo_url'] instanceof UploadedFile
+                ) {
+                    $guardianUser = $student->guardian->user;
+
+                    if ($guardianUser->photo_url && !str_starts_with($guardianUser->photo_url, 'defaults/')) {
+                        if (Storage::disk('local')->exists($guardianUser->photo_url)) {
+                            Storage::disk('local')->delete($guardianUser->photo_url);
+                        }
+                    }
+
+                    $guardianUser->update([
+                        'photo_url' => $data['guardian_photo_url']->store('users/guardians', 'local'),
+                    ]);
+                }
+
                 $guardianUserFields = [
                     'first_name',
                     'last_name',
@@ -175,8 +189,7 @@ class StudentManagementService
                 }
             }
 
-            // 4. تحديث بيانات القيد الأكاديمي (Enrollment)
-            $enrollmentFields = ['class_room_id', 'grade_level_id', 'enrollment_status'];
+            $enrollmentFields = ['academic_year_id', 'class_room_id', 'grade_level_id', 'enrollment_status'];
             $enrollmentData = array_intersect_key($data, array_flip($enrollmentFields));
 
             $enrollment = Enrollment::where('student_id', $student->id)->latest()->first();
@@ -184,7 +197,6 @@ class StudentManagementService
                 $enrollment->update($enrollmentData);
             }
 
-            // 🔥 الإرجاع الجراحي السليم: إرجاع أحدث Enrollment محملاً بكافة العلاقات ليتوافق مع الـ Resource مباشرة
             return Enrollment::withTrashed()->with([
                 'student.user',
                 'student.guardian.user',
@@ -200,7 +212,7 @@ class StudentManagementService
         return DB::transaction(function () use ($enrollmentId, $enrollmentData) {
             $enrollment = Enrollment::findOrFail($enrollmentId);
             if (!$enrollment)
-                throw new Exception('سجل القيد الأكاديمي غير موجود.', 404);
+                throw new Exception('Academic enrollment record not found.', 404);
             $enrollment->update($enrollmentData);
 
             return $enrollment->fresh(['gradeLevel', 'classRoom']);
@@ -213,7 +225,7 @@ class StudentManagementService
         return DB::transaction(function () use ($guardianId, $guardianUserData) {
             $guardian = Guardian::with('user')->findOrFail($guardianId);
             if (!$guardian)
-                throw new Exception('ولي الامر غير موجود', 404);
+                throw new Exception('Guardian not found.', 404);
             $guardian->user()->update($guardianUserData);
 
             return $guardian->fresh('user');
@@ -224,8 +236,7 @@ class StudentManagementService
     {
         return DB::transaction(function () use ($enrollmentId) {
             $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
-            
-           // $enrollment->update(['enrollment_status' => 'suspended']);
+
 
             if ($enrollment->student && $enrollment->student->user) {
                 $enrollment->student->user->update(['account_status' => 'disabled']);
@@ -241,7 +252,7 @@ class StudentManagementService
     {
         $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
         if (!$enrollment)
-            throw new Exception('سجل القيد الأكاديمي غير موجود.', 404);
+            throw new Exception('Academic enrollment record not found.', 404);
         $user = $enrollment->student->user;
 
         $newStatus = ($user->account_status === 'enabled') ? 'disabled' : 'enabled';
@@ -249,25 +260,23 @@ class StudentManagementService
 
         return $newStatus;
     }
+
     public function restoreStudent(int $enrollmentId)
     {
         return DB::transaction(function () use ($enrollmentId) {
-            
+
             $enrollment = Enrollment::withTrashed()->with('student.user')->findOrFail($enrollmentId);
 
             if (!$enrollment->trashed()) {
-                throw new Exception('هذا القيد غير محذوف أصلاً لكي يتم استرجاعُه.', 422);
+                throw new Exception('This enrollment record is not deleted, so it cannot be restored.', 422);
             }
 
             $enrollment->restore();
-         //   $enrollment->update(['enrollment_status' => 'confirmed']);
 
-            // 3. إعادة تفعيل حساب المستخدم (User) الخاص بالطالب
             if ($enrollment->student && $enrollment->student->user) {
                 $enrollment->student->user->update(['account_status' => 'enabled']);
             }
 
-            // 4. إرجاع السجل كاملاً مع علاقاته ليعرضه الـ Resource بالشكل السليم
             return Enrollment::with([
                 'student.user',
                 'student.guardian.user',
@@ -277,4 +286,4 @@ class StudentManagementService
             ])->findOrFail($enrollment->id);
         });
     }
-}  
+}

@@ -24,13 +24,12 @@ class UpdateStudentRequest extends FormRequest
      */
     public function rules(): array
     {
-       $studentId = $this->route('id'); 
-        
+       $studentId = $this->route('id');
+
         $student = Student::find($studentId);
         $userId  = $student ? $student->user_id : null;
 
         return [
-            // مصفوفة الشخص الطبيعي (جدول users)
             'user'              => ['sometimes', 'array'],
             'user.first_name'   => ['sometimes', 'string', 'max:50'],
             'user.last_name'    => ['sometimes', 'string', 'max:50'],
@@ -41,10 +40,10 @@ class UpdateStudentRequest extends FormRequest
             'user.address'      => ['sometimes', 'string', 'max:255'],
             'user.gender'       => ['sometimes', 'in:male,female'],
             'user.nationality'  => ['sometimes', 'string', 'max:50'],
-            
+
             'user.phone_number' => [
-                'sometimes', 
-                'string', 
+                'sometimes',
+                'string',
                 Rule::unique('users', 'phone_number')->ignore($userId)
             ],
 
@@ -55,8 +54,8 @@ class UpdateStudentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user.phone_number.unique' => 'رقم الهاتف الممرر مسجل لمستخدم آخر في المدرسة.',
-            'guardian_id.exists'       => 'معرف ولي الأمر الممرر غير موجود في النظام.',
+            'user.phone_number.unique' => 'The phone number is already in use.',
+            'guardian_id.exists'       => 'The guardian ID does not exist.',
         ];
     }
 }

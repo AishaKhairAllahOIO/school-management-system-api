@@ -25,7 +25,7 @@ class InstallmentPolicyRequest extends BaseRequest
     {
        return [
             'name'                 => ['required', 'string', 'max:100'],
-            'items'                => ['required', 'array', 'min:1'], // يجب إرسال دفعة واحدة على الأقل
+            'items'                => ['required', 'array', 'min:1'],
             'items.*.title'        => ['required', 'string', 'max:100'],
             'items.*.percentage'   => ['required', 'numeric', 'min:0.01', 'max:100'],
             'items.*.dueMonth'     => ['required', 'integer', 'min:1', 'max:12'],
@@ -37,10 +37,9 @@ class InstallmentPolicyRequest extends BaseRequest
         $validator->after(function ($validator) {
             $items = $this->input('items', []);
             $sum = array_sum(array_column($items, 'percentage'));
-            
-            // نستخدم abs للتحقق من الأرقام العشرية (تجنب مشاكل الفواصل في PHP)
+
             if (abs($sum - 100.00) > 0.01) {
-                $validator->errors()->add('items', 'مجموع نسب الأقساط يجب أن يساوي 100% تماماً. المجموع الحالي هو: ' . $sum . '%');
+                $validator->errors()->add('items', 'The sum of installment percentages must equal 100%. Current sum is: ' . $sum . '%');
             }
         });
     }

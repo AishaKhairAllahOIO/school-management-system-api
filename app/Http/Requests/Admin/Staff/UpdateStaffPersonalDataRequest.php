@@ -4,30 +4,22 @@ namespace App\Http\Requests\Admin\Staff;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule; // 🔥 يجب استدعاء هذا الكلاس
+use Illuminate\Validation\Rule;
 
 use App\Models\Staff;
 
 class UpdateStaffPersonalDataRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
-        $staffId = $this->route('staff'); 
-        
-        // 2. جلب سجل الموظف لمعرفة الـ user_id الخاص به في جدول users
+        $staffId = $this->route('staff');
+
         $staff = Staff::find($staffId);
         $userId = $staff ? $staff->user_id : null;
 
@@ -42,26 +34,24 @@ class UpdateStaffPersonalDataRequest extends FormRequest
             'gender'       => ['sometimes', 'in:male,female'],
             'nationality'  => ['sometimes', 'in:syrian,lebanese,palestinian,jordanian,other'],
             'photo_url'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
-            'degree'           => ['sometimes', 'in:diploma,bachelor,master,phd,other'],
-            'specialization'   => ['sometimes', 'string'],
-            'university'       => ['sometimes', 'string'],
-            'graduation_year'  => ['sometimes', 'integer'],
-            'hire_date'        => ['sometimes', 'date'],
-            'experience_years' => ['sometimes', 'integer', 'min:0'],
-            'service_type'     => ['sometimes','string'], 
-            
-            // 🔥 تجاهل رقم الهاتف لهذا المستخدم تحديداً
+            'degree'           => ['sometimes','nullable', 'in:diploma,bachelor,master,phd,other'],
+            'specialization'   => ['sometimes','nullable', 'string'],
+            'university'       => ['sometimes','nullable', 'string'],
+            'graduation_year'  => ['sometimes','nullable', 'integer'],
+            'hire_date'        => ['sometimes','nullable', 'date'],
+            'experience_years' => ['sometimes','nullable', 'integer', 'min:0'],
+            'service_type'     => ['sometimes','nullable','string'],
+
             'phone_number' => [
-                'sometimes', 
-                'string', 
-                'max:20', 
+                'sometimes',
+                'string',
+                'max:20',
                 Rule::unique('users', 'phone_number')->ignore($userId)
             ],
-            
-            // 🔥 تجاهل الإيميل لهذا المستخدم تحديداً
+
             'email' => [
-                'nullable', 
-                'email', 
+                'nullable',
+                'email',
                 Rule::unique('users', 'email')->ignore($userId)
             ],
         ];

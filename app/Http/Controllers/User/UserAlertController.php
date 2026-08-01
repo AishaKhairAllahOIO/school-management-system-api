@@ -25,12 +25,12 @@ class UserAlertController extends Controller
     {
         $guardian = $request->user()->guardian;
         if (!$guardian) {
-            throw new InvalidArgumentException('هذا الحساب ليس لولي أمر.', 403);
+            throw new InvalidArgumentException('This account does not belong to a guardian.', 403);
         }
 
         $student = $guardian->students()->find($studentId);
         if (!$student) {
-            throw new InvalidArgumentException('هذا الطالب لا يتبع لولي الأمر الحالي.', 403);
+            throw new InvalidArgumentException('This student does not belong to the current guardian.', 403);
         }
 
         return $student;
@@ -40,7 +40,7 @@ class UserAlertController extends Controller
     {
         $student = $request->user()->student;
         if (!$student) {
-            throw new InvalidArgumentException('هذا الحساب ليس لطالب.', 403);
+            throw new InvalidArgumentException('This account does not belong to a student.', 403);
         }
 
         return $student;
@@ -52,11 +52,11 @@ class UserAlertController extends Controller
         $staff = $user->staff;
 
         if (!$staff && !$user->hasAnyRole(['super_admin', 'adviser', 'teacher'])) {
-            throw new InvalidArgumentException('هذا الحساب ليس لموظف أو معلم أو موجه مسجل.', 403);
+            throw new InvalidArgumentException('This account does not belong to a registered staff member, teacher, or advisor.', 403);
         }
 
         if (!$staff) {
-            throw new InvalidArgumentException('حسابك كأدمن/موجه ليس له ملف موظف (Staff Profile) مرتبط لعرض تنبيهاته الشخصية.', 403);
+            throw new InvalidArgumentException('Your admin/advisor account does not have a linked Staff Profile to view personal alerts.', 403);
         }
 
         return $staff;
@@ -70,13 +70,13 @@ class UserAlertController extends Controller
 
             return $this->paginatedResponse(
                 AlertResource::collection($alerts),
-                'تم جلب تنبيهات الطالب بنجاح.',
+                'Student alerts retrieved successfully.',
                 200
             );
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب التنبيهات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -88,13 +88,13 @@ class UserAlertController extends Controller
 
             return $this->paginatedResponse(
                 AlertResource::collection($alerts),
-                'تم جلب التنبيهات المالية للطالب بنجاح.',
+                'Student payment alerts retrieved successfully.',
                 200
             );
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب التنبيهات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -106,13 +106,13 @@ class UserAlertController extends Controller
 
             return $this->paginatedResponse(
                 AlertResource::collection($alerts),
-                'تم جلب تنبيهاتي الشخصية بنجاح.',
+                'Personal alerts retrieved successfully.',
                 200
             );
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب التنبيهات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -124,13 +124,13 @@ class UserAlertController extends Controller
 
             return $this->paginatedResponse(
                 AlertResource::collection($alerts),
-                'تم جلب تنبيهاتي الشخصية بنجاح.',
+                'Personal alerts retrieved successfully.',
                 200
             );
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب التنبيهات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -142,25 +142,30 @@ class UserAlertController extends Controller
 
             return $this->paginatedResponse(
                 AlertResource::collection($alerts),
-                'تم جلب تنبيهاتي المالية بنجاح.',
+                'Personal payment alerts retrieved successfully.',
                 200
             );
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب التنبيهات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
         }
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
         try {
+            if (!$request->user()->hasAnyRole(['super_admin', 'adviser','teacher','secretary'])) {
+                 return $this->errorResponse('You are not authorized to delete alerts.', 403);
+            }
+
             $this->alertService->deleteAlert($id);
-            return $this->successResponse(null, 'تم حذف التنبيه بنجاح.', 200);
+
+            return $this->successResponse(null, 'Alert deleted successfully.', 200);
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('التنبيه المطلوب غير موجود.', 404);
+            return $this->errorResponse('The requested alert was not found.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف التنبيه.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while deleting the alert.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -170,12 +175,12 @@ class UserAlertController extends Controller
             $alerts = $this->alertService->createManual($request->validated());
             return $this->successResponse(
                 AlertResource::collection($alerts),
-                'تم إنشاء التنبيهات بنجاح.',
+                'Alerts created successfully.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيهات.',
+                'An error occurred while creating alerts.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -188,12 +193,12 @@ class UserAlertController extends Controller
             $alerts = $this->alertService->advisorAlerts($request->validated());
             return $this->successResponse(
                 AlertResource::collection($alerts),
-                'تم إنشاء التنبيهات بنجاح.',
+                'Alerts created successfully.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيهات.',
+                'An error occurred while creating alerts.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -204,20 +209,23 @@ class UserAlertController extends Controller
     {
         try {
             $validated = $request->validated();
+
             $alerts = $this->alertService->createBatchStudentAlerts(
                 $validated['enrollment_ids'],
                 Alert::TYPE_HOMEWORK,
-                $validated['meta'] ?? []
+                $validated['meta'] ?? [],
+                $validated['title'] ?? null,
+                $validated['description'] ?? null
             );
 
             return $this->successResponse(
                 AlertResource::collection($alerts),
-                'تم إنشاء تنبيهات الواجب للطلاب بنجاح.',
+                'Homework alerts created successfully.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيهات.',
+                'An error occurred while creating alerts.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -230,12 +238,12 @@ class UserAlertController extends Controller
             $alerts = $this->alertService->createStaffAlerts($request->validated());
             return $this->successResponse(
                 AlertResource::collection($alerts),
-                'تم إنشاء التنبيهات بنجاح.',
+                'Alerts created successfully.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيهات.',
+                'An error occurred while creating alerts.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -248,12 +256,12 @@ class UserAlertController extends Controller
             $alerts = $this->alertService->createPaymentAlerts($request->validated());
             return $this->successResponse(
                 AlertResource::collection($alerts),
-                'تم إنشاء التنبيهات بنجاح.',
+                'Alerts created successfully.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء التنبيهات.',
+                'An error occurred while creating alerts.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -270,12 +278,12 @@ class UserAlertController extends Controller
 
             return $this->successResponse(
                 $counts,
-                'تم تصفير العداد المطلوب.',
+                'Alerts marked as read successfully.',
                 200
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء تحديث التنبيهات.',
+                'An error occurred while updating alerts.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -290,12 +298,12 @@ class UserAlertController extends Controller
 
             return $this->successResponse(
                 $counts,
-                'تم جلب عدد التنبيهات غير المقروءة.',
+                'Unread alerts count retrieved successfully.',
                 200
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء جلب العدادات.',
+                'An error occurred while retrieving counters.',
                 500,
                 ['error' => $e->getMessage()]
             );

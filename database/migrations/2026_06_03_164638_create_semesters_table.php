@@ -15,11 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('semester_name');
             $table->date('start_date');
-            $table->date('end_date');
+            $table->date('end_date')->index();
             $table->foreignId('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
             $table->tinyInteger('order')->unsigned(); // 1, 2, 3
-            $table->boolean('is_current')->default(false);
+            $table->boolean('is_current')->default(false)->index();
             $table->boolean('is_final_term')->default(false);
+
+            $table->unique(['academic_year_id', 'order'], 'unique_semester_order_per_year');
             $table->timestamps();
         });
     }

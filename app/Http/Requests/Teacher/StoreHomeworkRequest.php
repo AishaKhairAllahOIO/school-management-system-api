@@ -25,7 +25,7 @@ class StoreHomeworkRequest extends FormRequest
     protected function failedAuthorization()
     {
         throw new HttpResponseException(
-            $this->errorResponse('غير مصرح لك بنشر هذه الوظيفة, قد تكون الشعبة ليست ضمن نطاق صلاحيتك.', 403)
+            $this->errorResponse('You are not authorized to create a homework.', 403)
         );
     }
     public function rules(): array

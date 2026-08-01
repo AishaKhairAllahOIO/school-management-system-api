@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Setting\StructureResource;
-use App\Models\AcademicSetting;
 use App\Http\Requests\Setting\UpdateAcademicSettingsRequest;
 use App\Services\Setting\AcademicSettingsService;
 use App\Http\Resources\Setting\AcademicSettingsResource;
@@ -21,8 +19,6 @@ use App\Http\Resources\Setting\AcademicYearResource;
 use App\Http\Resources\Setting\SemesterResource;
 use App\Http\Resources\Setting\AcademicStageResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Exceptions\HttpResponseException; // 👈 استدعاء مهم جداً لمرور الخطأ
- // 👈 هذا الكلاس الذي يصطاد عدم وجود الداتا
 
 
 class AcademicSettingsController extends Controller
@@ -110,7 +106,7 @@ class AcademicSettingsController extends Controller
 
     // ---- الأعوام الدراسية ----
     public function storeYear(AcademicYearRequest $request, AcademicSettingsService $service) {
-        try{ 
+        try{
         return $this->successResponse(
             new AcademicYearResource($service->saveYear($request->validated())),
             'Academic year created successfully.'
@@ -143,7 +139,7 @@ class AcademicSettingsController extends Controller
         catch(ValidationException $e)
         {
             return $this->errorResponse('Failed to update academic term.', 422, ['errors' => $e->errors()]);
- 
+
         }
     }
 
@@ -154,7 +150,6 @@ class AcademicSettingsController extends Controller
         );
     }
 
-    // ---- المراحل الدراسية ----
     public function storeStage(AcademicStageRequest $request, AcademicSettingsService $service) {
         return $this->successResponse(
             new AcademicStageResource($service->saveStage($request->validated())),
@@ -207,5 +202,12 @@ class AcademicSettingsController extends Controller
         }
     }
 
-    
+    public function statistics(AcademicSettingsService $academicSettingsService)
+    {
+        $statistics = $academicSettingsService->getAcademicStatistics();
+
+        return $this->successResponse($statistics,'Statistics shown successfully.',200);
+    }
+
+
 }

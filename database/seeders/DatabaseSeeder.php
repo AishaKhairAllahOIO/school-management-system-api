@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RolesAndPermissionsSeeder::class,
+            SchoolLawSeeder::class,
             UserSeeder::class,
             TestSeeder::class,
             AcademicYearSeeder::class,
@@ -45,7 +46,8 @@ class DatabaseSeeder extends Seeder
             AssessmentComponentSeeder::class,
             HomeworkSeeder::class,
             GradeConfigurationSeeder::class,
-            ClassStudentEvaluationSeeder::class
+            ClassStudentEvaluationSeeder::class,
+            StudentMarkSeeder::class,
 
 
         ]);

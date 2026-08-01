@@ -7,19 +7,14 @@ use Illuminate\Database\Seeder;
 
 class ClassStudentEvaluationSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+  
     public function run(): void
     {
-        // الثوابت المطلوبة حسب طلبك
         $teacherId = 9;
         $enrollmentIds = [2, 3];
 
-        // رقم المادة الدراسية (تأكد أن ID رقم 1 موجود في جدول grade_subjects عندك، أو غيَره)
         $gradeSubjectId = 1;
 
-        // جميع أنواع التقييمات مع ملاحظة واقعية لكل تقييم
         $evaluationsData = [
             'excellent' => 'أداء ممتاز ومشاركة فعالة جداً خلال الحصة.',
             'very_good' => 'أداء جيد جداً، يستوعب الدروس بسرعة وبدقة.',

@@ -27,8 +27,7 @@ class FeePlanRequest extends FormRequest
             'gradeLevelId'           => ['required', 'exists:grade_levels,id'],
             'name'                   => ['required', 'string', 'max:100'],
             'baseAmount'             => ['required', 'numeric', 'min:0'],
-            
-            // الخدمات الإضافية (اختيارية)
+
             'extraServices'          => ['nullable', 'array'],
             'extraServices.*.type'   => ['required', 'in:uniform,books,activities,insurance,other'],
             'extraServices.*.name'   => ['required', 'string', 'max:100'],

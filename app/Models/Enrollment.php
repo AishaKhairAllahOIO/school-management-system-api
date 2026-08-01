@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Enrollment extends Model
 {
-    use HasFactory, SoftDeletes; // 👈 2. تفعيل الحذف المرن داخل الموديل
+    use HasFactory, SoftDeletes;
 
     protected $guarded = [];
 
@@ -41,5 +41,9 @@ class Enrollment extends Model
   public function alerts()
 {
     return $this->morphMany(Alert::class, 'notifiable');
+}
+
+public function studentMarks(){
+    return $this->hasMany(StudentMark::class);
 }
 }

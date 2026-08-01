@@ -7,13 +7,11 @@ use Illuminate\Validation\Rule;
 
 class UpdateStaffRequest extends FormRequest
 {
-    /**
-     * مصفوفة التحكم بالوصول الهرمي (منطقكِ الذكي بعد تنقيحه)
-     */
+
     public function authorize(): bool
     {
         $currentUser = $this->user();
-        $targetUser  = $this->route('user'); // الموظف المراد تعديل سجله
+        $targetUser  = $this->route('user');
 
         if ($currentUser->hasRole('super_admin')) {
             return true;
@@ -26,9 +24,7 @@ class UpdateStaffRequest extends FormRequest
         return false;
     }
 
-    /**
-     * حقول نظيفة مخصصة للتعديل الإداري فقط
-     */
+
     public function rules(): array
     {
         $targetUserId = $this->route('user')?->id;
@@ -38,8 +34,7 @@ class UpdateStaffRequest extends FormRequest
             'last_name'        => ['sometimes', 'string', 'max:50'],
             'phone_number'     => ['sometimes', 'string', Rule::unique('users', 'phone_number')->ignore($targetUserId)],
             'account_status'   => ['sometimes', 'in:enabled,disabled'],
-            
-            // حقول الموظف الأكاديمية
+
             'degree'           => ['sometimes', 'in:diploma,bachelor,master,phd,other'],
             'specialization'   => ['sometimes', 'string', 'max:100'],
             'university'       => ['sometimes', 'string', 'max:150'],

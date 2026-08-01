@@ -12,7 +12,7 @@ class IndexStudentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-       return true; 
+       return true;
     }
 
     public function rules(): array
@@ -29,10 +29,10 @@ class IndexStudentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'grade_level_id.exists' => 'معرّف الصف الدراسي الممرر غير موجود في المدرسة.',
-            'class_room_id.exists'  => 'معرّف الشعبة الممرر غير صحيح.',
-            'sort.in'               => 'قيمة الترتيب يجب أن تكون asc أو desc فقط.',
-            'per_page.max'          => 'الحد الأقصى المسموح به هو 100 سجل في الصفحة.',
+            'grade_level_id.exists' => 'The grade level ID provided does not exist in the school.',
+            'class_room_id.exists'  => 'The classroom ID provided is not valid.',
+            'sort.in'               => 'The sort value must be either asc or desc.',
+            'per_page.max'          => 'The maximum allowed is 100 records per page.',
         ];
     }
 }

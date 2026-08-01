@@ -41,7 +41,7 @@ class UpdateHomeworkRequest extends FormRequest
     protected function failedAuthorization()
     {
         throw new HttpResponseException(
-            $this->errorResponse('غير مصرح لك بتعديل هذه الوظيفة، قد تكون الشعبة أو المادة ليست ضمن نطاق صلاحياتك التدريسية.', 403)
+            $this->errorResponse('You are not authorized to update this homework.', 403)
         );
     }
     public function rules(): array

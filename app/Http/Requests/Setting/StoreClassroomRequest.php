@@ -12,7 +12,8 @@ class StoreClassroomRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return  $this->user()->can('school:initialize');;
+        return $this->user()->can('school:initialize');
+        ;
     }
 
     /**
@@ -24,8 +25,8 @@ class StoreClassroomRequest extends FormRequest
     {
         return [
             'academicYearId' => ['required', 'exists:academic_years,id'],
-            'grade_level_id'        => ['required', 'exists:grade_levels,id'],
-            'capacity'       => ['required', 'integer', 'min:5', 'max:100'],
+            'grade_level_id' => ['required', 'exists:grade_levels,id'],
+            'capacity' => ['required', 'integer', 'min:5', 'max:100'],
         ];
     }
 }

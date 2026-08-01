@@ -8,7 +8,7 @@ class PaymentTransactionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // أو الصلاحية الخاصة بك
+        return true; 
     }
 
     public function rules(): array

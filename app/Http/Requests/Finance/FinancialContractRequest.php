@@ -9,8 +9,7 @@ class FinancialContractRequest extends BaseRequest
 {
     public function authorize(): bool
     {
-        // يمكن لاحقاً تقييدها بـ role المحاسب أو المدير
-        return true; 
+        return true;
     }
 
     public function rules(): array

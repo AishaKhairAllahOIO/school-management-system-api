@@ -1,10 +1,10 @@
-<?php 
+<?php
 namespace App\Services\Setting;
 use App\Models\School;
 use Exception;
 use App\Models\SchoolImage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Storage; // 👈 لا تنسي إضافة هذه
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
 
@@ -12,11 +12,10 @@ class SchoolSettingsService
 {
     public function getSettings()
     {
-        //اريد ان تعيد لا شي اذا لم يوجد هذا الاعداد:
 
-        $setting= School::with('images')->first();
+        $setting = School::with('images')->first();
         if (!$setting) {
-            return new School(); 
+            return new School();
         }
         return $setting;
     }
@@ -24,74 +23,68 @@ class SchoolSettingsService
     public function updateSettings(array $validatedData)
     {
         return DB::transaction(function () use ($validatedData) {
-            
+
             $settings = School::find(1);
 
             $logoPath = $settings ? $settings->logo_url : null;
 
             if (isset($validatedData['logo']) && $validatedData['logo'] instanceof \Illuminate\Http\UploadedFile) {
-                
-                // حذف الشعار القديم من السيرفر إذا كان موجوداً
+
                 if ($logoPath && !str_starts_with($logoPath, 'http') && Storage::disk('public')->exists($logoPath)) {
                     Storage::disk('public')->delete($logoPath);
                 }
-                
-                // رفع الشعار الجديد وتحديث مساره
+
                 $logoPath = $validatedData['logo']->store('school_logos', 'public');
             }
 
-            // 4. تجهيز البيانات للإنشاء أو التعديل
             $mappedData = [
-                'school_name'            => $validatedData['schoolName']?? null,
-                'short_name'             => $validatedData['shortName']?? null,
-                'description'            => $validatedData['description'] ?? null,
-                'phone_number'           => $validatedData['phoneNumber']?? null,
+                'school_name' => $validatedData['schoolName'] ?? null,
+                'short_name' => $validatedData['shortName'] ?? null,
+                'description' => $validatedData['description'] ?? null,
+                'phone_number' => $validatedData['phoneNumber'] ?? null,
                 'emergency_phone_number' => $validatedData['emergencyPhoneNumber'] ?? null,
-                'email'                  => $validatedData['email']?? null,
-                'website'                => $validatedData['website'] ?? null,
-                'address'                => $validatedData['address']?? null,
-                'city'                   => $validatedData['city']?? null,
-                'country'                => $validatedData['country']?? null,
-                'latitude'               => $validatedData['location']['latitude'] ?? null,
-                'longitude'              => $validatedData['location']['longitude'] ?? null,
-                'logo_url'               => $logoPath, // مسار الصورة الجديد أو القديم
+                'email' => $validatedData['email'] ?? null,
+                'website' => $validatedData['website'] ?? null,
+                'address' => $validatedData['address'] ?? null,
+                'city' => $validatedData['city'] ?? null,
+                'country' => $validatedData['country'] ?? null,
+                'latitude' => $validatedData['location']['latitude'] ?? null,
+                'longitude' => $validatedData['location']['longitude'] ?? null,
+                'logo_url' => $logoPath,
             ];
 
-            // 5. ✨ السحر الخاص بكِ: إنشاء إذا لم يوجد، وتحديث إذا وجد!
             $updatedSettings = School::updateOrCreate(
-                ['id' => 1], 
-                $mappedData  
+                ['id' => 1],
+                $mappedData
             );
 
-            // إرجاع الإعدادات مع صور المعرض
             return $updatedSettings->load('images');
-        });}
-    // --- إضافة صورة كـ URL لمعرض المدرسة ---
+        });
+    }
     public function getAllImages()
     {
         $settings = School::firstOrCreate(['id' => 1]);
         return $settings->images;
     }
-   
-public function getImageById(int $id)
+
+    public function getImageById(int $id)
     {
-        // findOrFail ترمي ModelNotFoundException إذا لم تجد الصورة
-        return \App\Models\SchoolImage::findOrFail($id);
-    } 
+        return SchoolImage::findOrFail($id);
+    }
 
 
     public function addSchoolImages(array $data)
     {
-        $settings = \App\Models\School::first(); 
-        if(!$settings)
-            throw new ModelNotFoundException("إعدادات المدرسة غير موجودة.");
+        $settings = School::first();
+        if (!$settings)
+            throw new ModelNotFoundException("إعدادات المدرسة غير موجودة.",404);
         $imagesData = [];
 
         foreach ($data['images'] as $imageData) {
             $path = $imageData['file']->store('school_images', 'public');
-            
+
             $imagesData[] = [
-                'url'  => $path, // نحفظ المسار الجديد
+                'url' => $path,
                 'name' => $imageData['name'],
             ];
         }
@@ -99,12 +92,11 @@ public function getImageById(int $id)
         return $settings->images()->createMany($imagesData);
     }
 
-    // --- تعديل بيانات صورة موجودة (الاسم أو الملف) ---
     public function updateSchoolImage(int $id, array $data): SchoolImage
     {
         $image = SchoolImage::findOrFail($id);
-        if(!$image)
-            throw new ModelNotFoundException("الصورة المحددة غير موجودة في المعرض.");
+        if (!$image)
+            throw new ModelNotFoundException("الصورة المحددة غير موجودة في المعرض.",404);
         if (isset($data['file'])) {
             // حذف الصورة القديمة من السيرفر إذا كانت موجودة (ولا تبدأ بـ http)
             if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
@@ -115,7 +107,7 @@ public function getImageById(int $id)
         }
 
         $image->update([
-            'url'  => $data['url'] ?? $image->url,
+            'url' => $data['url'] ?? $image->url,
             'name' => $data['name'] ?? $image->name,
         ]);
 
@@ -125,20 +117,20 @@ public function getImageById(int $id)
     public function deleteSchoolImage(int $id): void
     {
         $image = SchoolImage::findOrFail($id);
-        if(!$image)
+        if (!$image)
             throw new ModelNotFoundException("الصورة المحددة غير موجودة في المعرض.");
         // حذف الملف الفعلي من السيرفر
         if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
             Storage::disk('public')->delete($image->url);
         }
-        
+
         $image->delete();
     }
-        public function deleteSettings(): void
+    public function deleteSettings(): void
     {
         $school = School::findOrFail(1);
         if ($school) {
-             if ($school->logo && !str_starts_with($school->logo, 'http') && Storage::disk('public')->exists($school->logo)) {
+            if ($school->logo && !str_starts_with($school->logo, 'http') && Storage::disk('public')->exists($school->logo)) {
                 Storage::disk('public')->delete($school->logo);
             }
             foreach ($school->images as $image) {
@@ -151,10 +143,12 @@ public function getImageById(int $id)
     }
     public function index()
     {
-        $school=School::find(1);
-        return ['schoolName'=>$school->school_name? :"school",
-                'shortName'=>$school->short_name? :"sch",
-                'website'=>$school->website?:null,
-                'logo'=> $school->logo_url ? (str_starts_with($school->logo_url, 'http') ? $school->logo_url : asset('storage/' . $school->logo_url)):null];
+        $school = School::find(1);
+        return [
+            'schoolName' => $school->school_name ?: "school",
+            'shortName' => $school->short_name ?: "sch",
+            'website' => $school->website ?: null,
+            'logo' => $school->logo_url ? (str_starts_with($school->logo_url, 'http') ? $school->logo_url : asset('storage/' . $school->logo_url)) : null
+        ];
     }
 }

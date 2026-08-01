@@ -60,7 +60,7 @@ class CreateActivitiesRequest extends FormRequest
             if ($validRoomsCount !== count($classRoomIds)) {
                 $validator->errors()->add(
                     'class_room_ids',
-                    'إحدى الشعب المختارة أو أكثر لا تتبع المرحلة الدراسية المحددة.'
+                    'accepted class_room_ids must belong to the specified grade_level_id.'
                 );
             }
         });

@@ -43,5 +43,24 @@ public function run(): void
                 ]
             );
         }
+        $classRooms = [
+            ['name' => 'الشعبة الأولى', 'capacity' => 35, 'grade_level_id' => 1],
+            ['name' => 'الشعبة الثانية', 'capacity' => 35, 'grade_level_id' => 1],
+            ['name' => 'الشعبة الثالثة', 'capacity' => 35, 'grade_level_id' => 2],
+            ['name' => 'الشعبة الرابعة', 'capacity' => 35, 'grade_level_id' => 2],
+        ];
+
+        foreach ($classRooms as $room) {
+            Classroom::updateOrCreate(
+                [
+                    'name'             => $room['name'],
+                    'academic_year_id' => 1,
+                    'grade_level_id'         => $room['grade_level_id']
+                ],
+                [
+                    'capacity' => $room['capacity']
+                ]
+            );
+        }
     }
 }

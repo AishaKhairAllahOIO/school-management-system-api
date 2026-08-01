@@ -20,10 +20,14 @@ use App\Http\Controllers\Setting\GradeAndClassroomController;
 use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
 use App\Http\Controllers\Admin\Staff\StaffController;
+use App\Http\Controllers\Admin\Student\ExpulsionController;
 use App\Http\Controllers\Setting\SubjectController;
+use App\Http\Controllers\Student\StudentMarkDisplayController;
 use App\Http\Controllers\Teacher\ClassStudentEvaluationController;
 use App\Http\Controllers\Teacher\HomeworkController;
+use App\Http\Controllers\Teacher\MarkController;
 use App\Http\Controllers\Teacher\TeacherDropdownController;
+use App\Http\Controllers\Web\SchoolLawController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -32,8 +36,10 @@ Route::get('/user', function (Request $request) {
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/documents/photos/{path}', [DocumentController::class, 'showPhoto'])->where('path', '.*');
+    Route::get('/documents/photos/{path}', [DocumentController::class, 'showPhoto'])
+        ->where('path', '.*');
 });
+
 
 
 
@@ -63,6 +69,11 @@ Route::prefix('auth')->group(function () {
         Route::middleware('role:secretary|super_admin')->group(function () {
             Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
             Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
+            Route::post('/school/law/create', [SchoolLawController::class, 'store']);
+            Route::get('/school/laws/all/show', [SchoolLawController::class, 'index']);
+            Route::get('/school/law/one/show/{id}', [SchoolLawController::class, 'show']);
+            Route::post('/school/law/update/{id}', [SchoolLawController::class, 'update']);
+            Route::delete('/school/law/delete/{id}', [SchoolLawController::class, 'destroy']);
         });
 
         Route::middleware('role:adviser|super_admin')->group(function () {
@@ -91,12 +102,25 @@ Route::prefix('auth')->group(function () {
             Route::post('/update/homework/{id}', [HomeworkController::class, 'update']);
             Route::delete('/delete/homework/{id}', [HomeworkController::class, 'destroy']);
             Route::get('/show/one/homework/{id}', [HomeworkController::class, 'show']);
-
+            Route::post('/create/evaluation', [ClassStudentEvaluationController::class, 'store']);
+            Route::get('/show/all/evaluations', [ClassStudentEvaluationController::class, 'index']);
+            Route::post('/update/evaluation/{id}', [ClassStudentEvaluationController::class, 'update']);
+            Route::delete('/delete/evaluation/{id}', [ClassStudentEvaluationController::class, 'destroy']);
+            Route::get('/show/one/evaluation/{id}', [ClassStudentEvaluationController::class, 'show']);
+            Route::post('/gradebook/marks', [MarkController::class, 'storeMarks']);
+            Route::get('/gradebook/subject/{gradeSubjectId}/classroom/{classRoomId}', [MarkController::class, 'getGradebook']);
 
         });
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
             Route::get('/show-profile', [UserController::class, 'counselorProfile']);
+        });
+
+        Route::middleware('permission:account:toggle_status')->prefix('expulsions')->group(function () {
+
+            Route::get('/pending', [ExpulsionController::class, 'getPending']);
+            Route::post('/confirm', [ExpulsionController::class, 'confirm']);
+
         });
         Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy'])->middleware('role:teacher|super_admin|adviser|secretary');
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
@@ -155,8 +179,10 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
-});
 
+    Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
+
+});
 
 Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () {
     Route::middleware('role:super_admin')->group(function () {
@@ -285,7 +311,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
     Route::post('/{enrollmentId}/toggle-account-status', [StudentController::class, 'toggleAccountStatus'])
         ->middleware('can:account:toggle_status');
     Route::post('/{enrollment}/student/restore', [StudentController::class, 'restore']);
-    
+
 });
 
 
@@ -357,10 +383,17 @@ Route::prefix('user')->group(function () {
         Route::get('/show/child/homeworks/{id}', [HomeworkController::class, 'guardianChildIndex'])->middleware('role:guardian');
         Route::get('/homeworks/unread-count', [HomeworkController::class, 'unreadCount']);
         Route::post('/homeworks/mark-all-read', [HomeworkController::class, 'markAllAsRead']);
-        Route::get('/show/own/evaluations',[ClassStudentEvaluationController::class,'studentIndex']);
-        Route::get('/show/child/evaluations/{id}',[ClassStudentEvaluationController::class,'guardianChildIndex']);
-         Route::get('/evaluation/unread-count', [ClassStudentEvaluationController::class, 'unreadCount']);
+        Route::get('/show/own/evaluations', [ClassStudentEvaluationController::class, 'studentIndex']);
+        Route::get('/show/child/evaluations/{id}', [ClassStudentEvaluationController::class, 'guardianChildIndex']);
+        Route::get('/evaluation/unread-count', [ClassStudentEvaluationController::class, 'unreadCount']);
         Route::post('/evaluation/mark-all-read', [ClassStudentEvaluationController::class, 'markAllAsRead']);
+        Route::get('/school/laws/all/show', [SchoolLawController::class, 'index']);
+        Route::get('/school/law/one/show/{id}', [SchoolLawController::class, 'show']);
+        Route::get('/marks/show/all', [StudentMarkDisplayController::class, 'index']);
+        Route::get('/marks/unread-count', [StudentMarkDisplayController::class, 'unreadCount']);
+        Route::post('/marks/mark-all-read', [StudentMarkDisplayController::class, 'markAllAsRead']);
+
+
 
     });
 });

@@ -26,9 +26,6 @@ class HomeworkController extends Controller
 
     public function __construct(protected HomeworkService $homeworkService) {}
 
-    // ==========================================================
-    // 🔒 الدوال المساعدة للتحقق من هوية وحالة المستخدم (Auth Helpers)
-    // ==========================================================
 
     private function getAuthStaff(Request $request)
     {
@@ -71,13 +68,7 @@ class HomeworkController extends Controller
         return $student;
     }
 
-    // ==========================================================
-    // 🏫 مسارات المعلم (Teacher Endpoints)
-    // ==========================================================
 
-    /**
-     * 1. عرض جميع وظائف المعلم
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -96,9 +87,7 @@ class HomeworkController extends Controller
         }
     }
 
-    /**
-     * 2. إنشاء وظيفة جديدة
-     */
+
     public function store(StoreHomeworkRequest $request): JsonResponse
     {
         try {
@@ -117,16 +106,13 @@ class HomeworkController extends Controller
         }
     }
 
-    /**
-     * 3. عرض تفاصيل وظيفة واحدة
-     */
+
     public function show($id): JsonResponse
     {
         try {
             $homework = Homework::findOrFail($id);
             $this->authorize('view', $homework);
 
-            // 🚀 تحميل العلاقات المطلوبة للـ Resource فقط (بدون استعلام بيانات المعلم)
             return $this->successResponse(
                 new HomeworkResource($homework->load([
                     'gradeSubject.subject',
@@ -145,9 +131,7 @@ class HomeworkController extends Controller
         }
     }
 
-    /**
-     * 4. تعديل وظيفة
-     */
+
     public function update(UpdateHomeworkRequest $request, $id): JsonResponse
     {
         try {
@@ -168,9 +152,6 @@ class HomeworkController extends Controller
         }
     }
 
-    /**
-     * 5. حذف وظيفة
-     */
     public function destroy(Request $request, $id): JsonResponse
     {
         try {

@@ -11,30 +11,21 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-use Illuminate\Database\Eloquent\SoftDeletes; // 👈 1. الاستدعاء الصحيح
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
 
 
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+
     protected $guarded = [];
     protected $guard_name = 'sanctum';
 
 
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+
     protected function casts(): array
     {
         return [
@@ -42,13 +33,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
-    // protected function photoUrl(): Attribute
-    // {
-    //     return Attribute::make(
-    //         get: fn($value) => $value ? (filter_var($value, FILTER_VALIDATE_URL) ? $value : asset('storage/' . $value)) : null
-    //     );
-    // }
 
     public function student()
     {
@@ -97,6 +81,17 @@ class User extends Authenticatable
     public function readEvaluations()
     {
         return $this->belongsToMany(ClassStudentEvaluation::class, 'evaluation_user_reads', 'user_id', 'class_student_evaluation_id')
+            ->withPivot('read_at');
+    }
+    public function readMarks()
+    {
+        return $this->belongsToMany(StudentMark::class, 'mark_user_reads', 'user_id', 'student_mark_id')
+            ->withPivot('read_at');
+    }
+
+    public function readPracticeQuizzes()
+    {
+        return $this->belongsToMany(PracticeQuiz::class, 'practice_quiz_user_reads', 'user_id', 'practice_quiz_id')
             ->withPivot('read_at');
     }
 

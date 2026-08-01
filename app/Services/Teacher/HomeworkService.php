@@ -3,7 +3,7 @@
 namespace App\Services\Teacher;
 
 use App\Jobs\SendPushNotification;
-use App\Models\Enrollment; // 👈 1. لا تنس استدعاء موديل التسجيل الدراسي
+use App\Models\Enrollment;
 use App\Models\Homework;
 use App\Models\Student;
 use App\Models\User;
@@ -111,23 +111,19 @@ class HomeworkService
             if (!$student)
                 continue;
 
-            // إضافة معرف حساب الطالب
             if ($student->user_id) {
                 $userIds->push($student->user_id);
             }
-            // إضافة معرف حساب الأب / ولي الأمر
             if ($student->guardian && $student->guardian->user_id) {
                 $userIds->push($student->guardian->user_id);
             }
         }
 
-        // استبعاد التكرار
         $uniqueTargetIds = $userIds->unique()->values()->toArray();
 
         if (!empty($uniqueTargetIds)) {
             $subjectName = $homework->gradeSubject?->subject?->subject_name ?? 'مادة دراسية';
 
-            // 🚀 صياغة العنوان والمحتوى بذكاء بناءً على نوع العملية (إنشاء أم تعديل)
             $title = $isUpdate
                 ? "تحديث على وظيفة منزلية: {$subjectName}"
                 : "وظيفة منزلية جديدة: {$subjectName}";

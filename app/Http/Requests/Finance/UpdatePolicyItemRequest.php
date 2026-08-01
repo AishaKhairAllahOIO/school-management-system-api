@@ -23,7 +23,6 @@ class UpdatePolicyItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // استخدمنا 'sometimes' لأن الفرونت إند قد يرسل حقلاً واحداً فقط لتعديله
             'title'    => ['sometimes', 'string', 'max:100'],
             'dueMonth' => ['sometimes',  'integer', 'min:1', 'max:12'],
             'dueDay'   => ['sometimes',  'integer', 'min:1', 'max:31'],

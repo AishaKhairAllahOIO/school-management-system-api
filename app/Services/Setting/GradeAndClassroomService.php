@@ -5,6 +5,7 @@ namespace App\Services\Setting;
 use App\Models\GradeLevel;
 use App\Models\GradeConfiguration;
 use App\Models\Classroom;
+use App\Models\Enrollment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -22,20 +23,20 @@ class GradeAndClassroomService
     {
         // فحص الثانوي أولاً (حتى لا يتداخل 'ثاني عشر' مع 'ثاني')
 
-        
+
         // فحص بقية الصفوف
         if (str_contains($name, 'أول')) return 1;
         if (str_contains($name, 'ثاني')) return 2;
         if (str_contains($name, 'ثالث')) return 3;
 
-        
+
         return 1; // قيمة افتراضية في حال تم إدخال اسم غريب
     }
 
     // =====================================================================
     // --- عمليات الصفوف (Grades) ---
     // =====================================================================
-    
+
     public function createGrade(array $data)
     {
         $name = $data['name'];
@@ -63,7 +64,7 @@ class GradeAndClassroomService
 
         return $grade->fresh();
     }
-    
+
     // =====================================================================
     // --- عمليات التكوين التخطيطي (Grade Configuration) ---
     // =====================================================================
@@ -105,7 +106,7 @@ class GradeAndClassroomService
             $currentCount = Classroom::where('academic_year_id', $yearId)
                                      ->where('grade_level_id', $gradeId)
                                      ->count();
-                                     
+
             $name = "الشعبة " . ($currentCount + 1);
 
             $classroom = Classroom::create([
@@ -115,7 +116,7 @@ class GradeAndClassroomService
                 'capacity'         => $capacity,
             ]);
 
-            // تحديث السعة التخطيطية الكلية في جدول GradeConfiguration 
+            // تحديث السعة التخطيطية الكلية في جدول GradeConfiguration
             $this->recalculateGradeCapacity($yearId, $gradeId);
 
             return $classroom;
@@ -137,9 +138,6 @@ class GradeAndClassroomService
         });
     }
 
-    // =====================================================================
-    // --- دوال مساعدة داخلية (Helpers) ---
-    // =====================================================================
 
        public function getGradeById(int $id): GradeLevel
     {
@@ -159,7 +157,7 @@ class GradeAndClassroomService
     {
         $grade = GradeLevel::findOrFail($id);
         if(!$grade)
-            throw new ModelNotFoundException("الصف الدراسي المحدد غير موجود.");
+            throw new ModelNotFoundException("الصف الدراسي المحدد غير موجود.",404);
         $hasClassrooms = Classroom::where('grade_level_id', $id)->exists();
         $hasConfigs = GradeConfiguration::where('grade_level_id', $id)->exists();
 
@@ -174,23 +172,22 @@ class GradeAndClassroomService
     {
         $config = GradeConfiguration::findOrFail($id);
         if(!$config) {
-            throw new ModelNotFoundException("الإعداد التخطيطي المحدد غير موجود.");
+            throw new ModelNotFoundException("الإعداد التخطيطي المحدد غير موجود.",404);
         }
         $hasClassrooms = Classroom::where('academic_year_id', $config->academic_year_id)
                                   ->where('grade_level_id', $config->grade_level_id)
                                   ->exists();
-                                  
+
         if ($hasClassrooms) {
             throw new Exception(
               'لا يمكن حذف الإعداد التخطيطي لوجود شعب دراسية تابعة له. يرجى حذف الشعب أولاً.'
             , 409);
         }
 
-        // 🛡️ الحماية 2: هل يوجد طلاب مسجلون في هذا الصف خلال هذه السنة؟
-        $hasEnrollments = \App\Models\Enrollment::where('academic_year_id', $config->academic_year_id)
+        $hasEnrollments = Enrollment::where('academic_year_id', $config->academic_year_id)
                                                 ->where('grade_level_id', $config->grade_level_id)
                                                 ->exists();
-                                                
+
         if ($hasEnrollments) {
             throw new Exception( 'لا يمكن حذف الإعداد التخطيطي لوجود طلاب مسجلين بالفعل في هذا الصف للعام الدراسي المحدد.'
             , 409);
@@ -202,13 +199,13 @@ class GradeAndClassroomService
     {
         $classroom = Classroom::findOrFail($id);
         if(!$classroom) {
-            throw new ModelNotFoundException("الشعبة الدراسية المحددة غير موجودة.");
+            throw new ModelNotFoundException("الشعبة الدراسية المحددة غير موجودة.",404);
         }
         $yearId = $classroom->academic_year_id;
         $gradeId = $classroom->grade_level_id;
 
-        $hasStudents = \App\Models\Enrollment::where('class_room_id', $classroom->id)->exists();
-        
+        $hasStudents = Enrollment::where('class_room_id', $classroom->id)->exists();
+
         if ($hasStudents) {
             throw new Exception(
              'لا يمكن حذف هذه الشعبة لأنها تحتوي على طلاب مسجلين بداخلها. يرجى نقل الطلاب لشعبة أخرى أولاً.'
@@ -216,35 +213,31 @@ class GradeAndClassroomService
         }
         $classroom->delete();
 
-        // 🪄 السحر: إعادة حساب السعة الكلية للصف وخصم سعة الشعبة المحذوفة!
         $this->recalculateGradeCapacity($yearId, $gradeId);
     }
 
-    private function recalculateGradeCapacity($yearId, $gradeId): void 
+    private function recalculateGradeCapacity($yearId, $gradeId): void
     {
         $totalCapacity = Classroom::where('academic_year_id', $yearId)
                                   ->where('grade_level_id', $gradeId)
                                   ->sum('capacity');
-                                  
+
         GradeConfiguration::where('academic_year_id', $yearId)
                           ->where('grade_level_id', $gradeId)
                           ->update(['planned_students_capacity' => $totalCapacity]);
     }
      public function getAllGrades()
     {
-        // 🛡️ لارافيل هنا آمن: الدالة get() ستعيد [] إذا كان الجدول فارغاً ولن تعيد null
         return GradeLevel::orderBy('level', 'asc')->get();
     }
 
     public function getAllConfigurations()
     {
-        // 🛡️ ستعيد [] إذا لم يكن هناك إعدادات
         return GradeConfiguration::latest()->get();
     }
 
     public function getAllClassrooms()
     {
-        // 🛡️ ستعيد [] إذا لم يتم فتح أي شعبة بعد
         return Classroom::latest()->get();
     }
 }

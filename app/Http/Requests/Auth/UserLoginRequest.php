@@ -15,15 +15,20 @@ class UserLoginRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+
     public function rules(): array
     {
         return [
             'phone_number' => ['required', 'digits:10','starts_with:09'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'phone_number.required' => 'The phone number field is required.',
+            'phone_number.digits' => 'The phone number must be exactly 10 digits.',
+            'phone_number.starts_with' => 'The phone number must start with 09.',
         ];
     }
 }

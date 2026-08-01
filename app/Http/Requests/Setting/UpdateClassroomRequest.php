@@ -15,18 +15,12 @@ class UpdateClassroomRequest extends FormRequest
         return $this->user()->can('school:initialize');
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+
     public function rules(): array
     {
         return [
             'capacity' => ['sometimes', 'required', 'integer', 'min:5', 'max:100'],
-
             'grade_level_id' => ['sometimes', 'required', 'exists:grade_levels,id'],
-        
         ];
     }
 }

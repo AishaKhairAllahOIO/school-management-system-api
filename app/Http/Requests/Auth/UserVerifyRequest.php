@@ -23,8 +23,20 @@ class UserVerifyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone_number'=>['required','starts_with:09','size:10'],
-            'otp' => ['required','string','size:5']
+            'phone_number' => ['required', 'starts_with:09', 'size:10'],
+            'otp' => ['required', 'string', 'size:5']
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'phone_number.required' => 'The phone number field is required.',
+            'phone_number.starts_with' => 'The phone number must start with 09.',
+            'phone_number.size' => 'The phone number must be exactly 10 digits.',
+            'otp.required' => 'The OTP field is required.',
+            'otp.string' => 'The OTP must be a string.',
+            'otp.size' => 'The OTP must be exactly 5 characters.',
         ];
     }
 }

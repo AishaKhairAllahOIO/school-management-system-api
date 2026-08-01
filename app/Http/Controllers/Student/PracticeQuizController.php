@@ -24,9 +24,6 @@ class PracticeQuizController extends Controller
         $this->quizService = $quizService;
     }
 
-    /**
-     * Helper Method: Get current enrollment
-     */
     private function getCurrentEnrollment($user)
     {
         if (!$user->student) return null;
@@ -37,7 +34,6 @@ class PracticeQuizController extends Controller
             ->latest()
             ->first();
     }
-
     public function getSubjects(Request $request)
     {
         try {
@@ -66,8 +62,6 @@ class PracticeQuizController extends Controller
             return $this->errorResponse('Failed to retrieve subjects.', 500);
         }
     }
-
-
     public function getQuizzesBySubject(Request $request, $gradeSubjectId)
     {
         try {
@@ -97,9 +91,7 @@ class PracticeQuizController extends Controller
                 ->map(function ($quiz) {
                     $attempts = $quiz->attempts;
                     $attemptsCount = $attempts->count();
-
                     $highScore = $attemptsCount > 0 ? $attempts->max('earned_mark') : 0;
-
                     $totalMark = $quiz->questions_sum_mark ?? 0;
 
                     return [
@@ -123,7 +115,6 @@ class PracticeQuizController extends Controller
             return $this->errorResponse('Failed to retrieve quizzes.', 500);
         }
     }
-
     public function show(Request $request, $id)
     {
         try {
@@ -161,27 +152,21 @@ class PracticeQuizController extends Controller
             return $this->errorResponse('Failed to load the quiz.', 500);
         }
     }
-
-
     public function submit(SubmitQuizAttemptRequest $request)
     {
         try {
             $result = $this->quizService->submitAttempt($request->validated());
-
             return $this->successResponse($result, 'Quiz attempt submitted and graded successfully.', 200);
-
         } catch (Exception $e) {
             Log::error('Student Submit Quiz Error: ' . $e->getMessage());
             return $this->errorResponse('Failed to submit quiz attempt.', 500);
         }
     }
-
     public function markAllRead(Request $request)
     {
         $count = $this->quizService->markAllRead($request->user());
         return $this->successResponse(['unread_count' => $count], 'All quizzes marked as read.', 200);
     }
-
     public function unreadCount(Request $request)
     {
         $count = $this->quizService->unreadCount($request->user());

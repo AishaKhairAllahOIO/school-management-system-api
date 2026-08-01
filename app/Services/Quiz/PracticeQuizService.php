@@ -11,6 +11,7 @@ use App\Models\Enrollment;
 use App\Models\User;
 use App\Models\Alert;
 use App\Jobs\SendPushNotification;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -23,16 +24,16 @@ class PracticeQuizService
         $quiz = DB::transaction(function () use ($data, $teacherId) {
             $quiz = PracticeQuiz::create([
                 'grade_subject_id' => $data['grade_subject_id'],
-                'teacher_id' => $teacherId,
-                'title' => $data['title'],
-                'description' => $data['description'] ?? null,
-                'is_active' => $data['is_active'] ?? true,
+                'teacher_id'       => $teacherId,
+                'title'            => $data['title'],
+                'description'      => $data['description'] ?? null,
+                'is_active'        => $data['is_active'] ?? true,
             ]);
 
             foreach ($data['questions'] as $questionData) {
                 $question = $quiz->questions()->create([
                     'question_text' => $questionData['question_text'],
-                    'mark' => $questionData['mark'],
+                    'mark'          => $questionData['mark'],
                 ]);
 
                 $optionsToInsert = [];
@@ -42,9 +43,9 @@ class PracticeQuizService
                     $optionsToInsert[] = [
                         'question_id' => $question->id,
                         'option_text' => $optionData['option_text'],
-                        'is_correct' => $optionData['is_correct'],
-                        'created_at' => $now,
-                        'updated_at' => $now,
+                        'is_correct'  => $optionData['is_correct'],
+                        'created_at'  => $now,
+                        'updated_at'  => $now,
                     ];
                 }
 
@@ -69,11 +70,11 @@ class PracticeQuizService
                 return;
             }
 
-            $subjectName = $gradeSubject->subject->subject_name ?? 'المادة';
-            $gradeName = $gradeSubject->gradeLevel->name ?? 'الصف';
+            $subjectName = $gradeSubject->subject->subject_name ?? 'Subject';
+            $gradeName = $gradeSubject->gradeLevel->name ?? 'Class';
 
-            $title = "تدريب جديد متاح!";
-            $body = "أضاف المعلم كويز تدريبي جديد في مادة {$subjectName} لطلاب {$gradeName}. اختبر معلوماتك الآن!";
+            $title = "New Practice Quiz Available!";
+            $body = "Your teacher added a new practice quiz in {$subjectName} for {$gradeName} students. Test your knowledge now!";
 
             $enrollments = Enrollment::whereHas('classRoom', function ($q) use ($gradeSubject) {
                 $q->where('grade_level_id', $gradeSubject->grade_level_id);
@@ -90,15 +91,16 @@ class PracticeQuizService
 
             foreach ($enrollments as $enrollment) {
                 $alertsToInsert[] = [
-                    'title' => $title,
-                    'body' => $body,
-                    'type' => 'practice_quiz',
+                    'title'           => $title,
+                    'body'            => $body,
+                    'type'            => 'practice_quiz',
                     'notifiable_type' => Enrollment::class,
-                    'notifiable_id' => $enrollment->id,
-                    'created_at' => $now,
-                    'updated_at' => $now,
+                    'notifiable_id'   => $enrollment->id,
+                    'created_at'      => $now,
+                    'updated_at'      => $now,
                 ];
 
+                // Prepare Push Notification User IDs
                 if ($enrollment->student && $enrollment->student->user) {
                     $userIdsToPush[] = $enrollment->student->user->id;
                 }
@@ -110,8 +112,8 @@ class PracticeQuizService
 
             if (!empty($userIdsToPush)) {
                 $pushData = [
-                    'type' => 'new_practice_quiz',
-                    'quiz_id' => (string) $quiz->id,
+                    'type'             => 'new_practice_quiz',
+                    'quiz_id'          => (string) $quiz->id,
                     'grade_subject_id' => (string) $gradeSubject->id,
                 ];
 
@@ -123,9 +125,9 @@ class PracticeQuizService
                 );
             }
         } catch (Exception $e) {
-            Log::error('فشل إرسال إشعارات الكويز التدريبي', [
+            Log::error('Practice Quiz Notification Error', [
                 'quiz_id' => $quiz->id,
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
             ]);
         }
     }
@@ -149,8 +151,7 @@ class PracticeQuizService
 
             foreach ($answers as $answer) {
                 $question = $questions[$answer['question_id']] ?? null;
-                if (!$question)
-                    continue;
+                if (!$question) continue;
 
                 if ($quizId === null) {
                     $quizId = $question->practice_quiz_id;
@@ -166,32 +167,30 @@ class PracticeQuizService
                 }
 
                 $feedback[] = [
-                    'question_id' => $question->id,
-                    'is_correct' => $isCorrect,
+                    'question_id'       => $question->id,
+                    'is_correct'        => $isCorrect,
                     'correct_option_id' => $correctOption ? $correctOption->id : null,
                 ];
             }
 
             $attempt = StudentQuizAttempt::create([
                 'practice_quiz_id' => $quizId,
-                'enrollment_id' => $enrollmentId,
-                'total_mark' => $totalMark,
-                'earned_mark' => $earnedMark,
+                'enrollment_id'    => $enrollmentId,
+                'total_mark'       => $totalMark,
+                'earned_mark'      => $earnedMark,
             ]);
 
             return [
-                'attempt_id' => $attempt->id,
-                'total_mark' => $totalMark,
+                'attempt_id'  => $attempt->id,
+                'total_mark'  => $totalMark,
                 'earned_mark' => $earnedMark,
-                'percentage' => $totalMark > 0 ? round(($earnedMark / $totalMark) * 100, 2) : 0,
-                'feedback' => $feedback,
+                'percentage'  => $totalMark > 0 ? round(($earnedMark / $totalMark) * 100, 2) : 0,
+                'feedback'    => $feedback,
             ];
         });
     }
-
     private function getBaseQueryForUser(User $user)
     {
-
         if ($user->hasRole('student') && $user->student) {
             $classRoomId = Enrollment::where('student_id', $user->student->id)
                 ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
@@ -216,17 +215,14 @@ class PracticeQuizService
 
         return PracticeQuiz::query();
     }
-
     public function unreadCount(User $user): int
     {
-
         return $this->getBaseQueryForUser($user)
             ->whereDoesntHave('readers', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
             ->count();
     }
-
     public function markAllRead(User $user): int
     {
         $unreadQuizzesIds = $this->getBaseQueryForUser($user)
@@ -236,7 +232,6 @@ class PracticeQuizService
             ->pluck('id');
 
         if ($unreadQuizzesIds->isNotEmpty()) {
-
             $syncData = [];
             $now = now();
 
@@ -246,13 +241,63 @@ class PracticeQuizService
 
             $user->readPracticeQuizzes()->syncWithoutDetaching($syncData);
         }
+
         return $this->unreadCount($user);
     }
 
+    public function getQuizDetails(int $quizId, User $user)
+    {
+        try {
+            $teacherId = $user->staff->id;
+
+            $quiz = PracticeQuiz::where('id', $quizId)
+                ->where('teacher_id', $teacherId)
+                ->withCount('attempts')
+                ->withSum('questions', 'mark')
+                ->with(['questions', 'questions.options'])
+                ->first();
+
+            if (!$quiz) {
+                throw new ModelNotFoundException('Quiz not found or unauthorized.', 404);
+            }
+
+            $responseData = [
+                'id'             => $quiz->id,
+                'title'          => $quiz->title,
+                'description'    => $quiz->description,
+                'is_active'      => $quiz->is_active,
+                'is_locked'      => $quiz->attempts_count > 0,
+                'total_mark'     => (float) ($quiz->questions_sum_mark ?? 0),
+                'attempts_count' => $quiz->attempts_count,
+                'created_at'     => $quiz->created_at->format('Y-m-d H:i'),
+
+                'questions'      => $quiz->questions->map(function ($question) {
+                    return [
+                        'id'            => $question->id,
+                        'question_text' => $question->question_text,
+                        'mark'          => (float) $question->mark,
+                        'options'       => $question->options->map(function ($option) {
+                            return [
+                                'id'          => $option->id,
+                                'option_text' => $option->option_text,
+                                'is_correct'  => $option->is_correct,
+                            ];
+                        })
+                    ];
+                })
+            ];
+
+            return $responseData;
+        } catch (ModelNotFoundException $e) {
+            Log::error('Teacher Fetch Quiz Details Error: ' . $e->getMessage());
+            return null;
+        } catch (Exception $e) {
+            Log::error('Teacher Fetch Quiz Details Error: ' . $e->getMessage());
+            return null;
+        }
+
+
+
+    }
 
 }
-
-
-
-
-

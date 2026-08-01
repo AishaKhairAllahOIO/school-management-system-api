@@ -22,10 +22,13 @@ use App\Http\Controllers\Finance\FinancialContractController;
 use App\Http\Controllers\Admin\Staff\StaffController;
 use App\Http\Controllers\Admin\Student\ExpulsionController;
 use App\Http\Controllers\Setting\SubjectController;
+use App\Http\Controllers\Student\PracticeQuizController as StudentPracticeQuizController;
 use App\Http\Controllers\Student\StudentMarkDisplayController;
 use App\Http\Controllers\Teacher\ClassStudentEvaluationController;
 use App\Http\Controllers\Teacher\HomeworkController;
 use App\Http\Controllers\Teacher\MarkController;
+use App\Http\Controllers\Teacher\PracticeQuizController;
+use
 use App\Http\Controllers\Teacher\TeacherDropdownController;
 use App\Http\Controllers\Web\SchoolLawController;
 
@@ -109,6 +112,12 @@ Route::prefix('auth')->group(function () {
             Route::get('/show/one/evaluation/{id}', [ClassStudentEvaluationController::class, 'show']);
             Route::post('/gradebook/marks', [MarkController::class, 'storeMarks']);
             Route::get('/gradebook/subject/{gradeSubjectId}/classroom/{classRoomId}', [MarkController::class, 'getGradebook']);
+            Route::post('/quiz/create', [PracticeQuizController::class, 'store']);
+            Route::get('/quiz/subject/{gradeSubjectId}', [PracticeQuizController::class, 'getQuizzesByGradeSubject']);
+            Route::get('/quiz/{quizId}', [PracticeQuizController::class, 'getQuizDetails']);
+            Route::post('/quiz/{quizId}/toggle-status', [PracticeQuizController::class, 'toggleStatus']);
+            Route::delete('/delete/quiz/{quizId}', [PracticeQuizController::class, 'destroy']);
+
 
         });
 
@@ -392,6 +401,11 @@ Route::prefix('user')->group(function () {
         Route::get('/marks/show/all', [StudentMarkDisplayController::class, 'index']);
         Route::get('/marks/unread-count', [StudentMarkDisplayController::class, 'unreadCount']);
         Route::post('/marks/mark-all-read', [StudentMarkDisplayController::class, 'markAllAsRead']);
+
+        Route::get('/practice-quizzes/subject/{gradeSubjectId}', [PracticeQuizController::class, 'getQuizzesByGradeSubject']);
+        Route::get('/practice-quiz/{quizId}', [StudentPracticeQuizController::class, 'getQuizDetails']);
+        Route::post('/practice-quiz/{quizId}/submit', [StudentPracticeQuizController::class, 'submitQuiz']);
+        Route::get('/practice-quiz/{quizId}/results', [StudentPracticeQuizController::class, 'getQuizResults']);
 
 
 

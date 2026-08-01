@@ -74,15 +74,40 @@ class SystemAccessController extends Controller
     }
 
 
-    public function forgotPassword(SystemAccessForgetPasswordRequest $request, SystemAccessService $service)
-    {
+    public function forgotPassword(
+        SystemAccessForgetPasswordRequest $request,
+        SystemAccessService $service
+    ) {
         try {
-            $tempToken=$service->forgotPassword($request->validated());
-            return $this->successResponse($tempToken,'Password reset code sent to your email.', 200);
+            $validated = $request->validated();
+
+            $result = $service->forgotPassword(
+                $validated
+            );
+
+            $message = ($validated['purpose'] ?? 'password_reset') === 'login'
+                ? 'Verification code resent successfully.'
+                : 'Password reset code sent to your email.';
+
+            return $this->successResponse(
+                $result,
+                $message,
+                200
+            );
         } catch (ValidationException $e) {
-            return $this->errorResponse($e->getMessage(), 422,$e->errors());
+            return $this->errorResponse(
+                $e->getMessage(),
+                422,
+                $e->errors()
+            );
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while processing your request.', 500,$e);
+            return $this->errorResponse(
+                'An error occurred while processing your request.',
+                500,
+                [
+                    'exception_message' => $e->getMessage(),
+                ]
+            );
         }
     }
 

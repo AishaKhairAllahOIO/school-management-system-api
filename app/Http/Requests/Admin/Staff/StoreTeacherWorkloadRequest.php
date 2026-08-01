@@ -28,11 +28,11 @@ class StoreTeacherWorkloadRequest extends FormRequest
             'required_monthly_periods' => ['required', 'integer', 'min:1'],
         ];
     }
-    
+
     public function messages(): array
     {
         return [
-            'required_monthly_periods.min' => 'يجب أن يكون النصاب الشهري المطلوب حصة واحدة على الأقل.',
+            'required_monthly_periods.min' => 'accepted value must be at least 1.',
         ];
     }
 }

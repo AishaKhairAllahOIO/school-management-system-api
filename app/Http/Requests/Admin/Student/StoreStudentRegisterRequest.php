@@ -24,23 +24,18 @@ class StoreStudentRegisterRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            // ----- بيانات ولي الأمر -----
-            'guardian.phone_number' => ['required', 'string', 'max:20'], 
+            'guardian.phone_number' => ['required', 'string', 'max:20'],
             'guardian.first_name'   => ['required', 'string', 'max:50'],
             'guardian.last_name'    => ['required', 'string', 'max:50'],
             'guardian.address'      => ['required', 'string', 'max:255'],
-            'guardian.father_name'  => ['required', 'string', 'max:50'], 
+            'guardian.father_name'  => ['required', 'string', 'max:50'],
             'guardian.mother_name'  => ['required', 'string', 'max:50'],
             'guardian.birth_date'   => ['required', 'date', 'before:today'],
             'guardian.birth_place'  => ['required', 'string', 'max:100'],
             'guardian.gender'        => ['required', 'in:male,female'],
-            'guardian.photo_url'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'], 
+            'guardian.photo_url'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
             'guardian.nationality'     => ['nullable', 'in:syrian,lebanese,palestinian,jordanian,other'],
 
-
-            
-
-            // ----- بيانات الطالب -- ---
             'student.phone_number'  => ['required', 'string', 'max:20', 'different:guardian.phone_number', 'unique:users,phone_number'],
             'student.first_name'    => ['required', 'string', 'max:50'],
             'student.last_name'     => ['required', 'string', 'max:50'],
@@ -50,9 +45,8 @@ class StoreStudentRegisterRequest extends BaseRequest
             'student.birth_place'   => ['required', 'string', 'max:100'],
             'student.address'       => ['required', 'string', 'max:255'],
             'student.gender'        => ['required', 'in:male,female'],
-            'student.photo_url'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'], 
- // تم إضافة صورة الطالب
-            // ----- الهوية والالتحاق (مطابقة للـ Enums المحمية) -----
+            'student.photo_url'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
+
             'enrollment.academic_year_id' => ['required', 'exists:academic_years,id'],
             'enrollment.grade_level_id'   => ['required', 'exists:grade_levels,id'],
             'enrollment.class_room_id'    => ['required', 'exists:class_rooms,id'],
@@ -63,40 +57,40 @@ class StoreStudentRegisterRequest extends BaseRequest
     public function messages(): array
     {
         return [
-            'guardian.phone_number.required' => 'رقم الهاتف لولي الأمر مطلوب.',
-            'guardian.phone_number.max' => 'رقم الهاتف لولي الأمر يجب ألا يزيد عن 20 حرفًا.',
-            'guardian.first_name.required' => 'الاسم الأول لولي الأمر مطلوب.',
-            'guardian.last_name.required' => 'الاسم الأخير لولي الأمر مطلوب.',
-            'guardian.address.required' => 'عنوان ولي الأمر مطلوب.',
-            'guardian.father_name.required' => 'اسم الأب لولي الأمر مطلوب.',
-            'guardian.mother_name.required' => 'اسم الأم لولي الأمر مطلوب.',
-            'guardian.birth_date.required' => 'تاريخ ميلاد ولي الأمر مطلوب.',
-            'guardian.birth_date.before' => 'تاريخ ميلاد ولي الأمر يجب أن يكون قبل اليوم الحالي.',
-            'guardian.birth_place.required' => 'مكان ميلاد ولي الأمر مطلوب.',
-            'guardian.gender.required' => 'جنس ولي الأمر مطلوب.',
-            'guardian.photo_url.required' => 'صورة ولي الأمر مطلوبة.',
-            'student.phone_number.required' => 'رقم الهاتف للطالب مطلوب.',
-            'student.phone_number.max' => 'رقم الهاتف للطالب يجب ألا يزيد عن 20 حرفًا.',
-            'student.phone_number.different' => 'رقم الهاتف للطالب يجب أن يكون مختلفًا عن رقم الهاتف لولي الأمر.',
-            'student.phone_number.unique' => 'رقم الهاتف للطالب مستخدم بالفعل.',
-            'student.first_name.required' => 'الاسم الأول للطالب مطلوب.',
-            'student.last_name.required' => 'الاسم الأخير للطالب مطلوب.',
-            'student.father_name.required' => 'اسم الأب للطالب مطلوب.',
-            'student.mother_name.required' => 'اسم الأم للطالب مطلوب.',
-            'student.birth_date.required' => 'تاريخ ميلاد الطالب مطلوب.',
-            'student.birth_date.before' => 'تاريخ ميلاد الطالب يجب أن يكون قبل اليوم الحالي.',
-            'student.birth_place.required' => 'مكان ميلاد الطالب مطلوب.',
-            'student.address.required' => 'عنوان الطالب مطلوب.',
-            'student.gender.required' => 'جنس الطالب مطلوب.',
-            'student.photo_url.required' => 'صورة الطالب مطلوبة.',
-            'enrollment.academic_year_id.required' => 'السنة الدراسية مطلوبة.',
-            'enrollment.academic_year_id.exists' => 'السنة الدراسية المحددة غير موجودة.',
-            'enrollment.grade_level_id.required' => 'المستوى الدراسي مطلوب.',
-            'enrollment.grade_level_id.exists' => 'المستوى الدراسي المحدد غير موجود',
-            'enrollment.class_room_id.required' => 'الصف الدراسي مطلوب.',
-            'enrollment.class_room_id.exists' => 'الصف الدراسي المحدد غير موجود.',
+            'guardian.phone_number.required' => 'accepted value is required for guardian phone number.',
+            'guardian.phone_number.max' => 'The guardian phone number must not exceed 20 characters.',
+            'guardian.first_name.required' => 'The guardian first name is required.',
+            'guardian.last_name.required' => 'The guardian last name is required.',
+            'guardian.address.required' => 'The guardian address is required.',
+            'guardian.father_name.required' => 'The guardian father name is required.',
+            'guardian.mother_name.required' => 'The guardian mother name is required.',
+            'guardian.birth_date.required' => 'The guardian birth date is required.',
+            'guardian.birth_date.before' => 'The guardian birth date must be in the past.',
+            'guardian.birth_place.required' => 'The guardian birth place is required.',
+            'guardian.gender.required' => 'The guardian gender is required.',
+            'guardian.photo_url.required' => 'The guardian photo is required.',
+            'student.phone_number.required' => 'The student phone number is required.',
+            'student.phone_number.max' => 'The student phone number must not exceed 20 characters.',
+            'student.phone_number.different' => 'The student phone number must be different from the guardian phone number.',
+            'student.phone_number.unique' => 'The student phone number is already in use.',
+            'student.first_name.required' => 'The student first name is required.',
+            'student.last_name.required' => 'The student last name is required.',
+            'student.father_name.required' => 'The student father name is required.',
+            'student.mother_name.required' => 'The student mother name is required.',
+            'student.birth_date.required' => 'The student birth date is required.',
+            'student.birth_date.before' => 'The student birth date must be in the past.',
+            'student.birth_place.required' => 'The student birth place is required.',
+            'student.address.required' => 'The student address is required.',
+            'student.gender.required' => 'The student gender is required.',
+            'student.photo_url.required' => 'The student photo is required.',
+            'enrollment.academic_year_id.required' => 'The academic year is required.',
+            'enrollment.academic_year_id.exists' => 'The specified academic year does not exist.',
+            'enrollment.grade_level_id.required' => 'The grade level is required.',
+            'enrollment.grade_level_id.exists' => 'The specified grade level does not exist.',
+            'enrollment.class_room_id.required' => 'The class room is required.',
+            'enrollment.class_room_id.exists' => 'The specified class room does not exist.',
 
-                
-              
+
+
             ];
 }}

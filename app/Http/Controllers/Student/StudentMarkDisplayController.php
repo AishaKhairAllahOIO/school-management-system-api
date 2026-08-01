@@ -74,4 +74,6 @@ class StudentMarkDisplayController extends Controller
 
         return 500;
     }
+
+    
 }

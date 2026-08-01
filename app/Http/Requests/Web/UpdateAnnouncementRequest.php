@@ -20,7 +20,7 @@ class UpdateAnnouncementRequest extends FormRequest
 
         if (!$announcement) {
             throw new HttpResponseException(
-                $this->errorResponse('الإعلان المطلوب غير موجود.', 404)
+                $this->errorResponse('The requested announcement was not found.', 404)
             );
         }
 
@@ -35,7 +35,7 @@ class UpdateAnnouncementRequest extends FormRequest
     protected function failedAuthorization()
     {
         throw new HttpResponseException(
-            $this->errorResponse('غير مصرح لك بتعديل هذا الإعلان.', 403)
+            $this->errorResponse('You are not authorized to update this announcement.', 403)
         );
     }
 
@@ -72,13 +72,13 @@ class UpdateAnnouncementRequest extends FormRequest
                 if ($validRoomsCount !== count($classRoomIds)) {
                     $validator->errors()->add(
                         'class_room_ids',
-                        'إحدى الشعب المختارة أو أكثر لا تتبع المرحلة الدراسية للإعلان.'
+                        'The selected class_room_ids must belong to the specified grade_level_id.'
                     );
                 }
             } else {
                 $validator->errors()->add(
                     'class_room_ids',
-                    'لا يمكنك تحديد شعب دون وجود مرحلة دراسية.'
+                    'You cannot select class rooms without a specified grade level.'
                 );
             }
         });

@@ -24,15 +24,15 @@ class ImportExalSheetStudentRequest extends BaseRequest
 public function rules(): array
     {
         return [
-            'excel_file' => ['required', 'file', 'mimes:xlsx,csv'], 
+            'excel_file' => ['required', 'file', 'mimes:xlsx,csv'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'excel_file.required' => 'يرجى إرفاق ملف الإكسل المراد استيراده',
-            'excel_file.mimes'    => 'صيغة الملف يجب أن تكون xlsx أو csv حصراً',
+            'excel_file.required' => 'Please attach the Excel file to be imported',
+            'excel_file.mimes'    => 'The file format must be xlsx or csv only',
         ];
     }
 }

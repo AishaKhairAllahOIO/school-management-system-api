@@ -39,7 +39,7 @@ class StudentMarkDisplayService
     }
 
 
- public function getMarks(User $user, ?int $studentId = null)
+    public function getMarks(User $user, ?int $studentId = null)
     {
         $marks = $this->getBaseMarkQueryForUser($user, $studentId)
             ->with([
@@ -59,15 +59,15 @@ class StudentMarkDisplayService
             $teacher = $mark->teacher;
 
             return [
-                'id'              => $mark->id,
-                'subject_name'    => $subject ? $subject->subject_name : 'Unknown Subject',
+                'id' => $mark->id,
+                'subject_name' => $subject ? $subject->subject_name : 'Unknown Subject',
                 'assessment_name' => $component->name,
                 'assessment_type' => $component->type,
-                'mark'            => (float) $mark->mark,
-                'max_mark'        => (float) $component->max_mark,
-                'teacher_name'    => $teacher ? trim("{$teacher->first_name} {$teacher->last_name}") : 'Unknown',
-                'is_read'         => $mark->readers->isNotEmpty(),
-                'date'            => $mark->updated_at->format('Y-m-d H:i'),
+                'mark' => (float) $mark->mark,
+                'max_mark' => (float) $component->max_mark,
+                'teacher_name' => $teacher ? trim("{$teacher->first_name} {$teacher->last_name}") : 'Unknown',
+                'is_read' => $mark->readers->isNotEmpty(),
+                'date' => $mark->updated_at->format('Y-m-d H:i'),
             ];
         });
     }

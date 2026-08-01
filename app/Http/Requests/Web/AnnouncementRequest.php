@@ -27,7 +27,7 @@ class AnnouncementRequest extends FormRequest
     protected function failedAuthorization()
     {
         throw new HttpResponseException(
-            $this->errorResponse('غير مصرح لك بنشر هذا الإعلان. تأكد من نوع الإعلان وصلاحياتك ضمن المرحلة الدراسية.', 403)
+            $this->errorResponse('You are not authorized to create this announcement.', 403)
         );
     }
     public function rules(): array
@@ -60,7 +60,7 @@ class AnnouncementRequest extends FormRequest
             if ($validRoomsCount !== count($classRoomIds)) {
                 $validator->errors()->add(
                     'class_room_ids',
-                    'إحدى الشعب المختارة أو أكثر لا تتبع المرحلة الدراسية المحددة.'
+                    'The selected class_room_ids must belong to the specified grade_level_id.'
                 );
             }
         });

@@ -33,13 +33,11 @@ class UpdateAcademicSettingsRequest extends BaseRequest
             'scheduleSettings'                       => 'required|array',
             'scheduleSettings.dayStartTime'          => 'required|date_format:H:i',
             'scheduleSettings.periodDurationMinutes' => 'required|integer|min:20|max:120',
-            
-            // فحص أيام العمل
+
             'scheduleSettings.workingDays'                => 'required|array|min:1',
             'scheduleSettings.workingDays.*.day'          => ['required', new Enum(SchoolDay::class)],
             'scheduleSettings.workingDays.*.periodsCount' => 'required|integer|min:1|max:15',
-            
-            // فحص مصفوفة الفسح
+
             'scheduleSettings.breaks'                    => 'present|array',
             'scheduleSettings.breaks.*.id'               => 'required|string',
             'scheduleSettings.breaks.*.afterPeriodIndex' => 'required|integer|min:1',

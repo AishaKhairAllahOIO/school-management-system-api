@@ -42,7 +42,7 @@ class UpdateClassStudentEvaluationRequest extends FormRequest
     protected function failedAuthorization()
     {
         throw new HttpResponseException(
-            $this->errorResponse('غير مصرح لك بتعديل هذا التقييم، لست الأستاذ الذي أنشأه أو أن الطالب والمادة لم يعودا ضمن نصابك.', 403)
+            $this->errorResponse('You are not authorized to update this class student evaluation.', 403)
         );
     }
 

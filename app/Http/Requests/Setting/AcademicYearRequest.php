@@ -8,14 +8,16 @@ use App\Http\Requests\BaseRequest;
 
 class AcademicYearRequest extends BaseRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool { return $this->user()->can('school:initialize'); }
-    public function rules(): array {
+
+    public function authorize(): bool
+    {
+        return $this->user()->can('school:initialize');
+    }
+    public function rules(): array
+    {
         $rules = [
             'startDate' => 'required|date',
-            'endDate'   => 'required|date|after:startDate',
+            'endDate' => 'required|date|after:startDate',
             'isCurrent' => 'required|boolean',
         ];
         if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {

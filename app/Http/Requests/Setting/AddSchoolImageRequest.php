@@ -14,9 +14,9 @@ class AddSchoolImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'images'        => ['required', 'array', 'min:1'], // يجب إرسال صورة واحدة على الأقل
-            'images.*.file' => ['required', 'image', 'mimes:jpeg,png,jpg,webp'], // فحص الملف المرفوع (5 ميجا كحد أقصى)
-            'images.*.name' => ['required', 'string', 'max:100'], // فحص كل اسم داخل المصفوفة
+            'images' => ['required', 'array', 'min:1'],
+            'images.*.file' => ['required', 'image', 'mimes:jpeg,png,jpg,webp'],
+            'images.*.name' => ['required', 'string', 'max:100'],
         ];
     }
 }

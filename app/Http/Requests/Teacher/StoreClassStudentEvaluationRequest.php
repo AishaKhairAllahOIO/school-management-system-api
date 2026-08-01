@@ -24,7 +24,7 @@ class StoreClassStudentEvaluationRequest extends FormRequest
     protected function failedAuthorization()
     {
         throw new HttpResponseException(
-            $this->errorResponse('غير مصرح لك بتقييم هذا الطالب، المادة أو الشعبة لا تقع ضمن نصابك التدريسي الفعال.', 403)
+            $this->errorResponse('You are not authorized to create a class student evaluation.', 403)
         );
     }
 

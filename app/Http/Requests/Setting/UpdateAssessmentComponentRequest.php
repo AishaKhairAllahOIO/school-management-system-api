@@ -53,7 +53,7 @@ public function withValidator(Validator $validator): void
                     $remainingMark = $gradeSubject->max_mark - $existingMarks;
                     $validator->errors()->add(
                         'max_mark',
-                        "مجموع العلامات ({$totalMarks}) يتجاوز العلامة العظمى للمادة ({$gradeSubject->max_mark}). العلامة المتبقية المتاحة هي: {$remainingMark}"
+                        "Accepted marks ({$totalMarks}) exceed the maximum allowed for this grade subject ({$gradeSubject->max_mark}). Remaining available marks: {$remainingMark}"
                     );
                 }
 
@@ -67,10 +67,22 @@ public function withValidator(Validator $validator): void
                     $remainingWeight = 100 - $existingWeight;
                     $validator->errors()->add(
                         'weight_percentage',
-                        "النسبة المئوية الإجمالية ({$totalWeight}%) تتجاوز 100%. النسبة المتبقية المتاحة هي: {$remainingWeight}%"
+                        "The total percentage ({$totalWeight}%) exceeds 100%. The remaining available percentage is: {$remainingWeight}%"
                     );
                 }
             }
         });
+    }
+
+    public function messages(): array
+    {
+        return [
+            'grade_subject_id.exists' => 'The selected grade subject does not exist.',
+            'type.in' => 'The type must be one of the following: oral, homework, quiz1, quiz2, exam, participation.',
+            'name.max' => 'The name may not be greater than 255 characters.',
+            'max_mark.min' => 'The max mark must be at least 0.5.',
+            'weight_percentage.min' => 'The weight percentage must be at least 0.',
+            'weight_percentage.max' => 'The weight percentage may not be greater than 100.',
+        ];
     }
 }

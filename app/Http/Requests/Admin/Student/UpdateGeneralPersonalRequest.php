@@ -33,25 +33,22 @@ class UpdateGeneralPersonalRequest extends FormRequest
             'address'       => ['sometimes', 'string', 'max:255'],
             'gender'        => ['sometimes', 'in:male,female'],
             'email'        => ['nullable', 'email', 'unique:users,email'],
-            'photo_url'     => ['sometimes', 'image', 'mimes:jpeg,png,jpg,webp'], 
+            'photo_url'     => ['sometimes', 'image', 'mimes:jpeg,png,jpg,webp'],
 
             ];
     }
 
-    /**
-     * تخصيص رسائل الخطأ باللغة العربية
-     */
     public function messages(): array
     {
         return [
-            'first_name.string'     => 'الاسم الأول يجب أن يكون نصاً.',
-            'first_name.max'        => 'الاسم الأول يجب ألا يتجاوز 100 حرف.',
-            'last_name.string'      => 'الكنية يجب أن تكون نصاً.',
-            'phone_number.max'      => 'رقم الهاتف يجب ألا يتجاوز 20 رقماً.',
-            'national_id.unique'    => 'الرقم الوطني مسجل مسبقاً لطالب آخر.',
-            'birth_date.date'       => 'صيغة تاريخ الميلاد غير صحيحة.',
-            'birth_date.before'     => 'تاريخ الميلاد يجب أن يكون قبل تاريخ اليوم.',
-            'gender.in'             => 'الجنس يجب أن يكون ذكراً أو أنثى فقط.',
+            'first_name.string'     => 'The first name must be a string.',
+            'first_name.max'        => 'The first name must not exceed 50 characters.',
+            'last_name.string'      => 'The last name must be a string.',
+            'phone_number.max'      => 'The phone number must not exceed 20 characters.',
+            'national_id.unique'    => 'The national ID is already in use.',
+            'birth_date.date'       => 'The birth date is not a valid date.',
+            'birth_date.before'     => 'The birth date must be in the past.',
+            'gender.in'             => 'The gender must be either male or female.',
         ];
     }
 }

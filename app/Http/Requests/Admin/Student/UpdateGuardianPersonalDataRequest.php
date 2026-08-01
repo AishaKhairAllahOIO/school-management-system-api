@@ -25,10 +25,9 @@ class UpdateGuardianPersonalDataRequest extends FormRequest
      */
     public function rules(): array
     {
-       $parentId = $this->route('guardian'); 
-        
-        // 2. جلب سجل ولي الأمر لمعرفة الـ user_id الخاص به
-        $parentRecord = Guardian::find($parentId); // استبدلي Guardian باسم الموديل الصحيح لديكم
+       $parentId = $this->route('guardian');
+
+        $parentRecord = Guardian::find($parentId);
         $userId = $parentRecord ? $parentRecord->user_id : null;
 
         return [
@@ -42,19 +41,17 @@ class UpdateGuardianPersonalDataRequest extends FormRequest
             'gender'       => ['sometimes', 'in:male,female'],
             'nationality'  => ['sometimes', 'in:syrian,lebanese,palestinian,jordanian,other'],
             'photo_url'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
-            
-            // 🔥 تجاهل رقم الهاتف لولي الأمر هذا تحديداً
+
             'phone_number' => [
-                'sometimes', 
-                'string', 
-                'max:20', 
+                'sometimes',
+                'string',
+                'max:20',
                 Rule::unique('users', 'phone_number')->ignore($userId)
             ],
-            
-            // 🔥 تجاهل الإيميل لولي الأمر هذا تحديداً
+
             'email' => [
-                'nullable', 
-                'email', 
+                'nullable',
+                'email',
                 Rule::unique('users', 'email')->ignore($userId)
             ],
         ];

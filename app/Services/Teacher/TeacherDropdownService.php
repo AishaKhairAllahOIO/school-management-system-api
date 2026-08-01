@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 class TeacherDropdownService
 {
 
-    public function getSubjectsTree(User $user, ?int $subjectId = null): Collection
+public function getSubjectsTree(User $user, ?int $subjectId = null): Collection
     {
         if (!$user->staff) {
             return collect();
@@ -42,6 +42,9 @@ class TeacherDropdownService
                     $grade = $gradeGroup->first()->classRoom->gradeLevel;
 
                     return [
+                        // 👇 السطر الذهبي الذي أضفناه لربط هذه الشجرة بنظام الكويزات
+                        'grade_subject_id' => $gradeGroup->first()->grade_subject_id,
+
                         'grade_level_id' => $grade->id ?? null,
                         'grade_level_name' => $grade->name ?? '',
                         'classrooms' => $gradeGroup->map(function ($assignment) {

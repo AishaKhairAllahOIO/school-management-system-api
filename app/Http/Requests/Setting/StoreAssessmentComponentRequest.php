@@ -17,10 +17,10 @@ class StoreAssessmentComponentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'grade_subject_id'  => ['required', 'integer', 'exists:grade_subjects,id'],
-            'type'              => ['required', 'string', 'in:oral,homework,quiz1,quiz2,exam,participation'],
-            'name'              => ['required', 'string', 'max:255'],
-            'max_mark'          => ['required', 'numeric', 'min:0.5'],
+            'grade_subject_id' => ['required', 'integer', 'exists:grade_subjects,id'],
+            'type' => ['required', 'string', 'in:oral,homework,quiz1,quiz2,exam,participation'],
+            'name' => ['required', 'string', 'max:255'],
+            'max_mark' => ['required', 'numeric', 'min:0.5'],
             'weight_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
         ];
     }
@@ -43,7 +43,7 @@ class StoreAssessmentComponentRequest extends FormRequest
                         $remainingMark = $gradeSubject->max_mark - $existingMarks;
                         $validator->errors()->add(
                             'max_mark',
-                            "مجموع العلامات ({$totalMarks}) يتجاوز العلامة العظمى للمادة ({$gradeSubject->max_mark}). العلامة المتبقية المتاحة هي: {$remainingMark}"
+                            "accepted marks ({$totalMarks}) exceed the maximum allowed for this grade subject ({$gradeSubject->max_mark}). Remaining available marks: {$remainingMark}"
                         );
                     }
 
@@ -54,7 +54,7 @@ class StoreAssessmentComponentRequest extends FormRequest
                         $remainingWeight = 100 - $existingWeight;
                         $validator->errors()->add(
                             'weight_percentage',
-                            "النسبة المئوية الإجمالية ({$totalWeight}%) تتجاوز 100%. النسبة المتبقية المتاحة هي: {$remainingWeight}%"
+                            "The total percentage ({$totalWeight}%) exceeds 100%. The remaining available percentage is: {$remainingWeight}%"
                         );
                     }
                 }

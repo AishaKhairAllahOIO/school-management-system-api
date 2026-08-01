@@ -89,4 +89,10 @@ class User extends Authenticatable
             ->withPivot('read_at');
     }
 
+    public function readPracticeQuizzes()
+    {
+        return $this->belongsToMany(PracticeQuiz::class, 'practice_quiz_user_reads', 'user_id', 'practice_quiz_id')
+            ->withPivot('read_at');
+    }
+
 }

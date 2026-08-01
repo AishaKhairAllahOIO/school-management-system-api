@@ -16,9 +16,9 @@ class StoreGradeSubjectRequest extends FormRequest
     {
         return [
             'academic_year_id' => ['required', 'integer', 'exists:academic_years,id'],
-            'semester_id' => ['required', 'integer', 'exists:semesters,id'], // أو semesters
-            'grade_level_id'   => ['required', 'integer', 'exists:grade_levels,id'],
-            'subject_id'       => [
+            'semester_id' => ['required', 'integer', 'exists:semesters,id'],
+            'grade_level_id' => ['required', 'integer', 'exists:grade_levels,id'],
+            'subject_id' => [
                 'required',
                 'integer',
                 'exists:subjects,id',
@@ -28,18 +28,18 @@ class StoreGradeSubjectRequest extends FormRequest
                 })
             ],
 
-            'weekly_periods'     => ['required', 'integer', 'min:1'],
-            'difficulty'         => ['required', 'string', 'in:light,medium,heavy'],
+            'weekly_periods' => ['required', 'integer', 'min:1'],
+            'difficulty' => ['required', 'string', 'in:light,medium,heavy'],
 
-            'max_mark'           => ['required', 'numeric', 'min:1'],
-            'passing_mark'       => ['required', 'numeric', 'min:0', 'lte:max_mark'],
+            'max_mark' => ['required', 'numeric', 'min:1'],
+            'passing_mark' => ['required', 'numeric', 'min:0', 'lte:max_mark'],
             'is_failing_subject' => ['required', 'boolean'],
-            'weight_in_total'    => ['required', 'numeric', 'min:0'],
+            'weight_in_total' => ['required', 'numeric', 'min:0'],
 
             'max_periods_per_day' => ['required', 'integer', 'min:1'],
             'avoid_first_period' => ['required', 'boolean'],
-            'avoid_last_period'  => ['required', 'boolean'],
-            'preferred_period_indexes'   => ['nullable', 'array'],
+            'avoid_last_period' => ['required', 'boolean'],
+            'preferred_period_indexes' => ['nullable', 'array'],
             'preferred_period_indexes.*' => ['integer', 'min:1'],
         ];
     }

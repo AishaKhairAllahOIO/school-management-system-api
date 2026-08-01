@@ -73,7 +73,7 @@ public function withValidator(Validator $validator): void
 
                     $validator->errors()->add(
                         $errorField,
-                        'تنبيه: المرحلة الدراسية المحددة لا تتطابق مع الشعب المرتبطة بهذا النشاط.'
+                        'The selected class_room_ids must belong to the specified grade_level_id.'
                     );
                 }
             }

@@ -28,10 +28,4 @@ class SystemAccessResetPasswordRequest extends FormRequest
             'tempToken'=>'required',
         ];
     }
-    public function messages(): array
-    {
-        return [
-
-        ];
-    }
 }

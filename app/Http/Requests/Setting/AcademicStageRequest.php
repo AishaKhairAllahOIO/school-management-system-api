@@ -10,13 +10,15 @@ use App\Http\Requests\BaseRequest;
 
 class AcademicStageRequest extends BaseRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-   public function authorize(): bool { return $this->user()->can('school:initialize'); }
-    public function rules(): array {
+
+    public function authorize(): bool
+    {
+        return $this->user()->can('school:initialize');
+    }
+    public function rules(): array
+    {
         return [
-            'type' => ['required', new Enum(AcademicStageType::class), 'unique:academic_stages,type,' ],
+            'type' => ['required', new Enum(AcademicStageType::class), 'unique:academic_stages,type,'],
         ];
     }
 }

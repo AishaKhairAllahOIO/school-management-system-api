@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\User;
 use App\Services\Notification\PushNotificationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -10,15 +9,14 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class SendPushNotification implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
-
     public int $backoff = 10;
-
 
     public function __construct(
         public array $userIds,
@@ -27,23 +25,18 @@ class SendPushNotification implements ShouldQueue
         public array $data = []
     ) {}
 
-
-
     public function handle(PushNotificationService $push): void
     {
-        $users = User::whereIn('id', $this->userIds)->get();
-
-        if ($users->isEmpty()) {
+        if (empty($this->userIds)) {
             return;
         }
 
-        $push->sendToUsers($users, $this->title, $this->body, $this->data);
+        $push->sendToUserIds($this->userIds, $this->title, $this->body, $this->data);
     }
 
-
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
-        Log::error('فشل إرسال الإشعار نهائياً', [
+        Log::error('فشل إرسال الإشعار اللحظي', [
             'user_ids' => $this->userIds,
             'error'    => $exception->getMessage(),
         ]);

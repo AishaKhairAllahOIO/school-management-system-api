@@ -203,7 +203,7 @@ class HomeworkController extends Controller
 
             return $this->paginatedResponse(
                 HomeworkResource::collection($homeworks),
-                'تم جلب قائمة الوظائف المدرسية للطالب المحدد بنجاح.',
+                'Child homework list retrieved successfully.',
                 200
             );
         } catch (InvalidArgumentException $e) {
@@ -213,7 +213,7 @@ class HomeworkController extends Controller
         } catch (NotFoundHttpException $e) {
             return $this->errorResponse($e->getMessage(), 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب وظائف الابن.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error occurred while fetching child homework list.', 500, ['error' => $e->getMessage()]);
         }
     }
 

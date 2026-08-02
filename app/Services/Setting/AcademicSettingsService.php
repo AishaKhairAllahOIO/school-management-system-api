@@ -98,7 +98,7 @@ class AcademicSettingsService
 
             if ($existingYear) {
                 throw ValidationException::withMessages([
-                    'startDate' => ["العام الدراسي ({$yearName}) مُسجل مسبقاً في النظام ولا يمكن تكراره."]
+                    'startDate' => ["The academic year ({$yearName}) is already registered and cannot be duplicated."]
                 ]);
             }
 
@@ -148,7 +148,6 @@ class AcademicSettingsService
 
             $academicYearId = $data['academicYearId'] ?? $term->academic_year_id;
 
-            // 👈 أخذ الاسم المرسل من الفرونت إند
             $inputSemesterName = $data['semesterName'] ?? $term->semester_name;
 
             $termData = $this->determineTermNameAndOrder($inputSemesterName);
@@ -162,20 +161,20 @@ class AcademicSettingsService
 
             if ($existingTerm) {
                 throw ValidationException::withMessages([
-                    'semesterName' => ["الفصل الدراسي المماثل مسجل مسبقاً في هذا العام الدراسي ولا يمكن تكراره."]
+                    'semesterName' => ["The semester name ({$semesterName}) is already registered for the selected academic year and cannot be duplicated."]
                 ]);
             }
 
             if (isset($data['isCurrent']) && $data['isCurrent']) {
-                Semester::query()->update(['is_current' => false]); // إطفاء البقية
+                Semester::query()->update(['is_current' => false]);
             }
 
             $payload = [
                 'academic_year_id' => $academicYearId,
-                'semester_name' => $semesterName, // 👈 الاسم الموحد والمستنتج آلياً
+                'semester_name' => $semesterName,
                 'start_date' => $data['startDate'] ?? $term->start_date,
                 'end_date' => $data['endDate'] ?? $term->end_date,
-                'order' => $order,        // 👈 الترتيب المستنتج آلياً (تجاهلنا الفرونت إند تماماً هنا)
+                'order' => $order,
                 'is_current' => $data['isCurrent'] ?? $term->is_current,
                 'is_final_term' => $data['isFinalTerm'] ?? $term->is_final_term,
             ];
@@ -205,7 +204,7 @@ class AcademicSettingsService
     {
         $year = AcademicYear::findOrFail($id);
         if (!$year) {
-            throw new ModelNotFoundException("العام الدراسي المحدد غير موجود.");
+            throw new ModelNotFoundException("The specified academic year does not exist.");
         }
 
         $hasSemesters = Semester::where('academic_year_id', $id)->exists();
@@ -213,7 +212,7 @@ class AcademicSettingsService
 
         if ($hasSemesters || $hasConfigurations) {
             throw new Exception(
-                'لا يمكن حذف العام الدراسي لارتباطه بفصول دراسية أو إعدادات تخطيطية.',
+                'The specified academic year cannot be deleted because it contains semesters or grade configurations.',
                 409
             )
             ;
@@ -226,10 +225,10 @@ class AcademicSettingsService
     {
         $term = Semester::findOrFail($id);
         if (!$term) {
-            throw new ModelNotFoundException("الفصل الدراسي المحدد غير موجود.");
+            throw new ModelNotFoundException("The specified semester does not exist.");
         }
         if ($term->is_current) {
-            throw new Exception('لا يمكن حذف الفصل الدراسي الحالي.', 409);
+            throw new Exception('The current semester cannot be deleted.', 409);
         }
 
         $term->delete();
@@ -239,12 +238,12 @@ class AcademicSettingsService
     {
         $stage = AcademicStage::findOrFail($id);
         if (!$stage)
-            throw new ModelNotFoundException("المرحلة الدراسية المحددة غير موجودة.");
+            throw new ModelNotFoundException("The specified academic stage does not exist.");
         $hasGrades = GradeLevel::where('academic_stage_id', $id)->exists();
 
         if ($hasGrades) {
             throw new Exception(
-                'لا يمكن حذف المرحلة الدراسية لأنها تحتوي على صفوف دراسية. احذف الصفوف أولاً.',
+                'The specified academic stage cannot be deleted because it contains grade levels. Please delete the grade levels first.',
                 409
             )
             ;
@@ -262,7 +261,7 @@ class AcademicSettingsService
 
                 if ($hasEnrollments) {
                     throw new Exception(
-                        'تحذير أمني: لا يمكن حذف الإعدادات الأكاديمية للمدرسة لوجود طلاب مسجلين بالفعل بناءً على هذه الإعدادات.',
+                        'Warning: The academic settings for the school cannot be deleted because there are students enrolled based on these settings.',
                         409
                     );
                 }

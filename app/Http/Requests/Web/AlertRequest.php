@@ -35,7 +35,8 @@ class AlertRequest extends FormRequest
                     Alert::TYPE_HOMEWORK,
                     Alert::TYPE_PAYED,
                     Alert::TYPE_EXPULSION,
-                    Alert::TYPE_WARNING
+                    Alert::TYPE_WARNING,
+                    Alert::TYPE_SYSTEM_NOTICE
                 ])
             ],
             'title' => ['nullable', 'string', 'max:255'],

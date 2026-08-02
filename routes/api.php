@@ -21,6 +21,7 @@ use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
 use App\Http\Controllers\Admin\Staff\StaffController;
 use App\Http\Controllers\Admin\Student\ExpulsionController;
+use App\Http\Controllers\Admin\SystemNoticeController;
 use App\Http\Controllers\Setting\SubjectController;
 use App\Http\Controllers\Student\PracticeQuizController as StudentPracticeQuizController;
 use App\Http\Controllers\Student\StudentMarkDisplayController;
@@ -76,6 +77,9 @@ Route::prefix('auth')->group(function () {
             Route::get('/school/law/one/show/{id}', [SchoolLawController::class, 'show']);
             Route::post('/school/law/update/{id}', [SchoolLawController::class, 'update']);
             Route::delete('/school/law/delete/{id}', [SchoolLawController::class, 'destroy']);
+            Route::get('/system/notices', [SystemNoticeController::class, 'index']);
+            Route::get('/system/notices/unread-count', [SystemNoticeController::class, 'unreadCount']);
+            Route::post('/system/notices/mark-all-read', [SystemNoticeController::class, 'markAllAsRead']);
         });
 
         Route::middleware('role:adviser|super_admin')->group(function () {

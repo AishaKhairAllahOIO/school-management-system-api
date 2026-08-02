@@ -15,37 +15,29 @@ use Exception;
 
 class GradeAndClassroomService
 {
-    /**
-     * العقل المدبر: استنتاج المستوى الدراسي (Level) من الاسم آلياً
-     * هذه الدالة تحمي النظام من التضارب إذا نسي المستخدم إدخال المستوى الصحيح.
-     */
+
     private function determineLevelFromName(string $name): int
     {
-        // فحص الثانوي أولاً (حتى لا يتداخل 'ثاني عشر' مع 'ثاني')
 
-
-        // فحص بقية الصفوف
         if (str_contains($name, 'أول')) return 1;
         if (str_contains($name, 'ثاني')) return 2;
         if (str_contains($name, 'ثالث')) return 3;
 
 
-        return 1; // قيمة افتراضية في حال تم إدخال اسم غريب
+        return 1;
     }
 
-    // =====================================================================
-    // --- عمليات الصفوف (Grades) ---
-    // =====================================================================
+
 
     public function createGrade(array $data)
     {
         $name = $data['name'];
-        $level = $this->determineLevelFromName($name); // 👈 استنتاج آلي
+        $level = $this->determineLevelFromName($name);
 
         return GradeLevel::create([
             'academic_stage_id'   => $data['academicStageId'],
             'name'                => $name,
-            'level'               => $level, // تم التوليد والإجبار آلياً
+            'level'               => $level,
             'is_graduation_grade' => $data['isGraduationGrade'] ?? false,
         ]);
     }
@@ -53,21 +45,18 @@ class GradeAndClassroomService
     public function updateGrade(GradeLevel $grade, array $data)
     {
         $name = $data['name'] ?? $grade->name;
-        $level = $this->determineLevelFromName($name); // 👈 تحديث آلي عند تغير الاسم
+        $level = $this->determineLevelFromName($name);
 
         $grade->update([
             'academic_stage_id'   => $data['academicStageId'] ?? $grade->academic_stage_id,
             'name'                => $name,
-            'level'               => $level, // يتحدث آلياً
+            'level'               => $level,
             'is_graduation_grade' => $data['isGraduationGrade'] ?? $grade->is_graduation_grade,
         ]);
 
         return $grade->fresh();
     }
 
-    // =====================================================================
-    // --- عمليات التكوين التخطيطي (Grade Configuration) ---
-    // =====================================================================
 
     public function createConfiguration(array $data)
     {
@@ -81,7 +70,6 @@ class GradeAndClassroomService
 
     public function updateConfiguration(GradeConfiguration $config, array $data)
     {
-        // 🛡️ حماية: نمنع تحديث (السنة والصف) لأنهما مفتاح الاستعلام الأساسي
         $config->update([
             'grade_level_id'           => $data['grade_level_id'] ?? $config->grade_level_id,
             'supervisor_id'            => $data['supervisor_id'] ?? $config->supervisor_id,
@@ -91,10 +79,6 @@ class GradeAndClassroomService
         return $config->fresh();
     }
 
-    // =====================================================================
-    // --- عمليات الشعب الدراسية (Classrooms) ---
-    // =====================================================================
-
     public function createClassroom(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -102,7 +86,6 @@ class GradeAndClassroomService
             $gradeId = $data['grade_level_id'];
             $capacity = $data['capacity'];
 
-            // ✨ السحر هنا: التوليد التلقائي لاسم الشعبة عند الإنشاء!
             $currentCount = Classroom::where('academic_year_id', $yearId)
                                      ->where('grade_level_id', $gradeId)
                                      ->count();
@@ -116,7 +99,6 @@ class GradeAndClassroomService
                 'capacity'         => $capacity,
             ]);
 
-            // تحديث السعة التخطيطية الكلية في جدول GradeConfiguration
             $this->recalculateGradeCapacity($yearId, $gradeId);
 
             return $classroom;
@@ -131,7 +113,6 @@ class GradeAndClassroomService
                 'capacity' => $data['capacity'] ?? $classroom->capacity,
             ]);
 
-            // إعادة الحساب لأن السعة ربما تغيرت (مثلاً من 30 إلى 35)
             $this->recalculateGradeCapacity($classroom->academic_year_id, $classroom->grade_level_id);
 
             return $classroom->fresh();
@@ -157,12 +138,12 @@ class GradeAndClassroomService
     {
         $grade = GradeLevel::findOrFail($id);
         if(!$grade)
-            throw new ModelNotFoundException("الصف الدراسي المحدد غير موجود.",404);
+            throw new ModelNotFoundException("The grade level you are looking for does not exist.",404);
         $hasClassrooms = Classroom::where('grade_level_id', $id)->exists();
         $hasConfigs = GradeConfiguration::where('grade_level_id', $id)->exists();
 
         if ($hasClassrooms || $hasConfigs) {
-            throw new Exception('لا يمكن حذف الصف لاحتوائه على إعدادات تخطيطية أو شعب دراسية.', 409);
+            throw new Exception("The grade level you are looking for cannot be deleted because it has associated classrooms or configurations.", 409);
         }
 
         $grade->delete();
@@ -172,7 +153,7 @@ class GradeAndClassroomService
     {
         $config = GradeConfiguration::findOrFail($id);
         if(!$config) {
-            throw new ModelNotFoundException("الإعداد التخطيطي المحدد غير موجود.",404);
+            throw new ModelNotFoundException("The grade configuration you are looking for does not exist.",404);
         }
         $hasClassrooms = Classroom::where('academic_year_id', $config->academic_year_id)
                                   ->where('grade_level_id', $config->grade_level_id)
@@ -180,7 +161,7 @@ class GradeAndClassroomService
 
         if ($hasClassrooms) {
             throw new Exception(
-              'لا يمكن حذف الإعداد التخطيطي لوجود شعب دراسية تابعة له. يرجى حذف الشعب أولاً.'
+              'The grade configuration you are looking for cannot be deleted because it has associated classrooms.'
             , 409);
         }
 
@@ -189,7 +170,7 @@ class GradeAndClassroomService
                                                 ->exists();
 
         if ($hasEnrollments) {
-            throw new Exception( 'لا يمكن حذف الإعداد التخطيطي لوجود طلاب مسجلين بالفعل في هذا الصف للعام الدراسي المحدد.'
+            throw new Exception( 'The grade configuration you are looking for cannot be deleted because it has associated enrollments.'
             , 409);
         }
         $config->delete();
@@ -199,7 +180,7 @@ class GradeAndClassroomService
     {
         $classroom = Classroom::findOrFail($id);
         if(!$classroom) {
-            throw new ModelNotFoundException("الشعبة الدراسية المحددة غير موجودة.",404);
+            throw new ModelNotFoundException("The classroom you are looking for does not exist.",404);
         }
         $yearId = $classroom->academic_year_id;
         $gradeId = $classroom->grade_level_id;
@@ -208,7 +189,7 @@ class GradeAndClassroomService
 
         if ($hasStudents) {
             throw new Exception(
-             'لا يمكن حذف هذه الشعبة لأنها تحتوي على طلاب مسجلين بداخلها. يرجى نقل الطلاب لشعبة أخرى أولاً.'
+             'The classroom you are looking for cannot be deleted because it has associated students.'
             , 409);
         }
         $classroom->delete();

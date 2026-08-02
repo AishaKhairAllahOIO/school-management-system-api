@@ -77,7 +77,7 @@ class SchoolSettingsService
     {
         $settings = School::first();
         if (!$settings)
-            throw new ModelNotFoundException("إعدادات المدرسة غير موجودة.",404);
+            throw new ModelNotFoundException("School settings not found.", 404);
         $imagesData = [];
 
         foreach ($data['images'] as $imageData) {
@@ -96,13 +96,11 @@ class SchoolSettingsService
     {
         $image = SchoolImage::findOrFail($id);
         if (!$image)
-            throw new ModelNotFoundException("الصورة المحددة غير موجودة في المعرض.",404);
+            throw new ModelNotFoundException("The specified image does not exist in the gallery.", 404);
         if (isset($data['file'])) {
-            // حذف الصورة القديمة من السيرفر إذا كانت موجودة (ولا تبدأ بـ http)
             if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
                 Storage::disk('public')->delete($image->url);
             }
-            // رفع الصورة الجديدة
             $data['url'] = $data['file']->store('school_images', 'public');
         }
 
@@ -118,8 +116,7 @@ class SchoolSettingsService
     {
         $image = SchoolImage::findOrFail($id);
         if (!$image)
-            throw new ModelNotFoundException("الصورة المحددة غير موجودة في المعرض.");
-        // حذف الملف الفعلي من السيرفر
+            throw new ModelNotFoundException("The specified image does not exist in the gallery.", 404);
         if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
             Storage::disk('public')->delete($image->url);
         }

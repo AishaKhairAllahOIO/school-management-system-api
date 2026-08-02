@@ -47,15 +47,15 @@ class NotifyEndSemesterExpulsions extends Command
             return;
         }
 
-        foreach ($admins as $admin) {
-            $alertService->createStaffAlerts([
-                'staff_ids' => [$admin->id],
-                'type' => Alert::TYPE_SYSTEM_NOTICE,
-                'title' => 'إجراء مطلوب: مراجعة قرارات الفصل',
-                'description' => "انتهى الفصل الدراسي. يوجد {$expulsionCount} طالب(ة) استحقوا قرار الفصل بسبب الغياب أو المخالفات. يرجى الدخول لمراجعة القائمة واعتماد التعطيل.",
-                'meta' => ['action' => 'review_expulsions']
-            ]);
-        }
+        $adminIds = $admins->pluck('id')->toArray();
+
+        $alertService->createStaffAlerts([
+            'staff_ids'   => $adminIds,
+            'type'        => Alert::TYPE_SYSTEM_NOTICE,
+            'title'       => 'إجراء مطلوب: مراجعة قرارات الفصل',
+            'description' => "انتهى الفصل الدراسي. يوجد {$expulsionCount} طالب(ة) استحقوا قرار الفصل بسبب الغياب أو المخالفات. يرجى الدخول لمراجعة القائمة واعتماد التعطيل.",
+            'meta'        => ['action' => 'review_expulsions']
+        ]);
 
         $this->info('Notification sent successfully to the dashboard.');
     }

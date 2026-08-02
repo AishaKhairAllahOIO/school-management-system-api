@@ -59,8 +59,4 @@ class StudentMarkDisplayController extends Controller
         }
     }
 
-
-
-
-
 }

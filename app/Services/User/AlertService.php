@@ -19,7 +19,6 @@ class AlertService
 {
     public function createStudentAbsence(Enrollment $enrollment, array $meta = []): Alert
     {
-
         $absenceDate = $meta['date'] ?? now()->toDateString();
 
         $existingAbsence = Alert::where('notifiable_type', Enrollment::class)
@@ -273,7 +272,8 @@ class AlertService
     {
         return Alert::where('notifiable_type', Staff::class)
             ->where('notifiable_id', $staff->id)
-            ->whereNotIn('type', [Alert::TYPE_SALARY])
+            // استثناء الرواتب وإشعارات السستم لتظهر كل منها في شاشتها الخاصة
+            ->whereNotIn('type', [Alert::TYPE_SALARY, Alert::TYPE_SYSTEM_NOTICE])
             ->latest()
             ->paginate(20);
     }
@@ -502,10 +502,14 @@ class AlertService
             });
 
         $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
+        $systemTypes = [Alert::TYPE_SYSTEM_NOTICE];
 
         return [
-            'alerts' => (clone $baseQuery)->whereNotIn('type', $financialTypes)->count(),
+            'alerts' => (clone $baseQuery)->whereNotIn('type', array_merge($financialTypes, $systemTypes))->count(),
+
             'payment_alerts' => (clone $baseQuery)->whereIn('type', $financialTypes)->count(),
+
+            'system_alerts' => (clone $baseQuery)->whereIn('type', $systemTypes)->count(),
         ];
     }
 
@@ -517,11 +521,14 @@ class AlertService
             });
 
         $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
+        $systemTypes = [Alert::TYPE_SYSTEM_NOTICE];
 
         if ($category === 'financial') {
             $baseQuery->whereIn('type', $financialTypes);
+        } elseif ($category === 'system') {
+            $baseQuery->whereIn('type', $systemTypes);
         } elseif ($category === 'general') {
-            $baseQuery->whereNotIn('type', $financialTypes);
+            $baseQuery->whereNotIn('type', array_merge($financialTypes, $systemTypes));
         }
 
         $unreadAlertIds = $baseQuery->pluck('id');
@@ -537,5 +544,46 @@ class AlertService
         }
 
         return $this->unreadCountForUser($user, $studentId);
+    }
+
+    public function showSystemNotices(Staff $staff): LengthAwarePaginator
+    {
+        return Alert::where('notifiable_type', Staff::class)
+            ->where('notifiable_id', $staff->id)
+            ->where('type', Alert::TYPE_SYSTEM_NOTICE)
+            ->latest()
+            ->paginate(20);
+    }
+
+ 
+    public function unreadSystemNoticesCount(User $user): int
+    {
+        return clone $this->getBaseAlertQueryForUser($user)
+            ->where('type', Alert::TYPE_SYSTEM_NOTICE)
+            ->whereDoesntHave('readers', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->count();
+    }
+
+
+    public function markAllSystemNoticesAsRead(User $user): void
+    {
+        $unreadAlertIds = clone $this->getBaseAlertQueryForUser($user)
+            ->where('type', Alert::TYPE_SYSTEM_NOTICE)
+            ->whereDoesntHave('readers', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->pluck('id');
+
+        if ($unreadAlertIds->isNotEmpty()) {
+            $syncData = [];
+            $now = now();
+            foreach ($unreadAlertIds as $id) {
+                $syncData[$id] = ['read_at' => $now];
+            }
+
+            $user->readAlerts()->syncWithoutDetaching($syncData);
+        }
     }
 }

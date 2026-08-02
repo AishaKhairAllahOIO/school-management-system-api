@@ -1,6 +1,8 @@
 <?php
 
 namespace App;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+
 
 trait ApiResource
 {
@@ -32,16 +34,33 @@ public function errorResponse($message = null, $code = 422, $errors = null)
     return response()->json($response, $code);
 }
 
-public function paginatedResponse($resourceCollection, $message = null, $code = 200)
-    {
-        $response = $resourceCollection->response()->getData(true);
-
+protected function paginatedResponse(
+        LengthAwarePaginator $paginator,
+        ?string $message = null,
+        int $code = 200
+    ) {
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => $message,
-            'data'    => $response['data'],
-            'links'   => $response['links'] ?? null,
-            'meta'    => $response['meta'] ?? null,
+
+            'data' => $paginator->items(),
+
+            'links' => [
+                'first' => $paginator->url(1),
+                'last' => $paginator->url($paginator->lastPage()),
+                'previous' => $paginator->previousPageUrl(),
+                'next' => $paginator->nextPageUrl(),
+            ],
+
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'from' => $paginator->firstItem(),
+                'last_page' => $paginator->lastPage(),
+                'path' => $paginator->path(),
+                'per_page' => $paginator->perPage(),
+                'to' => $paginator->lastItem(),
+                'total' => $paginator->total(),
+            ],
         ], $code);
     }
 }

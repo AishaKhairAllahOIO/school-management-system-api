@@ -60,20 +60,7 @@ class StudentMarkDisplayController extends Controller
     }
 
 
-  private function getExceptionCode(Exception $e): int
-    {
-        if ($e instanceof HttpException) {
-            return $e->getStatusCode();
-        }
 
-        $code = $e->getCode();
 
-        if (is_numeric($code) && $code >= 400 && $code < 600) {
-            return (int) $code;
-        }
 
-        return 500;
-    }
-
-    
 }

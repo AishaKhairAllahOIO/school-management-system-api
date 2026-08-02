@@ -133,7 +133,7 @@ class UserSeeder extends Seeder
                 'gender' => 'female',
                 'photo_url' => 'defaults/counselor.jpg',
                 'password' => $defaultPassword,
-                'email' => 'nournour.ahmad.1284@gmail.com',
+                'email' => 'aishakhairallah3@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]
@@ -174,7 +174,7 @@ class UserSeeder extends Seeder
                 'nationality' => 'syrian',
                 'gender' => 'male',
                 'photo_url' => 'defaults/secretary.jpg',
-                'email' => 'aishakhairallah3@gmail.com',
+                'email' => 'aishakhairallah23@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'password' => $defaultPassword,

@@ -19,16 +19,52 @@ class StudentManagementService
             'gradeLevel',
             'classRoom'
         ]);
+if (!empty($filters['search'])) {
+        $safeSearch = str_replace(
+            ['%', '_'],
+            ['\%', '\_'],
+            trim($filters['search'])
+        );
 
-        if (isset($filters['level'])) {
+        $query->whereHas(
+            'student.user',
+            function ($userQuery) use ($safeSearch) {
+                $userQuery
+                    ->where(
+                        DB::raw(
+                            "CONCAT(first_name, ' ', father_name, ' ', last_name)"
+                        ),
+                        'like',
+                        "%{$safeSearch}%"
+                    )
+                    ->orWhere(
+                        'first_name',
+                        'like',
+                        "%{$safeSearch}%"
+                    )
+                    ->orWhere(
+                        'father_name',
+                        'like',
+                        "%{$safeSearch}%"
+                    )
+                    ->orWhere(
+                        'last_name',
+                        'like',
+                        "%{$safeSearch}%"
+                    );
+            }
+        );
+    }
+
+        if (isset($filters['grade_level_id'])) {
             $query->whereHas('gradeLevel', function ($q) use ($filters) {
-                $q->where('level', $filters['level']);
+                $q->where('grade_level_id', $filters['grade_level_id']);
             });
         }
 
-        if (!empty($filters['classroom_name'])) {
+        if (!empty($filters['class_room_id'])) {
             $query->whereHas('classRoom', function ($q) use ($filters) {
-                $q->where('name', 'like', "%{$filters['classroom_name']}%");
+                $q->where('class_room_id', 'like', "%{$filters['class_room_id']}%");
             });
         }
 

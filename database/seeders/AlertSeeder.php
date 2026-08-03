@@ -26,7 +26,6 @@ class AlertSeeder extends Seeder
             ]
         );
 
-        // تنبيه غياب
         Alert::updateOrCreate(
             [
                 'notifiable_type' => Enrollment::class,
@@ -58,7 +57,6 @@ class AlertSeeder extends Seeder
             ]
         );
 
-        // تنبيه تأخير
         Alert::updateOrCreate(
             [
                 'notifiable_type' => Enrollment::class,

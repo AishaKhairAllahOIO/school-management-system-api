@@ -162,7 +162,7 @@ Route::prefix('auth')->group(function () {
             Route::post('/confirm', [ExpulsionController::class, 'confirm']);
 
         });
-        Route::delete('/alerts/{id}', [UserAlertController::class, 'destroy'])->middleware('role:teacher|super_admin|adviser|secretary');
+        Route::delete('/delete/alert/{id}', [UserAlertController::class, 'destroy'])->middleware('role:teacher|super_admin|adviser|secretary');
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::delete('/logout', [SystemAccessController::class, 'logout']);
     });

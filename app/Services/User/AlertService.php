@@ -13,6 +13,7 @@ use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use InvalidArgumentException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class AlertService
@@ -587,5 +588,61 @@ class AlertService
 
             $user->readAlerts()->syncWithoutDetaching($syncData);
         }
+    }
+
+
+    public function getAlertsCreatedByUser(User $user, int $perPage = 15): LengthAwarePaginator
+    {
+        $query = Alert::with(['notifiable' => function ($morphTo) {
+            $morphTo->morphWith([
+                Enrollment::class => ['student.user:id,first_name,last_name'],
+                Staff::class => ['user:id,first_name,last_name'],
+            ]);
+        }]);
+
+        if (!$user->hasRole('super_admin')) {
+            $query->where('created_by', $user->id);
+        }
+
+        return $query->latest()->paginate($perPage);
+    }
+
+
+    public function updateAlert(int $id, array $data, User $user): Alert
+    {
+        $alert = Alert::findOrFail($id);
+
+        if ($alert->created_by !== $user->id && !$user->hasRole('super_admin')) {
+            throw new AccessDeniedHttpException('Update denied you are not the creater',null,403);
+        }
+
+        if (isset($data['type'])) {
+            $studentTypes = [
+                Alert::TYPE_ABSENCE, Alert::TYPE_LATE, Alert::TYPE_BEHAVIOR,
+                Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_ESCAPE,
+                Alert::TYPE_HOMEWORK, Alert::TYPE_WARNING, Alert::TYPE_EXPULSION
+            ];
+
+            $staffTypes = [
+                Alert::TYPE_ABSENCE, Alert::TYPE_LATE, Alert::TYPE_SALARY, Alert::TYPE_SYSTEM_NOTICE
+            ];
+
+            if ($alert->audience === Alert::AUDIENCE_STUDENT && !in_array($data['type'], $studentTypes)) {
+                throw new InvalidArgumentException('The type of the alert does not match the student audience.',422);
+            }
+
+            if ($alert->audience === Alert::AUDIENCE_STAFF && !in_array($data['type'], $staffTypes)) {
+                throw new InvalidArgumentException('The type of the alert dose not match the staff audience.', 422);
+            }
+        }
+
+        $alert->update([
+            'title'       => $data['title'] ?? $alert->title,
+            'description' => $data['description'] ?? $alert->description,
+            'type'        => $data['type'] ?? $alert->type,
+            'meta'        => isset($data['meta']) ? array_merge($alert->meta ?? [], $data['meta']) : $alert->meta,
+        ]);
+
+        return $alert;
     }
 }

@@ -22,6 +22,7 @@ use App\Http\Controllers\Finance\FinancialContractController;
 use App\Http\Controllers\Admin\Staff\StaffController;
 use App\Http\Controllers\Admin\Student\ExpulsionController;
 use App\Http\Controllers\Admin\SystemNoticeController;
+use App\Http\Controllers\Finance\FinancialSettingsController;
 use App\Http\Controllers\Setting\SubjectController;
 use App\Http\Controllers\Student\PracticeQuizController as StudentPracticeQuizController;
 use App\Http\Controllers\Student\StudentMarkDisplayController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\Teacher\MarkController;
 use App\Http\Controllers\Teacher\PracticeQuizController;
 use App\Http\Controllers\Teacher\TeacherDropdownController;
 use App\Http\Controllers\Teacher\TeacherMaterialController;
+use App\Http\Controllers\User\SentAlertController;
 use App\Http\Controllers\Web\SchoolLawController;
 
 Route::get('/user', function (Request $request) {
@@ -65,28 +67,43 @@ Route::prefix('auth')->group(function () {
         Route::get('/staff-announcements', [UserAnnouncementController::class, 'announcementsForStaff']);
         Route::get('/announcements/unread-count', [UserAnnouncementController::class, 'getUnreadCount']);
         Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
-        Route::get('/alerts', [UserAlertController::class, 'getStaffAlerts']);
-        Route::get('/payment-alerts', [UserAlertController::class, 'getStaffPaymentAlerts']);
-        Route::post('/alerts/mark-all-read', [UserAlertController::class, 'markAllAlertsRead']);
-        Route::get('/alerts/unread-count', [UserAlertController::class, 'unreadAlertsCount']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
 
+        Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
+            Route::get('/show/general/staff', 'getStaffAlerts');
+            Route::get('/show/payments/staff', 'getStaffPaymentAlerts');
+            Route::get('/unread-count', 'unreadAlertsCount');
+            Route::post('/mark-all-read', 'markAllAlertsRead');
+        });
+
+        Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {
+            Route::get('/show/by/role', 'index');
+            Route::put('/update/{id}', 'update');
+        });
+
         Route::middleware('role:secretary|super_admin')->group(function () {
-            Route::post('/staff-alerts', [UserAlertController::class, 'staffAlerts']);
-            Route::post('/payment-alerts', [UserAlertController::class, 'paymentAlerts']);
+            Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
+                Route::post('general/staff/send', 'staffAlerts');
+                Route::post('/payments/staff/send', 'paymentAlerts');
+            });
+
+            Route::prefix('system-notices')->controller(SystemNoticeController::class)->group(function () {
+                Route::get('/show/alerts', 'index');
+                Route::get('/unread-count', 'unreadCount');
+                Route::post('/mark-all-read', 'markAllAsRead');
+            });
             Route::post('/school/law/create', [SchoolLawController::class, 'store']);
             Route::get('/school/laws/all/show', [SchoolLawController::class, 'index']);
             Route::get('/school/law/one/show/{id}', [SchoolLawController::class, 'show']);
             Route::post('/school/law/update/{id}', [SchoolLawController::class, 'update']);
             Route::delete('/school/law/delete/{id}', [SchoolLawController::class, 'destroy']);
-            Route::get('/system/notices', [SystemNoticeController::class, 'index']);
-            Route::get('/system/notices/unread-count', [SystemNoticeController::class, 'unreadCount']);
-            Route::post('/system/notices/mark-all-read', [SystemNoticeController::class, 'markAllAsRead']);
+
         });
 
         Route::middleware('role:adviser|super_admin')->group(function () {
-            Route::post('/advisor-alerts', [UserAlertController::class, 'advisorCreateAlerts']);
-            Route::post('/alerts', [UserAlertController::class, 'store']);
+           Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
+                Route::post('/for-student/send', 'advisorCreateAlerts');
+            });
             Route::post('/announcements', [UserAnnouncementController::class, 'store']);
             Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
             Route::post('/announcement/update/{id}', [UserAnnouncementController::class, 'update']);
@@ -127,11 +144,11 @@ Route::prefix('auth')->group(function () {
 
             });
 
-            Route::prefix('helper/materials')->controller(TeacherMaterialController::class)->group(function(){
-             Route::post('/upload','store');
-             Route::get('/show/by-subject/{gradeSubjectId}','index');
-             Route::get('/show/one/{id}','show');
-             Route::delete('/delete/{id}','destroy');
+            Route::prefix('helper/materials')->controller(TeacherMaterialController::class)->group(function () {
+                Route::post('/upload', 'store');
+                Route::get('/show/by-subject/{gradeSubjectId}', 'index');
+                Route::get('/show/one/{id}', 'show');
+                Route::delete('/delete/{id}', 'destroy');
             });
         });
 
@@ -249,27 +266,27 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
 
     // سياسات التقسيط
-    Route::get('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getPolicies']);
-    Route::post('/policies', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storePolicy']);
+    Route::get('/policies', [FinancialSettingsController::class, 'getPolicies']);
+    Route::post('/policies', [FinancialSettingsController::class, 'storePolicy']);
 
     // خطط الرسوم الموحدة
-    Route::get('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'getFeePlans']);
-    Route::post('/fee-plans', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'storeFeePlan']);
-    Route::post('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicy']);
-    Route::delete('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicy']);
+    Route::get('/fee-plans', [FinancialSettingsController::class, 'getFeePlans']);
+    Route::post('/fee-plans', [FinancialSettingsController::class, 'storeFeePlan']);
+    Route::post('/policies/{id}', [FinancialSettingsController::class, 'updatePolicy']);
+    Route::delete('/policies/{id}', [FinancialSettingsController::class, 'destroyPolicy']);
 
     // تعديل وحذف خطط الرسوم الموحدة
-    Route::post('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateFeePlan']);
-    Route::delete('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyFeePlan']);
-    Route::post('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updatePolicyItem']);
-    Route::delete('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyPolicyItem']);
+    Route::post('/fee-plans/{id}', [FinancialSettingsController::class, 'updateFeePlan']);
+    Route::delete('/fee-plans/{id}', [FinancialSettingsController::class, 'destroyFeePlan']);
+    Route::post('/policy-items/{id}', [FinancialSettingsController::class, 'updatePolicyItem']);
+    Route::delete('/policy-items/{id}', [FinancialSettingsController::class, 'destroyPolicyItem']);
 
-    Route::post('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'updateExtraService']);
-    Route::delete('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'destroyExtraService']);
-    Route::get('/policies/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicy']);
-    Route::get('/fee-plans/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showFeePlan']);
-    Route::get('/policy-items/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showPolicyItem']);
-    Route::get('/extra-services/{id}', [\App\Http\Controllers\Finance\FinancialSettingsController::class, 'showExtraService']);
+    Route::post('/extra-services/{id}', [FinancialSettingsController::class, 'updateExtraService']);
+    Route::delete('/extra-services/{id}', [FinancialSettingsController::class, 'destroyExtraService']);
+    Route::get('/policies/{id}', [FinancialSettingsController::class, 'showPolicy']);
+    Route::get('/fee-plans/{id}', [FinancialSettingsController::class, 'showFeePlan']);
+    Route::get('/policy-items/{id}', [FinancialSettingsController::class, 'showPolicyItem']);
+    Route::get('/extra-services/{id}', [FinancialSettingsController::class, 'showExtraService']);
 });
 
 
@@ -429,12 +446,12 @@ Route::prefix('user')->group(function () {
 
             });
 
-             Route::prefix('helper/materials')->controller(StudentMaterialController::class)->group(function(){
+            Route::prefix('helper/materials')->controller(StudentMaterialController::class)->group(function () {
                 Route::get('/show/all-by/{gradeSubjectId}', 'getBySubject');
                 Route::get('/show/one/{id}', 'show');
-                Route::get('/download/{id}','download');
-                Route::get('/count/unread','unreadCount');
-                Route::post('/mark/all/read/','markAllRead');
+                Route::get('/download/{id}', 'download');
+                Route::get('/count/unread', 'unreadCount');
+                Route::post('/mark/all/read/', 'markAllRead');
             });
         });
 

@@ -30,6 +30,12 @@ class StudentAttendanceSettingsService
     public function updateSettings(int $id, array $data): StudentAttendanceSetting
     {
         $setting = StudentAttendanceSetting::findOrFail($id);
+        $hasAttendances = StudentAttendance::where('semester_id', $setting->semester_id)->exists();
+        if($hasAttendances)
+        {
+            throw new Exception("لا يمكن تعديل الإعدادات. يوجد سجلات حضور فعلية للطلاب مرتبطة بهذا الفصل الدراسي.");
+        }
+
         
         $setting->update($data);
         

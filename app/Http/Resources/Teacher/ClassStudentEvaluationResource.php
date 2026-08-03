@@ -46,6 +46,12 @@ class ClassStudentEvaluationResource extends JsonResource
                     'name' => $this->enrollment->classRoom?->name ?? 'شعبة غير معرفة',
                 ];
             }),
+            'grade' => $this->whenLoaded('enrollment', function () {
+                return [
+                    'id'   => $this->enrollment->gradeLevel?->id,
+                    'name' => $this->enrollment->gradeLevel?->name ?? 'صف غير معرف',
+                ];
+            }),
         ];
     }
 }

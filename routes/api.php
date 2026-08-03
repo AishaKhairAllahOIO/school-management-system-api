@@ -121,7 +121,6 @@ Route::prefix('auth')->group(function () {
             Route::get('creater/show/announcements', [UserAnnouncementController::class, 'adminAnnouncements']);
         });
 
-
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
             Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
@@ -171,7 +170,6 @@ Route::prefix('auth')->group(function () {
         Route::delete('/logout', [SystemAccessController::class, 'logout']);
     });
 });
-
 
 Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
@@ -250,7 +248,6 @@ Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () 
     });
 });
 
-
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/', [SchoolSettingsController::class, 'show']);
@@ -265,7 +262,6 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
     Route::delete('/', [SchoolSettingsController::class, 'destroy']);
 });
-
 
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
 
@@ -293,7 +289,6 @@ Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(funct
     Route::get('/extra-services/{id}', [FinancialSettingsController::class, 'showExtraService']);
 });
 
-
 Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/accounts', [FinancialContractController::class, 'index']);
@@ -314,13 +309,11 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     Route::delete('/payments/{id}', [PaymentController::class, 'destroy']);
 });
 
-
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {
     Route::get('/systemRoles', [RoleController::class, 'index']);
     Route::get('/systemModules', [RoleController::class, 'getSystemModules']);
     Route::put('/{id}/permissions', [RoleController::class, 'sync']);
 });
-
 
 Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
 
@@ -332,7 +325,6 @@ Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
         ->middleware('can:student:create');
     Route::get('/import-batches/history', [StudentController::class, 'getBatchesHistory']);
 });
-
 
 Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function () {
 
@@ -357,7 +349,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
     Route::post('/{enrollment}/student/restore', [StudentController::class, 'restore']);
 
 });
-
 
 Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 

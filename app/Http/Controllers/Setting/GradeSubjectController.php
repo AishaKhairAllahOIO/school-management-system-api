@@ -17,7 +17,9 @@ class GradeSubjectController extends Controller
 {
     use ApiResource;
 
-    public function __construct(protected GradeSubjectService $gradeSubjectService) {}
+    public function __construct(protected GradeSubjectService $gradeSubjectService)
+    {
+    }
 
 
     public function index(): JsonResponse
@@ -25,7 +27,7 @@ class GradeSubjectController extends Controller
         try {
             $gradeSubjects = $this->gradeSubjectService->getAllGradeSubjects();
 
-            $message = $gradeSubjects->isEmpty() ? 'لا يوجد إعدادات مواد مسجلة بعد.' : 'تم جلب إعدادات المواد بنجاح.';
+            $message = $gradeSubjects->isEmpty() ? 'There are no grade subjects registered yet.' : 'All grade subjects retrieved successfully.';
 
             return $this->successResponse(
                 GradeSubjectResource::collection($gradeSubjects),
@@ -33,7 +35,7 @@ class GradeSubjectController extends Controller
                 200
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب إعدادات المواد.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while fetching grade subjects.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -45,17 +47,17 @@ class GradeSubjectController extends Controller
 
             return $this->successResponse(
                 new GradeSubjectResource($gradeSubject),
-                'تم جلب بيانات إعداد المادة بنجاح.',
+                'Grade subject information retrieved successfully.',
                 200
             );
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse(
-                'إعداد المادة المطلوب غير موجود.',
+                'The requested grade subject does not exist.',
                 404
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء جلب إعداد المادة.',
+                'An error occurred while fetching the grade subject.',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -72,11 +74,11 @@ class GradeSubjectController extends Controller
 
             return $this->successResponse(
                 new GradeSubjectResource($gradeSubject),
-                'تم إضافة إعداد المادة بنجاح.',
+                'Grade subject created successfully.',
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء إضافة إعداد المادة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while creating the grade subject.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -91,13 +93,13 @@ class GradeSubjectController extends Controller
 
             return $this->successResponse(
                 new GradeSubjectResource($updatedGradeSubject),
-                'تم تعديل إعداد المادة بنجاح.',
+                'Grade subject updated successfully.',
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('إعداد المادة المطلوب غير موجود.', 404);
+            return $this->errorResponse('The requested grade subject does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل إعداد المادة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while updating the grade subject.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -108,11 +110,11 @@ class GradeSubjectController extends Controller
             $gradeSubject = GradeSubject::findOrFail($id);
             $this->gradeSubjectService->deleteGradeSubject($gradeSubject);
 
-            return $this->successResponse(null, 'تم حذف إعداد المادة بنجاح.', 200);
+            return $this->successResponse(null, 'Grade subject deleted successfully.', 200);
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('إعداد المادة المطلوب غير موجود.', 404);
+            return $this->errorResponse('The requested grade subject does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف إعداد المادة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while deleting the grade subject.', 500, ['error' => $e->getMessage()]);
         }
     }
 }

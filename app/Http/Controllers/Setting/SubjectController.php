@@ -24,11 +24,11 @@ class SubjectController extends Controller
         try {
             $subjects = Subject::orderBy('subject_name', 'asc')->get();
 
-            $message = $subjects->isEmpty() ? 'لا يوجد مواد دراسية مسجلة بعد.' : 'تم جلب المواد بنجاح.';
+            $message = $subjects->isEmpty() ? 'There are no subjects registered yet.' : 'All subjects retrieved successfully.';
 
             return $this->successResponse($subjects, $message, 200);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب المواد.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while fetching subjects.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -38,9 +38,9 @@ class SubjectController extends Controller
         try {
             $subject = $this->subjectService->createSubject($request->validated());
 
-            return $this->successResponse($subject, 'تم إضافة المادة الجديدة بنجاح.', 201);
+            return $this->successResponse($subject, 'Subject created successfully.', 201);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء إضافة المادة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while creating the subject.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -52,11 +52,11 @@ class SubjectController extends Controller
 
             $updatedSubject = $this->subjectService->updateSubject($subject, $request->validated());
 
-            return $this->successResponse($updatedSubject, 'تم تعديل المادة بنجاح.', 200);
+            return $this->successResponse($updatedSubject, 'Subject updated successfully.', 200);
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('المادة المطلوبة غير موجودة.', 404);
+            return $this->errorResponse('The requested subject does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل المادة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while updating the subject.', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -68,11 +68,11 @@ class SubjectController extends Controller
 
             $subject->delete();
 
-            return $this->successResponse(null, 'تم حذف المادة بنجاح.', 200);
+            return $this->successResponse(null, 'Subject deleted successfully.', 200);
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('المادة المطلوبة غير موجودة.', 404);
+            return $this->errorResponse('The requested subject does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف المادة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while deleting the subject.', 500, ['error' => $e->getMessage()]);
         }
     }
 }

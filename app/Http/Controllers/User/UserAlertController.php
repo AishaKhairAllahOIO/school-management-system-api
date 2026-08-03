@@ -19,7 +19,9 @@ class UserAlertController extends Controller
 {
     use ApiResource;
 
-    public function __construct(protected AlertService $alertService) {}
+    public function __construct(protected AlertService $alertService)
+    {
+    }
 
     private function getGuardianStudent(Request $request, int $studentId)
     {
@@ -67,9 +69,9 @@ class UserAlertController extends Controller
         try {
             $student = $this->getGuardianStudent($request, $studentId);
             $alerts = $this->alertService->showStudentAlerts($student);
-
+            $alerts->through(fn($alert) => new AlertResource($alert));
             return $this->paginatedResponse(
-                AlertResource::collection($alerts),
+                $alerts,
                 'Student alerts retrieved successfully.',
                 200
             );
@@ -85,9 +87,9 @@ class UserAlertController extends Controller
         try {
             $student = $this->getGuardianStudent($request, $studentId);
             $alerts = $this->alertService->showStudentPaymentAlerts($student);
-
+            $alerts->through(fn($alert) => new AlertResource($alert));
             return $this->paginatedResponse(
-                AlertResource::collection($alerts),
+                $alerts,
                 'Student payment alerts retrieved successfully.',
                 200
             );
@@ -103,9 +105,9 @@ class UserAlertController extends Controller
         try {
             $student = $this->getAuthStudent($request);
             $alerts = $this->alertService->showStudentAlerts($student);
-
+            $alerts->through(fn($alert) => new AlertResource($alert));
             return $this->paginatedResponse(
-                AlertResource::collection($alerts),
+                $alerts,
                 'Personal alerts retrieved successfully.',
                 200
             );
@@ -121,9 +123,9 @@ class UserAlertController extends Controller
         try {
             $staff = $this->getAuthStaff($request);
             $alerts = $this->alertService->showStaffAlerts($staff);
-
+    $alerts->through(fn($alert) => new AlertResource($alert));
             return $this->paginatedResponse(
-                AlertResource::collection($alerts),
+                $alerts,
                 'Personal alerts retrieved successfully.',
                 200
             );
@@ -141,7 +143,7 @@ class UserAlertController extends Controller
             $alerts = $this->alertService->showStaffPaymentAlerts($staff);
 
             return $this->paginatedResponse(
-                AlertResource::collection($alerts),
+                $alerts,
                 'Personal payment alerts retrieved successfully.',
                 200
             );
@@ -155,8 +157,8 @@ class UserAlertController extends Controller
     public function destroy(Request $request, int $id): JsonResponse
     {
         try {
-            if (!$request->user()->hasAnyRole(['super_admin', 'adviser','teacher','secretary'])) {
-                 return $this->errorResponse('You are not authorized to delete alerts.', 403);
+            if (!$request->user()->hasAnyRole(['super_admin', 'adviser', 'teacher', 'secretary'])) {
+                return $this->errorResponse('You are not authorized to delete alerts.', 403);
             }
 
             $this->alertService->deleteAlert($id);

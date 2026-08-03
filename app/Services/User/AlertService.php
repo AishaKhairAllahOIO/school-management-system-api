@@ -555,15 +555,17 @@ class AlertService
             ->paginate(20);
     }
 
- 
+
     public function unreadSystemNoticesCount(User $user): int
     {
-        return clone $this->getBaseAlertQueryForUser($user)
-            ->where('type', Alert::TYPE_SYSTEM_NOTICE)
-            ->whereDoesntHave('readers', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })
-            ->count();
+       $query = $this->getBaseAlertQueryForUser($user);
+
+       return $query
+       ->where('type',Alert::TYPE_SYSTEM_NOTICE)
+       ->whereDoesntHave('readers',function($query)use ($user){
+        $query->where('user_id',$user->id);
+       })
+       ->count();
     }
 
 

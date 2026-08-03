@@ -25,11 +25,13 @@ use App\Http\Controllers\Admin\SystemNoticeController;
 use App\Http\Controllers\Setting\SubjectController;
 use App\Http\Controllers\Student\PracticeQuizController as StudentPracticeQuizController;
 use App\Http\Controllers\Student\StudentMarkDisplayController;
+use App\Http\Controllers\Student\StudentMaterialController;
 use App\Http\Controllers\Teacher\ClassStudentEvaluationController;
 use App\Http\Controllers\Teacher\HomeworkController;
 use App\Http\Controllers\Teacher\MarkController;
 use App\Http\Controllers\Teacher\PracticeQuizController;
 use App\Http\Controllers\Teacher\TeacherDropdownController;
+use App\Http\Controllers\Teacher\TeacherMaterialController;
 use App\Http\Controllers\Web\SchoolLawController;
 
 Route::get('/user', function (Request $request) {
@@ -123,6 +125,13 @@ Route::prefix('auth')->group(function () {
                 Route::patch('/toggle-active/quiz/{id}', 'toggleActive');
                 Route::delete('/delete/quiz/{id}', 'destroy');
 
+            });
+
+            Route::prefix('helper/materials')->controller(TeacherMaterialController::class)->group(function(){
+             Route::post('/upload','store');
+             Route::get('/show/by-subject/{gradeSubjectId}','index');
+             Route::get('/show/one/{id}','show');
+             Route::delete('/delete/{id}','destroy');
             });
         });
 
@@ -418,6 +427,14 @@ Route::prefix('user')->group(function () {
                 Route::get('/show/quiz/{id}', 'show');
                 Route::get('/show/last/quiz/attempt/{quizId}', 'getLastAttemptDetails');
 
+            });
+
+             Route::prefix('helper/materials')->controller(StudentMaterialController::class)->group(function(){
+                Route::get('/show/all-by/{gradeSubjectId}', 'getBySubject');
+                Route::get('/show/one/{id}', 'show');
+                Route::get('/download/{id}','download');
+                Route::get('/count/unread','unreadCount');
+                Route::post('/mark/all/read/','markAllRead');
             });
         });
 

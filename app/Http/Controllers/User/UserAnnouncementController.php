@@ -25,7 +25,7 @@ class UserAnnouncementController extends Controller
 
         return $this->successResponse(
             new AnnouncementResource($announcement),
-            'تم نشر الإعلان بنجاح.',
+            'Announcement created successfully.',
             201
         );
     }
@@ -36,7 +36,7 @@ class UserAnnouncementController extends Controller
 
         return $this->successResponse(
             new AnnouncementResource($announcement),
-            'تم تعديل الإعلان بنجاح.',
+            'Announcement updated successfully.',
             200
         );
     }
@@ -51,10 +51,10 @@ class UserAnnouncementController extends Controller
         }
 
         $announcements = $this->service->forStaff($user);
-
+        $announcements->through(fn($announcement) => new AnnouncementResource($announcement));
         return $this->paginatedResponse(
-            AnnouncementResource::collection($announcements),
-            'تم جلب الإعلانات بنجاح.'
+            $announcements,
+            'Announcements for staff retrieved successfully.',
         );
     }
 
@@ -63,13 +63,13 @@ class UserAnnouncementController extends Controller
         $user = $request->user();
 
         if (!$user->hasRole('student')) {
-            return $this->errorResponse('هذا الحساب ليس حساب طالب.', 403);
+            return $this->errorResponse('This account is not a student account.', 403);
         }
         $announcements = $this->service->forStudent($user);
-
+        $announcements->through(fn($announcement) => new AnnouncementResource($announcement));
         return $this->paginatedResponse(
-            AnnouncementResource::collection($announcements),
-            'success',
+            $announcements,
+            'Announcements for students retrieved successfully.',
             200
         );
     }
@@ -79,7 +79,7 @@ class UserAnnouncementController extends Controller
         $user = $request->user();
 
         if (!$user->guardian) {
-            return $this->errorResponse('هذا الحساب ليس حساب ولي أمر.', 403);
+            return $this->errorResponse('This account is not a guardian account.', 403);
         }
 
         $studentId = $request->student_id;
@@ -87,15 +87,15 @@ class UserAnnouncementController extends Controller
         if ($studentId) {
             $isHisChild = $user->guardian->students()->where('students.id', $studentId)->exists();
             if (!$isHisChild) {
-                return $this->errorResponse('هذا الطالب غير موجود أو غير مرتبط بحسابك.', 404);
+                return $this->errorResponse('This student does not belong to the current guardian.', 404);
             }
         }
 
         $announcements = $this->service->forGuardian($user, $studentId);
-
+$announcements->through(fn($announcement) => new AnnouncementResource($announcement));
         return $this->paginatedResponse(
-            AnnouncementResource::collection($announcements),
-            'تم جلب إعلانات الطالب بنجاح',
+            $announcements,
+            'Announcements for guardian retrieved successfully.',
             200
         );
     }
@@ -103,11 +103,15 @@ class UserAnnouncementController extends Controller
     public function adminAnnouncements(Request $request)
     {
         if (!$request->user()->hasAnyRole(['super_admin', 'adviser'])) {
-            return $this->errorResponse('غير مصرح لك بالوصول', 403);
+            return $this->errorResponse('You are not authorized to view admin announcements.', 403);
         }
 
         $announcements = $this->service->getAdminAnnouncements($request->user());
-        return $this->paginatedResponse(AnnouncementResource::collection($announcements), 'إعلانات الطلاب (لوحة الإدارة)');
+        $announcements->through(fn($announcement) => new AnnouncementResource($announcement));
+        return $this->paginatedResponse(
+            $announcements,
+            'Your announcements retrieved successfully.'
+        );
     }
 
     public function destroy(Request $request, int $id)
@@ -115,29 +119,29 @@ class UserAnnouncementController extends Controller
         $announcement = Announcement::find($id);
 
         if (!$announcement) {
-            return $this->errorResponse('الإعلان غير موجود.', 404);
+            return $this->errorResponse('The announcement does not exist.', 404);
         }
 
         if (!$request->user()->can('delete', $announcement)) {
-            return $this->errorResponse('غير مصرح لك بحذف هذا الإعلان.', 403);
+            return $this->errorResponse('You are not authorized to delete this announcement.', 403);
         }
 
         $this->service->delete($id);
 
-        return $this->successResponse(null, 'تم حذف الإعلان بنجاح.');
+        return $this->successResponse(null, 'The announcement has been deleted successfully.');
     }
 
     public function getUnreadCount(Request $request)
     {
         $count = $this->service->unreadCount($request->user(), $request->student_id);
-        return $this->successResponse(['count' => $count], 'success', 200);
+        return $this->successResponse(['count' => $count], 'Success', 200);
     }
 
     public function markAllAsRead(Request $request)
     {
         $this->service->markAllAsRead($request->user(), $request->student_id);
-        return $this->successResponse(null, 'تم تصفير عداد الإعلانات', 200);
+        return $this->successResponse(null, 'The unread announcements count has been reset.', 200);
     }
 
-    
+
 }

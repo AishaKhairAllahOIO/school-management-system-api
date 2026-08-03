@@ -17,7 +17,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\Setting\GradeConfigurationResource;
 use App\Http\Resources\Setting\ClassRoomResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Exception; // 👈 هذا الكلاس الذي يصطاد عدم وجود الداتا
+use Exception;
 
 
 class GradeAndClassroomController extends Controller
@@ -25,27 +25,26 @@ class GradeAndClassroomController extends Controller
     use ApiResource;
     public function __construct(protected GradeAndClassroomService $service) {}
 
-    // ---- الصفوف ----
-        public function indexGrades(): JsonResponse 
+
+        public function indexGrades(): JsonResponse
     {
         try {
             $grades = $this->service->getAllGrades();
-            // لمسة إضافية: تغيير الرسالة إذا كانت القائمة فارغة
-            $message = $grades->isEmpty() ? 'لا يوجد صفوف دراسية مسجلة بعد.' : 'تم جلب جميع الصفوف الدراسية بنجاح.';
-            
+            $message = $grades->isEmpty() ? 'There are no grades registered yet.' : 'All grades retrieved successfully.';
+
             return $this->successResponse(
                 GradeLevelResource::collection($grades),
                 $message
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب الصفوف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An error occurred while fetching grades.', 500, ['error' => $e->getMessage()]);
         }
     }
-        public function indexClassrooms(): JsonResponse 
+        public function indexClassrooms(): JsonResponse
     {
         try {
             $classrooms = $this->service->getAllClassrooms();
-            $message = $classrooms->isEmpty() ? 'لا يوجد شعب دراسية مسجلة بعد.' : 'تم جلب جميع الشعب الدراسية بنجاح.';
+            $message = $classrooms->isEmpty() ? 'There are no classrooms registered yet.' : 'All classrooms retrieved successfully.';
 
             return $this->successResponse(
                 ClassroomResource::collection($classrooms),
@@ -55,7 +54,7 @@ class GradeAndClassroomController extends Controller
             return $this->errorResponse('حدث خطأ أثناء جلب الشعب.', 500, ['error' => $e->getMessage()]);
         }
     }
-        public function indexConfigurations(): JsonResponse 
+        public function indexConfigurations(): JsonResponse
     {
         try {
             $configs = $this->service->getAllConfigurations();
@@ -83,7 +82,6 @@ class GradeAndClassroomController extends Controller
         );
     }
 
-    // ---- التكوين التخطيطي للصف ----
     public function storeConfiguration(StoreGradeConfigurationRequest $request): JsonResponse {
         return $this->successResponse(new GradeConfigurationResource(
             $this->service->createConfiguration($request->validated())),
@@ -110,7 +108,7 @@ class GradeAndClassroomController extends Controller
             'Classroom updated successfully.'
         );
     }
-        public function showGrade(int $id): JsonResponse 
+        public function showGrade(int $id): JsonResponse
     {
         try{
         return $this->successResponse(
@@ -123,7 +121,7 @@ class GradeAndClassroomController extends Controller
         }
     }
 
-    public function showConfiguration(int $id): JsonResponse 
+    public function showConfiguration(int $id): JsonResponse
     {
         try{
         return $this->successResponse(
@@ -136,7 +134,7 @@ class GradeAndClassroomController extends Controller
         }
     }
 
-    public function showClassroom(int $id): JsonResponse 
+    public function showClassroom(int $id): JsonResponse
     {
         try{
         return $this->successResponse(
@@ -148,15 +146,15 @@ class GradeAndClassroomController extends Controller
          return $this->errorResponse('الشعبة الدراسية المطلوبة غير موجودة.', 404);
         }
     }
-      public function destroyGrade(int $id): JsonResponse 
+      public function destroyGrade(int $id): JsonResponse
     {
         try {
             $this->service->deleteGrade($id);
             return $this->successResponse(null, 'تم حذف الصف الدراسي بنجاح.');
-            
+
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('الصف الدراسي المطلوب غير موجود.', 404);
-            
+
         } catch (Exception $e) {
             // هنا سيتم اصطياد الـ Exception الذي يحمل كود 409 من السيرفيس
             $statusCode = $e->getCode() == 409 ? 409 : 500;
@@ -164,30 +162,30 @@ class GradeAndClassroomController extends Controller
         }
     }
 
-    public function destroyConfiguration(int $id): JsonResponse 
+    public function destroyConfiguration(int $id): JsonResponse
     {
         try {
             $this->service->deleteConfiguration($id);
             return $this->successResponse(null, 'تم حذف الإعداد التخطيطي بنجاح.');
-            
+
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('الإعداد التخطيطي المطلوب غير موجود.', 404);
-            
+
         } catch (Exception $e) {
             $statusCode = $e->getCode() == 409 ? 409 : 500;
             return $this->errorResponse($e->getMessage(), $statusCode);
         }
     }
 
-    public function destroyClassroom(int $id): JsonResponse 
+    public function destroyClassroom(int $id): JsonResponse
     {
         try {
             $this->service->deleteClassroom($id);
             return $this->successResponse(null, 'تم حذف الشعبة الدراسية بنجاح.');
-            
+
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('الشعبة الدراسية المطلوبة غير موجودة.', 404);
-            
+
         } catch (Exception $e) {
             $statusCode = $e->getCode() == 409 ? 409 : 500;
             return $this->errorResponse($e->getMessage(), $statusCode);

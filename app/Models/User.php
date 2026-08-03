@@ -95,4 +95,10 @@ class User extends Authenticatable
             ->withPivot('read_at');
     }
 
+    public function readStudyMaterials()
+    {
+        return $this->belongsToMany(StudyMaterial::class, 'material_user_reads', 'user_id', 'study_material_id')
+                    ->withPivot('read_at');
+    }
+
 }

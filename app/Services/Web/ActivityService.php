@@ -10,7 +10,6 @@ use App\Models\Enrollment;
 use App\Models\GradeConfiguration;
 use App\Models\Student;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
@@ -117,7 +116,8 @@ class ActivityService
                         ->whereDate('end_date', '>=', now());
                 })->latest()->first();
 
-            if (!$enrollment) return Activity::query()->where('id', '<', 0);
+            if (!$enrollment)
+                return Activity::query()->where('id', '<', 0);
 
             return Activity::query()
                 ->where('grade_level_id', $enrollment->grade_level_id)
@@ -144,7 +144,8 @@ class ActivityService
                         ->whereDate('end_date', '>=', now());
                 })->get();
 
-            if ($enrollments->isEmpty()) return Activity::query()->where('id', '<', 0);
+            if ($enrollments->isEmpty())
+                return Activity::query()->where('id', '<', 0);
 
             return Activity::query()->where(function ($query) use ($enrollments) {
                 foreach ($enrollments as $enrollment) {
@@ -189,14 +190,12 @@ class ActivityService
             $user->readActivities()->syncWithoutDetaching($syncData);
         }
     }
-public function getAllActivities(User $user): LengthAwarePaginator
+    public function getAllActivities(User $user): LengthAwarePaginator
     {
         $query = Activity::query()->with(['gradeLevel:id,name', 'classRooms:id,name']);
 
         if ($user->hasRole('super_admin')) {
-        }
-
-        elseif ($user->hasRole('advisor')) {
+        } elseif ($user->hasRole('advisor')) {
             $advisorGradeIds = GradeConfiguration::where('supervisor_id', $user->id)
                 ->whereHas('academicYear', function ($q) {
                     $q->where('is_current', true);
@@ -205,9 +204,7 @@ public function getAllActivities(User $user): LengthAwarePaginator
                 ->toArray();
 
             $query->whereIn('grade_level_id', $advisorGradeIds);
-        }
-
-        elseif ($user->hasRole('teacher')) {
+        } elseif ($user->hasRole('teacher')) {
             $teacherClassRooms = $user->staff->teacherAssignments()
                 ->pluck('class_room_id')
                 ->toArray();
@@ -218,14 +215,12 @@ public function getAllActivities(User $user): LengthAwarePaginator
 
             $query->where(function ($q) use ($teacherGrades, $teacherClassRooms) {
                 $q->whereIn('grade_level_id', $teacherGrades)
-                  ->doesntHave('classRooms')
-                  ->orWhereHas('classRooms', function ($subQ) use ($teacherClassRooms) {
-                      $subQ->whereIn('class_room_id', $teacherClassRooms);
-                  });
+                    ->doesntHave('classRooms')
+                    ->orWhereHas('classRooms', function ($subQ) use ($teacherClassRooms) {
+                        $subQ->whereIn('class_room_id', $teacherClassRooms);
+                    });
             });
-        }
-
-        else {
+        } else {
             $query->where('id', '<', 0);
         }
 

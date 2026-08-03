@@ -4,17 +4,10 @@ namespace App\Http\Controllers\User;
 
 use App\ApiResource;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\UpdatePersonalImageRequest;
-use App\Http\Resources\Auth\ProfileResource;
 use App\Http\Resources\User\TeacherProfileResource;
 use App\Models\User;
-use Exception;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\User\UpdateStaffRequest;
-use App\Http\Resources\Auth\AcademicProfileResource;
-use App\Http\Resources\Auth\UserResource;
 use App\Http\Resources\User\CounselorProfileResource;
 
 class UserController extends Controller
@@ -40,7 +33,7 @@ class UserController extends Controller
         else if ($user->hasRole('guardian'))
             $result = $this->userService->getGuardian($user);
 
-        return $this->successResponse($result, 'تم جلب بيانات لوحة التحكم بنجاح', 200);
+        return $this->successResponse($result, 'User information retrieved successfully.', 200);
     }
 
     public function teacherProfile(Request $request)
@@ -54,7 +47,7 @@ class UserController extends Controller
             return $this->errorResponse('User is not a teacher.', 403);
         }
 
-        return $this->successResponse(new TeacherProfileResource($user), 'تم جلب بيانات المستخدم بنجاح', 200);
+        return $this->successResponse(new TeacherProfileResource($user), 'Teacher profile retrieved successfully.', 200);
     }
 
     public function counselorProfile(Request $request)
@@ -68,7 +61,7 @@ class UserController extends Controller
             return $this->errorResponse('User is not a counselor.', 403);
         }
 
-        return $this->successResponse(new CounselorProfileResource($user), 'تم جلب بيانات المستخدم بنجاح', 200);
+        return $this->successResponse(new CounselorProfileResource($user), 'Counselor profile retrieved successfully.', 200);
     }
 
     public function myPersonalPhotoUrl(Request $request)
@@ -81,10 +74,9 @@ class UserController extends Controller
 
         return $this->successResponse([
             'photo_url' => $this->getPhotoUrl($user),
-        ], 'تم جلب رابط الصورة بنجاح', 200);
+        ], 'Personal photo URL retrieved successfully.', 200);
     }
 
-    // 🚀 التعديل الجوهري: تبسيط الدالة وتوجيهها لـ photo_url والمسار العالمي المحمي
     private function getPhotoUrl(User $user): ?string
     {
         if (!$user->photo_url) {
@@ -99,28 +91,27 @@ class UserController extends Controller
         $user = $request->user();
 
         if (!$user->hasRole('guardian') || !$user->guardian) {
-            return $this->errorResponse('غير مصرح لك بالوصول. هذا المسار مخصص لأولياء الأمور.', 403);
+            return $this->errorResponse('You are not authorized to access this resource.', 403);
         }
 
         $student = $user->guardian->students()->find($studentId);
 
         if (!$student) {
-            return $this->errorResponse('الطالب غير موجود أو لا يتبع لك.', 404);
+            return $this->errorResponse('The student does not exist or does not belong to you.', 404);
         }
 
         $studentUser = $student->user;
 
-        // 🚀 الاعتماد على photo_url بدلاً من personal_photo
         if (!$studentUser || !$studentUser->photo_url) {
             return $this->successResponse([
                 'photo_url' => null,
-            ], 'الطالب لا يملك صورة في النظام.', 200);
+            ], 'The student does not have a photo in the system.', 200);
         }
 
         $photoUrl = url('/api/documents/photos/' . ltrim($studentUser->photo_url, '/'));
 
         return $this->successResponse([
             'photo_url' => $photoUrl,
-        ], 'تم جلب رابط صورة الابن بنجاح', 200);
+        ], 'Child\'s photo URL retrieved successfully.', 200);
     }
 }

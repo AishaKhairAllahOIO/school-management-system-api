@@ -4,16 +4,9 @@ namespace App\Services\User;
 
 
 use App\ApiResource;
-use App\Http\Resources\Auth\UserResource;
 use App\Models\Semester;
-use Carbon\Carbon;
-use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\Request;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 class UserService
 {
 
@@ -24,7 +17,7 @@ class UserService
         $student = $user->student;
 
         if (!$student) {
-            throw new HttpResponseException($this->errorResponse('هذا الحساب غير مسجل كطالب في النظام.', 404));
+            throw new HttpResponseException($this->errorResponse("Student not found.", 404));
         }
 
         $currentEnrollment = $student->enrollments()
@@ -36,7 +29,7 @@ class UserService
             ->first();
 
         if (!$currentEnrollment) {
-            throw new HttpResponseException($this->errorResponse('لا يوجد تسجيل أكاديمي نشط للطالب في السنة الدراسية الحالية.', 404));
+            throw new HttpResponseException($this->errorResponse("No active enrollment found for the student in the current academic year.", 404));
         }
 
         $semester = Semester::where('academic_year_id', $currentEnrollment->academic_year_id)
@@ -49,7 +42,7 @@ class UserService
         }
 
         if (!$semester) {
-            throw new HttpResponseException($this->errorResponse('لا يوجد فصل دراسي معرف لهذه السنة الأكاديمية.', 404));
+            throw new HttpResponseException($this->errorResponse("No active semester found for the student in the current academic year.", 404));
         }
 
         return [
@@ -61,13 +54,12 @@ class UserService
                 ],
         ];
     }
-
     public function getGuardian($user)
     {
         $guardian = $user->guardian;
 
         if (!$guardian) {
-            throw new HttpResponseException($this->errorResponse('هذا الحساب غير مسجل كولي أمر في النظام.', 404));
+            throw new HttpResponseException($this->errorResponse("Guardian not found.", 404));
         }
 
         $students = $guardian->students()->with([
@@ -119,8 +111,6 @@ class UserService
         ];
     }
 
-
-    
 }
 
 

@@ -13,7 +13,7 @@ use App\Http\Requests\Setting\AddSchoolImageRequest;
 use App\Http\Resources\Setting\SchoolImageResource;
 use App\Models\SchoolImage;
 use App\Http\Requests\Setting\UpdateSchoolImageRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException; // 👈 هذا الكلاس الذي يصطاد عدم وجود الداتا
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 
 class SchoolSettingsController extends Controller
@@ -25,21 +25,15 @@ class SchoolSettingsController extends Controller
         try {
             $settings = $service->getSettings();
 
-            // if (!$settings) {
-            //     return $this->errorResponse('School settings have not been initialized yet.', 404);
-            // }
-
             return $this->successResponse(
                 new GeneralSettingsResource($settings),
                 'Settings retrieved successfully.',
                 200
             );
 
-        }catch(ModelNotFoundException $e)
-        {
-            return $this->errorResponse($e->getMessage(),404);
-        }
-         catch (Exception $e) {
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse($e->getMessage(), 404);
+        } catch (Exception $e) {
             return $this->errorResponse('An error occurred while fetching settings.', 500, ['exception_message' => $e->getMessage()]);
         }
     }
@@ -67,83 +61,84 @@ class SchoolSettingsController extends Controller
 
         return $this->successResponse(
             SchoolImageResource::collection($images),
-            'تم جلب جميع الصور بنجاح.',
+            'All school images retrieved successfully.',
             200
         );
     }
 
 
-public function showImage(int $id, SchoolSettingsService $service)
+    public function showImage(int $id, SchoolSettingsService $service)
     {
         try {
             $image = $service->getImageById($id);
             return $this->successResponse(
                 new SchoolImageResource($image),
-                'تم جلب بيانات الصورة بنجاح.'
+                'School image data retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الصورة المطلوبة غير موجودة في المعرض.', 404);
+            return $this->errorResponse('The requested school image does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ غير متوقع.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('An unexpected error occurred.', 500, ['error' => $e->getMessage()]);
         }
     }
-    public function storeImages(AddSchoolImageRequest $request,SchoolSettingsService $service)
+    public function storeImages(AddSchoolImageRequest $request, SchoolSettingsService $service)
     {
-        try{
-        $images = $service->addSchoolImages($request->validated());
+        try {
+            $images = $service->addSchoolImages($request->validated());
 
-        return $this->successResponse(
-            SchoolImageResource::collection($images),
-            'تم إضافة رابط الصورة إلى المعرض بنجاح.',
-            201
-        );
-        }catch(ModelNotFoundException $e)
-        {
-            return $this->errorResponse('إعدادات المدرسة غير موجودة.', 404);
-        }catch (\Exception $e) {
-            return $this->errorResponse('حدث خطأ غير متوقع.', 500, ['error' => $e->getMessage()]);
+            return $this->successResponse(
+                SchoolImageResource::collection($images),
+                'School image link added to the gallery successfully.',
+                201
+            );
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('School settings not found.', 404);
+        } catch (Exception $e) {
+            return $this->errorResponse('An unexpected error occurred.', 500, ['error' => $e->getMessage()]);
         }
     }
-        public function updateImage(UpdateSchoolImageRequest $request, int $image, SchoolSettingsService $service)
+    public function updateImage(UpdateSchoolImageRequest $request, int $image, SchoolSettingsService $service)
     {
-        try{
-        $updatedImage = $service->updateSchoolImage($image, $request->validated());
+        try {
+            $updatedImage = $service->updateSchoolImage($image, $request->validated());
 
-        return $this->successResponse(
-            new SchoolImageResource($updatedImage),
-            'تم تحديث بيانات الصورة بنجاح.',
-            200
-        );
-        }catch(ModelNotFoundException $e)
-        {
-            return $this->errorResponse('الصورة المحددة غير موجودة في المعرض.', 404);
+            return $this->successResponse(
+                new SchoolImageResource($updatedImage),
+                'School image updated successfully.',
+                200
+            );
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('The requested school image does not exist.', 404);
         }
     }
 
     public function destroyImage(int $image, SchoolSettingsService $service)
     {
-        try{
-        $service->deleteSchoolImage($image);
-        return $this->successResponse(null, 'تم حذف الصورة بنجاح.');
-        }catch(ModelNotFoundException $e)
-        {
-            return $this->errorResponse('الصورة المحددة غير موجودة في المعرض.', 404);
-        }catch (\Exception $e) {
-            return $this->errorResponse('حدث خطأ غير متوقع.', 500, ['error' => $e->getMessage()]);
+        try {
+            $service->deleteSchoolImage($image);
+            return $this->successResponse(null, 'School image deleted successfully.');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('The requested school image does not exist.', 404);
+        } catch (Exception $e) {
+            return $this->errorResponse('An unexpected error occurred.', 500, ['error' => $e->getMessage()]);
         }
     }
     public function destroy(SchoolSettingsService $service)
     {
         try {
             $service->deleteSettings();
-            return $this->successResponse(null, 'تم حذف الإعدادات العامة للمدرسة وصور المعرض بنجاح.');
-        } catch (\Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء الحذف.', 500, ['error' => $e->getMessage()]);
+            return $this->successResponse(null, 'School settings deleted successfully.');
+        } catch (Exception $e) {
+            return $this->errorResponse('An unexpected error occurred.', 500, ['error' => $e->getMessage()]);
         }
     }
     public function index(SchoolSettingsService $service)
     {
-        return $this->successResponse($service->index(),'تم جلب البيانات ',200);
+        return $this->successResponse(
+            $service->index(),
+            'Data retrieved successfully.',
+            200
+        );
     }
 
 

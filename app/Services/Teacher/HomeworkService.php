@@ -73,7 +73,7 @@ class HomeworkService
     public function getStudentHomeworks(User $studentUser, int $perPage = 15): LengthAwarePaginator
     {
         if (!$studentUser->student) {
-            throw new NotFoundHttpException('ملف الطالب غير موجود.');
+            throw new NotFoundHttpException("Student file not found.", null, 404);
         }
 
         return $this->getBaseQueryForUser($studentUser)
@@ -89,7 +89,7 @@ class HomeworkService
             ->first();
 
         if (!$child) {
-            throw new AccessDeniedHttpException('غير مصرح لك بالوصول إلى بيانات هذا الطالب لأنه غير مسجل تحت رعايتك.');
+            throw new AccessDeniedHttpException("You are not authorized to access this student's homework because they are not under your guardianship.", null, 403);
         }
 
         return $this->getBaseQueryForUser($guardianUser, $studentId)
@@ -171,7 +171,7 @@ class HomeworkService
                 $isMyChild = $user->guardian->students()->where('students.id', $specificStudentId)->exists();
 
                 if (!$isMyChild) {
-                    throw new AccessDeniedHttpException('هذا الطالب لا يتبع لرعايتك، غير مصرح لك بالوصول لبياناته.');
+                    throw new AccessDeniedHttpException("You are not authorized to access this student's homework because they are not under your guardianship.", null, 403);
                 }
 
                 $studentsQuery->where('students.id', $specificStudentId);

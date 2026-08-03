@@ -33,11 +33,11 @@ class HomeworkController extends Controller
         $staff = $user->staff;
 
         if (!$staff && !$user->hasAnyRole(['super_admin', 'adviser', 'teacher'])) {
-            throw new InvalidArgumentException('هذا الحساب ليس لموظف أو معلم مسجل في النظام.', 403);
+            throw new InvalidArgumentException('This account is not registered as a staff member.', 403);
         }
 
         if (!$staff) {
-            throw new InvalidArgumentException('حسابك ليس له ملف موظف (Staff Profile) مرتبط لإدارة الوظائف المدرسية.', 403);
+            throw new InvalidArgumentException("You are not registered as a staff member.", 403);
         }
 
         return $staff;
@@ -47,7 +47,7 @@ class HomeworkController extends Controller
     {
         $student = $request->user()->student;
         if (!$student) {
-            throw new InvalidArgumentException('هذا الحساب ليس مسجلاً كطالب لعرض الوظائف المدرسية.', 403);
+            throw new InvalidArgumentException('This account is not registered as a student.', 403);
         }
 
         return $student;
@@ -57,12 +57,12 @@ class HomeworkController extends Controller
     {
         $guardian = $request->user()->guardian;
         if (!$guardian) {
-            throw new InvalidArgumentException('هذا الحساب ليس لولي أمر مسجل.', 403);
+            throw new InvalidArgumentException('This account is not registered as a guardian.', 403);
         }
 
         $student = $guardian->students()->find($studentId);
         if (!$student) {
-            throw new InvalidArgumentException('هذا الطالب لا يتبع لولي الأمر الحالي، غير مصرح لك بالوصول لوظائفه.', 403);
+            throw new InvalidArgumentException('Student not found or not associated with the current guardian.', 403);
         }
 
         return $student;
@@ -75,15 +75,17 @@ class HomeworkController extends Controller
             $this->getAuthStaff($request);
             $homeworks = $this->homeworkService->getTeacherHomeworks($request->user());
 
+           $homeworks->through(fn($homework) => new HomeworkResource($homework));
+
             return $this->paginatedResponse(
-                HomeworkResource::collection($homeworks),
-                'تم جلب قائمة الوظائف المدرسية بنجاح.',
+                $homeworks,
+                "Homework list retrieved successfully.",
                 200
             );
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب قائمة الوظائف المدرسية.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse("An error occurred while fetching the homework list.", 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -98,11 +100,11 @@ class HomeworkController extends Controller
 
             return $this->successResponse(
                 new HomeworkResource($homework),
-                'تم إنشاء الوظيفة المدرسية وإرسال الإشعارات للطلاب وأولياء أمورهم بنجاح.',
+                'Homework created successfully and notifications sent to students and guardians.',
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء إنشاء الوظيفة المدرسية.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse("An error occurred while creating the homework.", 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -119,15 +121,15 @@ class HomeworkController extends Controller
                     'gradeSubject.gradeLevel',
                     'classRooms'
                 ])),
-                'تم جلب تفاصيل الوظيفة المدرسية بنجاح.',
+                "Homework details retrieved successfully.",
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الوظيفة المدرسية المطلوبة غير موجودة.', 404);
+            return $this->errorResponse("Homework not found.", 404);
         } catch (AuthorizationException | AccessDeniedHttpException $e) {
-            return $this->errorResponse('غير مصرح لك بعرض تفاصيل هذه الوظيفة المدرسية.', 403);
+            return $this->errorResponse("You are not authorized to view this homework.", 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب تفاصيل الوظيفة المدرسية.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse("An error occurred while fetching the homework details.", 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -140,15 +142,15 @@ class HomeworkController extends Controller
 
             return $this->successResponse(
                 new HomeworkResource($updatedHomework),
-                'تم تعديل الوظيفة المدرسية بنجاح.',
+                'Homework updated successfully and notifications sent to students and guardians.',
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الوظيفة المدرسية المطلوبة غير موجودة.', 404);
+            return $this->errorResponse("Homework not found.", 404);
         } catch (AuthorizationException | AccessDeniedHttpException $e) {
-            return $this->errorResponse('غير مصرح لك بتعديل هذه الوظيفة المدرسية.', 403);
+            return $this->errorResponse("You are not authorized to update this homework.", 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل الوظيفة المدرسية.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse("An error occurred while updating the homework.", 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -161,15 +163,15 @@ class HomeworkController extends Controller
 
             return $this->successResponse(
                 null,
-                'تم حذف الوظيفة المدرسية بنجاح.',
+                "Homework deleted successfully.",
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الوظيفة المدرسية المطلوبة غير موجودة.', 404);
+            return $this->errorResponse("Homework not found.", 404);
         } catch (AuthorizationException | AccessDeniedHttpException $e) {
-            return $this->errorResponse('غير مصرح لك بحذف هذه الوظيفة المدرسية.', 403);
+            return $this->errorResponse("You are not authorized to delete this homework.", 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف الوظيفة المدرسية.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse("An error occurred while deleting the homework.", 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -180,9 +182,11 @@ class HomeworkController extends Controller
             $this->getAuthStudent($request);
             $homeworks = $this->homeworkService->getStudentHomeworks($request->user());
 
+            $homeworks->through(fn($homework) => new HomeworkResource($homework));
+
             return $this->paginatedResponse(
-                HomeworkResource::collection($homeworks),
-                'تم جلب قائمة الوظائف المدرسية الخاصة بشعبتك بنجاح.',
+                $homeworks,
+                "homework list retrieved successfully.",
                 200
             );
         } catch (InvalidArgumentException $e) {
@@ -190,7 +194,7 @@ class HomeworkController extends Controller
         } catch (NotFoundHttpException $e) {
             return $this->errorResponse($e->getMessage(), 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب وظائف الطالب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse("Error occurred while fetching student homework list.", 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -201,8 +205,10 @@ class HomeworkController extends Controller
             $this->getGuardianStudent($request, $studentId);
             $homeworks = $this->homeworkService->getGuardianChildHomeworks($request->user(), $studentId);
 
+            $homeworks->through(fn($homework) => new HomeworkResource($homework));
+
             return $this->paginatedResponse(
-                HomeworkResource::collection($homeworks),
+                $homeworks,
                 'Child homework list retrieved successfully.',
                 200
             );
@@ -224,11 +230,11 @@ class HomeworkController extends Controller
             $this->getAuthStudent($request);
             $count = $this->homeworkService->unreadCount($request->user());
 
-            return $this->successResponse(['unread_count' => $count], 'تم جلب عدد الوظائف غير المقروءة بنجاح.');
+            return $this->successResponse(['unread_count' => $count], "Unread homework count retrieved successfully.");
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب العداد.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse("An error occurred while fetching the unread homework count.", 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -237,11 +243,11 @@ class HomeworkController extends Controller
         try {
             $count = $this->homeworkService->unreadCount($request->user(), $request->input('student_id'));
 
-            return $this->successResponse(['unread_count' => $count], 'تم جلب عدد الوظائف غير المقروءة بنجاح.');
+            return $this->successResponse(['unread_count' => $count], 'Unread homework count retrieved successfully.');
         } catch (AccessDeniedHttpException $e) {
             return $this->errorResponse($e->getMessage(), 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب العداد.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse("An error occurred while fetching the unread homework count.", 500, ['error' => $e->getMessage()]);
         }
     }
     public function markAllAsRead(Request $request): JsonResponse
@@ -249,11 +255,11 @@ class HomeworkController extends Controller
         try {
             $this->homeworkService->markAllAsRead($request->user(), $request->input('student_id'));
 
-            return $this->successResponse(null, 'تم تحديد كافة الوظائف كمقروءة بنجاح.');
+            return $this->successResponse(null, 'All homework have been marked as read successfully.');
         } catch (AccessDeniedHttpException $e) {
             return $this->errorResponse($e->getMessage(), 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تحديث حالة القراءة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse("An error occurred while marking homework as read.", 500, ['error' => $e->getMessage()]);
         }
     }
 }

@@ -28,7 +28,11 @@ class ActivityController extends Controller
     {
         $result = $this->activityService->addActivity($activityRequest->validated());
 
-        return $this->successResponse(new ActivityResource($result), 'Activity has been added successfully', 201);
+        return $this->successResponse(
+            new ActivityResource($result),
+            'Activity has been added successfully',
+            201
+        );
     }
 
     public function updateActivity(UpdateActivityRequest $updateActivityRequest, int $id)
@@ -39,7 +43,11 @@ class ActivityController extends Controller
         }
 
         $updatedActivity = $this->activityService->updateActivity($activity, $updateActivityRequest->validated());
-        return $this->successResponse(new ActivityResource($updatedActivity), 'Activity updated successfully', 200);
+        return $this->successResponse(
+            new ActivityResource($updatedActivity),
+            'Activity updated successfully',
+            200
+        );
     }
 
     public function destroy(Request $request)
@@ -50,53 +58,70 @@ class ActivityController extends Controller
         }
 
         if (!$request->user()->can('delete', $activity)) {
-            return $this->errorResponse('غير مصرح لك بحذف هذا النشاط.', 403, null);
+            return $this->errorResponse('Access denied.', 403, null);
         }
 
         $this->activityService->deleteActivity($activity->id);
 
-        return $this->successResponse(null, 'تم حذف النشاط بنجاح.', 200);
+        return $this->successResponse(null, 'Activity deleted successfully.', 200);
     }
 
-    public function show(Request $request){
+    public function show(Request $request)
+    {
         $student = $request->user()->student;
 
-        if(!$student){
-             return $this->errorResponse('student not found', 404, null);
+        if (!$student) {
+            return $this->errorResponse('student not found', 404, null);
         }
-        $activities= $this->activityService->showActivities($student);
-
-        return $this->paginatedResponse(ActivityResource::collection($activities), 'student activities', 200);
+        $activities = $this->activityService->showActivities($student);
+        $activities->through(fn($activity) => new ActivityResource($activity));
+        return $this->paginatedResponse(
+            $activities,
+            'student activities',
+            200
+        );
     }
 
- public function showAllActivity(Request $request)
+    public function showAllActivity(Request $request)
     {
         if (!$request->user()->can('viewAny', Activity::class)) {
-            return $this->errorResponse('غير مصرح لك بالوصول لهذه البيانات.', 403, null);
+            return $this->errorResponse('Access denied.', 403, null);
         }
 
         $activities = $this->activityService->getAllActivities($request->user());
-
-        return $this->paginatedResponse(ActivityResource::collection($activities), 'those are the activities.', 200);
+        $activities->through(fn($activity) => new ActivityResource($activity));
+        return $this->paginatedResponse(
+            $activities,
+            'those are the activities.',
+            200
+        );
     }
     public function guardianViewActivities(GuardianViewActivitiesRequest $request)
     {
         $guardian = $request->user()->guardian;
 
-        if (!$guardian) return $this->errorResponse('guardian not found', 404, null);
+        if (!$guardian)
+            return $this->errorResponse('guardian not found', 404, null);
 
         $student = $guardian->students()->where('students.id', $request->student_id)->first();
 
-        if (!$student) return $this->errorResponse('الطالب غير موجود أو غير مرتبط بولي الأمر.', 404, null);
+        if (!$student)
+            return $this->errorResponse('student not found or not associated with the guardian.', 404, null);
 
         $activities = $this->activityService->showActivities($student);
-        return $this->paginatedResponse(ActivityResource::collection($activities), 'student activities', 200);
+        $activities->through(fn($activity) => new ActivityResource($activity));
+        return $this->paginatedResponse(
+            $activities,
+            'student activities',
+            200
+        );
     }
 
     public function showActivity(Request $request, int $id)
     {
         $activity = Activity::find($id);
-        if (!$activity) return $this->errorResponse('Activity not found', 404, null);
+        if (!$activity)
+            return $this->errorResponse('Activity not found', 404, null);
 
         return $this->successResponse(new ActivityResource($activity), 'activity shown successfuly', 200);
     }
@@ -111,6 +136,6 @@ class ActivityController extends Controller
     public function markAllAsRead(Request $request)
     {
         $this->activityService->markAllAsRead($request->user(), $request->student_id);
-        return $this->successResponse(null, 'تم تصفير عداد الأنشطة', 200);
+        return $this->successResponse(null, 'Activity read status reset successfully.', 200);
     }
 }

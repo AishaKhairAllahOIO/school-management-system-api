@@ -11,7 +11,6 @@ class AlertSeeder extends Seeder
 {
     public function run(): void
     {
-        // تنبيه واجب
         Alert::updateOrCreate(
             [
                 'notifiable_type' => Enrollment::class,

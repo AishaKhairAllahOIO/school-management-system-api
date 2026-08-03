@@ -79,7 +79,9 @@ Route::prefix('auth')->group(function () {
         Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {
             Route::get('/show/by/role', 'index');
             Route::put('/update/{id}', 'update');
+            Route::delete('/delete/group/{id}', 'destroy');
         });
+        Route::delete('/delete/alert/{id}', [UserAlertController::class, 'destroy']);
 
         Route::middleware('role:secretary|super_admin')->group(function () {
             Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
@@ -101,8 +103,17 @@ Route::prefix('auth')->group(function () {
         });
 
         Route::middleware('role:adviser|super_admin')->group(function () {
-           Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
+
+            Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
                 Route::post('/for-student/send', 'advisorCreateAlerts');
+            });
+
+             Route::prefix('activity')->controller(ActivityController::class)->group(function () {
+                Route::get('/show/all', 'showAllActivity');
+                Route::get('/show/one/{id}','showActivity');
+                Route::post('/create','store');
+                Route::delete('/delete/{id}','destroy');
+                Route::post('/update/{id}','updateActivity');
             });
             Route::post('/announcements', [UserAnnouncementController::class, 'store']);
             Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
@@ -110,13 +121,7 @@ Route::prefix('auth')->group(function () {
             Route::get('creater/show/announcements', [UserAnnouncementController::class, 'adminAnnouncements']);
         });
 
-        Route::middleware('role:adviser|super_admin|teacher')->group(function () {
-            Route::get('/activity/{id}', [ActivityController::class, 'showActivity']);
-            Route::delete('/activity/{id}', [ActivityController::class, 'destroy']);
-            Route::post('/activity', [ActivityController::class, 'store']);
-            Route::get('/activities/all', [ActivityController::class, 'showAllActivity']);
-            Route::post('/activity/update/{id}', [ActivityController::class, 'updateActivity']);
-        });
+
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
             Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
@@ -162,7 +167,6 @@ Route::prefix('auth')->group(function () {
             Route::post('/confirm', [ExpulsionController::class, 'confirm']);
 
         });
-        Route::delete('/delete/alert/{id}', [UserAlertController::class, 'destroy'])->middleware('role:teacher|super_admin|adviser|secretary');
         Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
         Route::delete('/logout', [SystemAccessController::class, 'logout']);
     });
@@ -458,4 +462,5 @@ Route::prefix('user')->group(function () {
     });
 
 });
+
 

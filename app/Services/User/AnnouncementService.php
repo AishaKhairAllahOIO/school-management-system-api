@@ -64,7 +64,7 @@ class AnnouncementService
         if (!empty($targetUserIds)) {
             SendPushNotification::dispatch(
                 $targetUserIds,
-                'إعلان إداري جديد',
+                'new announcement has been published.',
                 $announcement->title,
                 ['announcement_id' => (string) $announcement->id, 'type' => 'announcement']
             );

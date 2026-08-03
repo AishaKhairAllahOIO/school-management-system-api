@@ -645,4 +645,19 @@ class AlertService
 
         return $alert;
     }
+
+    public function deleteBatchAlerts(array $alertIds, User $user): int
+    {
+        $alerts = Alert::whereIn('id', $alertIds)->get();
+        $deletedCount = 0;
+
+        foreach ($alerts as $alert) {
+            if ($alert->created_by === $user->id || $user->hasRole('super_admin')) {
+                $alert->delete();
+                $deletedCount++;
+            }
+        }
+
+        return $deletedCount;
+    }
 }

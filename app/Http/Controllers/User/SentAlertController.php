@@ -70,4 +70,30 @@ class SentAlertController extends Controller
             );
         }
     }
+
+    public function destroyBatch(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'alert_ids'   => 'required|array',
+                'alert_ids.*' => 'integer|exists:alerts,id',
+            ]);
+
+            $deletedCount = $this->alertService->deleteBatchAlerts($validated['alert_ids'], $request->user());
+
+            if ($deletedCount === 0) {
+                return $this->errorResponse('Make sure you have the permission to delete this alert.', 403);
+            }
+
+            return $this->successResponse(
+                ['deleted_count' => $deletedCount],
+                "Batch alerts deleted successfully.",
+                200
+            );
+
+        } catch (Exception $e) {
+            $code = $this->getExceptionCode($e);
+            return $this->errorResponse('An error occurred while deleting alerts.', $code, ['error' => $e->getMessage()]);
+        }
+    }
 }

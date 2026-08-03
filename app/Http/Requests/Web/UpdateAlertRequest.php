@@ -16,6 +16,7 @@ class UpdateAlertRequest extends FormRequest
         return [
             'title'       => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
+            'audience'    => 'sometimes|string|in:student,staff',
             'type'        => 'sometimes|string',
             'meta'        => 'nullable|array',
         ];

@@ -5,7 +5,8 @@ namespace App\Http\Requests\Setting;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-
+use App\Enums\GradeName;
+use Illuminate\Validation\Rules\Enum;
 class StoreGradeLevelRequest extends FormRequest
 {
 
@@ -21,7 +22,7 @@ class StoreGradeLevelRequest extends FormRequest
 
         return [
             'academicStageId' => ['required', 'exists:academic_stages,id'],
-            'name' => ['required', 'string', 'max:100', 'unique:grade_levels,name'],
+            'name' => ['required', new Enum(GradeName::class), 'unique:grade_levels,name'],
             'isGraduationGrade' => ['nullable', 'boolean'],
         ];
     }

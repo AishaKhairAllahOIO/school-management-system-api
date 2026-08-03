@@ -25,10 +25,10 @@ public function run(): void
         );
 
         $classRooms = [
-            ['name' => 'الشعبة الأولى', 'capacity' => 35, 'grade_level_id' => 1],
-            ['name' => 'الشعبة الثانية', 'capacity' => 35, 'grade_level_id' => 1],
-            ['name' => 'الشعبة الثالثة', 'capacity' => 35, 'grade_level_id' => 2],
-            ['name' => 'الشعبة الرابعة', 'capacity' => 35, 'grade_level_id' => 2],
+            ['name' => 'الشعبة 1', 'capacity' => 35, 'grade_level_id' => 1],
+            ['name' => 'الشعبة 2', 'capacity' => 35, 'grade_level_id' => 1],
+            ['name' => 'الشعبة 3', 'capacity' => 35, 'grade_level_id' => 2],
+            ['name' => 'الشعبة 4', 'capacity' => 35, 'grade_level_id' => 2],
         ];
 
         foreach ($classRooms as $room) {
@@ -44,10 +44,10 @@ public function run(): void
             );
         }
         $classRooms = [
-            ['name' => 'الشعبة الأولى', 'capacity' => 35, 'grade_level_id' => 1],
-            ['name' => 'الشعبة الثانية', 'capacity' => 35, 'grade_level_id' => 1],
-            ['name' => 'الشعبة الثالثة', 'capacity' => 35, 'grade_level_id' => 2],
-            ['name' => 'الشعبة الرابعة', 'capacity' => 35, 'grade_level_id' => 2],
+            ['name' => 'الشعبة 1', 'capacity' => 35, 'grade_level_id' => 1],
+            ['name' => 'الشعبة 2', 'capacity' => 35, 'grade_level_id' => 1],
+            ['name' => 'الشعبة 3', 'capacity' => 35, 'grade_level_id' => 2],
+            ['name' => 'الشعبة 4', 'capacity' => 35, 'grade_level_id' => 2],
         ];
 
         foreach ($classRooms as $room) {

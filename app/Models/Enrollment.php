@@ -46,4 +46,8 @@ class Enrollment extends Model
 public function studentMarks(){
     return $this->hasMany(StudentMark::class);
 }
+public function attendances()
+    {
+        return $this->hasMany(StudentAttendance::class);
+    }
 }

@@ -38,4 +38,13 @@ class Staff extends Model
     {
         return $this->hasMany(TeacherWorkload::class, 'teacher_id');
     }
+    public function leaves()
+    {
+        return $this->hasMany(StaffLeave::class);
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(StaffAttendance::class);
+    }
 }

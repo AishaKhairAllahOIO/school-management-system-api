@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('grade_levels', function (Blueprint $table) {
+        Schema::create('staff_leave_types', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('academic_stage_id')->constrained('academic_stages'); 
-            $table->enum('name', ['seventh', 'eighth', 'ninth'])->unique();         
-            $table->integer('level');
-            $table->boolean('is_graduation_grade')->default(false);
+            $table->string('name', 100)->unique();
+            $table->string('payment_type', 20); // 'paid', 'unpaid'
+            $table->unsignedSmallInteger('max_days_per_academic_year');
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('grade_levels');
+        Schema::dropIfExists('staff_leave_types');
     }
 };

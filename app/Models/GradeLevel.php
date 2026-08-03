@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use App\Enums\GradeName;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,6 +16,9 @@ class GradeLevel extends Model
                 'level'               => 'integer',
             ];
         }
+    protected $casts = [
+        'name' => GradeName::class, // 👈 السحر هنا
+    ];    
 
     public function classRooms()
     {

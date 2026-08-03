@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('grade_levels', function (Blueprint $table) {
+        Schema::create('student_attendance_settings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('academic_stage_id')->constrained('academic_stages'); 
-            $table->enum('name', ['seventh', 'eighth', 'ninth'])->unique();         
-            $table->integer('level');
-            $table->boolean('is_graduation_grade')->default(false);
+            $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
+            $table->unsignedSmallInteger('working_days');
+            $table->decimal('required_attendance_percentage', 5, 2);
             $table->timestamps();
+            $table->unique('semester_id');
         });
     }
 
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('grade_levels');
+        Schema::dropIfExists('student_attendance_settings');
     }
 };

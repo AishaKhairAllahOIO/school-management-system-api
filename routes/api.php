@@ -35,6 +35,7 @@ use App\Http\Controllers\Teacher\TeacherDropdownController;
 use App\Http\Controllers\Teacher\TeacherMaterialController;
 use App\Http\Controllers\User\SentAlertController;
 use App\Http\Controllers\Web\SchoolLawController;
+use App\Http\Controllers\Admin\Student\StudentAttendanceSettingController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -384,6 +385,18 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::post('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
     Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment']);
     Route::post('/{staff}/restore', [StaffController::class, 'restore']);
+});
+Route::middleware(['auth:sanctum'])->group(function () {
+    
+    Route::prefix('attendance-settings')->controller(StudentAttendanceSettingController::class)->group(function () {
+        
+        Route::get('/', 'index');
+        Route::get('/semester/{semester_id}', 'getBySemester');
+        Route::post('/', 'store');
+        Route::post('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+       
+    });
 });
 
 

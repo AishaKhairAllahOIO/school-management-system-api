@@ -33,12 +33,9 @@ class FinancialTestSeeder extends Seeder
         //     ['year_name' => '2025-2026', 'start_date' => '2025-09-01', 'end_date' => '2026-06-30']
         // );
 
-        $grade = GradeLevel::firstOrCreate(
-            ['level' => 1],
-            ['academic_stage_id' => 1, 'name' => 'الصف التجريبي', 'is_graduation_grade' => false]
-        );
+      
 
-        DB::transaction(function () use ($student, $grade) {
+        DB::transaction(function () use ($student) {
 
             // 3. إنشاء سياسة تقسيط تجريبية
             $policy = InstallmentPolicy::updateOrCreate(
@@ -50,7 +47,7 @@ class FinancialTestSeeder extends Seeder
                 ['name' => 'خطة اختبار الكوماند'],
                 [
                     'academic_year_id'      => 1,
-                    'grade_level_id'        => $grade->id,
+                    'grade_level_id'        => 1,
                     'base_amount'           => 1000000.00,
                 ]
             );

@@ -19,9 +19,9 @@ class GradeAndClassroomService
     private function determineLevelFromName(string $name): int
     {
 
-        if (str_contains($name, 'أول')) return 1;
-        if (str_contains($name, 'ثاني')) return 2;
-        if (str_contains($name, 'ثالث')) return 3;
+        if (str_contains($name, 'seventh')) return 7;
+        if (str_contains($name, 'eighth')) return 8;
+        if (str_contains($name, 'ninth')) return 9;
 
 
         return 1;
@@ -34,7 +34,9 @@ class GradeAndClassroomService
         $name = $data['name'];
         $level = $this->determineLevelFromName($name);
 
-        return GradeLevel::create([
+        return GradeLevel::updateOrCreate([
+            'name' => $name
+        ],[
             'academic_stage_id'   => $data['academicStageId'],
             'name'                => $name,
             'level'               => $level,

@@ -7,6 +7,7 @@ use App\Models\GradeLevel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\AcademicStage;
+use App\Enums\GradeName;
 
 class GradeLevelSeeder extends Seeder
 {
@@ -21,28 +22,29 @@ class GradeLevelSeeder extends Seeder
         $grades = [
             [
                 'id' => 1, 
-                'name' => 'الصف السابع', 
+                'name' => GradeName::SEVENTH, 
                 'level' => 7, 
                 'is_graduation_grade' => false
             ],
             [
                 'id' => 2, 
-                'name' => 'الصف الثامن', 
+                'name' => GradeName::EIGHTH, 
                 'level' => 8, 
                 'is_graduation_grade' => false
             ],
-            [
-                'id' => 3, 
-                'name' => 'الصف التاسع', 
-                'level' => 9, 
-                'is_graduation_grade' => true // التاسع هو صف التخرج للمرحلة الإعدادية
-            ],
+            // [
+            //     'id' => 3, 
+            //     'name' => GradeName::NINTH, 
+            //     'level' => 9, 
+            //     'is_graduation_grade' => true // التاسع هو صف التخرج للمرحلة الإعدادية
+            // ],
         ];
 
         // 3. إدخال أو تحديث البيانات
         foreach ($grades as $grade) {
             GradeLevel::updateOrCreate(
-                ['id' => $grade['id']], 
+                ['id' => $grade['id'],
+                'name' => $grade['name']], 
                 [
                     'academic_stage_id'   => 1 ,
                     'name'                => $grade['name'],

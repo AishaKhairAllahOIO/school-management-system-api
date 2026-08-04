@@ -156,6 +156,22 @@ class AlertSeeder extends Seeder
         Alert::updateOrCreate(
             [
                 'notifiable_type' => Staff::class,
+                'notifiable_id'   => 11,
+                'type'            => Alert::TYPE_ABSENCE,
+            ],
+            [
+                'audience'    => Alert::AUDIENCE_STAFF,
+                'title'       => 'تنبيه غياب',
+                'description' => 'تم تسجيل غيابك اليوم.',
+                'meta'        => [
+                    'date' => '2026-06-01'
+                ],
+                'created_by'  => 9
+            ]
+        );
+        Alert::updateOrCreate(
+            [
+                'notifiable_type' => Staff::class,
                 'notifiable_id'   => 9,
                 'type'            => Alert::TYPE_LATE,
             ],
@@ -167,6 +183,23 @@ class AlertSeeder extends Seeder
                 'meta'        => [
                     'minutes_late' => 20,
                     'session' => 'الحصة الأولى'
+                ],
+                'created_by'  => 9
+            ]
+        );
+        Alert::updateOrCreate(
+            [
+                'notifiable_type' => Staff::class,
+                'notifiable_id'   => 11,
+                'type'            => Alert::TYPE_LATE,
+            ],
+            [
+                'audience'    => Alert::AUDIENCE_STAFF,
+                'title'       => 'تنبيه تأخر',
+                'description' => 'تم تسجيل تأخرك عن الدوام.',
+
+                'meta'        => [
+                    'minutes_late' => 20,
                 ],
                 'created_by'  => 9
             ]
@@ -204,6 +237,39 @@ class AlertSeeder extends Seeder
                     'month' => 'june 2026'
                 ],
                 'created_by'  => 9
+            ]
+        );
+        Alert::updateOrCreate(
+            [
+                'notifiable_type' => Staff::class,
+                'notifiable_id'   => 11,
+                'type'            => Alert::TYPE_SALARY,
+            ],
+            [
+                'audience'    => Alert::AUDIENCE_STAFF,
+                'title'       => 'تنبيه راتب',
+                'description' => 'تم رفع الراتب الشهري يرجى مراجعة حساب شام كاش.',
+
+                'meta'        => [
+                    'amount' => 20000,
+                    'month' => 'june 2026'
+                ],
+                'created_by'  => 9
+            ]
+        );
+
+        Alert::updateOrCreate(
+            [
+                'notifiable_type' => Staff::class,
+                'notifiable_id'   => 11,
+                'type'            => Alert::TYPE_SYSTEM_NOTICE,
+            ],
+            [
+                'audience'    => Alert::AUDIENCE_STAFF,
+                'title'       => 'قوائم الفصل جاهزة للمراجعة',
+                'description' => 'يرجى مراجعة قائمة الفصل الخاصة بالطلاب في نهاية الفصل الدراسي والتأكيد',
+                'meta'        => ['action' => 'مراجعة قائمة الفصل.'],
+                'created_by'  => 1
             ]
         );
     }

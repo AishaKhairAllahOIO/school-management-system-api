@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BellController;
 use App\Http\Controllers\Admin\Student\StudentController;
 use App\Http\Controllers\Auth\SystemAccessController;
 use App\Http\Controllers\Setting\AssessmentComponentController;
@@ -77,6 +78,13 @@ Route::prefix('auth')->group(function () {
             Route::post('/mark-all-read', 'markAllAlertsRead');
         });
 
+        Route::prefix('bell')->controller(BellController::class)->group(function(){
+            Route::get('/count/unread','getBellUnreadCount');
+            Route::post('/mark/all/read','markAllBellItemsAsRead');
+        });
+
+
+
         Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {
             Route::get('/show/by/role', 'index');
             Route::put('/update/{id}', 'update');
@@ -121,7 +129,6 @@ Route::prefix('auth')->group(function () {
             Route::post('/announcement/update/{id}', [UserAnnouncementController::class, 'update']);
             Route::get('creater/show/announcements', [UserAnnouncementController::class, 'adminAnnouncements']);
         });
-
 
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
@@ -172,7 +179,6 @@ Route::prefix('auth')->group(function () {
         Route::delete('/logout', [SystemAccessController::class, 'logout']);
     });
 });
-
 
 Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
@@ -252,7 +258,6 @@ Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () 
     });
 });
 
-
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/', [SchoolSettingsController::class, 'show']);
@@ -267,7 +272,6 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
     Route::delete('/', [SchoolSettingsController::class, 'destroy']);
 });
-
 
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
 
@@ -295,7 +299,6 @@ Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(funct
     Route::get('/extra-services/{id}', [FinancialSettingsController::class, 'showExtraService']);
 });
 
-
 Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/accounts', [FinancialContractController::class, 'index']);
@@ -316,13 +319,11 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     Route::delete('/payments/{id}', [PaymentController::class, 'destroy']);
 });
 
-
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {
     Route::get('/systemRoles', [RoleController::class, 'index']);
     Route::get('/systemModules', [RoleController::class, 'getSystemModules']);
     Route::put('/{id}/permissions', [RoleController::class, 'sync']);
 });
-
 
 Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
 
@@ -334,7 +335,6 @@ Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
         ->middleware('can:student:create');
     Route::get('/import-batches/history', [StudentController::class, 'getBatchesHistory']);
 });
-
 
 Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function () {
 
@@ -359,7 +359,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
     Route::post('/{enrollment}/student/restore', [StudentController::class, 'restore']);
 
 });
-
 
 Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 
@@ -397,15 +396,15 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::post('/{staff}/restore', [StaffController::class, 'restore']);
 });
 Route::middleware(['auth:sanctum'])->group(function () {
-    
+
     Route::prefix('attendance-settings')->controller(StudentAttendanceSettingController::class)->group(function () {
-        
+
         Route::get('/', 'index');
         Route::get('/semester/{semester_id}', 'getBySemester');
         Route::post('/', 'store');
         Route::post('/{id}', 'update');
         Route::delete('/{id}', 'destroy');
-       
+
     });
 });
 

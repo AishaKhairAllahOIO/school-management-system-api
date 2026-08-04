@@ -24,7 +24,9 @@ class ClassStudentEvaluationController extends Controller
     use AuthorizesRequests;
     use ApiResource;
 
-    public function __construct(protected ClassStudentEvaluationService $evaluationService) {}
+    public function __construct(protected ClassStudentEvaluationService $evaluationService)
+    {
+    }
 
     private function getAuthStaff(Request $request)
     {
@@ -41,9 +43,9 @@ class ClassStudentEvaluationController extends Controller
         try {
             $this->getAuthStaff($request);
             $evaluations = $this->evaluationService->getTeacherEvaluations($request->user());
-
+            $evaluations->through(fn($evaluation) => new ClassStudentEvaluationResource($evaluation));
             return $this->paginatedResponse(
-                ClassStudentEvaluationResource::collection($evaluations),
+                $evaluations,
                 'تم جلب قائمة التقييمات الدراسية بنجاح.',
                 200
             );
@@ -130,9 +132,9 @@ class ClassStudentEvaluationController extends Controller
     {
         try {
             $evaluations = $this->evaluationService->getStudentEvaluations($request->user());
-
+            $evaluations->through(fn($evaluation) => new ClassStudentEvaluationResource($evaluation));
             return $this->paginatedResponse(
-                ClassStudentEvaluationResource::collection($evaluations),
+                $evaluations,
                 'تم جلب قائمة تقييماتك الدراسية بنجاح.',
                 200
             );
@@ -146,9 +148,9 @@ class ClassStudentEvaluationController extends Controller
     {
         try {
             $evaluations = $this->evaluationService->getGuardianChildEvaluations($request->user(), $id);
-
+            $evaluations->through(fn($evaluation) => new ClassStudentEvaluationResource($evaluation));
             return $this->paginatedResponse(
-                ClassStudentEvaluationResource::collection($evaluations),
+                $evaluations,
                 'تم جلب قائمة تقييمات الابن المحدد بنجاح.',
                 200
             );

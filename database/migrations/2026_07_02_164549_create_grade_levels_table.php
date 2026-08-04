@@ -14,7 +14,10 @@ return new class extends Migration
         Schema::create('grade_levels', function (Blueprint $table) {
             $table->id();
             $table->foreignId('academic_stage_id')->constrained('academic_stages'); 
-            $table->enum('name', ['seventh', 'eighth', 'ninth'])->unique();         
+            $table->enum('name', ['first', 'second', 'third', 'fourth', 'fifth', 'sixth',
+        'seventh', 'eighth', 'ninth',
+        'tenth', 'eleventh', 'twelfth'
+    ])->unique();        
             $table->integer('level');
             $table->boolean('is_graduation_grade')->default(false);
             $table->timestamps();

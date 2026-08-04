@@ -232,6 +232,7 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
 
     Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
+    Route::get('/academic-stages/with-grades', [AcademicSettingsController::class, 'indexWithGrades']);
 
 });
 

@@ -19,7 +19,9 @@ use App\Http\Resources\Setting\AcademicYearResource;
 use App\Http\Resources\Setting\SemesterResource;
 use App\Http\Resources\Setting\AcademicStageResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use App\Enums\AcademicStageType;
+use App\Enums\GradeName;
+use Throwable;
 
 class AcademicSettingsController extends Controller
 {
@@ -207,6 +209,36 @@ class AcademicSettingsController extends Controller
         $statistics = $academicSettingsService->getAcademicStatistics();
 
         return $this->successResponse($statistics,'Statistics shown successfully.',200);
+    }
+    public function indexWithGrades()
+    {
+        try {
+            $groupedData = collect(AcademicStageType::cases())->map(function (AcademicStageType $stage) {
+                $grades = collect(GradeName::getGradesByStage($stage))->map(function (GradeName $grade) {
+                    return [
+                        'key'      => $grade->value,
+                        'label_ar' => $grade->labelAr(),
+                    ];
+                });
+
+                return [
+                    'stage'          => $stage->value,
+                    'stage_label_ar' => $stage->labelAr(),
+                    'grades'         => $grades,
+                ];
+            });
+
+            return $this->successResponse(
+                $groupedData,
+                'تم جلب المراحل والصفوف الأكاديمية بنجاح.'
+            );
+
+        } catch (Throwable $e) {
+            return $this->errorResponse(
+                'حدث خطأ أثناء جلب البيانات: ' . $e->getMessage(),
+                500
+            );
+        }
     }
 
 

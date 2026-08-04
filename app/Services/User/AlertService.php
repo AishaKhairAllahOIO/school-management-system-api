@@ -547,6 +547,9 @@ class AlertService
         return $this->unreadCountForUser($user, $studentId);
     }
 
+
+
+    
     public function showSystemNotices(Staff $staff): LengthAwarePaginator
     {
         return Alert::where('notifiable_type', Staff::class)

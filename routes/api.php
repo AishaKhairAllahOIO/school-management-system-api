@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BellController;
 use App\Http\Controllers\Admin\Student\StudentController;
 use App\Http\Controllers\Auth\SystemAccessController;
 use App\Http\Controllers\Setting\AssessmentComponentController;
@@ -76,6 +77,13 @@ Route::prefix('auth')->group(function () {
             Route::get('/unread-count', 'unreadAlertsCount');
             Route::post('/mark-all-read', 'markAllAlertsRead');
         });
+
+        Route::prefix('bell')->controller(BellController::class)->group(function(){
+            Route::get('/count/unread','getBellUnreadCount');
+            Route::post('/mark/all/read','markAllBellItemsAsRead');
+        });
+
+
 
         Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {
             Route::get('/show/by/role', 'index');
@@ -387,15 +395,15 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::post('/{staff}/restore', [StaffController::class, 'restore']);
 });
 Route::middleware(['auth:sanctum'])->group(function () {
-    
+
     Route::prefix('attendance-settings')->controller(StudentAttendanceSettingController::class)->group(function () {
-        
+
         Route::get('/', 'index');
         Route::get('/semester/{semester_id}', 'getBySemester');
         Route::post('/', 'store');
         Route::post('/{id}', 'update');
         Route::delete('/{id}', 'destroy');
-       
+
     });
 });
 

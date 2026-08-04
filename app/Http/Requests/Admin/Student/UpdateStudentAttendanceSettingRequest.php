@@ -4,6 +4,8 @@ namespace App\Http\Requests\Admin\Student;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
 
 class UpdateStudentAttendanceSettingRequest extends FormRequest
 {
@@ -23,7 +25,7 @@ class UpdateStudentAttendanceSettingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'semester_id' => ['sometimes', 'integer', 'exists:semesters,id', 'unique:student_attendance_settings,semester_id'],
+            'semester_id' => ['sometimes', 'integer', 'exists:semesters,id', Rule::unique('student_attendance_settings', 'semester_id')->ignore($this->route('id'))],
             'working_days' => ['sometimes', 'required', 'integer', 'min:1', 'max:150'], 
             'required_attendance_percentage' => ['sometimes', 'required', 'numeric', 'min:50', 'max:100'],
         ];

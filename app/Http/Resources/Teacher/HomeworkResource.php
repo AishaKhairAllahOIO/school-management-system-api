@@ -19,6 +19,7 @@ class HomeworkResource extends JsonResource
             'updated_at'  => $this->updated_at->format('Y-m-d H:i'),
 
             'subject_name'     => $this->gradeSubject?->subject?->subject_name,
+            'subject_grade_id' => $this->gradeSubject?->id,
             'grade_level_name' => $this->gradeSubject?->gradeLevel?->name,
 
             'classrooms'  => $this->classRooms->map(function ($room) {

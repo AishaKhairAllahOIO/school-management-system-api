@@ -22,7 +22,7 @@ class FinancialAccountResource extends JsonResource
             // العلاقات المحملة
             'feePlan'                    => new FeePlanResource($this->whenLoaded('feePlan')),
             'installmentPolicy'          => new InstallmentPolicyResource($this->whenLoaded('installmentPolicy')),
-            'installments'               => ScheduledInstallmentResource::collection($this->whenLoaded('installments')),
+            'installments'               => ScheduledInstallmentResource::collection($this->whenLoaded('scheduledInstallments')),
             
             'createdAt'                  => $this->created_at ? \Carbon\Carbon::parse($this->created_at)->toIso8601String() : null,
             'updatedAt'                  => $this->updated_at ? \Carbon\Carbon::parse($this->updated_at)->toIso8601String() : null,

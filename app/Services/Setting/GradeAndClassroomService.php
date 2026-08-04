@@ -19,9 +19,18 @@ class GradeAndClassroomService
     private function determineLevelFromName(string $name): int
     {
 
+        if(str_contains($name, 'first')) return 1;
+        if(str_contains($name, 'second')) return 2;
+        if(str_contains($name, 'third')) return 3;
+        if(str_contains($name, 'fourth')) return 4;
+        if(str_contains($name, 'fifth')) return 5;
+        if(str_contains($name, 'sixth')) return 6;
         if (str_contains($name, 'seventh')) return 7;
         if (str_contains($name, 'eighth')) return 8;
         if (str_contains($name, 'ninth')) return 9;
+        if (str_contains($name, 'tenth')) return 10;
+        if (str_contains($name, 'eleventh')) return 11;
+        if (str_contains($name, 'twelfth')) return 12;
 
 
         return 1;

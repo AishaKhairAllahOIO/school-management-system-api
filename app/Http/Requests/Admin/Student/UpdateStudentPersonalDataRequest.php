@@ -76,7 +76,7 @@ class UpdateStudentPersonalDataRequest extends FormRequest
             'class_room_id' => ['sometimes', 'exists:class_rooms,id'],
             'grade_level_id' => ['sometimes', 'exists:grade_levels,id'],
             'academic_year_id' => ['sometimes', 'exists:academic_years,id'],
-            'enrollment_status' => ['sometimes', 'in:pending,confirmed,suspended,withdrawn'],
+            'enrollment_status' => ['sometimes', 'in:suspended,enrolled,completed'],
         ];
     }
 }

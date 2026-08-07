@@ -25,7 +25,7 @@ class UpdateEnrollmentRequest extends FormRequest
         return [
             'class_room_id' => 'sometimes|exists:class_rooms,id',
             'grade_level_id' => 'sometimes|exists:grade_levels,id',
-            'enrollment_status' => 'sometimes|in:suspended,enrolled,completed',
+           // 'enrollment_status' => 'sometimes|in:suspended,enrolled,completed',
         ];
     }
 }

@@ -2,44 +2,58 @@
 
 namespace App\Jobs;
 
+use App\Domain\Scheduling\Actions\GenerateScheduleAction;
+use App\Services\User\AlertService;
+use App\Models\Staff;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Domain\Scheduling\Actions\GenerateScheduleAction;
-use Exception;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class GenerateScheduleJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * إعطاء الخوارزمية وقتاً كافياً للتنفيذ (مثلاً 5 دقائق)
-     */
-    public $timeout = 300;
+    public $timeout = 600;
 
     public function __construct(
         public int $academicYearId,
-        public int $termId
+        public int $termId,
+        public int $staffId
     ) {}
 
-    public function handle(GenerateScheduleAction $action): void
+    public function handle(GenerateScheduleAction $action, AlertService $alertService): void
     {
-        try {
-            Log::info("بدأت عملية توليد الجدول للعام {$this->academicYearId} والفصل {$this->termId}.");
+        $staff = Staff::find($this->staffId);
 
-            // استدعاء الخوارزمية
+        try {
+            Log::info("Starting schedule generation for Year {$this->academicYearId}, Term {$this->termId}");
+
             $schedule = $action->execute($this->academicYearId, $this->termId);
 
-            Log::info("نجح التوليد! تم حفظ الجدول بالرقم: " . $schedule->id);
-
-            // هنا يمكنك إضافة كود لإرسال إشعار Firebase أو بريد إلكتروني للمدير بأن الجدول أصبح جاهزاً
+            if ($staff) {
+                $alertService->createSystemNotice(
+                    $staff,
+                    'Schedule Generated ✅',
+                    'The timetable has been successfully generated and is ready for review.',
+                    ['action' => 'schedule_generated']
+                );
+            }
 
         } catch (Exception $e) {
-            Log::error("فشل في توليد الجدول: " . $e->getMessage());
-            // رمي الخطأ ليقوم Laravel بتسجيل المهمة كفاشلة (Failed Job)
+            Log::error("Schedule generation failed: " . $e->getMessage());
+
+            if ($staff) {
+                $alertService->createSystemNotice(
+                    $staff,
+                    'Generation Failed ❌',
+                    'The engine failed to generate the schedule due to extreme constraints. Please review teacher workloads.',
+                    ['action' => $e->getMessage()]
+                );
+            }
             throw $e;
         }
     }

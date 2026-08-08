@@ -16,9 +16,8 @@ use Illuminate\Support\Arr;
 
 class ActivityService
 {
-
+    
     use ApiResource;
-
     public function addActivity(array $data)
     {
         $classRoomIds = $data['class_room_ids'] ?? [];
@@ -164,19 +163,55 @@ class ActivityService
 
         return Activity::query()->where('id', '<', 0);
     }
+
+    private function resolveReaderUser(User $user, ?int $studentId): ?User
+    {
+        if ($user->student) {
+            return $user;
+        }
+
+        if ($user->guardian && $studentId) {
+            $child = $user->guardian->students()->find($studentId);
+            return $child?->user;
+        }
+
+        return null;
+    }
+
     public function unreadCount(User $user, ?int $studentId = null): int
     {
+        if ($user->hasRole('guardian') && $user->guardian && !$studentId) {
+            return $user->guardian->students->reduce(function ($carry, Student $child) use ($user) {
+                return $carry + $this->unreadCount($user, $child->id);
+            }, 0);
+        }
+
+        $readerUser = $this->resolveReaderUser($user, $studentId);
+
         return $this->getBaseQueryForUser($user, $studentId)
-            ->whereDoesntHave('readers', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            ->whereDoesntHave('readers', function ($q) use ($readerUser) {
+                $q->where('user_id', $readerUser?->id);
             })
             ->count();
     }
     public function markAllAsRead(User $user, ?int $studentId = null): void
     {
+        if ($user->guardian && !$studentId) {
+            foreach ($user->guardian->students as $child) {
+                $this->markAllAsRead($user, $child->id);
+            }
+            return;
+        }
+
+        $readerUser = $this->resolveReaderUser($user, $studentId);
+
+        if (!$readerUser) {
+            return;
+        }
+
         $activityIds = $this->getBaseQueryForUser($user, $studentId)
-            ->whereDoesntHave('readers', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            ->whereDoesntHave('readers', function ($q) use ($readerUser) {
+                $q->where('user_id', $readerUser->id);
             })
             ->pluck('id');
 
@@ -187,7 +222,7 @@ class ActivityService
         }
 
         if (!empty($syncData)) {
-            $user->readActivities()->syncWithoutDetaching($syncData);
+            $readerUser->readActivities()->syncWithoutDetaching($syncData);
         }
     }
     public function getAllActivities(User $user): LengthAwarePaginator

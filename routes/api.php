@@ -86,6 +86,15 @@ Route::prefix('auth')->group(function () {
         });
 
 
+        Route::prefix('/scheduale')->controller(ScheduleController::class)->group(function () {
+        Route::post('/generate','generate');
+        Route::post('/regenerate','regenerate');
+        Route::put('/update','updateEntry');
+        Route::get('/show/all/{scheduleId}','adminView');
+        Route::get('/teacher/show','allTeachersWeekly');
+        });
+
+
 
         Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {
             Route::get('/show/by/role', 'index');

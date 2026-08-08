@@ -228,19 +228,48 @@ class PracticeQuizService
             return PracticeQuiz::where('teacher_id', $user->staff->id);
         }
 
-        return PracticeQuiz::query();
+        // Read-tracking for practice quizzes is student-only. Guardians (and
+        // any other role) get nothing here rather than an unrestricted
+        // PracticeQuiz::query(), which previously returned every quiz in the
+        // system with no scoping at all.
+        return PracticeQuiz::query()->where('id', '<', 0);
     }
-    public function unreadCount(User $user): int
+
+    /**
+     * Unread practice-quiz count grouped by subject, for the student's own
+     * grade level. Guardians get an empty array (see getBaseQueryForUser).
+     *
+     * @return array<int, array{grade_subject_id:int, subject_name:string, unread_count:int}>
+     */
+    public function unreadCount(User $user): array
     {
         return $this->getBaseQueryForUser($user)
             ->whereDoesntHave('readers', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
-            ->count();
+            ->join('grade_subjects', 'grade_subjects.id', '=', 'practice_quizzes.grade_subject_id')
+            ->join('subjects', 'subjects.id', '=', 'grade_subjects.subject_id')
+            ->selectRaw('grade_subjects.id as grade_subject_id, subjects.subject_name, count(*) as unread_count')
+            ->groupBy('grade_subjects.id', 'subjects.subject_name')
+            ->get()
+            ->map(fn ($row) => [
+                'grade_subject_id' => (int) $row->grade_subject_id,
+                'subject_name' => $row->subject_name,
+                'unread_count' => (int) $row->unread_count,
+            ])
+            ->values()
+            ->all();
     }
-    public function markAllRead(User $user): int
+
+    /**
+     * Mark all unread practice quizzes as read, scoped to one subject.
+     * Returns the refreshed per-subject unread breakdown so the caller can
+     * update every subject badge in one round trip.
+     */
+    public function markAllRead(User $user, int $gradeSubjectId): array
     {
         $unreadQuizzesIds = $this->getBaseQueryForUser($user)
+            ->where('grade_subject_id', $gradeSubjectId)
             ->whereDoesntHave('readers', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -391,6 +420,9 @@ class PracticeQuizService
         if (!$isValidSubject) {
             throw new Exception('You are not authorized to view quizzes for this subject.', 403);
         }
+       $enrollment = Enrollment::with('student.user')->find($enrollmentId);
+    $userId = $enrollment?->student?->user?->id;
+
 
         return PracticeQuiz::where('grade_subject_id', $gradeSubjectId)
             ->where('is_active', true)
@@ -398,6 +430,11 @@ class PracticeQuizService
             ->with([
                 'attempts' => function ($query) use ($enrollmentId) {
                     $query->where('enrollment_id', $enrollmentId);
+                }
+            ])
+            ->withExists([
+                'readers as is_read' => function($query) use ($userId){
+                    $query->where('user_id',$userId);
                 }
             ])
             ->latest()
@@ -417,6 +454,7 @@ class PracticeQuizService
                         ? "You have completed this practice {$attemptsCount} time(s)."
                         : "You haven't attempted this practice yet.",
                     'created_at' => $quiz->created_at->format('Y-m-d H:i'),
+                    'is_read' => (bool) ($quiz->is_read ?? false),
                 ];
             });
     }

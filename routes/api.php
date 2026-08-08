@@ -427,11 +427,11 @@ Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function 
     // إدخال جماعي
     Route::post('/bulk', [StudentAttendanceController::class, 'storeBulk']);
     Route::get('/getRecord/{id}',[StudentAttendanceController::class,'get']);
-    
+
     Route::get('/filter', [StudentAttendanceController::class, 'index']);
-    
+
     Route::post('/record/{id}', [StudentAttendanceController::class, 'update']);
-    
+
     Route::delete('/record/{id}', [StudentAttendanceController::class, 'destroy']);
 });
 
@@ -484,7 +484,7 @@ Route::prefix('user')->group(function () {
                 Route::get('/student/subjects', 'getSubjects');
                 Route::get('/show/quiz/by/subjects/{gradeSubjectId}', 'getQuizzesBySubject');
                 Route::get('/quiz/unread-count', 'unreadCount');
-                Route::post('/quiz/mark-all-read', 'markAllRead');
+                Route::post('/quiz/mark-all-read/{gradeSubjectId}', 'markAllRead');
                 Route::post('/quiz/result/submit', 'submit');
                 Route::get('/show/quiz/{id}', 'show');
                 Route::get('/show/last/quiz/attempt/{quizId}', 'getLastAttemptDetails');
@@ -497,6 +497,11 @@ Route::prefix('user')->group(function () {
                 Route::get('/download/{id}', 'download');
                 Route::get('/count/unread', 'unreadCount');
                 Route::post('/mark/all/read/', 'markAllRead');
+            });
+
+            Route::prefix('/schedules')->controller(ScheduleController::class)->group(function (){
+                Route::get('/all/{classroomId}','studentWeekly');
+                Route::get('/tomorrow/{classroomId}','studentTomorrow');
             });
         });
 

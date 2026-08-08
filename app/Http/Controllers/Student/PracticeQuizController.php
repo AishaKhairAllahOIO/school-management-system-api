@@ -64,7 +64,7 @@ class PracticeQuizController extends Controller
             $quiz = $this->quizService->getStudentQuizForSolving($id, $enrollment->classRoom->grade_level_id);
 
             return $this->successResponse([
-                'quiz' => $quiz // تم الاستغناء عن إرسال enrollment_id للموبايل
+                'quiz' => $quiz
             ], 'Quiz ready to start.', 200);
 
         } catch (Exception $e) {
@@ -90,9 +90,9 @@ class PracticeQuizController extends Controller
     }
 
 
-    public function markAllRead(Request $request)
+    public function markAllRead(Request $request, int $gradeSubjectId)
     {
-        $count = $this->quizService->markAllRead($request->user());
+        $count = $this->quizService->markAllRead($request->user(),$gradeSubjectId);
         return $this->successResponse(['unread_count' => $count], 'All quizzes marked as read.', 200);
     }
     public function unreadCount(Request $request)

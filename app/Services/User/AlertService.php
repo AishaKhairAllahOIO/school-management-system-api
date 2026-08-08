@@ -18,6 +18,48 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class AlertService
 {
+    // public function createStudentAbsence(Enrollment $enrollment, array $meta = []): Alert
+    // {
+    //     $absenceDate = $meta['date'] ?? now()->toDateString();
+
+    //     $existingAbsence = Alert::where('notifiable_type', Enrollment::class)
+    //         ->where('notifiable_id', $enrollment->id)
+    //         ->where('type', Alert::TYPE_ABSENCE)
+    //         ->where('meta->date', $absenceDate)
+    //         ->exists();
+
+    //     if ($existingAbsence) {
+    //         throw new Exception("An absence alert has already been created for this student on {$absenceDate}. You cannot create two absence alerts on the same day.");
+    //     }
+
+    //     $alert = $this->createStudentAlert(
+    //         $enrollment,
+    //         Alert::TYPE_ABSENCE,
+    //         'تنبيه غياب',
+    //         'تم تسجيل غياب الطالب اليوم.',
+    //         array_merge(['date' => $absenceDate], $meta)
+    //     );
+
+    //     $absenceCount = Alert::where('notifiable_type', Enrollment::class)
+    //         ->where('notifiable_id', $enrollment->id)
+    //         ->where('type', Alert::TYPE_ABSENCE)
+    //         ->count();
+
+    //     if ($absenceCount == 5) {
+    //         $this->createStudentWarning(
+    //             $enrollment,
+    //             $meta,
+    //             'تحذير: اقتراب تجاوز الحد المسموح للغياب',
+    //             'يرجى الانتباه: لقد بلغت عدد مرات غياب الطالب 5 مرات. عند الوصول إلى 7 غيابات سيتم إصدار قرار فصل بحق الطالب وإيقاف حسابه في نهاية الفصل الدراسي ما لم يتم التبرير.'
+    //         );
+    //     }
+
+    //     if ($absenceCount == 7) {
+    //         $this->createStudentExpulsion($enrollment, ['law_id' => 1]);
+    //     }
+
+    //     return $alert;
+    // }
     public function createStudentAbsence(Enrollment $enrollment, array $meta = []): Alert
     {
         $absenceDate = $meta['date'] ?? now()->toDateString();
@@ -32,6 +74,7 @@ class AlertService
             throw new Exception("An absence alert has already been created for this student on {$absenceDate}. You cannot create two absence alerts on the same day.");
         }
 
+        // 1. إنشاء تنبيه الغياب الأساسي
         $alert = $this->createStudentAlert(
             $enrollment,
             Alert::TYPE_ABSENCE,
@@ -40,26 +83,33 @@ class AlertService
             array_merge(['date' => $absenceDate], $meta)
         );
 
+        $semesterId = $enrollment->semester_id; // تأكدي من حقل الفصل في جدول الـ enrollments لديكِ
+        $setting = \App\Models\StudentAttendanceSetting::where('semester_id', $semesterId)->first();
+
+        $allowedDays = $setting ? $setting->allowed_absence_days : 10; 
+        
+        $warningLimit = max(0, $allowedDays - 2); 
+
         $absenceCount = Alert::where('notifiable_type', Enrollment::class)
             ->where('notifiable_id', $enrollment->id)
             ->where('type', Alert::TYPE_ABSENCE)
             ->count();
 
-        if ($absenceCount == 5) {
+        if ($absenceCount == $warningLimit) {
             $this->createStudentWarning(
                 $enrollment,
                 $meta,
                 'تحذير: اقتراب تجاوز الحد المسموح للغياب',
-                'يرجى الانتباه: لقد بلغت عدد مرات غياب الطالب 5 مرات. عند الوصول إلى 7 غيابات سيتم إصدار قرار فصل بحق الطالب وإيقاف حسابه في نهاية الفصل الدراسي ما لم يتم التبرير.'
+                "يرجى الانتباه: لقد بلغ إجمالي غياب الطالب {$absenceCount} مرات (الحد المسموح هو {$allowedDays} أيام). عند تجاوز الحد سيتم إصدار قرار فصل وإيقاف الحساب نهاية الفصل ما لم يتم التبرير."
             );
         }
 
-        if ($absenceCount == 7) {
+        if ($absenceCount > $allowedDays) {
             $this->createStudentExpulsion($enrollment, ['law_id' => 1]);
         }
 
         return $alert;
-    }
+    } 
 
     public function createStudentExpulsion(Enrollment $enrollment, array $meta = []): Alert
     {

@@ -191,7 +191,7 @@ class ScheduleValidator
             ->toArray();
     }
 
-private function checkSubjectPeriods($schedule)
+    private function checkSubjectPeriods($schedule)
     {
         $errors = [];
 
@@ -251,7 +251,7 @@ private function checkSubjectPeriods($schedule)
             ->values()
             ->toArray();
     }
-private function checkAssignmentPeriods($schedule)
+    private function checkAssignmentPeriods($schedule)
     {
         $errors = [];
 

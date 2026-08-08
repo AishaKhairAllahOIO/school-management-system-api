@@ -30,7 +30,6 @@ class StoreBulkStudentAttendanceRequest extends FormRequest
             'attendances' => ['required', 'array', 'min:1'],
             'attendances.*.enrollment_id' => ['required', 'integer', 'exists:enrollments,id'],
             'attendances.*.status' => ['required', 'in:present,absent,late,excused'], 
-            // تم تصحيح الحقل ليتطابق مع جدولك
             'attendances.*.absence_type' => ['nullable', 'string', 'max:255'], 
         ];
     }

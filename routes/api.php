@@ -37,6 +37,7 @@ use App\Http\Controllers\Teacher\TeacherMaterialController;
 use App\Http\Controllers\User\SentAlertController;
 use App\Http\Controllers\Web\SchoolLawController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceSettingController;
+use App\Http\Controllers\Admin\Student\StudentAttendanceController;
 use App\Http\Controllers\Scheduling\ScheduleController;
 
 Route::get('/user', function (Request $request) {
@@ -241,8 +242,13 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
 
-    Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
-    Route::get('/academic-stages/with-grades', [AcademicSettingsController::class, 'indexWithGrades']);
+    // Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
+    // Route::get('/academic-stages/with-grades', [AcademicSettingsController::class, 'indexWithGrades']);
+    // Route::get('/leave-types', [LeaveTypeController::class, 'index']);
+    // Route::post('/leave-types', [LeaveTypeController::class, 'store']);
+    // Route::get('/leave-types/{id}', [LeaveTypeController::class, 'show']);
+    // Route::put('/leave-types/{id}', [LeaveTypeController::class, 'update']);
+    // Route::delete('/leave-types/{id}', [LeaveTypeController::class, 'destroy']);
 
 });
 
@@ -417,6 +423,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     });
 });
+Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function () {
+    // إدخال جماعي
+    Route::post('/bulk', [StudentAttendanceController::class, 'storeBulk']);
+    Route::get('/getRecord/{id}',[StudentAttendanceController::class,'get']);
+    
+    Route::get('/filter', [StudentAttendanceController::class, 'index']);
+    
+    Route::post('/record/{id}', [StudentAttendanceController::class, 'update']);
+    
+    Route::delete('/record/{id}', [StudentAttendanceController::class, 'destroy']);
+});
+
 
 
 

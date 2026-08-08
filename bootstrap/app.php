@@ -21,26 +21,44 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         ]);
+
+        $middleware->redirectGuestsTo(function (Request $request) 
+        { 
+            if ($request->is('api/*') || $request->expectsJson()) 
+                { return null; } return route('login'); });
     })
-    ->withExceptions(function (Exceptions $exceptions) {
+   
+->withExceptions(function (Exceptions $exceptions) {
 
-        $exceptions->render(function (ModelNotFoundException $e, $request) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage() ?: 'المورد غير موجود.',
-                ], 404);
-            }
-        });
+    $exceptions->render(function (ModelNotFoundException $e, $request) {
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'المورد غير موجود.',
+            ], 404);
+        }
+    });
 
-        $exceptions->renderable(function (UnauthorizedException $e, Request $request) {
-            if ($request->is('api/*') || $request->wantsJson()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'User does not have the right roles or permissions.',
-                ], 403);
-            }
-        });
+    $exceptions->renderable(function (UnauthorizedException $e, Request $request) {
+        if ($request->is('api/*') || $request->wantsJson()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User does not have the right roles or permissions.',
+            ], 403);
+        }
+    });
 
-    })
+    $exceptions->render(function (
+        \Illuminate\Auth\AuthenticationException $e,
+        Request $request
+    ) {
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+    });
+})
+
     ->create();

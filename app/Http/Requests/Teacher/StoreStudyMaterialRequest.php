@@ -19,7 +19,7 @@ class StoreStudyMaterialRequest extends FormRequest
             'description'      => 'nullable|string',
             'type'             => 'required|in:file,link',
 
-            'file'             => 'required_if:type,file|file|mimes:pdf,jpg,jpeg,png,pptx,zip,docx|max:20480',
+            'file'             => 'required_if:type,file|file|mimes:pdf,jpg,jpeg,png,pptx,zip,docx,doc|max:20480',
             'link_url'         => 'required_if:type,link|url|max:2048',
         ];
     }

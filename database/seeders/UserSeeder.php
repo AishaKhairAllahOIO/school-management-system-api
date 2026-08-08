@@ -247,8 +247,8 @@ class UserSeeder extends Seeder
         $user12 = User::updateOrCreate(
             ['phone_number' => '0993790629'],
             [
-                'first_name' => 'Yazan',
-                'last_name' => 'Al_khalid',
+                'first_name' => 'Samer',
+                'last_name' => 'Al_ali',
                 'father_name' => 'Salem',
                 'mother_name' => 'Lisa Johnson',
                 'birth_date' => '1985-12-10',

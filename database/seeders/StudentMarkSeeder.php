@@ -11,7 +11,7 @@ class StudentMarkSeeder extends Seeder
 
     public function run(): void
     {
-        $enrollmentIds = [1, 2];
+        $enrollmentIds = [1, 3];
 
         $assessmentComponents = [
             ['id' => 1, 'max_mark' => 30],

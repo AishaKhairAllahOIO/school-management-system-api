@@ -11,7 +11,7 @@ class ClassStudentEvaluationSeeder extends Seeder
     public function run(): void
     {
         $teacherId = 1;
-        $enrollmentIds = [2, 3];
+        $enrollmentIds = [1, 3];
 
         $gradeSubjectId = 1;
 

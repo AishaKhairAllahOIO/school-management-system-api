@@ -64,6 +64,7 @@ class TeacherMaterialController extends Controller
                         'link_url'       => $material->type === 'link' ? $material->link_url : null,
                         'file_extension' => $material->type === 'file' ? $material->file_extension : null,
                         'file_size_kb'   => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
+                        'grade_subject_id' => $material->grade_subject_id,
                         'created_at'     => $material->created_at->format('Y-m-d H:i'),
                     ];
                 }),
@@ -146,6 +147,7 @@ public function show(Request $request, $id)
                 'description'    => $material->description,
                 'type'           => $material->type,
                 'link_url'       => $material->type === 'link' ? $material->link_url : null,
+                'grade_subject_id' => $material->grade_subject_id,
                 'file_extension' => $material->type === 'file' ? $material->file_extension : null,
                 'file_size_kb'   => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
                 'created_at'     => $material->created_at->format('Y-m-d H:i'),

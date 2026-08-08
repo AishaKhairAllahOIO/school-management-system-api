@@ -1,0 +1,15 @@
+=== SCHEDULE #3 SUMMARY ===
+Total Soft Violations: 31
+Array
+(
+    [daily_subject_limit] => 9
+    [too_many_heavy_subjects] => 8
+    [teacher_daily_overload] => 14
+)
+
+=== CLASSES TIMETABLE ===
+[seventh - الشعبة الاولى] : 35 Lessons Scheduled
+[seventh - الشعبة الثانية] : 35 Lessons Scheduled
+[seventh - الشعبة الثالثة] : 35 Lessons Scheduled
+[seventh - الشعبة الرابعة] : 35 Lessons Scheduled
+[seventh - الشعبة الخامسة] : 35 Lessons Scheduled

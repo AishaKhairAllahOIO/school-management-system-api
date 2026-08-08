@@ -60,7 +60,16 @@ class AlertService
 
         return $alert;
     }
-
+public function createSystemNotice(Staff $staff, string $title, string $description, array $meta = []): Alert
+    {
+        return $this->createStaffAlert(
+            $staff,
+            Alert::TYPE_SYSTEM_NOTICE,
+            $title,
+            $description,
+            $meta
+        );
+    }
     public function createStudentExpulsion(Enrollment $enrollment, array $meta = []): Alert
     {
         $law = SchoolLaw::find($meta['law_id'] ?? null);
@@ -549,7 +558,7 @@ class AlertService
 
 
 
-    
+
     public function showSystemNotices(Staff $staff): LengthAwarePaginator
     {
         return Alert::where('notifiable_type', Staff::class)

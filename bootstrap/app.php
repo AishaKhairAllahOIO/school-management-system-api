@@ -13,30 +13,34 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands([
+        app_path('Console/Commands'),
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-        'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-        'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-    ]);
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-    $exceptions->render(function (ModelNotFoundException $e, $request) {
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage() ?: 'المورد غير موجود.',
-            ], 404);
-        }
-    });
-})
-    ->withExceptions(function (Exceptions $exceptions): void {
+
+        $exceptions->render(function (ModelNotFoundException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'المورد غير موجود.',
+                ], 404);
+            }
+        });
 
         $exceptions->renderable(function (UnauthorizedException $e, Request $request) {
             if ($request->is('api/*') || $request->wantsJson()) {
                 return response()->json([
-                    'status'  => false,
-                    'message' =>'User does not have the right roles or permissions.',
+                    'status' => false,
+                    'message' => 'User does not have the right roles or permissions.',
                 ], 403);
             }
         });
-    })->create();
+
+    })
+    ->create();

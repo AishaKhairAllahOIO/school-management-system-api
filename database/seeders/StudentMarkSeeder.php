@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 class StudentMarkSeeder extends Seeder
 {
-  
+
     public function run(): void
     {
         $enrollmentIds = [1, 2];
@@ -37,7 +37,6 @@ class StudentMarkSeeder extends Seeder
                     'assessment_component_id' => $component['id'],
                     'teacher_id'              => $teacherId,
                     'mark'                    => $randomMark,
-                    'notes'                   => 'تم توليد العلامة للتدريب عبر الـ Seeder',
                     'created_at'              => $now,
                     'updated_at'              => $now,
                 ];

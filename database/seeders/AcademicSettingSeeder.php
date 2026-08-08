@@ -54,29 +54,55 @@ class AcademicSettingSeeder extends Seeder
                 }
             ]
         } */
-       AcademicSetting::updateOrCreate(
+        AcademicSetting::updateOrCreate(
             ['id' => 1],
             [
                 'current_academic_year_id' => 1,
                 'current_semester_id' => 1,
-                'schedule_settings' => json_encode([
+
+                'schedule_settings' => [
                     'dayStartTime' => '08:00',
                     'periodDurationMinutes' => 45,
+
                     'workingDays' => [
-                        ['day' => 'sunday', 'periodsCount' => 7],
-                        ['day' => 'monday', 'periodsCount' => 7],
-                        ['day' => 'tuesday', 'periodsCount' => 7],
-                        ['day' => 'wednesday', 'periodsCount' => 7],
-                        ['day' => 'thursday', 'periodsCount' => 5],
+                        [
+                            'day' => 'sunday',
+                            'periodsCount' => 7
+                        ],
+                        [
+                            'day' => 'monday',
+                            'periodsCount' => 7
+                        ],
+                        [
+                            'day' => 'tuesday',
+                            'periodsCount' => 7
+                        ],
+                        [
+                            'day' => 'wednesday',
+                            'periodsCount' => 7
+                        ],
+                        [
+                            'day' => 'thursday',
+                            'periodsCount' => 7
+                        ],
                     ],
+
                     'breaks' => [
-                        ['id' => 'brk_1', 'afterPeriodIndex' => 3, 'durationMinutes' => 20],
-                        ['id' => 'brk_2', 'afterPeriodIndex' => 5, 'durationMinutes' => 10],
+                        [
+                            'id' => 'brk_1',
+                            'afterPeriodIndex' => 3,
+                            'durationMinutes' => 20
+                        ],
+                        [
+                            'id' => 'brk_2',
+                            'afterPeriodIndex' => 5,
+                            'durationMinutes' => 10
+                        ],
                     ],
-                ]),
+                ],
             ]
         );
-            
+
 
 
     }

@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('academic_year_id')->constrained('academic_years')->restrictOnDelete();
             $table->foreignId('grade_level_id')->constrained('grade_levels')->restrictOnDelete();
-            
-            $table->string('name', 100); // "خطة السابع العادية"
+
+            $table->string('name', 100);
             $table->decimal('base_amount', 12, 2); // الرسوم الأساسية
-            
+
             $table->timestamps();
             $table->softDeletes();
         });

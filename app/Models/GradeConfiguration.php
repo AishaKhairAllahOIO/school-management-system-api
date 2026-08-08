@@ -13,7 +13,6 @@ class GradeConfiguration extends Model
     ];
     protected $appends = ['actual_classrooms_count', 'actual_students_count'];
 
-    // ... العلاقات (grade, academicYear, supervisor) ...
     public function gradeLevel()
     {
         return $this->belongsTo(GradeLevel::class);

@@ -21,7 +21,7 @@ class AlertSeeder extends Seeder
                 'audience'    => Alert::AUDIENCE_STUDENT,
                 'title'       => 'تنبيه واجب',
                 'description' => 'لم يكتب الطالب الواجب المنزلي.',
-                'meta'        => ['subject' => 'math','date' => '2026-06-01'],
+                'meta'        => ['subject' => 'رياضيات','date' => '2026-06-01'],
                 'created_by'  => 3
             ]
         );
@@ -67,7 +67,7 @@ class AlertSeeder extends Seeder
                 'audience'    => Alert::AUDIENCE_STUDENT,
                 'title'       => 'تنبيه تأخير',
                 'description' => 'تم تسجيل تأخر الطالب عن الدوام.',
-                'meta'        => ['minutes_late' => 15, 'session' => 'Math Class'],
+                'meta'        => ['minutes_late' => 15, 'session' => 'الحصة الأولى'],
                 'created_by'  => 9
             ]
         );
@@ -83,7 +83,7 @@ class AlertSeeder extends Seeder
                 'audience'    => Alert::AUDIENCE_STUDENT,
                 'title'       => 'تنبيه هروب',
                 'description' => 'تم تسجيل حالة هروب الطالب.',
-                'meta'        => ['session' => 'Science Class'],
+                'meta'        => ['session' => 'الحصة الثانية'],
                 'created_by'  => 9
             ]
         );

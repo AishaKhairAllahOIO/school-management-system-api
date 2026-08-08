@@ -16,7 +16,7 @@ use App\Http\Controllers\Setting\AcademicSettingsController;
 use App\Http\Controllers\RoleAndPermission\RoleController;
 use App\Http\Controllers\User\UserAlertController;
 use App\Http\Controllers\User\UserAnnouncementController;
-use App\Http\Controllers\web\ActivityController;
+use App\Http\Controllers\Web\ActivityController;
 use App\Http\Controllers\Setting\GradeAndClassroomController;
 use App\Http\Controllers\Finance\PaymentController;
 use App\Http\Controllers\Finance\FinancialContractController;
@@ -38,6 +38,7 @@ use App\Http\Controllers\User\SentAlertController;
 use App\Http\Controllers\Web\SchoolLawController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceSettingController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceController;
+use App\Http\Controllers\Scheduling\ScheduleController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -79,9 +80,9 @@ Route::prefix('auth')->group(function () {
             Route::post('/mark-all-read', 'markAllAlertsRead');
         });
 
-        Route::prefix('bell')->controller(BellController::class)->group(function(){
-            Route::get('/count/unread','getBellUnreadCount');
-            Route::post('/mark/all/read','markAllBellItemsAsRead');
+        Route::prefix('bell')->controller(BellController::class)->group(function () {
+            Route::get('/count/unread', 'getBellUnreadCount');
+            Route::post('/mark/all/read', 'markAllBellItemsAsRead');
         });
 
 
@@ -118,12 +119,12 @@ Route::prefix('auth')->group(function () {
                 Route::post('/for-student/send', 'advisorCreateAlerts');
             });
 
-             Route::prefix('activity')->controller(ActivityController::class)->group(function () {
+            Route::prefix('activity')->controller(ActivityController::class)->group(function () {
                 Route::get('/show/all', 'showAllActivity');
-                Route::get('/show/one/{id}','showActivity');
-                Route::post('/create','store');
-                Route::delete('/delete/{id}','destroy');
-                Route::post('/update/{id}','updateActivity');
+                Route::get('/show/one/{id}', 'showActivity');
+                Route::post('/create', 'store');
+                Route::delete('/delete/{id}', 'destroy');
+                Route::post('/update/{id}', 'updateActivity');
             });
             Route::post('/announcements', [UserAnnouncementController::class, 'store']);
             Route::delete('/announcements/{id}', [UserAnnouncementController::class, 'destroy']);
@@ -491,6 +492,20 @@ Route::prefix('user')->group(function () {
         });
 
     });
+
+});
+
+Route::prefix('admin')->group(function () {
+
+
+    Route::post(
+        '/schedules/generate',
+        [
+            ScheduleController::class,
+            'generate'
+        ]
+    );
+
 
 });
 

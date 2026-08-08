@@ -1,0 +1,252 @@
+=== FULL DETAILED SCHEDULE #3 ===
+
+========================================
+ CLASS: seventh - الشعبة الاولى
+========================================
+
+>>> sunday
+  Period 1 : Subj-1 (Heavy) | Teacher: aisha
+  Period 2 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 3 : Subj-4  | Teacher: Mariam
+  Period 4 : Subj-4  | Teacher: Mariam
+  Period 5 : Subj-8  | Teacher: aisha
+  Period 6 : Subj-5  | Teacher: Mariam
+  Period 7 : Subj-12  | Teacher: Mariam
+
+>>> monday
+  Period 1 : Subj-1 (Heavy) | Teacher: aisha
+  Period 2 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 3 : Subj-4  | Teacher: Mariam
+  Period 4 : Subj-4  | Teacher: Mariam
+  Period 5 : Subj-8  | Teacher: aisha
+  Period 6 : Subj-5  | Teacher: Mariam
+  Period 7 : Subj-9  | Teacher: Majeda
+
+>>> tuesday
+  Period 1 : Subj-1 (Heavy) | Teacher: aisha
+  Period 2 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 3 : Subj-4  | Teacher: Mariam
+  Period 4 : Subj-5  | Teacher: Mariam
+  Period 5 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 6 : Subj-6  | Teacher: Ahmad
+  Period 7 : Subj-7  | Teacher: hmad
+
+>>> wednesday
+  Period 1 : Subj-1 (Heavy) | Teacher: aisha
+  Period 2 : Subj-1 (Heavy) | Teacher: aisha
+  Period 3 : Subj-5  | Teacher: Mariam
+  Period 4 : Subj-3 (Heavy) | Teacher: Amal
+  Period 5 : Subj-9  | Teacher: Majeda
+  Period 6 : Subj-6  | Teacher: Ahmad
+  Period 7 : Subj-7  | Teacher: hmad
+
+>>> thursday
+  Period 1 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 2 : Subj-3 (Heavy) | Teacher: Amal
+  Period 3 : Subj-10  | Teacher: Amal
+  Period 4 : Subj-7  | Teacher: hmad
+  Period 5 : Subj-10  | Teacher: Amal
+  Period 6 : Subj-13  | Teacher: Ahmad
+  Period 7 : Subj-14  | Teacher: hmad
+
+
+========================================
+ CLASS: seventh - الشعبة الثانية
+========================================
+
+>>> sunday
+  Period 1 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 2 : Subj-10  | Teacher: Amal
+  Period 3 : Subj-5  | Teacher: Mariam
+  Period 4 : Subj-1 (Heavy) | Teacher: aisha
+  Period 5 : Subj-12  | Teacher: Mariam
+  Period 6 : Subj-8  | Teacher: aisha
+  Period 7 : Subj-4  | Teacher: Mariam
+
+>>> monday
+  Period 1 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 2 : Subj-10  | Teacher: Amal
+  Period 3 : Subj-5  | Teacher: Mariam
+  Period 4 : Subj-1 (Heavy) | Teacher: aisha
+  Period 5 : Subj-6  | Teacher: Ahmad
+  Period 6 : Subj-8  | Teacher: aisha
+  Period 7 : Subj-4  | Teacher: Mariam
+
+>>> tuesday
+  Period 1 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 2 : Subj-5  | Teacher: Mariam
+  Period 3 : Subj-1 (Heavy) | Teacher: aisha
+  Period 4 : Subj-6  | Teacher: Ahmad
+  Period 5 : Subj-7  | Teacher: hmad
+  Period 6 : Subj-4  | Teacher: Mariam
+  Period 7 : Subj-4  | Teacher: Mariam
+
+>>> wednesday
+  Period 1 : Subj-4  | Teacher: Mariam
+  Period 2 : Subj-3 (Heavy) | Teacher: Amal
+  Period 3 : Subj-7  | Teacher: hmad
+  Period 4 : Subj-5  | Teacher: Mariam
+  Period 5 : Subj-1 (Heavy) | Teacher: aisha
+  Period 6 : Subj-14  | Teacher: hmad
+  Period 7 : Subj-13  | Teacher: Ahmad
+
+>>> thursday
+  Period 1 : Subj-1 (Heavy) | Teacher: aisha
+  Period 2 : Subj-7  | Teacher: hmad
+  Period 3 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 4 : Subj-3 (Heavy) | Teacher: Amal
+  Period 5 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 6 : Subj-9  | Teacher: Majeda
+  Period 7 : Subj-9  | Teacher: Majeda
+
+
+========================================
+ CLASS: seventh - الشعبة الثالثة
+========================================
+
+>>> sunday
+  Period 1 : Subj-5  | Teacher: Mariam
+  Period 2 : Subj-12  | Teacher: Mariam
+  Period 3 : Subj-7  | Teacher: hmad
+  Period 4 : Subj-14  | Teacher: hmad
+  Period 5 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 6 : Subj-6  | Teacher: Ahmad
+  Period 7 : Subj-1 (Heavy) | Teacher: aisha
+
+>>> monday
+  Period 1 : Subj-5  | Teacher: Mariam
+  Period 2 : Subj-7  | Teacher: hmad
+  Period 3 : Subj-6  | Teacher: Ahmad
+  Period 4 : Subj-13  | Teacher: Ahmad
+  Period 5 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 6 : Subj-9  | Teacher: Majeda
+  Period 7 : Subj-1 (Heavy) | Teacher: aisha
+
+>>> tuesday
+  Period 1 : Subj-5  | Teacher: Mariam
+  Period 2 : Subj-7  | Teacher: hmad
+  Period 3 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 4 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 5 : Subj-1 (Heavy) | Teacher: aisha
+  Period 6 : Subj-9  | Teacher: Majeda
+  Period 7 : Subj-3 (Heavy) | Teacher: Amal
+
+>>> wednesday
+  Period 1 : Subj-5  | Teacher: Mariam
+  Period 2 : Subj-4  | Teacher: Mariam
+  Period 3 : Subj-4  | Teacher: Mariam
+  Period 4 : Subj-4  | Teacher: Mariam
+  Period 5 : Subj-3 (Heavy) | Teacher: Amal
+  Period 6 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 7 : Subj-10  | Teacher: Amal
+
+>>> thursday
+  Period 1 : Subj-4  | Teacher: Mariam
+  Period 2 : Subj-4  | Teacher: Mariam
+  Period 3 : Subj-1 (Heavy) | Teacher: aisha
+  Period 4 : Subj-1 (Heavy) | Teacher: aisha
+  Period 5 : Subj-8  | Teacher: aisha
+  Period 6 : Subj-8  | Teacher: aisha
+  Period 7 : Subj-10  | Teacher: Amal
+
+
+========================================
+ CLASS: seventh - الشعبة الرابعة
+========================================
+
+>>> sunday
+  Period 1 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 2 : Subj-1 (Heavy) | Teacher: aisha
+  Period 3 : Subj-8  | Teacher: aisha
+  Period 4 : Subj-5  | Teacher: Mariam
+  Period 5 : Subj-9  | Teacher: Majeda
+  Period 6 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 7 : Subj-6  | Teacher: Ahmad
+
+>>> monday
+  Period 1 : Subj-9  | Teacher: Majeda
+  Period 2 : Subj-1 (Heavy) | Teacher: aisha
+  Period 3 : Subj-8  | Teacher: aisha
+  Period 4 : Subj-5  | Teacher: Mariam
+  Period 5 : Subj-3 (Heavy) | Teacher: Amal
+  Period 6 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 7 : Subj-6  | Teacher: Ahmad
+
+>>> tuesday
+  Period 1 : Subj-10  | Teacher: Amal
+  Period 2 : Subj-1 (Heavy) | Teacher: aisha
+  Period 3 : Subj-5  | Teacher: Mariam
+  Period 4 : Subj-7  | Teacher: hmad
+  Period 5 : Subj-11 (Heavy) | Teacher: Mariam
+  Period 6 : Subj-7  | Teacher: hmad
+  Period 7 : Subj-13  | Teacher: Ahmad
+
+>>> wednesday
+  Period 1 : Subj-10  | Teacher: Amal
+  Period 2 : Subj-5  | Teacher: Mariam
+  Period 3 : Subj-1 (Heavy) | Teacher: aisha
+  Period 4 : Subj-1 (Heavy) | Teacher: aisha
+  Period 5 : Subj-4  | Teacher: Mariam
+  Period 6 : Subj-4  | Teacher: Mariam
+  Period 7 : Subj-4  | Teacher: Mariam
+
+>>> thursday
+  Period 1 : Subj-3 (Heavy) | Teacher: Amal
+  Period 2 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 3 : Subj-4  | Teacher: Mariam
+  Period 4 : Subj-4  | Teacher: Mariam
+  Period 5 : Subj-7  | Teacher: hmad
+  Period 6 : Subj-14  | Teacher: hmad
+  Period 7 : Subj-12  | Teacher: Mariam
+
+
+========================================
+ CLASS: seventh - الشعبة الخامسة
+========================================
+
+>>> thursday
+  Period 1 : Subj-4  | Teacher: Mariam
+  Period 2 : Subj-1 (Heavy) | Teacher: aisha
+  Period 3 : Subj-10  | Teacher: Mariam
+  Period 4 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 5 : Subj-9  | Teacher: Mariam
+  Period 6 : Subj-9  | Teacher: Mariam
+  Period 7 : Subj-5  | Teacher: Ahmad
+
+>>> tuesday
+  Period 1 : Subj-7  | Teacher: Majeda
+  Period 2 : Subj-11 (Heavy) | Teacher: Ahmad
+  Period 3 : Subj-5  | Teacher: Ahmad
+  Period 4 : Subj-1 (Heavy) | Teacher: aisha
+  Period 5 : Subj-4  | Teacher: Mariam
+  Period 6 : Subj-1 (Heavy) | Teacher: aisha
+  Period 7 : Subj-13  | Teacher: aisha
+
+>>> wednesday
+  Period 1 : Subj-7  | Teacher: Majeda
+  Period 2 : Subj-11 (Heavy) | Teacher: Ahmad
+  Period 3 : Subj-5  | Teacher: Ahmad
+  Period 4 : Subj-5  | Teacher: Ahmad
+  Period 5 : Subj-4  | Teacher: Mariam
+  Period 6 : Subj-1 (Heavy) | Teacher: aisha
+  Period 7 : Subj-1 (Heavy) | Teacher: aisha
+
+>>> monday
+  Period 1 : Subj-3 (Heavy) | Teacher: Amal
+  Period 2 : Subj-4  | Teacher: Mariam
+  Period 3 : Subj-8  | Teacher: Amal
+  Period 4 : Subj-6  | Teacher: hmad
+  Period 5 : Subj-4  | Teacher: Mariam
+  Period 6 : Subj-11 (Heavy) | Teacher: Ahmad
+  Period 7 : Subj-10  | Teacher: Mariam
+
+>>> sunday
+  Period 1 : Subj-3 (Heavy) | Teacher: Amal
+  Period 2 : Subj-6  | Teacher: hmad
+  Period 3 : Subj-8  | Teacher: Amal
+  Period 4 : Subj-2 (Heavy) | Teacher: Majeda
+  Period 5 : Subj-12  | Teacher: hmad
+  Period 6 : Subj-7  | Teacher: Majeda
+  Period 7 : Subj-14  | Teacher: Majeda
+
+

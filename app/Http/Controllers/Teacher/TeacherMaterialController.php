@@ -28,14 +28,14 @@ class TeacherMaterialController extends Controller
             $subjects = GradeSubject::with(['subject:id,subject_name', 'gradeLevel:id,name'])
                 ->whereHas('teacherAssignments', function ($q) use ($teacherId) {
                     $q->where('teacher_id', $teacherId)
-                      ->whereHas('academicYear', fn($ay) => $ay->where('is_current', true));
+                        ->whereHas('academicYear', fn($ay) => $ay->where('is_current', true));
                 })
                 ->get()
                 ->map(function ($gs) {
                     return [
                         'grade_subject_id' => $gs->id,
-                        'subject_name'     => $gs->subject->subject_name ?? 'Unknown',
-                        'grade_name'       => $gs->gradeLevel->name ?? 'Unknown',
+                        'subject_name' => $gs->subject->subject_name ?? 'Unknown',
+                        'grade_name' => $gs->gradeLevel->name ?? 'Unknown',
                     ];
                 });
 
@@ -57,25 +57,26 @@ class TeacherMaterialController extends Controller
             $responseData = [
                 'items' => collect($materials->items())->map(function ($material) {
                     return [
-                        'id'             => $material->id,
-                        'title'          => $material->title,
-                        'description'    => $material->description,
-                        'type'           => $material->type,
-                        'link_url'       => $material->type === 'link' ? $material->link_url : null,
+                        'id' => $material->id,
+                        'title' => $material->title,
+                        'description' => $material->description,
+                        'type' => $material->type,
+                        'link_url' => $material->type === 'link' ? $material->link_url : null,
                         'file_extension' => $material->type === 'file' ? $material->file_extension : null,
-                        'file_size_kb'   => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
-                        'created_at'     => $material->created_at->format('Y-m-d H:i'),
+                        'file_size_kb' => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
+                        'grade_subject_id' => $material->grade_subject_id,
+                        'created_at' => $material->created_at->format('Y-m-d H:i'),
                     ];
                 }),
                 'pagination' => [
-                    'total'        => $materials->total(),
+                    'total' => $materials->total(),
                     'current_page' => $materials->currentPage(),
-                    'last_page'    => $materials->lastPage(),
-                    'per_page'     => $materials->perPage(),
+                    'last_page' => $materials->lastPage(),
+                    'per_page' => $materials->perPage(),
                     'first_page_url' => $materials->url(1),
-                    'last_page_url'  => $materials->url($materials->lastPage()),
-                    'next_page_url'  => $materials->nextPageUrl(),
-                    'prev_page_url'  => $materials->previousPageUrl(),
+                    'last_page_url' => $materials->url($materials->lastPage()),
+                    'next_page_url' => $materials->nextPageUrl(),
+                    'prev_page_url' => $materials->previousPageUrl(),
                 ]
             ];
 
@@ -108,9 +109,9 @@ class TeacherMaterialController extends Controller
             );
 
             $responseData = [
-                'id'         => $material->id,
-                'title'      => $material->title,
-                'type'       => $material->type,
+                'id' => $material->id,
+                'title' => $material->title,
+                'type' => $material->type,
                 'created_at' => $material->created_at->format('Y-m-d H:i'),
             ];
 
@@ -135,22 +136,21 @@ class TeacherMaterialController extends Controller
         }
     }
 
-public function show(Request $request, $id)
+    public function show(Request $request, $id)
     {
         try {
             $material = $this->materialService->showOneMaterial((int) $id, $request->user());
-
             $responseData = [
-                'id'             => $material->id,
-                'title'          => $material->title,
-                'description'    => $material->description,
-                'type'           => $material->type,
-                'link_url'       => $material->type === 'link' ? $material->link_url : null,
+                'id' => $material->id,
+                'title' => $material->title,
+                'description' => $material->description,
+                'type' => $material->type,
+                'link_url' => $material->type === 'link' ? $material->link_url : null,
+                'grade_subject_id' => $material->grade_subject_id,
                 'file_extension' => $material->type === 'file' ? $material->file_extension : null,
-                'file_size_kb'   => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
-                'created_at'     => $material->created_at->format('Y-m-d H:i'),
+                'file_size_kb' => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
+                'created_at' => $material->created_at->format('Y-m-d H:i'),
             ];
-
             return $this->successResponse($responseData, 'Study material details retrieved successfully.', 200);
         } catch (Exception $e) {
             $code = $this->getExceptionCode($e);

@@ -24,8 +24,6 @@ class StaffSeeder extends Seeder
                 'hire_date' => '2022-08-11'
             ]
         );
-
-
         Staff::updateOrCreate(
             [
                 'user_id' => 8,
@@ -39,16 +37,14 @@ class StaffSeeder extends Seeder
                 'hire_date' => '2010-09-01',
             ]
         );
-
-
         Staff::updateOrCreate(
             [
                 'user_id' => 6,
             ],
             [
                 'degree' => 'bachelor',
-                'specialization' => 'علم نفس وتوجيه إرشادي',
-                'university' => 'جامعة تشرين',
+                'specialization' => 'الفيزياء والعلوم الحيوية',
+                'university' => 'جامعة البعث',
                 'graduation_year' => 2015,
                 'experience_years' => 5,
                 'hire_date' => '2015-09-01',
@@ -98,11 +94,11 @@ class StaffSeeder extends Seeder
                 'user_id' => 9,
             ],
             [
-                'degree' => null,
-                'specialization' => null,
+                'degree' => 'other',
+                'specialization' =>null ,
                 'university' => null,
                 'graduation_year' => null,
-                'experience_years' => 0,
+                'experience_years' => 3,
                 'hire_date' => '2015-09-01',
                 'service_type' => 'cleaner'
             ]
@@ -132,6 +128,75 @@ class StaffSeeder extends Seeder
                 'specialization' => 'علم نفس وتوجيه إرشادي',
                 'university' => 'جامعة دمشق',
                 'graduation_year' => 2020,
+                'experience_years' => 4,
+                'hire_date' => '2023-09-01',
+            ]
+        );
+
+        Staff::updateOrCreate(
+            [
+                'user_id' => 15,
+            ],
+            [
+                'degree' => 'master',
+                'specialization' => 'كيمياء حيوية',
+                'university' => 'جامعة دمشق',
+                'graduation_year' => 2022,
+                'experience_years' => 3,
+                'hire_date' => '2023-09-01',
+            ]
+        );
+
+        Staff::updateOrCreate(
+            [
+                'user_id' => 16,
+            ],
+            [
+                'degree' => 'master',
+                'specialization' => 'لغة فرنسية',
+                'university' => 'جامعة دمشق',
+                'graduation_year' => 2020,
+                'experience_years' => 2,
+                'hire_date' => '2023-09-01',
+            ]
+        );
+
+        Staff::updateOrCreate(
+            [
+                'user_id' => 17,
+            ],
+            [
+                'degree' => 'phd',
+                'specialization' => 'رياضة ومهارات بدنية',
+                'university' => 'جامعة دمشق',
+                'graduation_year' => 2019,
+                'experience_years' => 6,
+                'hire_date' => '2023-09-01',
+            ]
+        );
+
+        Staff::updateOrCreate(
+            [
+                'user_id' => 18,
+            ],
+            [
+                'degree' => 'bachelor',
+                'specialization' => 'فنون جميلة',
+                'university' => 'جامعة دمشق',
+                'graduation_year' => 2022,
+                'experience_years' => 4,
+                'hire_date' => '2023-09-01',
+            ]
+        );
+        Staff::updateOrCreate(
+            [
+                'user_id' => 19,
+            ],
+            [
+                'degree' => 'bachelor',
+                'specialization' => 'لغة عربية',
+                'university' => 'جامعة دمشق',
+                'graduation_year' => 2022,
                 'experience_years' => 4,
                 'hire_date' => '2023-09-01',
             ]

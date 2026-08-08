@@ -8,7 +8,7 @@ class AcademicSetting extends Model
 {
     protected $guarded = [];
     protected $casts = [
-        'schedule_settings' => 'array', // تحويل تلقائي للـ JSON عند القراءة والحفظ
+        'schedule_settings' => 'array', 
     ];
     public function currentAcademicYear() {
     return $this->belongsTo(AcademicYear::class, 'current_academic_year_id');

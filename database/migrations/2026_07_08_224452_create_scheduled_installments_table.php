@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('scheduled_installments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('financial_account_id')->constrained('financial_accounts')->cascadeOnDelete();
-            
+
             $table->tinyInteger('installment_number')->unsigned();
             $table->string('title', 100);
             $table->decimal('amount_due', 12, 2); // المطلوب في هذا القسط
             $table->decimal('amount_paid', 12, 2)->default(0.00); // ما تم سداده
-            
+
             $table->date('due_date'); // التاريخ الميلادي الحقيقي المستنتج
             $table->enum('status', ['pending', 'paid', 'overdue'])->default('pending');
-            
+
             $table->timestamps();
         });
     }

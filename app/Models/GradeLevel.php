@@ -17,8 +17,8 @@ class GradeLevel extends Model
             ];
         }
     protected $casts = [
-        'name' => GradeName::class, // 👈 السحر هنا
-    ];    
+        'name' => GradeName::class,
+    ];
 
     public function classRooms()
     {

@@ -14,8 +14,16 @@ class AcademicStageSeeder extends Seeder
      */
     public function run(): void
     {
-        AcademicStage::create([
+        AcademicStage::updateOrCreate([
             'type' => AcademicStageType::Middle,
-        ]);
+        ],
+        []
+    );
     }
 }
+
+
+    
+        
+         
+        

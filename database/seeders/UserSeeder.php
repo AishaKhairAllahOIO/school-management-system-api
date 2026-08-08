@@ -247,8 +247,8 @@ class UserSeeder extends Seeder
         $user12 = User::updateOrCreate(
             ['phone_number' => '0993790629'],
             [
-                'first_name' => 'Yazan',
-                'last_name' => 'Al_khalid',
+                'first_name' => 'Samer',
+                'last_name' => 'Al_ali',
                 'father_name' => 'Salem',
                 'mother_name' => 'Lisa Johnson',
                 'birth_date' => '1985-12-10',
@@ -309,5 +309,132 @@ class UserSeeder extends Seeder
         );
 
         $user14->assignRole('counselor');
+
+
+
+
+
+
+        $user15 = User::updateOrCreate(
+            [
+                'phone_number' => '0984227325',
+            ],
+            [
+                'first_name' => 'Amal',
+                'last_name' => 'Alsaleh',
+                'father_name' => 'Salem',
+                'mother_name' => 'Lisa Johnson',
+                'birth_date' => '1985-12-10',
+                'birth_place' => 'Villageburg',
+                'address' => '789 Pine Rd, Villageburg',
+                'nationality' => 'syrian',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'gender' => 'female',
+                'email' => 'mouhaedalshalab@gmail.com',
+                'photo_url' => 'defaults/teacher.jpg
+            ',
+                'password' => $defaultPassword,
+            ]
+        );
+
+        $user15->assignRole('teacher');
+
+        $user16 = User::updateOrCreate(
+            [
+                'phone_number' => '0951287463',
+            ],
+            [
+                'first_name' => 'Mariam',
+                'last_name' => 'Al_khalid',
+                'father_name' => 'Salem',
+                'mother_name' => 'Lisa Johnson',
+                'birth_date' => '1985-12-10',
+                'birth_place' => 'Villageburg',
+                'address' => '789 Pine Rd, Villageburg',
+                'nationality' => 'syrian',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'gender' => 'female',
+                'email' => 'mouhamealshaabi@gmail.com',
+                'photo_url' => 'defaults/counselor.jpg
+            ',
+                'password' => $defaultPassword,
+            ]
+        );
+
+        $user16->assignRole('teacher');
+        $user17 = User::updateOrCreate(
+            [
+                'phone_number' => '0911254786',
+            ],
+            [
+                'first_name' => 'Mariam',
+                'last_name' => 'Al_khalid',
+                'father_name' => 'Salem',
+                'mother_name' => 'Lisa Johnson',
+                'birth_date' => '1985-12-10',
+                'birth_place' => 'Villageburg',
+                'address' => '789 Pine Rd, Villageburg',
+                'nationality' => 'syrian',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'gender' => 'female',
+                'email' => 'mouhamedalsabi@gmail.com',
+                'photo_url' => 'defaults/counselor.jpg
+            ',
+                'password' => $defaultPassword,
+            ]
+        );
+
+        $user17->assignRole('teacher');
+        $user18 = User::updateOrCreate(
+            [
+                'phone_number' => '0911354789',
+            ],
+            [
+                'first_name' => 'Ahmad',
+                'last_name' => 'Al_khalid',
+                'father_name' => 'Salem',
+                'mother_name' => 'Lisa Johnson',
+                'birth_date' => '1985-12-10',
+                'birth_place' => 'Villageburg',
+                'address' => '789 Pine Rd, Villageburg',
+                'nationality' => 'syrian',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'gender' => 'male',
+                'email' => 'ahmadahmadahmad@gmail.com',
+                'photo_url' => 'defaults/teacher.jpg
+            ',
+                'password' => $defaultPassword,
+            ]
+        );
+
+        $user18->assignRole('teacher');
+        $user19 = User::updateOrCreate(
+            [
+                'phone_number' => '0911304789',
+            ],
+            [
+                'first_name' => 'hmad',
+                'last_name' => 'Al_khalid',
+                'father_name' => 'Salem',
+                'mother_name' => 'Lisa Johnson',
+                'birth_date' => '1985-12-10',
+                'birth_place' => 'Villageburg',
+                'address' => '789 Pine Rd, Villageburg',
+                'nationality' => 'syrian',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'gender' => 'male',
+                'email' => 'ahmadahmahmad@gmail.com',
+                'photo_url' => 'defaults/teacher.jpg
+            ',
+                'password' => $defaultPassword,
+            ]
+        );
+
+        $user19->assignRole('teacher');
     }
 }

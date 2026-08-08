@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             SchoolLawSeeder::class,
             UserSeeder::class,
-            TestSeeder::class,
+           // TestSeeder::class,
             AcademicYearSeeder::class,
             SemesterSeeder::class,
             AcademicStageSeeder::class,

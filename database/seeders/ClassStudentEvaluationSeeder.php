@@ -7,11 +7,11 @@ use Illuminate\Database\Seeder;
 
 class ClassStudentEvaluationSeeder extends Seeder
 {
-  
+
     public function run(): void
     {
-        $teacherId = 9;
-        $enrollmentIds = [2, 3];
+        $teacherId = 1;
+        $enrollmentIds = [1, 3];
 
         $gradeSubjectId = 1;
 

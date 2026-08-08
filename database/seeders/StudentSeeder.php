@@ -16,12 +16,12 @@ class StudentSeeder extends Seeder
     {
     Student::updateOrCreate([
         'user_id'=>5,
-        'guardian_id'=>2,
+        'guardian_id'=>1,
     ]);
 
     Student::updateOrCreate([
         'user_id'=>2,
-        'guardian_id'=>2,
+        'guardian_id'=>1,
     ]);
 
     Student::updateOrCreate([

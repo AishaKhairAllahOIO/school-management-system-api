@@ -22,7 +22,7 @@ class ActivitySeeder extends Seeder
                 'type'           => 'sports',
                 'start_time'     => '09:00:00',
                 'end_time'       => '11:00:00',
-                'description'    => 'تقام مبارات كرة قدم بين الطلاب للتشجيع روح التعاون والفريق وتحفيزهم على الانجاز'
+                'description'    => 'تقام مبارات كرة قدم بين الطلاب للتشجيع روح التعاون والفريق وتحفيزهم على الانجاز.'
             ]
         );
         $footballActivity->classRooms()->sync([1, 2]);

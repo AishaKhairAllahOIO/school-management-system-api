@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'traccar' => [
+        'api_key' => env('TRACCAR_SMS_API_KEY'),
+        'api_url' => env('TRACCAR_SMS_API_URL', 'https://www.traccar.org/sms/'),
+    ],
+
 ];

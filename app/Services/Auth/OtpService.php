@@ -17,16 +17,21 @@ use Carbon\Carbon;
 class OtpService
 {
     use ApiResource;
-    private string $apiKey  = 'eGRVd_FlR-mu8PomGIUC9i:APA91bFg7T6ZjuCTAD9GzTpZ6-x3suiGfYwnxOqHdUcS2cin3olkt0cGtYftFHDf2sFcHOyiA7rf8xs3wNgBERt2lUX06XWkoHlH8PT5VG9r_VDJWkE-fB4';
-    private string $apiUrl = 'https://www.traccar.org/sms/';
-    private string $appleReviewPhone = '+15555550123';
-    private string $appleStaticOtp   = '12345';
+    private string $apiKey ;
+    private string $apiUrl ;
+    private string $appleReviewPhone ;
+    private string $appleStaticOtp ;
 
     private UserService $user_service;
 
     public function __construct(UserService $user_service)
     {
         $this->user_service = $user_service;
+
+        $this->apiKey = env('TRACCAR_SMS_API_KEY');
+        $this->apiUrl = env('TRACCAR_SMS_API_URL', 'https://www.traccar.org/sms/');
+        $this->appleReviewPhone = env('APPLE_REVIEW_PHONE', '+15555550123');
+        $this->appleStaticOtp = env('APPLE_STATIC_OTP', '12345');
     }
 
     public function login(string $phone_number): array|string

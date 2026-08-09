@@ -12,7 +12,6 @@ return new class extends Migration {
             $table->foreignId('study_material_id')->constrained('study_materials')->cascadeOnDelete();
             $table->timestamp('read_at')->useCurrent();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-
             $table->unique(['study_material_id', 'user_id']);
             $table->timestamps();
         });

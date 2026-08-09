@@ -5,6 +5,7 @@ namespace App\Services\User;
 use App\Jobs\SendPushNotification;
 use App\Models\Announcement;
 use App\Models\GradeConfiguration;
+use App\Models\Student;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Enrollment;
 use App\Models\User;
@@ -211,25 +212,61 @@ class AnnouncementService
     public function forGuardian(User $user, ?int $studentId = null): LengthAwarePaginator
     {
         return $this->getBaseQueryForUser($user, $studentId)
-            ->with(['gradeLevel:id,name', 'classRooms:id,name']) // تم تعديل classRoom إلى classRooms
+            ->with(['gradeLevel:id,name', 'classRooms:id,name'])
             ->latest()
             ->paginate(20);
     }
 
+    private function resolveReaderUser(User $user, ?int $studentId): ?User
+    {
+        if ($user->student) {
+            return $user;
+        }
+
+        if ($user->guardian && $studentId) {
+            $child = $user->guardian->students()->find($studentId);
+            return $child?->user;
+        }
+
+        return null;
+    }
+
     public function unreadCount(User $user, ?int $studentId = null): int
     {
+        if ($user->hasRole('guardian') && $user->guardian && !$studentId) {
+            return $user->guardian->students->reduce(function ($carry, Student $child) use ($user) {
+                return $carry + $this->unreadCount($user, $child->id);
+            }, 0);
+        }
+
+        $readerUser = $this->resolveReaderUser($user, $studentId);
+
         return $this->getBaseQueryForUser($user, $studentId)
-            ->whereDoesntHave('readers', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            ->whereDoesntHave('readers', function ($q) use ($readerUser) {
+                $q->where('user_id', $readerUser?->id);
             })
             ->count();
     }
 
     public function markAllAsRead(User $user, ?int $studentId = null): void
     {
+
+        if ($user->guardian && !$studentId) {
+            foreach ($user->guardian->students as $child) {
+                $this->markAllAsRead($user, $child->id);
+            }
+            return;
+        }
+
+        $readerUser = $this->resolveReaderUser($user, $studentId);
+
+        if (!$readerUser) {
+            return;
+        }
+
         $announcementIds = $this->getBaseQueryForUser($user, $studentId)
-            ->whereDoesntHave('readers', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            ->whereDoesntHave('readers', function ($q) use ($readerUser) {
+                $q->where('user_id', $readerUser->id);
             })
             ->pluck('id');
 
@@ -240,7 +277,7 @@ class AnnouncementService
         }
 
         if (!empty($syncData)) {
-            $user->readAnnouncements()->syncWithoutDetaching($syncData);
+            $readerUser->readAnnouncements()->syncWithoutDetaching($syncData);
         }
     }
 
@@ -249,9 +286,7 @@ class AnnouncementService
         $query = Announcement::query()->with(['gradeLevel:id,name', 'classRooms:id,name']);
 
         if ($user->hasRole('super_admin')) {
-        }
-
-        elseif ($user->hasRole('adviser')) {
+        } elseif ($user->hasRole('adviser')) {
             $advisorGradeIds = GradeConfiguration::where('supervisor_id', $user->id)
                 ->whereHas('academicYear', function ($q) {
                     $q->where('is_current', true);

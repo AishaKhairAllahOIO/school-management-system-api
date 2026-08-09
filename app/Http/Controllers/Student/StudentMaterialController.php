@@ -56,7 +56,6 @@ class StudentMaterialController extends Controller
                 'items' => collect($materials->items())->map(function ($material) {
                     return [
                         'id'             => $material->id,
-                        'teacher_name'   => $material->teacher ? trim("{$material->teacher->first_name} {$material->teacher->last_name}") : 'Unknown',
                         'title'          => $material->title,
                         'description'    => $material->description,
                         'type'           => $material->type,

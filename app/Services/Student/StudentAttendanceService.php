@@ -63,10 +63,8 @@ class  StudentAttendanceService
                 $savedAttendances[] = $attendance->toArray();
             }
 
-            // إطلاق الحدث لتبدأ المعالجة غير المتزامنة في الخلفية
             event(new BulkAttendanceSaved($savedAttendances, $semesterId));
 
-            // استخراج الأرصدة والغيابات المتبقية بدقة عالية وبطلب واحد خارق لتجنب N+1 Queries
             $enrollmentIds = collect($savedAttendances)->pluck('enrollment_id')->toArray();
 
             $setting = StudentAttendanceSetting::where('semester_id', $semesterId)->first();
@@ -109,7 +107,7 @@ class  StudentAttendanceService
      */
     public function filterStudentsAttendance(array $filters)
     {
-        $classroomId = $filters['class_room_id'];
+      $classroomId = $filters['class_room_id'];
         $attendanceDate = $filters['attendance_date'] ?? now()->toDateString();
         $semesterId = $filters['semester_id'] ?? null;
         $status = $filters['status'] ?? null;
@@ -119,30 +117,33 @@ class  StudentAttendanceService
             $semesterId = AcademicSetting::first()?->current_semester_id;
         }
 
-        // جلب رصيد الغيابات الأقصى مسبقاً
         $setting = StudentAttendanceSetting::where('semester_id', $semesterId)->first();
         $allowedAbsenceDays = $setting ? (int) floor($setting->working_days * (1 - $setting->required_attendance_percentage / 100)) : 0;
 
         $query = Enrollment::where('class_room_id', $classroomId)
-            ->where('enrollment_status', 'enrolled')
+            ->whereIn('enrollment_status', ['enrolled', 'confirmed'])
             ->with([
                 'student.user:id,first_name,father_name,last_name',
-                'attendances' => function ($q) use ($attendanceDate) {
-                    $q->where('attendance_date', $attendanceDate);
+                // 🛡️ الحل هنا: استخدام whereDate لتجاهل أجزاء الوقت ومقارنة التاريخ الصافي فقط
+                'attendances' => function ($q) use ($attendanceDate, $semesterId) {
+                    $q->whereDate('attendance_date', $attendanceDate)
+                      ->where('semester_id', $semesterId);
                 }
             ]);
 
-        // جلب تراكم الغيابات غير المبررة للطلاب في استعلام واحد خارق يمنع N+1 Queries
+        // جلب تراكم الغيابات غير المبررة للطلاب لتجنب N+1 Queries
         $query->withCount(['attendances as unexcused_count' => function ($q) use ($semesterId) {
             $q->where('semester_id', $semesterId)
               ->where('status', 'absent')
               ->where('absence_type', 'unexcused');
         }]);
 
-        // تصفية السجلات بناءً على الفلاتر المدخلة (حالة الحضور، نوع الغياب)
+        // تصفية السجلات بناءً على الفلاتر المدخلة
         if ($status || $absenceType) {
-            $query->whereHas('attendances', function ($q) use ($attendanceDate, $status, $absenceType) {
-                $q->where('attendance_date', $attendanceDate);
+            $query->whereHas('attendances', function ($q) use ($attendanceDate, $semesterId, $status, $absenceType) {
+                // 🛡️ استخدام whereDate هنا أيضاً
+                $q->whereDate('attendance_date', $attendanceDate)
+                  ->where('semester_id', $semesterId);
                 if ($status) {
                     $q->where('status', $status);
                 }
@@ -151,28 +152,31 @@ class  StudentAttendanceService
                 }
             });
         }
+        //dd($query->toSql(), $query->getBindings(), $attendanceDate, $semesterId);
 
         $enrollments = $query->paginate($filters['per_page'] ?? 15);
 
-        // بناء مخرجات الـ Response بطريقة مثالية للفرونت إند
-           $enrollments->getCollection()->transform(function ($enrollment) use ($allowedAbsenceDays) {
-            $attendance = $enrollment->attendances->first();
+        // بناء الـ Response المنسق للفرونت إند
+        $enrollments->getCollection()->transform(function ($enrollment) use ($allowedAbsenceDays) {
+            $attendance = StudentAttendance::where('enrollment_id', $enrollment->id)->first();
+             
             $unexcused = $enrollment->unexcused_count ?? 0;
             $remaining = max(0, $allowedAbsenceDays - $unexcused);
+            $user = $enrollment->student?->user;
 
             return [
-                'enrollment_id' => $enrollment->id,
-                'student_id' => $enrollment->student_id,
-                'full_name' => trim($enrollment->student->user->first_name . ' ' . $enrollment->student->user->father_name . ' ' . $enrollment->student->user->last_name),
-                'allowed_absence_days' => $allowedAbsenceDays,
+                'enrollment_id'          => $enrollment->id,
+                'student_id'             => $enrollment->student_id,
+                'full_name'              => $user ? trim($user->first_name . ' ' . $user->father_name . ' ' . $user->last_name) : 'غير متوفر',
+                'allowed_absence_days'   => $allowedAbsenceDays,
                 'total_unexcused_absent' => $unexcused,
                 'remaining_absence_days' => $remaining,
-                'attendance' => $attendance ? [
-                    'id' => $attendance->id,
-                    'status' => $attendance->status,
-                    'absence_type' => $attendance->absence_type,
+                'attendance'             =>  [
+                    'id'              => $attendance->id,
+                    'status'          => $attendance->status,
+                    'absence_type'    => $attendance->absence_type,
                     'attendance_date' => $attendance->attendance_date,
-                ] : null,
+                ],
             ];
         });
 

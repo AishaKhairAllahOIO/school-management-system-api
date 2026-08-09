@@ -93,7 +93,7 @@ class HomeworkService
         }
 
         return $this->getBaseQueryForUser($guardianUser, $studentId)
-            ->withExists(['readers as is_read' => fn($q) => $q->where('user_id', $guardianUser->id)])
+            ->withExists(['readers as is_read' => fn($q) => $q->where('user_id', $child->user_id)])
             ->with(['gradeSubject.subject:id,subject_name'])
             ->latest()
             ->paginate($perPage);
@@ -194,19 +194,57 @@ class HomeworkService
 
         return Homework::query()->where('id', '<', 0);
     }
-    public function unreadCount(User $user, ?int $studentId = null): int
+
+ 
+    private function resolveReaderUser(User $user, ?int $studentId): ?User
     {
-        return $this->getBaseQueryForUser($user, $studentId)
-            ->whereDoesntHave('readers', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })
-            ->count();
+        if ($user->hasRole('student') && $user->student) {
+            return $user;
+        }
+
+        if ($user->hasRole('guardian') && $user->guardian && $studentId) {
+            $child = $user->guardian->students()->find($studentId);
+            return $child?->user;
+        }
+
+        return null;
     }
+
+ public function unreadCount(User $user, ?int $studentId = null): int
+{
+    if ($user->hasRole('guardian') && $user->guardian && !$studentId) {
+        return $user->guardian->students->reduce(function ($carry, Student $child) use ($user) {
+            return $carry + $this->unreadCount($user, $child->id);
+        }, 0);
+    }
+
+    $readerUser = $this->resolveReaderUser($user, $studentId);
+
+    return $this->getBaseQueryForUser($user, $studentId)
+        ->whereDoesntHave('readers', function ($q) use ($readerUser) {
+            $q->where('user_id', $readerUser?->id);
+        })
+        ->count();
+}
+
     public function markAllAsRead(User $user, ?int $studentId = null): void
     {
+        if ($user->hasRole('guardian') && $user->guardian && !$studentId) {
+            foreach ($user->guardian->students as $child) {
+                $this->markAllAsRead($user, $child->id);
+            }
+            return;
+        }
+
+        $readerUser = $this->resolveReaderUser($user, $studentId);
+
+        if (!$readerUser) {
+            return;
+        }
+
         $homeworkIds = $this->getBaseQueryForUser($user, $studentId)
-            ->whereDoesntHave('readers', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            ->whereDoesntHave('readers', function ($q) use ($readerUser) {
+                $q->where('user_id', $readerUser->id);
             })
             ->pluck('id');
 
@@ -217,7 +255,7 @@ class HomeworkService
         }
 
         if (!empty($syncData)) {
-            $user->readHomeworks()->syncWithoutDetaching($syncData);
+            $readerUser->readHomeworks()->syncWithoutDetaching($syncData);
         }
     }
 }

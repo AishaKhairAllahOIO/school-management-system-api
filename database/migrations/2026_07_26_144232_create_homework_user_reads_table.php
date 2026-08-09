@@ -13,11 +13,23 @@ return new class extends Migration
     {
         Schema::create('homework_user_reads', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('homework_id')->constrained('homeworks')->cascadeOnDelete();
-            $table->timestamp('read_at')->useCurrent();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->unique(['homework_id', 'user_id']);
+            $table->foreignId('homework_id')
+                  ->constrained('homeworks')
+                  ->cascadeOnDelete();
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->cascadeOnDelete();
+            $table->foreignId('student_id')
+                  ->nullable()
+                  ->constrained('students')
+                  ->cascadeOnDelete();
+            $table->timestamp('read_at')->nullable();
             $table->timestamps();
+
+            $table->unique(['homework_id', 'user_id', 'student_id'], 'homework_user_reads_unique');
+
+            $table->index(['user_id', 'read_at']);
+            $table->index(['student_id']);
         });
     }
 

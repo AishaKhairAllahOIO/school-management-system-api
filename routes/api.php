@@ -175,8 +175,8 @@ Route::prefix('auth')->group(function () {
             });
 
             Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
-                Route::get('/show/all','teacherWeekly');
-                Route::get('/tomorrow','teacherTomorrow');
+                Route::get('/show/all/{teacherId}','teacherWeekly');
+                Route::get('/tomorrow/{teacherId}','teacherTomorrow');
             });
         });
 
@@ -504,8 +504,8 @@ Route::prefix('user')->group(function () {
             });
 
             Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
-                Route::get('/all/{classroomId}', 'studentWeekly');
-                Route::get('/tomorrow/{classroomId}', 'studentTomorrow');
+                Route::get('/all/{studentId}', 'studentWeekly');
+                Route::get('/tomorrow/{studentId}', 'studentTomorrow');
             });
         });
 

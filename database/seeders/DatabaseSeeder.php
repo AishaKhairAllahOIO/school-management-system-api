@@ -51,6 +51,7 @@ class DatabaseSeeder extends Seeder
             PracticeQuizSeeder::class,
             StudentAttendanceSettingSeeder::class,
            // StudentAttendanceSeeder::class,
+           StudentMaterialsSeeder::class,
 
 
         ]);

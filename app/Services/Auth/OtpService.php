@@ -30,7 +30,6 @@ class OtpService
 
         $this->apiKey = config('services.traccar.api_key');
         $this->apiUrl = config('services.traccar.api_url');
-
         $this->appleReviewPhone = config('services.traccar.apple_review_phone');
         $this->appleStaticOtp = config('services.traccar.apple_static_otp');
 

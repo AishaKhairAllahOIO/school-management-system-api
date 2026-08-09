@@ -39,6 +39,7 @@ use App\Http\Controllers\Web\SchoolLawController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceSettingController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceController;
 use App\Http\Controllers\Scheduling\ScheduleController;
+use App\Http\Controllers\ContentController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -512,7 +513,5 @@ Route::prefix('user')->group(function () {
     });
 
 });
-
-
-
-
+Route::get('/content', [ContentController::class, 'index']);
+Route::post('/content', [ContentController::class, 'store']);

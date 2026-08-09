@@ -86,9 +86,9 @@ class AlertService
         $semesterId = $enrollment->semester_id; // تأكدي من حقل الفصل في جدول الـ enrollments لديكِ
         $setting = \App\Models\StudentAttendanceSetting::where('semester_id', $semesterId)->first();
 
-        $allowedDays = $setting ? $setting->allowed_absence_days : 10; 
-        
-        $warningLimit = max(0, $allowedDays - 2); 
+        $allowedDays = $setting ? $setting->allowed_absence_days : 10;
+
+        $warningLimit = max(0, $allowedDays - 2);
 
         $absenceCount = Alert::where('notifiable_type', Enrollment::class)
             ->where('notifiable_id', $enrollment->id)
@@ -109,9 +109,9 @@ class AlertService
         }
 
         return $alert;
-    } 
+    }
 
-    
+
 public function createSystemNotice(Staff $staff, string $title, string $description, array $meta = []): Alert
     {
         return $this->createStaffAlert(
@@ -334,7 +334,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
     {
         return Alert::where('notifiable_type', Staff::class)
             ->where('notifiable_id', $staff->id)
-            // استثناء الرواتب وإشعارات السستم لتظهر كل منها في شاشتها الخاصة
             ->whereNotIn('type', [Alert::TYPE_SALARY, Alert::TYPE_SYSTEM_NOTICE])
             ->latest()
             ->paginate(20);

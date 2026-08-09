@@ -87,11 +87,11 @@ Route::prefix('auth')->group(function () {
 
 
         Route::prefix('/scheduale')->controller(ScheduleController::class)->group(function () {
-        Route::post('/generate','generate');
-        Route::post('/regenerate','regenerate');
-        Route::put('/update','updateEntry');
-        Route::get('/show/all/{scheduleId}','adminView');
-        Route::get('/teacher/show','allTeachersWeekly');
+            Route::post('/generate', 'generate');
+            Route::post('/regenerate', 'regenerate');
+            Route::put('/update', 'updateEntry');
+            Route::get('/show/all/{scheduleId}', 'adminView');
+            Route::get('/teacher/show', 'allTeachersWeekly');
         });
 
 
@@ -159,7 +159,6 @@ Route::prefix('auth')->group(function () {
             Route::post('/gradebook/marks', [MarkController::class, 'storeMarks']);
             Route::get('/gradebook/subject/{gradeSubjectId}/classroom/{classRoomId}', [MarkController::class, 'getGradebook']);
             Route::prefix('practice-quizzes')->controller(PracticeQuizController::class)->group(function () {
-
                 Route::post('/create/quiz', 'store');
                 Route::get('/show/quiz/by/grade-subject/{gradeSubjectId}', 'getQuizzesByGradeSubject');
                 Route::get('/show/one/quiz/{quizId}', 'show');
@@ -173,6 +172,11 @@ Route::prefix('auth')->group(function () {
                 Route::get('/show/by-subject/{gradeSubjectId}', 'index');
                 Route::get('/show/one/{id}', 'show');
                 Route::delete('/delete/{id}', 'destroy');
+            });
+
+            Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
+                Route::get('/show/all','teacherWeekly');
+                Route::get('/tomorrow','teacherTomorrow');
             });
         });
 
@@ -426,7 +430,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function () {
     // إدخال جماعي
     Route::post('/bulk', [StudentAttendanceController::class, 'storeBulk']);
-    Route::get('/getRecord/{id}',[StudentAttendanceController::class,'get']);
+    Route::get('/getRecord/{id}', [StudentAttendanceController::class, 'get']);
 
     Route::get('/filter', [StudentAttendanceController::class, 'index']);
 
@@ -499,9 +503,9 @@ Route::prefix('user')->group(function () {
                 Route::post('/mark/all/read/', 'markAllRead');
             });
 
-            Route::prefix('/schedules')->controller(ScheduleController::class)->group(function (){
-                Route::get('/all/{classroomId}','studentWeekly');
-                Route::get('/tomorrow/{classroomId}','studentTomorrow');
+            Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
+                Route::get('/all/{classroomId}', 'studentWeekly');
+                Route::get('/tomorrow/{classroomId}', 'studentTomorrow');
             });
         });
 
@@ -509,18 +513,6 @@ Route::prefix('user')->group(function () {
 
 });
 
-Route::prefix('admin')->group(function () {
 
-
-    Route::post(
-        '/schedules/generate',
-        [
-            ScheduleController::class,
-            'generate'
-        ]
-    );
-
-
-});
 
 

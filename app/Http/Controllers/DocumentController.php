@@ -20,12 +20,10 @@ public function showPhoto($path)
             return $this->errorResponse('Unauthenticated', 401);
         }
 
-        // 🚀 1. تنظيف المسار بذكاء: إزالة أي روابط http أو كلمة storage/ إذا وصلت بالخطأ
         $safePath = urldecode($path);
         if (str_contains($safePath, 'http://') || str_contains($safePath, 'https://')) {
             $safePath = parse_url($safePath, PHP_URL_PATH);
         }
-        // تنظيف البادئات المكررة مثل /api/documents/photos/ أو /storage/ أو /api/user/photos/
         $safePath = preg_replace('/^.*?(users\/|defaults\/|documents\/|guardians\/|staff\/|students\/)/', '$1', $safePath);
         $safePath = ltrim($safePath, '/');
 
@@ -33,12 +31,10 @@ public function showPhoto($path)
             return $this->errorResponse('Invalid photo path', 422);
         }
 
-        // 🔒 فحص الصلاحية
         if (!$this->userCanViewPhoto($userAuth, $safePath)) {
             return $this->errorResponse('غير مصرح لك بعرض هذه الصورة.', 403);
         }
 
-        // 🚀 2. البحث عن الملف في القرصين 'local' و 'public' لحل مشكلة Photo not found نهائياً
         $disk = null;
         if (Storage::disk('local')->exists($safePath)) {
             $disk = 'local';
@@ -64,7 +60,7 @@ public function showPhoto($path)
             return true;
         }
 
-        if ($userAuth->hasAnyRole(['super_admin', 'secretary', 'counselor'])) {
+        if ($userAuth->hasAnyRole(['super_admin', 'secretary', 'counselor','teacher'])) {
             return true;
         }
 

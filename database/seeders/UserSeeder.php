@@ -258,7 +258,7 @@ class UserSeeder extends Seeder
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'male',
-                'photo_url' => 'yazan.jpg',
+                'photo_url' => 'defaults/student_male.jpg',
                 'password' => $defaultPassword,
             ]
         );

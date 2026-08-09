@@ -496,7 +496,7 @@ Route::prefix('user')->group(function () {
             });
 
             Route::prefix('helper/materials')->controller(StudentMaterialController::class)->group(function () {
-                Route::get('/show/all-by/{gradeSubjectId}', 'getBySubject');
+                Route::get('/show/all-by', 'getBySubject');
                 Route::get('/show/one/{id}', 'show');
                 Route::get('/download/{id}', 'download');
                 Route::get('/count/unread', 'unreadCount');

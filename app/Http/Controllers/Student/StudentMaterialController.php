@@ -32,7 +32,7 @@ class StudentMaterialController extends Controller
     }
 
 
-    public function getBySubject(Request $request, $gradeSubjectId)
+    public function getBySubject(Request $request)
     {
         try {
             $user = $request->user();
@@ -43,11 +43,7 @@ class StudentMaterialController extends Controller
                 return $this->errorResponse('Active enrollment not found.', 404);
             }
 
-            $gradeLevelId = $enrollment->classRoom->grade_level_id;
-
             $materials = $this->materialService->getStudentMaterialsBySubject(
-                (int) $gradeSubjectId,
-                $gradeLevelId,
                 $user,
                 (int) $perPage
             );

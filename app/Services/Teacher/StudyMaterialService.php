@@ -186,18 +186,11 @@ class StudyMaterialService
             ->paginate($perPage);
     }
 
-    public function getStudentMaterialsBySubject(int $gradeSubjectId, int $gradeLevelId, User $user, int $perPage = 15)
+    public function getStudentMaterialsBySubject( User $user, int $perPage = 15)
     {
-        $isValidSubject = GradeSubject::where('id', $gradeSubjectId)
-            ->where('grade_level_id', $gradeLevelId)
-            ->exists();
 
-        if (!$isValidSubject) {
-            throw new Exception('Access Denied. This subject does not belong to your current grade.', 403);
-        }
-
-        return StudyMaterial::where('grade_subject_id', $gradeSubjectId)
-            ->latest()
+        return StudyMaterial::
+             latest()
             ->paginate($perPage);
     }
 

@@ -28,10 +28,12 @@ class OtpService
     {
         $this->user_service = $user_service;
 
-        $this->apiKey = env('TRACCAR_SMS_API_KEY');
-        $this->apiUrl = env('TRACCAR_SMS_API_URL', 'https://www.traccar.org/sms/');
-        $this->appleReviewPhone = env('APPLE_REVIEW_PHONE', '+15555550123');
-        $this->appleStaticOtp = env('APPLE_STATIC_OTP', '12345');
+        $this->apiKey = config('services.traccar.api_key');
+        $this->apiUrl = config('services.traccar.api_url');
+
+        $this->appleReviewPhone = config('services.traccar.apple_review_phone');
+        $this->appleStaticOtp = config('services.traccar.apple_static_otp');
+
     }
 
     public function login(string $phone_number): array|string

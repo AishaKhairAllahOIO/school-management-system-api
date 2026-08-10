@@ -8,9 +8,9 @@ class StaffAttendance extends Model
 {
     protected $guarded = [];
 
-    protected $casts = [
-        'attendance_date' => 'date',
-    ];
+   protected $casts = [
+    'attendance_date' => 'date:Y-m-d',
+];
 
     public function staff() 
     {
@@ -27,4 +27,5 @@ class StaffAttendance extends Model
     {
         return $this->hasMany(TeacherPeriodAttendance::class, 'staff_attendance_id');
     }
+ 
 }

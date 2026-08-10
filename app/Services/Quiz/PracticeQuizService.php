@@ -377,11 +377,10 @@ class PracticeQuizService
         $quiz->delete();
     }
 
-    // تعديل الـ Parameters لتقبل string $gradeName بدلاً من int $gradeLevelId
-    public function getStudentSubjects(string $gradeName)
+    public function getStudentSubjects(int $gradeName)
     {
         return GradeSubject::with('subject:id,subject_name')
-            ->where('grade_name', $gradeName)
+            ->where('grade_level_id', $gradeName)
             ->get()
             ->map(function ($gs) {
                 return [
@@ -391,11 +390,10 @@ class PracticeQuizService
             });
     }
 
-    // تعديل الـ Parameters
-    public function getStudentQuizzes(int $gradeSubjectId, string $gradeName, int $enrollmentId)
+    public function getStudentQuizzes(int $gradeSubjectId, int $gradeName, int $enrollmentId)
     {
         $isValidSubject = GradeSubject::where('id', $gradeSubjectId)
-            ->where('grade_name', $gradeName)
+            ->where('grade_level_id', $gradeName)
             ->exists();
 
         if (!$isValidSubject) {
@@ -440,11 +438,10 @@ class PracticeQuizService
             });
     }
 
-    // تعديل الـ Parameters
-    public function getStudentQuizForSolving(int $quizId, string $gradeName)
+    public function getStudentQuizForSolving(int $quizId, int $gradeName)
     {
         $quiz = PracticeQuiz::whereHas('gradeSubject', function ($query) use ($gradeName) {
-            $query->where('grade_name', $gradeName);
+            $query->where('grade_level_id', $gradeName);
         })
             ->with([
                 'questions' => function ($q) {
@@ -467,7 +464,6 @@ class PracticeQuizService
 
     public function getLastQuizAttemptDetails(int $quizId, int $enrollmentId)
     {
-        // ... (لم تحتاج لتعديل)
         $lastAttempt = StudentQuizAttempt::where('practice_quiz_id', $quizId)
             ->where('enrollment_id', $enrollmentId)
             ->with([

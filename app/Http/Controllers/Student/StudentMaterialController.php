@@ -32,7 +32,7 @@ class StudentMaterialController extends Controller
     }
 
 
-    public function getBySubject(Request $request, $gradeSubjectId)
+    public function getBySubject(Request $request)
     {
         try {
             $user = $request->user();
@@ -43,11 +43,7 @@ class StudentMaterialController extends Controller
                 return $this->errorResponse('Active enrollment not found.', 404);
             }
 
-            $gradeLevelId = $enrollment->classRoom->grade_level_id;
-
             $materials = $this->materialService->getStudentMaterialsBySubject(
-                (int) $gradeSubjectId,
-                $gradeLevelId,
                 $user,
                 (int) $perPage
             );
@@ -56,11 +52,11 @@ class StudentMaterialController extends Controller
                 'items' => collect($materials->items())->map(function ($material) {
                     return [
                         'id'             => $material->id,
-                        'teacher_name'   => $material->teacher ? trim("{$material->teacher->first_name} {$material->teacher->last_name}") : 'Unknown',
                         'title'          => $material->title,
                         'description'    => $material->description,
                         'type'           => $material->type,
                         'link_url'       => $material->type === 'link' ? $material->link_url : null,
+                        'file_path'      => $material->type === 'file' ? $material->file_path : null,
                         'file_extension' => $material->type === 'file' ? $material->file_extension : null,
                         'file_size_kb'   => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
                         'is_read'        => $material->readers->isNotEmpty(),

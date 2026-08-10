@@ -12,7 +12,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\ApiResource;
+use App\Models\Student;
 use Exception;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class ScheduleController extends Controller
 {
@@ -23,6 +25,24 @@ class ScheduleController extends Controller
         private AlertService $alertService
     ) {}
 
+
+    private function authorizeStudentAccess($user, int $studentId): void
+    {
+        if ($user->hasRole('student') && $user->student) {
+            if ($user->student->id !== $studentId) {
+                throw new AccessDeniedHttpException('Access denied you can not view others schedule', null, 403);
+            }
+        }
+
+        if ($user->hasRole('guardian') && $user->guardian) {
+            $isMyChild = $user->guardian->students()->where('students.id', $studentId)->exists();
+            
+            if (!$isMyChild) {
+                throw new AccessDeniedHttpException('Access denied this child is not one of your children ', null, 403);
+            }
+        }
+        
+    }
     public function generate(Request $request): JsonResponse
     {
         $request->validate([
@@ -113,28 +133,50 @@ class ScheduleController extends Controller
         );
     }
 
-    public function studentWeekly(int $classroomId): JsonResponse
+    public function studentWeekly(int $studentId): JsonResponse
     {
-        $schedule = $this->scheduleService->getStudentWeeklySchedule($classroomId);
+        $user = Auth::user();
+        
+        $this->authorizeStudentAccess($user, $studentId);
 
+        $student = Student::findOrFail($studentId);
+
+        $enrollment = $student->enrollments()->latest()->first();
+
+        if (!$enrollment || !$enrollment->class_room_id) {
+             return $this->errorResponse('This student does not enrolled yet', 404);
+        }
+
+        $schedule = $this->scheduleService->getStudentWeeklySchedule($enrollment->class_room_id);
+        
         return $this->successResponse(
-            $schedule,
+            $schedule, 
             'Student weekly schedule retrieved successfully.',
             200
         );
     }
-
-    public function studentTomorrow(int $classroomId): JsonResponse
+    public function studentTomorrow(int $studentId): JsonResponse
     {
-        $schedule = $this->scheduleService->getStudentTomorrowSchedule($classroomId);
+        $user = Auth::user();
+        
+        $this->authorizeStudentAccess($user, $studentId);
 
+        $student = Student::findOrFail($studentId);
+
+        $enrollment = $student->enrollments()->latest()->first();
+
+        if (!$enrollment || !$enrollment->class_room_id) {
+             return $this->errorResponse('This child does not enrolled yet.', 404);
+        }
+
+        $schedule = $this->scheduleService->getStudentTomorrowSchedule($enrollment->class_room_id);
+        
         return $this->successResponse(
-            $schedule,
-            'Student tomorrow schedule retrieved successfully.',
-            200
+            $schedule, 
+             'Student tomorrow schedule retrieved successfully.',
+             200
         );
     }
-
     public function teacherWeekly(int $teacherId): JsonResponse
     {
         $schedule = $this->scheduleService->getTeacherWeeklySchedule($teacherId);

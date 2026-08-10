@@ -19,22 +19,21 @@ use Exception;
 
 class PracticeQuizService
 {
-
     public function createQuiz(array $data, int $teacherId)
     {
         $quiz = DB::transaction(function () use ($data, $teacherId) {
             $quiz = PracticeQuiz::create([
                 'grade_subject_id' => $data['grade_subject_id'],
-                'teacher_id' => $teacherId,
-                'title' => $data['title'],
-                'description' => $data['description'] ?? null,
-                'is_active' => $data['is_active'] ?? true,
+                'teacher_id'       => $teacherId,
+                'title'            => $data['title'],
+                'description'      => $data['description'] ?? null,
+                'is_active'        => $data['is_active'] ?? true,
             ]);
 
             foreach ($data['questions'] as $questionData) {
                 $question = $quiz->questions()->create([
                     'question_text' => $questionData['question_text'],
-                    'mark' => $questionData['mark'],
+                    'mark'          => $questionData['mark'],
                 ]);
 
                 $optionsToInsert = [];
@@ -44,9 +43,9 @@ class PracticeQuizService
                     $optionsToInsert[] = [
                         'question_id' => $question->id,
                         'option_text' => $optionData['option_text'],
-                        'is_correct' => $optionData['is_correct'],
-                        'created_at' => $now,
-                        'updated_at' => $now,
+                        'is_correct'  => $optionData['is_correct'],
+                        'created_at'  => $now,
+                        'updated_at'  => $now,
                     ];
                 }
 
@@ -62,23 +61,28 @@ class PracticeQuizService
 
         return $quiz;
     }
+
     private function notifyStudentsAboutNewQuiz(PracticeQuiz $quiz): void
     {
         try {
-            $gradeSubject = GradeSubject::with('subject', 'gradeLevel')->find($quiz->grade_subject_id);
+            // إزالة علاقة gradeLevel المحذوفة
+            $gradeSubject = GradeSubject::with('subject')->find($quiz->grade_subject_id);
 
             if (!$gradeSubject) {
                 return;
             }
 
             $subjectName = $gradeSubject->subject->subject_name ?? 'Subject';
-            $gradeName = $gradeSubject->gradeLevel->name ?? 'Class';
+
+            // حل المشكلة الأساسية: استخدام ->value لاستخراج النص بدلاً من تمرير الـ Object
+            $gradeNameString = $gradeSubject->grade_name ? $gradeSubject->grade_name->value : 'Class';
 
             $title = "New Practice Quiz Available!";
-            $body = "Your teacher added a new practice quiz in {$subjectName} for {$gradeName} students. Test your knowledge now!";
+            $body = "Your teacher added a new practice quiz in {$subjectName} for {$gradeNameString} students. Test your knowledge now!";
 
             $enrollments = Enrollment::whereHas('classRoom', function ($q) use ($gradeSubject) {
-                $q->where('grade_level_id', $gradeSubject->grade_level_id);
+                // التحديث هنا للبحث بواسطة grade_name بدلاً من grade_level_id
+                $q->where('grade_name', $gradeSubject->grade_name);
             })
                 ->whereHas('academicYear', function ($q) {
                     $q->where('is_current', true);
@@ -92,16 +96,15 @@ class PracticeQuizService
 
             foreach ($enrollments as $enrollment) {
                 $alertsToInsert[] = [
-                    'title' => $title,
-                    'body' => $body,
-                    'type' => 'practice_quiz',
+                    'title'           => $title,
+                    'body'            => $body,
+                    'type'            => 'practice_quiz',
                     'notifiable_type' => Enrollment::class,
-                    'notifiable_id' => $enrollment->id,
-                    'created_at' => $now,
-                    'updated_at' => $now,
+                    'notifiable_id'   => $enrollment->id,
+                    'created_at'      => $now,
+                    'updated_at'      => $now,
                 ];
 
-                // Prepare Push Notification User IDs
                 if ($enrollment->student && $enrollment->student->user) {
                     $userIdsToPush[] = $enrollment->student->user->id;
                 }
@@ -113,8 +116,8 @@ class PracticeQuizService
 
             if (!empty($userIdsToPush)) {
                 $pushData = [
-                    'type' => 'new_practice_quiz',
-                    'quiz_id' => (string) $quiz->id,
+                    'type'             => 'new_practice_quiz',
+                    'quiz_id'          => (string) $quiz->id,
                     'grade_subject_id' => (string) $gradeSubject->id,
                 ];
 
@@ -128,12 +131,14 @@ class PracticeQuizService
         } catch (Exception $e) {
             Log::error('Practice Quiz Notification Error', [
                 'quiz_id' => $quiz->id,
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
             ]);
         }
     }
+
     public function submitAttempt(array $data)
     {
+        // ... (هذه الدالة لم تحتاج لتعديل، منطقها البرمجي سليم)
         return DB::transaction(function () use ($data) {
             $enrollmentId = $data['enrollment_id'];
             $answers = collect($data['answers']);
@@ -148,8 +153,7 @@ class PracticeQuizService
 
             foreach ($answers as $answer) {
                 $question = $questions[$answer['question_id']] ?? null;
-                if (!$question)
-                    continue;
+                if (!$question) continue;
 
                 if ($quizId === null) {
                     $quizId = $question->practice_quiz_id;
@@ -165,18 +169,18 @@ class PracticeQuizService
                 }
 
                 $detailedAnswersToInsert[] = [
-                    'question_id' => $question->id,
+                    'question_id'        => $question->id,
                     'selected_option_id' => $answer['option_id'],
-                    'is_correct' => $isCorrect,
-                    'correct_option_id' => $correctOption ? $correctOption->id : null,
+                    'is_correct'         => $isCorrect,
+                    'correct_option_id'  => $correctOption ? $correctOption->id : null,
                 ];
             }
 
             $attempt = StudentQuizAttempt::create([
                 'practice_quiz_id' => $quizId,
-                'enrollment_id' => $enrollmentId,
-                'total_mark' => $totalMark,
-                'earned_mark' => $earnedMark,
+                'enrollment_id'    => $enrollmentId,
+                'total_mark'       => $totalMark,
+                'earned_mark'      => $earnedMark,
             ]);
 
             $answersRecords = [];
@@ -184,28 +188,28 @@ class PracticeQuizService
             foreach ($detailedAnswersToInsert as $detail) {
                 $answersRecords[] = [
                     'student_quiz_attempt_id' => $attempt->id,
-                    'question_id' => $detail['question_id'],
-                    'selected_option_id' => $detail['selected_option_id'],
-                    'is_correct' => $detail['is_correct'],
-                    'created_at' => $now,
-                    'updated_at' => $now,
+                    'question_id'             => $detail['question_id'],
+                    'selected_option_id'      => $detail['selected_option_id'],
+                    'is_correct'              => $detail['is_correct'],
+                    'created_at'              => $now,
+                    'updated_at'              => $now,
                 ];
             }
             StudentQuizAttemptAnswer::insert($answersRecords);
 
             return [
-                'attempt_id' => $attempt->id,
-                'total_mark' => $totalMark,
+                'attempt_id'  => $attempt->id,
+                'total_mark'  => $totalMark,
                 'earned_mark' => $earnedMark,
-                'percentage' => $totalMark > 0 ? round(($earnedMark / $totalMark) * 100, 2) : 0,
-                'feedback' => $detailedAnswersToInsert,
+                'percentage'  => $totalMark > 0 ? round(($earnedMark / $totalMark) * 100, 2) : 0,
+                'feedback'    => $detailedAnswersToInsert,
             ];
         });
     }
+
     private function getBaseQueryForUser(User $user)
     {
         if ($user->hasRole('student') && $user->student) {
-
             $enrollment = Enrollment::where('student_id', $user->student->id)
                 ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
                 ->with('classRoom')
@@ -216,11 +220,11 @@ class PracticeQuizService
                 return PracticeQuiz::query()->where('id', '<', 0);
             }
 
-            $gradeLevelId = $enrollment->classRoom->grade_level_id;
+            // تعديل جذري هنا: استخدام grade_name بدلاً من grade_level_id
+            $gradeNameEnum = $enrollment->classRoom->grade_name;
 
-            // جلب الكويزات التي تتبع للمواد الموجودة في صف هذا الطالب
-            return PracticeQuiz::whereHas('gradeSubject', function ($q) use ($gradeLevelId) {
-                $q->where('grade_level_id', $gradeLevelId);
+            return PracticeQuiz::whereHas('gradeSubject', function ($q) use ($gradeNameEnum) {
+                $q->where('grade_name', $gradeNameEnum);
             });
         }
 
@@ -228,19 +232,33 @@ class PracticeQuizService
             return PracticeQuiz::where('teacher_id', $user->staff->id);
         }
 
-        return PracticeQuiz::query();
+        return PracticeQuiz::query()->where('id', '<', 0);
     }
-    public function unreadCount(User $user): int
+
+    public function unreadCount(User $user): array
     {
         return $this->getBaseQueryForUser($user)
             ->whereDoesntHave('readers', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
-            ->count();
+            ->join('grade_subjects', 'grade_subjects.id', '=', 'practice_quizzes.grade_subject_id')
+            ->join('subjects', 'subjects.id', '=', 'grade_subjects.subject_id')
+            ->selectRaw('grade_subjects.id as grade_subject_id, subjects.subject_name, count(*) as unread_count')
+            ->groupBy('grade_subjects.id', 'subjects.subject_name')
+            ->get()
+            ->map(fn ($row) => [
+                'grade_subject_id' => (int) $row->grade_subject_id,
+                'subject_name'     => $row->subject_name,
+                'unread_count'     => (int) $row->unread_count,
+            ])
+            ->values()
+            ->all();
     }
-    public function markAllRead(User $user): int
+
+    public function markAllRead(User $user, int $gradeSubjectId): array
     {
         $unreadQuizzesIds = $this->getBaseQueryForUser($user)
+            ->where('grade_subject_id', $gradeSubjectId)
             ->whereDoesntHave('readers', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -262,8 +280,8 @@ class PracticeQuizService
 
     public function getQuizDetails(int $quizId, int $teacherId)
     {
+        // ... (لم تحتاج لتعديل)
         try {
-
             $quiz = PracticeQuiz::where('id', $quizId)
                 ->where('teacher_id', $teacherId)
                 ->withCount('attempts')
@@ -275,43 +293,34 @@ class PracticeQuizService
                 throw new ModelNotFoundException('Quiz not found or unauthorized.', 404);
             }
 
-            $responseData = [
-                'id' => $quiz->id,
-                'title' => $quiz->title,
-                'description' => $quiz->description,
-                'is_active' => $quiz->is_active,
-                'is_locked' => $quiz->attempts_count > 0,
-                'total_mark' => (float) ($quiz->questions_sum_mark ?? 0),
+            return [
+                'id'             => $quiz->id,
+                'title'          => $quiz->title,
+                'description'    => $quiz->description,
+                'is_active'      => $quiz->is_active,
+                'is_locked'      => $quiz->attempts_count > 0,
+                'total_mark'     => (float) ($quiz->questions_sum_mark ?? 0),
                 'attempts_count' => $quiz->attempts_count,
-                'created_at' => $quiz->created_at->format('Y-m-d H:i'),
-
-                'questions' => $quiz->questions->map(function ($question) {
+                'created_at'     => $quiz->created_at->format('Y-m-d H:i'),
+                'questions'      => $quiz->questions->map(function ($question) {
                     return [
-                        'id' => $question->id,
+                        'id'            => $question->id,
                         'question_text' => $question->question_text,
-                        'mark' => (float) $question->mark,
-                        'options' => $question->options->map(function ($option) {
+                        'mark'          => (float) $question->mark,
+                        'options'       => $question->options->map(function ($option) {
                             return [
-                                'id' => $option->id,
+                                'id'          => $option->id,
                                 'option_text' => $option->option_text,
-                                'is_correct' => $option->is_correct,
+                                'is_correct'  => $option->is_correct,
                             ];
                         })
                     ];
                 })
             ];
-
-            return $responseData;
-        } catch (ModelNotFoundException $e) {
-            Log::error('Teacher Fetch Quiz Details Error: ' . $e->getMessage());
-            return null;
-        } catch (Exception $e) {
+        } catch (ModelNotFoundException|Exception $e) {
             Log::error('Teacher Fetch Quiz Details Error: ' . $e->getMessage());
             return null;
         }
-
-
-
     }
 
     public function getTeacherQuizzes(int $gradeSubjectId, int $teacherId)
@@ -334,13 +343,13 @@ class PracticeQuizService
             ->get()
             ->map(function ($quiz) {
                 return [
-                    'id' => $quiz->id,
-                    'title' => $quiz->title,
-                    'total_mark' => (float) ($quiz->questions_sum_mark ?? 0),
+                    'id'             => $quiz->id,
+                    'title'          => $quiz->title,
+                    'total_mark'     => (float) ($quiz->questions_sum_mark ?? 0),
                     'attempts_count' => $quiz->attempts_count,
-                    'is_active' => $quiz->is_active,
-                    'is_locked' => $quiz->attempts_count > 0,
-                    'created_at' => $quiz->created_at->format('Y-m-d H:i'),
+                    'is_active'      => $quiz->is_active,
+                    'is_locked'      => $quiz->attempts_count > 0,
+                    'created_at'     => $quiz->created_at->format('Y-m-d H:i'),
                 ];
             });
     }
@@ -352,7 +361,6 @@ class PracticeQuizService
             ->firstOrFail();
 
         $quiz->update(['is_active' => !$quiz->is_active]);
-
         return $quiz->is_active;
     }
 
@@ -369,28 +377,31 @@ class PracticeQuizService
         $quiz->delete();
     }
 
-    public function getStudentSubjects(int $gradeLevelId)
+    public function getStudentSubjects(int $gradeName)
     {
         return GradeSubject::with('subject:id,subject_name')
-            ->where('grade_level_id', $gradeLevelId)
+            ->where('grade_level_id', $gradeName)
             ->get()
             ->map(function ($gs) {
                 return [
                     'grade_subject_id' => $gs->id,
-                    'subject_name' => $gs->subject->subject_name ?? 'N/A',
+                    'subject_name'     => $gs->subject->subject_name ?? 'N/A',
                 ];
             });
     }
 
-    public function getStudentQuizzes(int $gradeSubjectId, int $gradeLevelId, int $enrollmentId)
+    public function getStudentQuizzes(int $gradeSubjectId, int $gradeName, int $enrollmentId)
     {
         $isValidSubject = GradeSubject::where('id', $gradeSubjectId)
-            ->where('grade_level_id', $gradeLevelId)
+            ->where('grade_level_id', $gradeName)
             ->exists();
 
         if (!$isValidSubject) {
             throw new Exception('You are not authorized to view quizzes for this subject.', 403);
         }
+
+        $enrollment = Enrollment::with('student.user')->find($enrollmentId);
+        $userId = $enrollment?->student?->user?->id;
 
         return PracticeQuiz::where('grade_subject_id', $gradeSubjectId)
             ->where('is_active', true)
@@ -400,6 +411,11 @@ class PracticeQuizService
                     $query->where('enrollment_id', $enrollmentId);
                 }
             ])
+            ->withExists([
+                'readers as is_read' => function($query) use ($userId){
+                    $query->where('user_id', $userId);
+                }
+            ])
             ->latest()
             ->get()
             ->map(function ($quiz) {
@@ -407,24 +423,25 @@ class PracticeQuizService
                 $highScore = $attemptsCount > 0 ? $quiz->attempts->max('earned_mark') : 0;
 
                 return [
-                    'id' => $quiz->id,
-                    'title' => $quiz->title,
-                    'description' => $quiz->description,
-                    'total_mark' => (float) ($quiz->questions_sum_mark ?? 0),
+                    'id'             => $quiz->id,
+                    'title'          => $quiz->title,
+                    'description'    => $quiz->description,
+                    'total_mark'     => (float) ($quiz->questions_sum_mark ?? 0),
                     'attempts_count' => $attemptsCount,
-                    'high_score' => (float) $highScore,
-                    'progress_msg' => $attemptsCount > 0
+                    'high_score'     => (float) $highScore,
+                    'progress_msg'   => $attemptsCount > 0
                         ? "You have completed this practice {$attemptsCount} time(s)."
                         : "You haven't attempted this practice yet.",
-                    'created_at' => $quiz->created_at->format('Y-m-d H:i'),
+                    'created_at'     => $quiz->created_at->format('Y-m-d H:i'),
+                    'is_read'        => (bool) ($quiz->is_read ?? false),
                 ];
             });
     }
 
-    public function getStudentQuizForSolving(int $quizId, int $gradeLevelId)
+    public function getStudentQuizForSolving(int $quizId, int $gradeName)
     {
-        $quiz = PracticeQuiz::whereHas('gradeSubject', function ($query) use ($gradeLevelId) {
-            $query->where('grade_level_id', $gradeLevelId);
+        $quiz = PracticeQuiz::whereHas('gradeSubject', function ($query) use ($gradeName) {
+            $query->where('grade_level_id', $gradeName);
         })
             ->with([
                 'questions' => function ($q) {
@@ -492,7 +509,4 @@ class PracticeQuizService
             }),
         ];
     }
-
-
-
 }

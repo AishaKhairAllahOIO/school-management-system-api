@@ -18,7 +18,7 @@ class PracticeQuizSeeder extends Seeder
         DB::transaction(function () {
 
 
-            $quiz1 = PracticeQuiz::create([
+            $quiz1 = PracticeQuiz::updateOrCreate([
                 'grade_subject_id' => 1,
                 'teacher_id'       => 1,
                 'title'            => ' الاساسيات الرياضية(هندسة)',
@@ -26,7 +26,7 @@ class PracticeQuizSeeder extends Seeder
                 'is_active'        => true,
             ]);
 
-            $q1 = Question::create([
+            $q1 = Question::updateOrCreate([
                 'practice_quiz_id' => $quiz1->id,
                 'question_text'    => 'ما هو عدد الأضلاع في مثلث متساوي الأضلاع؟',
                 'mark'             => 5.0,
@@ -38,7 +38,7 @@ class PracticeQuizSeeder extends Seeder
                 ['question_id' => $q1->id, 'option_text' => '5', 'is_correct' => false, 'created_at' => now(), 'updated_at' => now()],
             ]);
 
-            $q2 = Question::create([
+            $q2 = Question::updateOrCreate([
                 'practice_quiz_id' => $quiz1->id,
                 'question_text'    => 'من خواص متوازي الأضلاع أن جميع أضلاعه متساوية في الطول؟',
                 'mark'             => 5.0,
@@ -51,15 +51,15 @@ class PracticeQuizSeeder extends Seeder
 
 
 
-            $quiz2 = PracticeQuiz::create([
-                'grade_subject_id' => 2,
-                'teacher_id'       => 8,
+            $quiz2 = PracticeQuiz::updateOrCreate([
+                'grade_subject_id' => 8,
+                'teacher_id'       => 1,
                 'title'            => 'اختبار سريع: المنطق الفيزيائي',
                 'description'      => 'اختبر مهاراتك في التفكير الفيزيائي والحركي.',
                 'is_active'        => true,
             ]);
 
-            $q3 = Question::create([
+            $q3 = Question::updateOrCreate([
                 'practice_quiz_id' => $quiz2->id,
                 'question_text'    => 'هل يمكن أن يكون الضوء جسيمًا وموجة في نفس الوقت؟',
                 'mark'             => 10.0,

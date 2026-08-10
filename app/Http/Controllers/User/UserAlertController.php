@@ -141,6 +141,7 @@ class UserAlertController extends Controller
         try {
             $staff = $this->getAuthStaff($request);
             $alerts = $this->alertService->showStaffPaymentAlerts($staff);
+        $alerts->through(fn($alert) => new AlertResource($alert));
 
             return $this->paginatedResponse(
                 $alerts,

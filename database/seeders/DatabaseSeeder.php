@@ -50,7 +50,8 @@ class DatabaseSeeder extends Seeder
             StudentMarkSeeder::class,
             PracticeQuizSeeder::class,
             StudentAttendanceSettingSeeder::class,
-            StudentAttendanceSeeder::class,
+           // StudentAttendanceSeeder::class,
+           StudentMaterialsSeeder::class,
 
 
         ]);

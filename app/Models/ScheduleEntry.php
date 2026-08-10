@@ -48,6 +48,13 @@ public function gradeSubject()
 {
     return $this->belongsTo(GradeSubject::class);
 }
-
+public function periodAttendances()
+    {
+        return $this->hasMany(TeacherPeriodAttendance::class, 'schedule_entry_id');
+    }
+public function schedule()
+    {
+        return $this->belongsTo(Schedule::class, 'schedule_id');
+    }    
 
 }

@@ -39,6 +39,9 @@ use App\Http\Controllers\Web\SchoolLawController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceSettingController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceController;
 use App\Http\Controllers\Scheduling\ScheduleController;
+use App\Http\Controllers\Admin\Leave\StaffLeaveTypeController;
+use App\Http\Controllers\Admin\Staff\StaffAttendanceController;
+use App\Http\Controllers\Admin\Staff\StaffLeaveController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -242,13 +245,9 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
 
-    // Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
-    // Route::get('/academic-stages/with-grades', [AcademicSettingsController::class, 'indexWithGrades']);
-    // Route::get('/leave-types', [LeaveTypeController::class, 'index']);
-    // Route::post('/leave-types', [LeaveTypeController::class, 'store']);
-    // Route::get('/leave-types/{id}', [LeaveTypeController::class, 'show']);
-    // Route::put('/leave-types/{id}', [LeaveTypeController::class, 'update']);
-    // Route::delete('/leave-types/{id}', [LeaveTypeController::class, 'destroy']);
+    Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
+     Route::get('/academic-stages/with-grades', [AcademicSettingsController::class, 'indexWithGrades']);
+
 
 });
 
@@ -433,6 +432,28 @@ Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function 
     Route::post('/record/{id}', [StudentAttendanceController::class, 'update']);
     
     Route::delete('/record/{id}', [StudentAttendanceController::class, 'destroy']);
+});
+Route::middleware(['auth:sanctum'])->prefix('admin/leave')->group(function(){
+    Route::get('/leaves',[StaffLeaveTypeController::class,'index']);
+    Route::get('/{id}',[StaffLeaveTypeController::class,'show']);
+    Route::post('/',[StaffLeaveTypeController::class,'store']);
+    Route::post('/{id}',[StaffLeaveTypeController::class,'update']);
+    Route::delete('/{id}',[StaffLeaveTypeController::class,'destroy']);
+   // Route::get('staff/leave/{}')
+});
+Route::middleware(['auth:sanctum'])->prefix('admin/staff-leaves')->group(function () {
+    Route::post('/', [StaffLeaveController::class, 'store']);         // إنشاء سجل إجازة
+    Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']); 
+    Route::get('/{leaveId}/staff',[StaffLeaveController::class,'getStaffLeaveById']); // 👈 دالة العرض الجديدة
+    Route::post('/{id}', [StaffLeaveController::class, 'update']);     // تعديل سجل إجازة
+    Route::delete('/{id}', [StaffLeaveController::class, 'destroy']);  // حذف سجل إجازة
+});
+
+Route::prefix('admin/staff-attendances')->group(function () {
+    Route::post('/', [StaffAttendanceController::class, 'store']);         // إنشاء سجل حضور
+    Route::get('/{staffId}', [StaffAttendanceController::class, 'show']);       // 👈 دالة العرض الجديدة
+    Route::post('/{id}', [StaffAttendanceController::class, 'update']);     // تعديل سجل
+    Route::delete('/{id}', [StaffAttendanceController::class, 'destroy']);  // حذف سجل
 });
 
 

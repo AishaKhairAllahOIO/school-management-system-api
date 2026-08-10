@@ -19,7 +19,7 @@ return new class extends Migration
             
             $table->date('start_date');
             $table->date('end_date');
-            $table->unsignedSmallInteger('days_count');
+         $table->unsignedSmallInteger('days_count');
            
             $table->timestamps();
 

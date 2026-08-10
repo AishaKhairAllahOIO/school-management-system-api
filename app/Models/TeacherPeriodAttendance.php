@@ -14,8 +14,8 @@ class TeacherPeriodAttendance extends Model
     }
 
     // تأكدي من وجود موديل ScheduleTimeSlot مسبقاً لديكِ في النظام
-    public function timeSlot()
+    public function scheduleEntry()
     {
-        return $this->belongsTo(ScheduleTimeSlot::class, 'schedule_time_slot_id');
+        return $this->belongsTo(ScheduleEntry::class, 'schedule_entry_id');
     }
 }

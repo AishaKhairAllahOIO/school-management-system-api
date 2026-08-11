@@ -17,15 +17,12 @@ return new class extends Migration
                 ->constrained('staff_attendances')
                 ->cascadeOnDelete();
                 
-            // $table->foreignId('schedule_time_slot_id')
-            //     ->nullable()
-            //     ->constrained('schedule_time_slots')
-            //     ->nullOnDelete();
+            $table->foreignId('schedule_entry_id')->constrained('schedule_entries')->cascadeOnDelete();
                 
-            $table->string('status', 20); // 'present', 'absent', 'substitute'
+            //$table->string('status', 20); // 'present', 'absent', 'substitute'
             $table->timestamps();
 
-            // $table->unique(['staff_attendance_id', 'schedule_time_slot_id'], 'unq_teacher_period_att');
+             $table->unique(['staff_attendance_id', 'schedule_entry_id'], 'unq_teacher_period_att');
         });
     }
 

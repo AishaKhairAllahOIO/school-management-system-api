@@ -9,9 +9,8 @@ class StudentAttendance extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'attendance_date' => 'date',
-    ];
-
+    'attendance_date' => 'date:Y-m-d',
+];
     public function enrollment()
     {
         return $this->belongsTo(Enrollment::class);

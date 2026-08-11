@@ -17,7 +17,6 @@ class GenerateScheduleCommand extends Command
         $this->info('Starting schedule generation...');
 
         try {
-            // Casting arguments to int to prevent TypeErrors in Action
             $schedule = $action->execute(
                 (int) $this->argument('year'),
                 (int) $this->argument('term')
@@ -28,7 +27,6 @@ class GenerateScheduleCommand extends Command
             return Command::SUCCESS;
 
         } catch (Exception $e) {
-            // English Error Message
             $this->error("Generation failed: " . $e->getMessage());
 
             return Command::FAILURE;

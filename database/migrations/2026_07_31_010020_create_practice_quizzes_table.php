@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('grade_subject_id')->constrained('grade_subjects')->cascadeOnDelete();
+            $table->foreignId('grade_level_id')->constrained('grade_levels')->cascadeOnUpdate();
             $table->foreignId('teacher_id')->constrained('staff')->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();

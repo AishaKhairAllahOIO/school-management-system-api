@@ -175,8 +175,8 @@ Route::prefix('auth')->group(function () {
             });
 
             Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
-                Route::get('/show/all/{teacherId}','teacherWeekly');
-                Route::get('/tomorrow/{teacherId}','teacherTomorrow');
+                Route::get('/show/all','teacherWeekly');
+                Route::get('/tomorrow','teacherTomorrow');
             });
         });
 
@@ -369,7 +369,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
     Route::post('/{student}/personal', [StudentController::class, 'updatePersonal'])
         ->middleware('can:student:edit');
     Route::post('/enrollments/{enrollment}', [StudentController::class, 'updateEnrollment']);
-    // أو أي صلاحية تراها مناسبة لتعديل القيود
     Route::post('/guardians/{guardian}/personal', [StudentController::class, 'updateGuardian'])
         ->middleware('can:student:edit');
     Route::delete('/{id}', [StudentController::class, 'destroy'])
@@ -428,7 +427,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function () {
-    // إدخال جماعي
     Route::post('/bulk', [StudentAttendanceController::class, 'storeBulk']);
     Route::get('/getRecord/{id}', [StudentAttendanceController::class, 'get']);
 
@@ -503,11 +501,12 @@ Route::prefix('user')->group(function () {
                 Route::post('/mark/all/read/', 'markAllRead');
             });
 
-            Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
-                Route::get('/all/{studentId}', 'studentWeekly');
-                Route::get('/tomorrow/{studentId}', 'studentTomorrow');
-            });
+           
         });
+         Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
+                Route::get('/all', 'studentWeekly');
+                Route::get('/tomorrow', 'studentTomorrow');
+            });
 
     });
 

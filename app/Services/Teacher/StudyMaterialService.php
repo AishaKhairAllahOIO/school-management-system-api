@@ -23,10 +23,11 @@ class StudyMaterialService
 
             $materialData = [
                 'grade_subject_id' => $data['grade_subject_id'],
-                'teacher_id'       => $teacherId,
-                'title'            => $data['title'],
-                'description'      => $data['description'] ?? null,
-                'type'             => $data['type'],
+                'grade_level_id' => $data['grade_level_id'],
+                'teacher_id' => $teacherId,
+                'title' => $data['title'],
+                'description' => $data['description'] ?? null,
+                'type' => $data['type'],
             ];
 
             if ($data['type'] === 'file' && $file) {
@@ -38,8 +39,7 @@ class StudyMaterialService
                 $materialData['original_name'] = $file->getClientOriginalName();
                 $materialData['file_extension'] = $extension;
                 $materialData['file_size'] = $file->getSize();
-            }
-            elseif ($data['type'] === 'link') {
+            } elseif ($data['type'] === 'link') {
                 $materialData['link_url'] = $data['link_url'];
             }
 
@@ -55,7 +55,8 @@ class StudyMaterialService
     {
         try {
             $gradeSubject = GradeSubject::with('subject', 'gradeLevel')->find($material->grade_subject_id);
-            if (!$gradeSubject) return;
+            if (!$gradeSubject)
+                return;
 
             $subjectName = $gradeSubject->subject->subject_name ?? 'Subject';
             $gradeName = $gradeSubject->gradeLevel->name ?? 'Class';
@@ -64,8 +65,8 @@ class StudyMaterialService
             $body = "A new " . ($material->type === 'file' ? 'file' : 'link') . " has been added for {$subjectName}.";
 
             $enrollments = Enrollment::whereHas('classRoom', function ($q) use ($gradeSubject) {
-                    $q->where('grade_level_id', $gradeSubject->grade_level_id);
-                })
+                $q->where('grade_level_id', $gradeSubject->grade_level_id);
+            })
                 ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
                 ->with('student.user')
                 ->get();
@@ -76,13 +77,14 @@ class StudyMaterialService
 
             foreach ($enrollments as $enrollment) {
                 $alertsToInsert[] = [
-                    'title'           => $title,
-                    'body'            => $body,
-                    'type'            => 'study_material',
+                    'title' => $title,
+                    'description' => $body,
+                    'audience' => 'student',
+                    'type' => 'study_material',
                     'notifiable_type' => Enrollment::class,
-                    'notifiable_id'   => $enrollment->id,
-                    'created_at'      => $now,
-                    'updated_at'      => $now,
+                    'notifiable_id' => $enrollment->id,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
 
                 if ($enrollment->student && $enrollment->student->user) {
@@ -100,8 +102,8 @@ class StudyMaterialService
                     $title,
                     $body,
                     [
-                        'type'             => 'new_study_material',
-                        'material_id'      => (string) $material->id,
+                        'type' => 'new_study_material',
+                        'material_id' => (string) $material->id,
                         'grade_subject_id' => (string) $gradeSubject->id,
                     ]
                 );
@@ -173,7 +175,7 @@ class StudyMaterialService
         $isAuthorized = GradeSubject::where('id', $gradeSubjectId)
             ->whereHas('teacherAssignments', function ($q) use ($teacherId) {
                 $q->where('teacher_id', $teacherId)
-                  ->whereHas('academicYear', fn($ay) => $ay->where('is_current', true));
+                    ->whereHas('academicYear', fn($ay) => $ay->where('is_current', true));
             })->exists();
 
         if (!$isAuthorized) {
@@ -186,11 +188,11 @@ class StudyMaterialService
             ->paginate($perPage);
     }
 
-    public function getStudentMaterialsBySubject( User $user, int $perPage = 15)
+    public function getStudentMaterialsBySubject(User $user, int $perPage = 15)
     {
 
         return StudyMaterial::
-             latest()
+            latest()
             ->paginate($perPage);
     }
 

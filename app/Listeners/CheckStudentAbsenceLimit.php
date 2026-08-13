@@ -23,11 +23,10 @@ class CheckStudentAbsenceLimit
     {
         $setting = StudentAttendanceSetting::where('semester_id', $event->semesterId)->first();
         if (!$setting) return;
-        
+
         $allowed = $setting->allowed_absence_days;
         $warningLimit = max(0, $allowed - 2);
 
-        // تصفية المعنيين بالغياب غير المبرر اليوم
         $unexcusedIds = collect($event->attendances)
             ->where('status', 'absent')
             ->where('absence_type', 'unexcused')
@@ -35,7 +34,6 @@ class CheckStudentAbsenceLimit
 
         if ($unexcusedIds->isEmpty()) return;
 
-        // حساب إجمالي الغياب غير المبرر
         $absenceCounts = StudentAttendance::whereIn('enrollment_id', $unexcusedIds)
             ->where('semester_id', $event->semesterId)
             ->where('status', 'absent')
@@ -49,7 +47,6 @@ class CheckStudentAbsenceLimit
             $enrollmentId = $record->enrollment_id;
 
             if ($total == $warningLimit) {
-                // إرسال إنذار اقتراب التجاوز
                 $this->alertService->createBatchStudentAlerts(
                     [$enrollmentId],
                     Alert::TYPE_WARNING,
@@ -58,7 +55,6 @@ class CheckStudentAbsenceLimit
                     'بقي للطالب يومان فقط ويتجاوز حد الغياب المسموح.'
                 );
             } elseif ($total == $allowed + 1) {
-                // إرسال إنذار التجاوز الفعلي
              $this->alertService->createBatchStudentAlerts(
                     [$enrollmentId],
                     Alert::TYPE_EXPULSION,

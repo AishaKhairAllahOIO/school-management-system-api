@@ -10,6 +10,7 @@ return new class extends Migration {
         Schema::create('study_materials', function (Blueprint $table) {
             $table->id();
             $table->foreignId('grade_subject_id')->constrained('grade_subjects')->cascadeOnDelete();
+            $table->foreignId('grade_level_id')->constrained('grade_levels')->cascadeOnDelete();
             $table->foreignId('teacher_id')->constrained('staff')->cascadeOnDelete();
 
             $table->string('title');

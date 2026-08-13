@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use App\ApiResource; 
 
-class UpdateScheduleEntryRequest extends FormRequest
+class StoreScheduleEntryRequest extends FormRequest
 {
     use ApiResource;
 
@@ -19,10 +19,12 @@ class UpdateScheduleEntryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'teacher_id'       => ['sometimes', 'exists:staff,id'],
-            'grade_subject_id' => ['sometimes', 'exists:grade_subjects,id'],
-            'day'              => ['sometimes', 'string', 'in:sunday,monday,tuesday,wednesday,thursday'],
-            'period_index'     => ['sometimes', 'integer', 'min:1', 'max:10'],
+            'schedule_id'      => ['required', 'exists:schedules,id'],
+            'class_room_id'    => ['required', 'exists:classrooms,id'],
+            'teacher_id'       => ['required', 'exists:staff,id'],
+            'grade_subject_id' => ['required', 'exists:grade_subjects,id'],
+            'day'              => ['required', 'string', 'in:sunday,monday,tuesday,wednesday,thursday'],
+            'period_index'     => ['required', 'integer', 'min:1', 'max:10'],
         ];
     }
 

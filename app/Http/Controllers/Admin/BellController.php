@@ -56,12 +56,13 @@ class BellController extends Controller
         try {
             $user = $request->user();
 
-            $this->alertService->markAllReadForUser($user, 'all');
-            $this->announcementService->markAllAsRead($user);
+           $al= $this->alertService->markAllReadForUser($user, 'all');
+           $an= $this->announcementService->markAllAsRead($user);
 
             return $this->successResponse(
                 [
                     'total_unread' => 0,
+
                 ],
                 'All bell notifications and announcements have been marked as read successfully.',
                 200

@@ -13,6 +13,7 @@ class PracticeQuiz extends Model
 
     protected $fillable = [
         'grade_subject_id',
+        'grade_level_id',
         'teacher_id',
         'title',
         'description',
@@ -31,6 +32,11 @@ class PracticeQuiz extends Model
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Staff::class, 'teacher_id');
+    }
+
+    public function gradeLevel()
+    {
+        return $this->belongsTo(GradeLevel::class);
     }
 
     public function questions(): HasMany

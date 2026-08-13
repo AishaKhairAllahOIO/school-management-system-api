@@ -9,7 +9,7 @@ use App\Models\Enrollment;
 use App\Services\User\AlertService;
 use App\Models\Alert;
 
-class NotifyParentsOfDailyAbsence 
+class NotifyParentsOfDailyAbsence
 {
     protected AlertService $alertService;
 
@@ -26,14 +26,12 @@ class NotifyParentsOfDailyAbsence
 
         $dailyAbsentsIds = $dailyAbsents->pluck('enrollment_id')->toArray();
 
-        // 💡 استخراج تاريخ التفقد الحقيقي الذي أرسلتيه من البوستمان!
         $actualAttendanceDate = $dailyAbsents->first()['attendance_date'] ?? now()->toDateString();
 
-        // تمرير التاريخ الحقيقي للسيرفس الخاص بكِ
         $this->alertService->createBatchStudentAlerts(
             $dailyAbsentsIds,
             Alert::TYPE_ABSENCE,
-            ['date' => $actualAttendanceDate] // 👈 التعديل السحري هنا
+            ['date' => $actualAttendanceDate]
         );
     }
 }

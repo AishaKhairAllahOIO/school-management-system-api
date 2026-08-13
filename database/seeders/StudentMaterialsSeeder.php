@@ -16,6 +16,7 @@ class StudentMaterialsSeeder extends Seeder
           $material1 = StudyMaterial::updateOrCreate(
             [
                 'grade_subject_id' => 8,
+                'grade_level_id'   =>1,
                 'teacher_id'       => 1,
                 'title'            => 'ملخص تاريخ - الوحدة الأولى',
                 'type'             => 'file',
@@ -33,6 +34,7 @@ class StudentMaterialsSeeder extends Seeder
         $material2 = StudyMaterial::updateOrCreate(
             [
                 'grade_subject_id' => 1,
+                'grade_level_id'  =>1,
                 'teacher_id'       => 1,
                 'title'            => 'مقال علمي - أهمية الرياضيات في حياتنا',
                 'type'             => 'link',

@@ -34,9 +34,20 @@ class StudentController extends Controller
             $data = $service->registerStudentWithGuardian($request->validated());
             return $this->successResponse(new StudentProfileWithEnrollmentResource($data), 'تم تسجيل الطالب وولي أمره بنجاح.', 201);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطا اثناء التسجيل', $e->getCode(), ['exception_message' => $e->getMessage()]);
+    $statusCode = $e->getCode();
 
-        }
+    if (!is_int($statusCode) || $statusCode < 400 || $statusCode > 599) {
+        $statusCode = 500;
+    }
+
+    return $this->errorResponse(
+        'حدث خطأ أثناء التسجيل',
+        $statusCode,
+        [
+            'exception_message' => $e->getMessage(),
+        ]
+    );
+}
     }
     public function importExcel(ImportExalSheetStudentRequest $request, StudentRegisterService $service)
     {

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\GradeName;
 use App\Models\PracticeQuiz;
 use App\Models\Question;
 use App\Models\Option;
@@ -20,16 +21,17 @@ class PracticeQuizSeeder extends Seeder
 
             $quiz1 = PracticeQuiz::updateOrCreate([
                 'grade_subject_id' => 1,
-                'teacher_id'       => 1,
-                'title'            => ' الاساسيات الرياضية(هندسة)',
-                'description'      => 'اختبر مهاراتك في الرياضيات والهندسة من خلال هذا الاختبار.',
-                'is_active'        => true,
+                'grade_level_id' => 1,
+                'teacher_id' => 1,
+                'title' => ' الاساسيات الرياضية(هندسة)',
+                'description' => 'اختبر مهاراتك في الرياضيات والهندسة من خلال هذا الاختبار.',
+                'is_active' => true,
             ]);
 
             $q1 = Question::updateOrCreate([
                 'practice_quiz_id' => $quiz1->id,
-                'question_text'    => 'ما هو عدد الأضلاع في مثلث متساوي الأضلاع؟',
-                'mark'             => 5.0,
+                'question_text' => 'ما هو عدد الأضلاع في مثلث متساوي الأضلاع؟',
+                'mark' => 5.0,
             ]);
 
             Option::insert([
@@ -40,8 +42,8 @@ class PracticeQuizSeeder extends Seeder
 
             $q2 = Question::updateOrCreate([
                 'practice_quiz_id' => $quiz1->id,
-                'question_text'    => 'من خواص متوازي الأضلاع أن جميع أضلاعه متساوية في الطول؟',
-                'mark'             => 5.0,
+                'question_text' => 'من خواص متوازي الأضلاع أن جميع أضلاعه متساوية في الطول؟',
+                'mark' => 5.0,
             ]);
 
             Option::insert([
@@ -53,16 +55,17 @@ class PracticeQuizSeeder extends Seeder
 
             $quiz2 = PracticeQuiz::updateOrCreate([
                 'grade_subject_id' => 8,
-                'teacher_id'       => 1,
-                'title'            => 'اختبار سريع: المنطق الفيزيائي',
-                'description'      => 'اختبر مهاراتك في التفكير الفيزيائي والحركي.',
-                'is_active'        => true,
+                'grade_level_id' => 1,
+                'teacher_id' => 1,
+                'title' => 'اختبار سريع: المنطق الفيزيائي',
+                'description' => 'اختبر مهاراتك في التفكير الفيزيائي والحركي.',
+                'is_active' => true,
             ]);
 
             $q3 = Question::updateOrCreate([
                 'practice_quiz_id' => $quiz2->id,
-                'question_text'    => 'هل يمكن أن يكون الضوء جسيمًا وموجة في نفس الوقت؟',
-                'mark'             => 10.0,
+                'question_text' => 'هل يمكن أن يكون الضوء جسيمًا وموجة في نفس الوقت؟',
+                'mark' => 10.0,
             ]);
 
             Option::insert([

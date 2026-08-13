@@ -4,6 +4,7 @@ namespace App\Http\Resources\Setting;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class GeneralSettingsResource extends JsonResource
 {
@@ -37,8 +38,11 @@ class GeneralSettingsResource extends JsonResource
                 'longitude' => $this->longitude ? (float) $this->longitude : null,
             ],
 
-            'logoUrl' => $this->logo_url ? (str_starts_with($this->logo_url, 'http') ? $this->logo_url : asset('storage/' . $this->logo_url)) : null,
-
+'logoUrl' => $this->logo_url
+    ? (str_starts_with($this->logo_url, 'http')
+        ? $this->logo_url
+        : rtrim(config('filesystems.disks.s3.endpoint'), '/') . '/' . $this->logo_url)
+    : null,
             'images' => SchoolImageResource::collection($this->images ?? []),
             
             'createdAt' => $this->created_at ? $this->created_at->toIso8601String() : null,

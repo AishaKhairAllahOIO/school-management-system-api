@@ -12,7 +12,7 @@ class GradeSubject extends Model
     protected $casts = [
         'is_failing_subject' => 'boolean',
         'avoid_first_period' => 'boolean',
-        'avoid_last_period'  => 'boolean',
+        'avoid_last_period' => 'boolean',
         'preferred_period_indexes' => 'array',
         'max_mark' => 'float',
         'passing_mark' => 'float',
@@ -31,21 +31,21 @@ class GradeSubject extends Model
     {
         return $this->belongsTo(GradeLevel::class);
     }
-public function subject()
-{
-    return $this->belongsTo(Subject::class, 'subject_id');
-}
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class, 'subject_id');
+    }
     public function assessmentComponents(): HasMany
     {
         return $this->hasMany(AssessmentComponent::class, 'grade_subject_id');
     }
-        public function teacherAssignments(): HasMany
+    public function teacherAssignments(): HasMany
     {
         return $this->hasMany(TeacherAssignment::class, 'grade_subject_id');
     }
 
     public function homeworks()
-{
-    return $this->hasMany(Homework::class, 'grade_subject_id');
-}
+    {
+        return $this->hasMany(Homework::class, 'grade_subject_id');
+    }
 }

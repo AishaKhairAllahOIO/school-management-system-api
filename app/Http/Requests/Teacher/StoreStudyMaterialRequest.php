@@ -15,6 +15,7 @@ class StoreStudyMaterialRequest extends FormRequest
     {
         return [
             'grade_subject_id' => 'required|exists:grade_subjects,id',
+            'grade_level_id'   => 'required', 'integer', 'exists:grade_levels,id',
             'title'            => 'required|string|max:255',
             'description'      => 'nullable|string',
             'type'             => 'required|in:file,link',

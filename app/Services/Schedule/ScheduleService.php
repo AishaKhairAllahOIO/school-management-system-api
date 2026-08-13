@@ -6,6 +6,7 @@ use App\Models\Schedule;
 use App\Models\ScheduleEntry;
 use App\Models\AcademicSetting;
 use App\Services\ScheduleValidator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Exception;
@@ -15,7 +16,8 @@ class ScheduleService
     public function __construct(
         private PeriodTimeCalculator $timeCalculator,
         private ScheduleValidator $validator
-    ) {}
+    ) {
+    }
 
     public function checkBeforeGeneration(int $academicYearId, int $semesterId): void
     {
@@ -42,13 +44,6 @@ class ScheduleService
         });
     }
 
-    public function updateEntry(int $entryId, array $data): ScheduleEntry
-    {
-        $entry = ScheduleEntry::findOrFail($entryId);
-        $entry->update($data);
-        return $entry;
-    }
-
     public function getAdminSchedule(int $scheduleId): array
     {
         $schedule = Schedule::with([
@@ -60,48 +55,73 @@ class ScheduleService
         $report = $this->validator->validate($schedule);
 
         $settings = AcademicSetting::firstOrFail()->schedule_settings;
-        $classesTree = [];
+
+        $classesMap = [];
 
         foreach ($schedule->entries as $entry) {
+            $classId = $entry->class_room_id;
             $gradeName = $entry->classRoom->gradeLevel->name->value ?? 'Unknown Grade';
             $roomName = $entry->classRoom->name;
             $day = strtolower($entry->day);
 
             $times = $this->timeCalculator->calculate($entry->period_index, $settings);
 
-            $classesTree[$gradeName . ' - ' . $roomName][$day][] = [
+            if (!isset($classesMap[$classId])) {
+                $classesMap[$classId] = [
+                    'grade_name' => $gradeName,
+                    'class_room_name' => $roomName,
+                    'schedule' => []
+                ];
+            }
+
+            $classesMap[$classId]['schedule'][$day][] = [
                 'period_index' => $entry->period_index,
                 'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
-                'teacher_name' => $entry->user->first_name ?? null,
-                'is_heavy'     => $entry->gradeSubject->difficulty === 'heavy',
-                'start_time'   => $times['start_time'],
-                'end_time'     => $times['end_time'],
+                'teacher_name' => $entry->teacher->user->first_name ?? null,
+                'is_heavy' => $entry->gradeSubject->difficulty === 'heavy',
+                'start_time' => $times['start_time'],
+                'end_time' => $times['end_time'],
             ];
         }
 
         $daysOrder = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'];
 
-        foreach ($classesTree as $className => &$days) {
-            uksort($days, fn($a, $b) => array_search($a, $daysOrder) <=> array_search($b, $daysOrder));
+        foreach ($classesMap as &$classData) {
+            uksort($classData['schedule'], fn($a, $b) => array_search($a, $daysOrder) <=> array_search($b, $daysOrder));
 
-            foreach ($days as $day => &$periods) {
+            foreach ($classData['schedule'] as $day => &$periods) {
                 usort($periods, fn($a, $b) => $a['period_index'] <=> $b['period_index']);
             }
         }
 
+        $violations = $report['errors'] ?? [];
+
+        foreach ($violations as &$violation) {
+            $errorClassId = $violation['class'] ?? $violation['class_room_id'] ?? null;
+
+            if ($errorClassId && isset($classesMap[$errorClassId])) {
+                $violation['grade_name'] = $classesMap[$errorClassId]['grade_name'];
+                $violation['class_room_name'] = $classesMap[$errorClassId]['class_room_name'];
+            }
+        }
+        unset($violation); 
+
+        $classesTree = array_values($classesMap);
+
         return [
+            'id' => $schedule->id,
+            'is_perfect' => $report['valid'],
             'quality_report' => [
-                'is_perfect' => $report['valid'],
-                'hard_conflicts' => [
-                    'teacher' => $report['statistics']['teacher_conflicts'],
-                    'class'   => $report['statistics']['class_conflicts']
+                'statistics' => [
+                    'entries' => $report['statistics']['entries'] ?? 0,
+                    'teacher_conflicts' => $report['statistics']['teacher_conflicts'] ?? 0,
+                    'class_conflicts' => $report['statistics']['class_conflicts'] ?? 0,
                 ],
-                'soft_violations_summary' => collect($report['errors'])->groupBy('type')->map->count()
+                'violations' => $violations
             ],
             'classes' => $classesTree
         ];
     }
-
     public function getStudentWeeklySchedule(int $classroomId): array
     {
         $entries = ScheduleEntry::with(['gradeSubject.subject', 'teacher.user'])
@@ -114,7 +134,8 @@ class ScheduleService
     public function getStudentTomorrowSchedule(int $classroomId): array
     {
         $tomorrowDayString = $this->getSyrianTomorrowDayString();
-        if (!$tomorrowDayString) return [];
+        if (!$tomorrowDayString)
+            return [];
 
         $entries = ScheduleEntry::with(['gradeSubject.subject', 'teacher.user'])
             ->where('class_room_id', $classroomId)
@@ -136,7 +157,8 @@ class ScheduleService
     public function getTeacherTomorrowSchedule(int $teacherId): array
     {
         $tomorrowDayString = $this->getSyrianTomorrowDayString();
-        if (!$tomorrowDayString) return [];
+        if (!$tomorrowDayString)
+            return [];
 
         $entries = ScheduleEntry::with(['gradeSubject.subject', 'classRoom.gradeLevel'])
             ->where('teacher_id', $teacherId)
@@ -168,9 +190,9 @@ class ScheduleService
                 'period_index' => $entry->period_index,
                 'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
                 'teacher_name' => $entry->teacher->user->first_name ?? null,
-                'classroom'    => $entry->classRoom->name ?? null,
-                'start_time'   => $times['start_time'],
-                'end_time'     => $times['end_time'],
+                'classroom' => $entry->classRoom->name ?? null,
+                'start_time' => $times['start_time'],
+                'end_time' => $times['end_time'],
             ];
         }
 
@@ -196,9 +218,10 @@ class ScheduleService
         $teachersTree = [];
 
         foreach ($schedule->entries as $entry) {
-            if (!$entry->teacher) continue;
+            if (!$entry->teacher)
+                continue;
 
-            $teacherName = $entry->teacher->user->first_name ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
+            $teacherName = $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
             $day = strtolower($entry->day);
 
             $times = $this->timeCalculator->calculate($entry->period_index, $settings);
@@ -207,13 +230,14 @@ class ScheduleService
             $roomName = $entry->classRoom->name ?? 'Unknown Room';
 
             $teachersTree[$teacherName][$day][] = [
-                'entry_id'     => $entry->id,
+                'entry_id' => $entry->id,
                 'period_index' => $entry->period_index,
-                'subject_name' => $entry->gradeSubject->subject->name ?? 'N/A',
-                'classroom'    => $gradeName . ' - ' . $roomName,
-                'is_heavy'     => $entry->gradeSubject->difficulty === 'heavy',
-                'start_time'   => $times['start_time'],
-                'end_time'     => $times['end_time'],
+                'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
+                'grade_name' => $gradeName,
+                'classroom' => $roomName,
+                'is_heavy' => $entry->gradeSubject->difficulty === 'heavy',
+                'start_time' => $times['start_time'],
+                'end_time' => $times['end_time'],
             ];
         }
 
@@ -221,7 +245,7 @@ class ScheduleService
 
         foreach ($teachersTree as $teacherName => &$days) {
 
-        uksort($days, fn($a, $b) => array_search($a, $daysOrder) <=> array_search($b, $daysOrder));
+            uksort($days, fn($a, $b) => array_search($a, $daysOrder) <=> array_search($b, $daysOrder));
 
             foreach ($days as $day => &$periods) {
                 usort($periods, fn($a, $b) => $a['period_index'] <=> $b['period_index']);
@@ -230,5 +254,59 @@ class ScheduleService
         ksort($teachersTree);
 
         return $teachersTree;
+    }
+
+
+
+    public function updateEntry(int $entryId, array $data): ScheduleEntry
+    {
+        $entry = ScheduleEntry::find($entryId);
+
+        $entry->update($data);
+
+        if (isset($data['day']) && isset($data['period_index'])) {
+            $this->syncDayPeriodsCount($data['day'], $data['period_index']);
+        } elseif (isset($data['period_index'])) {
+            $this->syncDayPeriodsCount($entry->day, $data['period_index']);
+        }
+
+        return $entry;
+    }
+
+
+    public function addEntry(array $data): ScheduleEntry
+    {
+        $entry = ScheduleEntry::create($data);
+
+        $this->syncDayPeriodsCount($data['day'], $data['period_index']);
+
+        return $entry;
+    }
+
+
+    private function syncDayPeriodsCount(string $day, int $periodIndex): void
+    {
+        $setting = AcademicSetting::first();
+        if (!$setting || empty($setting->schedule_settings)) return;
+
+        $scheduleSettings = $setting->schedule_settings; 
+        $updated = false;
+
+        if (isset($scheduleSettings['workingDays'])) {
+            foreach ($scheduleSettings['workingDays'] as &$workingDay) {
+                if (strtolower($workingDay['day']) === strtolower($day)) {
+                    if ($periodIndex > (int) $workingDay['periodsCount']) {
+                        $workingDay['periodsCount'] = $periodIndex;
+                        $updated = true;
+                    }
+                    break;
+                }
+            }
+        }
+
+        if ($updated) {
+            $setting->schedule_settings = $scheduleSettings;
+            $setting->save();
+        }
     }
 }

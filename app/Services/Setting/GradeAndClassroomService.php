@@ -112,6 +112,7 @@ class GradeAndClassroomService
 
             $this->recalculateGradeCapacity($yearId, $gradeId);
 
+
             return $classroom;
         });
     }

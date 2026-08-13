@@ -13,6 +13,10 @@ class StudyMaterial extends Model
         return $this->belongsTo(GradeSubject::class);
     }
 
+    public function gradeLevel(){
+        return $this->belongsTo(GradeLevel::class);
+    }
+
     public function teacher()
     {
         return $this->belongsTo(Staff::class, 'teacher_id');

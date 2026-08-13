@@ -8,13 +8,15 @@ use App\Http\Resources\Scheduale\AdminScheduleResource;
 use App\Services\Schedule\ScheduleService;
 use App\Services\User\AlertService;
 use App\Jobs\GenerateScheduleJob;
+use App\Models\Enrollment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\ApiResource;
-use App\Models\Student;
+use App\Http\Requests\Scheduale\StoreScheduleEntryRequest;
+use App\Models\ScheduleEntry;
+use InvalidArgumentException;
 use Exception;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class ScheduleController extends Controller
 {
@@ -23,41 +25,21 @@ class ScheduleController extends Controller
     public function __construct(
         private ScheduleService $scheduleService,
         private AlertService $alertService
-    ) {}
-
-
-    private function authorizeStudentAccess($user, int $studentId): void
-    {
-        if ($user->hasRole('student') && $user->student) {
-            if ($user->student->id !== $studentId) {
-                throw new AccessDeniedHttpException('Access denied you can not view others schedule', null, 403);
-            }
-        }
-
-        if ($user->hasRole('guardian') && $user->guardian) {
-            $isMyChild = $user->guardian->students()->where('students.id', $studentId)->exists();
-            
-            if (!$isMyChild) {
-                throw new AccessDeniedHttpException('Access denied this child is not one of your children ', null, 403);
-            }
-        }
-        
+    ) {
     }
+
+
     public function generate(Request $request): JsonResponse
     {
         $request->validate([
             'academic_year_id' => 'required|integer',
-            'semester_id'      => 'required|integer',
+            'semester_id' => 'required|integer',
         ]);
 
-        $staff = Auth::user()->staff;
+        $staff = $this->getAuthStaff($request);
 
         try {
-            $this->scheduleService->checkBeforeGeneration(
-                $request->academic_year_id,
-                $request->semester_id
-            );
-
+            $this->scheduleService->checkBeforeGeneration($request->academic_year_id, $request->semester_id);
             GenerateScheduleJob::dispatch($request->academic_year_id, $request->semester_id, $staff->id);
 
             $this->alertService->createSystemNotice(
@@ -66,12 +48,7 @@ class ScheduleController extends Controller
                 'The system is now generating the schedule in the background. You will be notified when it is ready.'
             );
 
-            return $this->successResponse(
-                null,
-                'Schedule generation queued successfully. You will be notified upon completion.',
-                201
-            );
-
+            return $this->successResponse(null, 'Schedule generation queued successfully.', 202);
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
         }
@@ -81,18 +58,14 @@ class ScheduleController extends Controller
     {
         $request->validate([
             'academic_year_id' => 'required|integer',
-            'academic_term_id'      => 'required|integer',
+            'semester_id' => 'required|integer',
         ]);
 
-        $staff = Auth::user()->staff;
+        $staff = $this->getAuthStaff($request);
 
         try {
-            $this->scheduleService->deleteExistingSchedule(
-                $request->academic_year_id,
-                $request->academic_term_id
-            );
-
-            GenerateScheduleJob::dispatch($request->academic_year_id, $request->academic_term_id, $staff->id);
+            $this->scheduleService->deleteExistingSchedule($request->academic_year_id, $request->semester_id);
+            GenerateScheduleJob::dispatch($request->academic_year_id, $request->semester_id, $staff->id);
 
             $this->alertService->createSystemNotice(
                 $staff,
@@ -100,111 +73,194 @@ class ScheduleController extends Controller
                 'The old schedule was deleted and a new one is being generated. Please wait.'
             );
 
-            return $this->successResponse(
-                null,
-                'Old schedule deleted. New schedule generation queued successfully.',
-                201
-            );
-
+            return $this->successResponse(null, 'Old schedule deleted. New schedule generation queued successfully.', 202);
         } catch (Exception $e) {
             return $this->errorResponse('Failed to regenerate schedule: ' . $e->getMessage(), 500);
         }
     }
 
+    public function addEntry(StoreScheduleEntryRequest $request): JsonResponse
+    {
+        $entry = $this->scheduleService->addEntry($request->validated());
+
+        return $this->successResponse(
+            $entry,
+            'New entry added successfully (Manual Override)',
+            201
+        );
+    }
+
     public function updateEntry(UpdateScheduleEntryRequest $request, int $entryId): JsonResponse
     {
+        $entry = ScheduleEntry::find($entryId);
+
+        if (!$entry) {
+            return $this->errorResponse('The selected session dose not found.', 404);
+        }
+
         $entry = $this->scheduleService->updateEntry($entryId, $request->validated());
 
         return $this->successResponse(
             $entry,
-            'Entry updated successfully (Manual Override)',
-            200
+            'Entry updated successfully (Manual Override)'
         );
     }
 
     public function adminView(int $scheduleId): JsonResponse
     {
         $data = $this->scheduleService->getAdminSchedule($scheduleId);
-
-        return $this->successResponse(
-            new AdminScheduleResource((object) $data),
-            'Admin schedule retrieved successfully.',
-            200
-        );
+        return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
     }
 
-    public function studentWeekly(int $studentId): JsonResponse
+
+    public function studentWeekly(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        
-        $this->authorizeStudentAccess($user, $studentId);
+        try {
+            $student = $this->getResolvedStudent($request);
+            $enrollment = $this->getCurrentEnrollment($student);
 
-        $student = Student::findOrFail($studentId);
+            $schedule = $this->scheduleService->getStudentWeeklySchedule($enrollment->class_room_id);
+            return $this->successResponse($schedule, 'Student weekly schedule retrieved successfully.');
+        } catch (Exception $e) {
+            $code = $e->getCode() ?: 400;
+            return $this->errorResponse($e->getMessage(), $code);
+        }
+    }
 
-        $enrollment = $student->enrollments()->latest()->first();
+    public function studentTomorrow(Request $request): JsonResponse
+    {
+        try {
+            $student = $this->getResolvedStudent($request);
+            $enrollment = $this->getCurrentEnrollment($student);
 
-        if (!$enrollment || !$enrollment->class_room_id) {
-             return $this->errorResponse('This student does not enrolled yet', 404);
+            $schedule = $this->scheduleService->getStudentTomorrowSchedule($enrollment->class_room_id);
+            return $this->successResponse($schedule, 'Student tomorrow schedule retrieved successfully.');
+        } catch (Exception $e) {
+            $code = $e->getCode() ?: 400;
+            return $this->errorResponse($e->getMessage(), $code);
+        }
+    }
+
+
+    public function teacherWeekly(Request $request): JsonResponse
+    {
+        try {
+            $teacher = $this->getAuthTeacher($request);
+
+            $schedule = $this->scheduleService->getTeacherWeeklySchedule($teacher->id);
+            return $this->successResponse($schedule, 'Teacher weekly schedule retrieved successfully.');
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 403);
+        }
+    }
+
+    public function teacherTomorrow(Request $request): JsonResponse
+    {
+        try {
+            $teacher = $this->getAuthTeacher($request);
+
+            $schedule = $this->scheduleService->getTeacherTomorrowSchedule($teacher->id);
+            return $this->successResponse($schedule, 'Teacher tomorrow schedule retrieved successfully.');
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 403);
+        }
+    }
+
+
+    public function allTeachersWeekly(Request $request, int $scheduleId): JsonResponse
+    {
+        try {
+            $this->getAuthStaff($request);
+
+             if (!$request->user()->hasAnyRole(['super_admin', 'adviser'])) {
+                 throw new InvalidArgumentException('Unauthorized access. Only admins and advisers can view the master timetable.', 403);
+             }
+
+            $schedules = $this->scheduleService->getAllTeachersSchedule($scheduleId);
+
+            return $this->successResponse(
+                $schedules, 
+                'All teachers schedules retrieved successfully.'
+            );
+        } catch (Exception $e) {
+            $code = $e->getCode();
+            $code = ($code >= 400 && $code < 600) ? $code : 500; // ضمان أن كود الخطأ صالح لـ HTTP
+            
+            return $this->errorResponse($e->getMessage(), $code);
+        }
+    }
+
+
+    private function getResolvedStudent(Request $request)
+    {
+        $user = $request->user();
+
+        // 1. إذا كان المستخدم طالباً
+        if ($user->hasRole('student')) {
+            $student = $user->student;
+            if (!$student)
+                throw new InvalidArgumentException('This account does not belong to a student.', 403);
+            return $student;
         }
 
-        $schedule = $this->scheduleService->getStudentWeeklySchedule($enrollment->class_room_id);
-        
-        return $this->successResponse(
-            $schedule, 
-            'Student weekly schedule retrieved successfully.',
-            200
-        );
-    }
-    public function studentTomorrow(int $studentId): JsonResponse
-    {
-        $user = Auth::user();
-        
-        $this->authorizeStudentAccess($user, $studentId);
+        if ($user->hasRole('guardian')) {
+            $guardian = $user->guardian;
+            if (!$guardian)
+                throw new InvalidArgumentException('This account does not belong to a guardian.', 403);
 
-        $student = Student::findOrFail($studentId);
+            // يجب أن يرسل الـ ID في الـ Query Parameter (مثال: ?student_id=5)
+            $studentId = $request->query('student_id');
+            if (!$studentId)
+                throw new InvalidArgumentException('Please provide a student_id in the request query parameters.', 422);
 
-        $enrollment = $student->enrollments()->latest()->first();
+            $student = $guardian->students()->find($studentId);
+            if (!$student)
+                throw new InvalidArgumentException('This student does not belong to the current guardian.', 403);
 
-        if (!$enrollment || !$enrollment->class_room_id) {
-             return $this->errorResponse('This child does not enrolled yet.', 404);
+            return $student;
         }
 
-        $schedule = $this->scheduleService->getStudentTomorrowSchedule($enrollment->class_room_id);
-        
-        return $this->successResponse(
-            $schedule, 
-             'Student tomorrow schedule retrieved successfully.',
-             200
-        );
-    }
-    public function teacherWeekly(int $teacherId): JsonResponse
-    {
-        $schedule = $this->scheduleService->getTeacherWeeklySchedule($teacherId);
-
-        return $this->successResponse(
-            $schedule,
-            'Teacher weekly schedule retrieved successfully.',200
-        );
+        throw new InvalidArgumentException('Unauthorized access. Only students and guardians can view this schedule.', 403);
     }
 
-    public function teacherTomorrow(int $teacherId): JsonResponse
+    private function getAuthTeacher(Request $request)
     {
-        $schedule = $this->scheduleService->getTeacherTomorrowSchedule($teacherId);
+        $user = $request->user();
+        $staff = $user->staff;
 
-        return $this->successResponse(
-            $schedule,
-            'Teacher tomorrow schedule retrieved successfully.',
-            200
-        );
+        if (!$staff || !$user->hasRole('teacher' )) {
+            throw new InvalidArgumentException('This account does not belong to a registered teacher.', 403);
+        }
+
+        return $staff;
     }
 
-    public function allTeachersWeekly(int $scheduleId): JsonResponse
+    private function getAuthStaff(Request $request)
     {
-        $schedules = $this->scheduleService->getAllTeachersSchedule($scheduleId);
+        $user = $request->user();
+        $staff = $user->staff;
 
-        return $this->successResponse(
-            $schedules,
-            'All teachers schedules retrieved successfully.'
-        );
+        if (!$staff && !$user->hasAnyRole(['super_admin', 'adviser', 'teacher'])) {
+            throw new InvalidArgumentException('This account does not belong to a registered staff member.', 403);
+        }
+
+        return $staff;
+    }
+
+    private function getCurrentEnrollment($student): Enrollment
+    {
+        $enrollment = Enrollment::query()
+            ->where('student_id', $student->id)
+            ->whereHas('academicYear', function ($query) {
+                $query->where('is_current', true);
+            })
+            ->latest()
+            ->first();
+
+        if (!$enrollment || !$enrollment->class_room_id) {
+            throw new InvalidArgumentException('This student does not have an active enrollment in any classroom.', 404);
+        }
+
+        return $enrollment;
     }
 }

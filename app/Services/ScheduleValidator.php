@@ -154,7 +154,6 @@ class ScheduleValidator
 
         return $errors;
     }
-
     private function checkTeacherConflicts($schedule)
     {
         return $schedule->entries
@@ -172,7 +171,6 @@ class ScheduleValidator
             ->values()
             ->toArray();
     }
-
     private function checkClassConflicts($schedule)
     {
         return $schedule->entries
@@ -190,12 +188,10 @@ class ScheduleValidator
             ->values()
             ->toArray();
     }
-
     private function checkSubjectPeriods($schedule)
     {
         $errors = [];
 
-        // 1. التجميع يجب أن يكون حسب الشعبة والمادة معاً، وليس المادة فقط
         $subjects = $schedule->entries->groupBy(
             fn($e) => $e->class_room_id . '-' . $e->grade_subject_id
         );
@@ -203,14 +199,11 @@ class ScheduleValidator
         foreach ($subjects as $key => $entries) {
             $firstEntry = $entries->first();
 
-            // جلب العدد المطلوب من المادة
             $required = $firstEntry->gradeSubject->weekly_periods;
 
-            // حساب العدد الفعلي الذي تم توليده لهذه الشعبة في هذه المادة
             $generated = $entries->count();
 
-            // 2. المقارنة وإضافة الخطأ في حال عدم التطابق
-            if ($generated != $required) {
+             if ($generated != $required) {
                 $errors[] = [
                     'type' => 'subject_period_mismatch',
                     'class_room_id' => $firstEntry->class_room_id,
@@ -223,8 +216,6 @@ class ScheduleValidator
 
         return $errors;
     }
-
-
     private function checkDailySubjectLimit($schedule)
     {
         return $schedule->entries
@@ -255,7 +246,6 @@ class ScheduleValidator
     {
         $errors = [];
 
-        // أضفنا with('gradeSubject') لجلب العلاقة
         $assignments = TeacherAssignment::with('gradeSubject')
             ->where('academic_year_id', $schedule->academic_year_id)
             ->where('semester_id', $schedule->academic_term_id)
@@ -285,7 +275,6 @@ class ScheduleValidator
     {
         $used = $schedule->entries->pluck('teacher_assignment_id')->unique()->count();
 
-        // CRITICAL FIX: Count assignments ONLY for this specific schedule's Year and Term!
         $total = TeacherAssignment::where('academic_year_id', $schedule->academic_year_id)
             ->where('semester_id', $schedule->academic_term_id)
             ->count();

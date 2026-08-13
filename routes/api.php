@@ -94,9 +94,9 @@ Route::prefix('auth')->group(function () {
         Route::prefix('/scheduale')->controller(ScheduleController::class)->group(function () {
             Route::post('/generate', 'generate');
             Route::post('/regenerate', 'regenerate');
-            Route::put('/update', 'updateEntry');
+            Route::put('/update/{entryId}', 'updateEntry');
             Route::get('/show/all/{scheduleId}', 'adminView');
-            Route::get('/teacher/show', 'allTeachersWeekly');
+            Route::get('/teacher/show/{scheduleId}', 'allTeachersWeekly');
         });
 
 
@@ -180,8 +180,8 @@ Route::prefix('auth')->group(function () {
             });
 
             Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
-                Route::get('/show/all/{teacherId}','teacherWeekly');
-                Route::get('/tomorrow/{teacherId}','teacherTomorrow');
+                Route::get('/show/all','teacherWeekly');
+                Route::get('/tomorrow','teacherTomorrow');
             });
         });
 
@@ -370,7 +370,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
     Route::post('/{student}/personal', [StudentController::class, 'updatePersonal'])
         ->middleware('can:student:edit');
     Route::post('/enrollments/{enrollment}', [StudentController::class, 'updateEnrollment']);
-    // أو أي صلاحية تراها مناسبة لتعديل القيود
     Route::post('/guardians/{guardian}/personal', [StudentController::class, 'updateGuardian'])
         ->middleware('can:student:edit');
     Route::delete('/{id}', [StudentController::class, 'destroy'])
@@ -429,7 +428,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function () {
-    // إدخال جماعي
     Route::post('/bulk', [StudentAttendanceController::class, 'storeBulk']);
     Route::get('/getRecord/{id}', [StudentAttendanceController::class, 'get']);
 
@@ -449,7 +447,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/leave')->group(function(){
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff-leaves')->group(function () {
     Route::post('/', [StaffLeaveController::class, 'store']);         // إنشاء سجل إجازة
-    Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']); 
+    Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']);
     Route::get('/{leaveId}/staff',[StaffLeaveController::class,'getStaffLeaveById']); // 👈 دالة العرض الجديدة
     Route::post('/{id}', [StaffLeaveController::class, 'update']);     // تعديل سجل إجازة
     Route::delete('/{id}', [StaffLeaveController::class, 'destroy']);  // حذف سجل إجازة
@@ -526,11 +524,12 @@ Route::prefix('user')->group(function () {
                 Route::post('/mark/all/read/', 'markAllRead');
             });
 
-            Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
-                Route::get('/all/{studentId}', 'studentWeekly');
-                Route::get('/tomorrow/{studentId}', 'studentTomorrow');
-            });
+
         });
+         Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
+                Route::get('/all', 'studentWeekly');
+                Route::get('/tomorrow', 'studentTomorrow');
+            });
 
     });
 

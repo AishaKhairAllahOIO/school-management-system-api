@@ -212,16 +212,16 @@ class ScheduleService
     }
 
 
-public function getAllTeachersSchedule(int $academicYearId, int $semesterId): array
+    public function getAllTeachersSchedule(int $academicYearId, int $semesterId): array
     {
         $schedule = Schedule::with([
             'entries.teacher.user',
             'entries.gradeSubject.subject',
             'entries.classRoom.gradeLevel'
         ])
-        ->where('academic_year_id', $academicYearId)
-        ->where('academic_term_id', $semesterId) // تأكد من اسم العمود لديك (semester_id أو academic_term_id)
-        ->firstOrFail();
+            ->where('academic_year_id', $academicYearId)
+            ->where('academic_term_id', $semesterId)
+            ->firstOrFail();
 
         $settings = AcademicSetting::firstOrFail()->schedule_settings;
         $teachersTree = [];
@@ -239,13 +239,13 @@ public function getAllTeachersSchedule(int $academicYearId, int $semesterId): ar
             $roomName = $entry->classRoom->name ?? 'Unknown Room';
 
             $teachersTree[$teacherName][$day][] = [
-                'entry_id'     => $entry->id,
+                'entry_id' => $entry->id,
                 'period_index' => $entry->period_index,
                 'subject_name' => $entry->gradeSubject->subject->subject_name ?? 'N/A',
-                'classroom'    => $gradeName . ' - ' . $roomName,
-                'is_heavy'     => $entry->gradeSubject->difficulty === 'heavy',
-                'start_time'   => $times['start_time'],
-                'end_time'     => $times['end_time'],
+                'classroom' => $gradeName . ' - ' . $roomName,
+                'is_heavy' => $entry->gradeSubject->difficulty === 'heavy',
+                'start_time' => $times['start_time'],
+                'end_time' => $times['end_time'],
             ];
         }
 
@@ -263,8 +263,6 @@ public function getAllTeachersSchedule(int $academicYearId, int $semesterId): ar
         return $teachersTree;
     }
 
-
-
     public function updateEntry(int $entryId, array $data): ScheduleEntry
     {
         $entry = ScheduleEntry::find($entryId);
@@ -280,7 +278,6 @@ public function getAllTeachersSchedule(int $academicYearId, int $semesterId): ar
         return $entry;
     }
 
-
     public function addEntry(array $data): ScheduleEntry
     {
         $entry = ScheduleEntry::create($data);
@@ -289,7 +286,6 @@ public function getAllTeachersSchedule(int $academicYearId, int $semesterId): ar
 
         return $entry;
     }
-
 
     private function syncDayPeriodsCount(string $day, int $periodIndex): void
     {

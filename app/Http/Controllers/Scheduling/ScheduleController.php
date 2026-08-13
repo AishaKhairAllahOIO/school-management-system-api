@@ -106,17 +106,12 @@ class ScheduleController extends Controller
         );
     }
 
-    public function adminView(Request $request): JsonResponse
+    public function adminView(int $academicId, int $semesterId): JsonResponse
     {
-        $request->validate([
-            'academic_year_id' => 'required|integer',
-            'semester_id' => 'required|integer',
-        ]);
-
         try {
             $data = $this->scheduleService->getAdminSchedule(
-                $request->academic_year_id,
-                $request->semester_id
+                $academicId,
+                $semesterId
             );
 
             return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
@@ -180,7 +175,7 @@ class ScheduleController extends Controller
     }
 
 
-public function allTeachersWeekly(Request $request): JsonResponse
+    public function allTeachersWeekly(int $academicId, int $semesterId): JsonResponse
     {
         try {
             $this->getAuthStaff($request);
@@ -189,16 +184,11 @@ public function allTeachersWeekly(Request $request): JsonResponse
                 throw new InvalidArgumentException('Unauthorized access. Only admins and advisers can view the master timetable.', 403);
             }
 
-            // إضافة التحقق من السنة والفصل
-            $request->validate([
-                'academic_year_id' => 'required|integer',
-                'semester_id'      => 'required|integer',
-            ]);
 
-            // استدعاء الخدمة باستخدام السنة والفصل
+
             $schedules = $this->scheduleService->getAllTeachersSchedule(
-                $request->academic_year_id, 
-                $request->semester_id
+                $academicId,
+                $semesterId
             );
 
             return $this->successResponse(
@@ -207,7 +197,7 @@ public function allTeachersWeekly(Request $request): JsonResponse
             );
         } catch (Exception $e) {
             $code = $e->getCode();
-            $code = ($code >= 400 && $code < 600) ? $code : 500; 
+            $code = ($code >= 400 && $code < 600) ? $code : 500;
 
             return $this->errorResponse($e->getMessage(), $code);
         }

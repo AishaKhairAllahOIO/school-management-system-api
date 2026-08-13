@@ -95,8 +95,8 @@ Route::prefix('auth')->group(function () {
             Route::post('/generate', 'generate');
             Route::post('/regenerate', 'regenerate');
             Route::put('/update/{entryId}', 'updateEntry');
-            Route::get('/show/all', 'adminView');
-            Route::get('/teacher/show', 'allTeachersWeekly');
+            Route::get('/show/all/{academicId}/{semesterId}', 'adminView');
+            Route::get('/teacher/show/{academicId}/{semesterId}', 'allTeachersWeekly');
         });
 
 

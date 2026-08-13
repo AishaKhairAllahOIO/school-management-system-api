@@ -175,7 +175,7 @@ class ScheduleController extends Controller
     }
 
 
-    public function allTeachersWeekly(int $academicId, int $semesterId): JsonResponse
+    public function allTeachersWeekly(Request $request,int $academicId, int $semesterId): JsonResponse
     {
         try {
             $this->getAuthStaff($request);

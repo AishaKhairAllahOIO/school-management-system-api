@@ -230,7 +230,7 @@ class ScheduleService
             if (!$entry->teacher)
                 continue;
 
-            $teacherName = $entry->teacher->user->first_name ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
+            $teacherName = $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name  ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
             $day = strtolower($entry->day);
 
             $times = $this->timeCalculator->calculate($entry->period_index, $settings);
@@ -241,8 +241,9 @@ class ScheduleService
             $teachersTree[$teacherName][$day][] = [
                 'entry_id' => $entry->id,
                 'period_index' => $entry->period_index,
-                'subject_name' => $entry->gradeSubject->subject->subject_name ?? 'N/A',
-                'classroom' => $gradeName . ' - ' . $roomName,
+                'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
+                'grade_name' => $gradeName,
+                'classroom' => $roomName,
                 'is_heavy' => $entry->gradeSubject->difficulty === 'heavy',
                 'start_time' => $times['start_time'],
                 'end_time' => $times['end_time'],

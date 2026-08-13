@@ -68,10 +68,12 @@ class StudentAttendanceController extends Controller
         {
             try {
                 $request->validate([
-                    'class_room_id' => 'required|exists:class_rooms,id',
+                    'search_name'     => 'nullable|string',
+                    'grade_id'        => 'nullable|integer|exists:grade_levels,id',
+                    'class_room_id'   => 'nullable|integer|exists:class_rooms,id',
                     'attendance_date' => 'nullable|date',
-                    'status' => 'nullable|in:present,absent',
-                    'absence_type' => 'nullable|in:excused,unexcused',
+                    'status'          => 'nullable|in:present,absent',
+                    'absence_type'    => 'nullable|in:excused,unexcused',
                     'semester_id' => 'nullable|exists:semesters,id',
                 ]);
 

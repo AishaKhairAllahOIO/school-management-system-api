@@ -25,7 +25,7 @@ class StoreStaffAttendanceRequest extends FormRequest
         return [
             'staff_id'               => ['required', 'integer', 'exists:staff,id'],
             'attendance_date'        => ['required', 'date'],
-            'status'                 => ['required', 'string', 'in:present,absent,partial_absence'],
+            'status'                 => ['required', 'string', 'in:present,absent,partial_absence,on_leave'],
             'absence_type'           => ['nullable', 'string', 'in:excused,unexcused'],
             
             // تحقق الحصص للدوام الجزئي

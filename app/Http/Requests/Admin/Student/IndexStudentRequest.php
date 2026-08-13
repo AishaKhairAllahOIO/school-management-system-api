@@ -23,6 +23,9 @@ class IndexStudentRequest extends FormRequest
             'class_room_id'  => ['nullable', 'string','exists:class_rooms,id' ],
             'sort'           => ['nullable', 'string', 'in:asc,desc,ASC,DESC'],
             'status'         =>['nullable','string'],
+            'attendance_date' => ['nullable', 'date'],
+            'attendance_status' => ['nullable', 'string', 'in:present,absent'],
+            'absence_type' => ['nullable', 'string', 'in:excused,unexcused'],
         ];
     }
 

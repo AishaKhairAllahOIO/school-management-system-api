@@ -19,7 +19,7 @@ class StudentAttendanceResource extends JsonResource
             'enrollment_id' => $this->enrollment_id,
             'class_room_id' => $this->class_room_id,
             'semester_id' => $this->semester_id,
-            'attendance_date' => $this->attendance_date,
+            'attendance_date' => $this->attendance_date->format('Y-m-d'),
             'status' => $this->status,
             'absence_type' => $this->absence_type,
             

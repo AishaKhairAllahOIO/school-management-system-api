@@ -106,10 +106,23 @@ class ScheduleController extends Controller
         );
     }
 
-    public function adminView(int $scheduleId): JsonResponse
+public function adminView(Request $request): JsonResponse
     {
-        $data = $this->scheduleService->getAdminSchedule($scheduleId);
-        return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
+        $request->validate([
+            'academic_year_id' => 'required|integer',
+            'semester_id'      => 'required|integer',
+        ]);
+
+        try {
+            $data = $this->scheduleService->getAdminSchedule(
+                $request->academic_year_id, 
+                $request->semester_id
+            );
+            
+            return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
+        } catch (Exception $e) {
+            return $this->errorResponse('Schedule not found for the selected term.', 404);
+        }
     }
 
 

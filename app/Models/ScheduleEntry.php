@@ -33,28 +33,28 @@ class ScheduleEntry extends Model
     ];
 
     public function teacher()
-{
-    return $this->belongsTo(Staff::class,'teacher_id');
-}
+    {
+        return $this->belongsTo(Staff::class, 'teacher_id');
+    }
 
 
-public function classRoom()
-{
-    return $this->belongsTo(ClassRoom::class);
-}
+    public function classRoom()
+    {
+        return $this->belongsTo(ClassRoom::class);
+    }
 
 
-public function gradeSubject()
-{
-    return $this->belongsTo(GradeSubject::class);
-}
-public function periodAttendances()
+    public function gradeSubject()
+    {
+        return $this->belongsTo(GradeSubject::class);
+    }
+    public function periodAttendances()
     {
         return $this->hasMany(TeacherPeriodAttendance::class, 'schedule_entry_id');
     }
-public function schedule()
+    public function schedule()
     {
         return $this->belongsTo(Schedule::class, 'schedule_id');
-    }    
+    }
 
 }

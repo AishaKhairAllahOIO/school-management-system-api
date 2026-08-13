@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Homework extends Model
 {
-   protected $table = 'homeworks';
+    protected $table = 'homeworks';
 
     protected $guarded = [];
 
@@ -44,6 +44,6 @@ class Homework extends Model
     public function readers()
     {
         return $this->belongsToMany(User::class, 'homework_user_reads', 'homework_id', 'user_id')
-                    ->withPivot('read_at');
+            ->withPivot('read_at');
     }
 }

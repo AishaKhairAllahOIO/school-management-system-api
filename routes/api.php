@@ -94,9 +94,9 @@ Route::prefix('auth')->group(function () {
         Route::prefix('/scheduale')->controller(ScheduleController::class)->group(function () {
             Route::post('/generate', 'generate');
             Route::post('/regenerate', 'regenerate');
-            Route::put('/update', 'updateEntry');
+            Route::put('/update/{entryId}', 'updateEntry');
             Route::get('/show/all/{scheduleId}', 'adminView');
-            Route::get('/teacher/show', 'allTeachersWeekly');
+            Route::get('/teacher/show/{scheduleId}', 'allTeachersWeekly');
         });
 
 
@@ -447,7 +447,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/leave')->group(function(){
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff-leaves')->group(function () {
     Route::post('/', [StaffLeaveController::class, 'store']);         // إنشاء سجل إجازة
-    Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']); 
+    Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']);
     Route::get('/{leaveId}/staff',[StaffLeaveController::class,'getStaffLeaveById']); // 👈 دالة العرض الجديدة
     Route::post('/{id}', [StaffLeaveController::class, 'update']);     // تعديل سجل إجازة
     Route::delete('/{id}', [StaffLeaveController::class, 'destroy']);  // حذف سجل إجازة
@@ -524,7 +524,7 @@ Route::prefix('user')->group(function () {
                 Route::post('/mark/all/read/', 'markAllRead');
             });
 
-           
+
         });
          Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
                 Route::get('/all', 'studentWeekly');

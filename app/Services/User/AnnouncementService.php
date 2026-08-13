@@ -225,10 +225,10 @@ class AnnouncementService
 
         if ($user->guardian && $studentId) {
             $child = $user->guardian->students()->find($studentId);
-            return $child?->user;
+            return $child?->user ?? $user;
         }
 
-        return null;
+        return $user;
     }
 
     public function unreadCount(User $user, ?int $studentId = null): int
@@ -248,20 +248,21 @@ class AnnouncementService
             ->count();
     }
 
-    public function markAllAsRead(User $user, ?int $studentId = null): void
-    {
+    // //////////////////////////////
 
-        if ($user->guardian && !$studentId) {
+    public function markAllAsRead(User $user, ?int $studentId = null): array
+    {
+        if ($user->hasRole('guardian') && $user->guardian && !$studentId) {
             foreach ($user->guardian->students as $child) {
                 $this->markAllAsRead($user, $child->id);
             }
-            return;
+            return ['unread_count' => $this->unreadCount($user)];
         }
 
         $readerUser = $this->resolveReaderUser($user, $studentId);
 
         if (!$readerUser) {
-            return;
+            return ['unread_count' => 0];
         }
 
         $announcementIds = $this->getBaseQueryForUser($user, $studentId)
@@ -270,16 +271,19 @@ class AnnouncementService
             })
             ->pluck('id');
 
-        $syncData = [];
-        $now = now();
-        foreach ($announcementIds as $id) {
-            $syncData[$id] = ['read_at' => $now];
-        }
+        if ($announcementIds->isNotEmpty()) {
+            $syncData = [];
+            $now = now();
+            foreach ($announcementIds as $id) {
+                $syncData[$id] = ['read_at' => $now];
+            }
 
-        if (!empty($syncData)) {
             $readerUser->readAnnouncements()->syncWithoutDetaching($syncData);
         }
+
+        return ['unread_count' => $this->unreadCount($user, $studentId)];
     }
+
 
     public function getAdminAnnouncements(User $user): LengthAwarePaginator
     {

@@ -10,12 +10,12 @@ class ClassRoomSeeder extends Seeder
     public function run(): void
     {
         $classRooms = [
-            ['name' => 'الشعبة الاولى', 'grade_level_id' => 1],
-            ['name' => 'الشعبة الثانية', 'grade_level_id' => 1],
-            ['name' => 'الشعبة الثالثة', 'grade_level_id' => 1],
-            ['name' => 'الشعبة الرابعة', 'grade_level_id' => 1],
-            ['name' => 'الشعبة الخامسة', 'grade_level_id' => 1],
-            ['name' => 'الشعبة الاولى', 'grade_level_id' => 2]
+            ['name' => 'الشعبة 1', 'grade_level_id' => 1],
+            ['name' => 'الشعبة 2', 'grade_level_id' => 1],
+            ['name' => 'الشعبة 3', 'grade_level_id' => 1],
+            ['name' => 'الشعبة 4', 'grade_level_id' => 1],
+            ['name' => 'الشعبة 5', 'grade_level_id' => 1],
+            ['name' => 'الشعبة 1', 'grade_level_id' => 2]
 
         ];
 

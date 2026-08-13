@@ -10,38 +10,38 @@ class Schedule extends Model
 {
 
 
-protected $fillable=[
+    protected $fillable = [
 
-'academic_year_id',
+        'academic_year_id',
 
-'academic_term_id',
+        'academic_term_id',
 
-'status',
+        'status',
 
-'score',
+        'score',
 
-'generation_statistics'
+        'generation_statistics'
 
-];
-
-
-
-protected $casts=[
-
-'generation_statistics'=>'array'
-
-];
+    ];
 
 
 
-public function entries()
-{
+    protected $casts = [
 
-return $this->hasMany(
-ScheduleEntry::class
-);
+        'generation_statistics' => 'array'
 
-}
+    ];
+
+
+
+    public function entries()
+    {
+
+        return $this->hasMany(
+            ScheduleEntry::class
+        );
+
+    }
 
 
 }

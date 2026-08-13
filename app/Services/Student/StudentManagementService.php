@@ -12,78 +12,70 @@ use Illuminate\Support\Facades\Storage;
 
 class StudentManagementService
 {
-    public function filterStudents(array $filters)
+   public function filterStudents(array $filters)
     {
+        // 1. التاريخ هو السيد (The Master Filter)
+        $targetDate = $filters['attendance_date'] ?? \Carbon\Carbon::today()->toDateString();
+
         $query = Enrollment::withTrashed()->with([
             'student.user:id,first_name,last_name,father_name,mother_name,phone_number,photo_url,account_status',
             'gradeLevel',
-            'classRoom'
-        ]);
-if (!empty($filters['search'])) {
-        $safeSearch = str_replace(
-            ['%', '_'],
-            ['\%', '\_'],
-            trim($filters['search'])
-        );
-
-        $query->whereHas(
-            'student.user',
-            function ($userQuery) use ($safeSearch) {
-                $userQuery
-                    ->where(
-                        DB::raw(
-                            "CONCAT(first_name, ' ', father_name, ' ', last_name)"
-                        ),
-                        'like',
-                        "%{$safeSearch}%"
-                    )
-                    ->orWhere(
-                        'first_name',
-                        'like',
-                        "%{$safeSearch}%"
-                    )
-                    ->orWhere(
-                        'father_name',
-                        'like',
-                        "%{$safeSearch}%"
-                    )
-                    ->orWhere(
-                        'last_name',
-                        'like',
-                        "%{$safeSearch}%"
-                    );
+            'classRoom',
+            // جلب سجل الحضور لهذا التاريخ فقط
+            'attendances' => function ($q) use ($targetDate) {
+                $q->whereDate('attendance_date', $targetDate);
             }
-        );
-    }
+        ]);
+
+        // --- الفلاتر الأساسية الثابتة ---
+        if (!empty($filters['search'])) {
+            $safeSearch = str_replace(['%', '_'], ['\%', '\_'], trim($filters['search']));
+            $query->whereHas('student.user', function ($userQuery) use ($safeSearch) {
+                $userQuery->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'like', "%{$safeSearch}%")
+                          ->orWhere('first_name', 'like', "%{$safeSearch}%")
+                          ->orWhere('last_name', 'like', "%{$safeSearch}%");
+            });
+        }
 
         if (isset($filters['grade_level_id'])) {
-            $query->whereHas('gradeLevel', function ($q) use ($filters) {
-                $q->where('grade_level_id', $filters['grade_level_id']);
-            });
+            $query->where('grade_level_id', $filters['grade_level_id']);
         }
 
         if (!empty($filters['class_room_id'])) {
-            $query->whereHas('classRoom', function ($q) use ($filters) {
-                $q->where('class_room_id', 'like', "%{$filters['class_room_id']}%");
-            });
+            $query->where('class_room_id', $filters['class_room_id']);
         }
 
+        // 💡 تم إرجاع فلتر حالة القيد (التسجيل) الذي حُذف بالخطأ
         if (!empty($filters['status'])) {
             $query->where('enrollment_status', $filters['status']);
         }
 
-        $direction = (isset($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
+        // --- 💡 فلتر حالة الحضور ونوع الغياب المربوط بالزمن ---
+        if (!empty($filters['attendance_status'])) {
+            $attendanceStatus = $filters['attendance_status'];
+            
+            // الفلترة حسب الحالة (حاضر، غائب، الخ) مباشرة
+            $query->whereHas('attendances', function ($q) use ($targetDate, $attendanceStatus, $filters) {
+                $q->whereDate('attendance_date', $targetDate)
+                  ->where('status', $attendanceStatus);
+                  
+                // الفلتر الفرعي: إذا كان غائباً وأرسلنا نوع الغياب (مبرر/غير مبرر)
+                if (in_array($attendanceStatus, ['absent']) && !empty($filters['absence_type'])) {
+                    $q->where('absence_type', $filters['absence_type']);
+                }
+            });
+        }
 
+        // الترتيب
+        $direction = (isset($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
         $query->join('students', 'enrollments.student_id', '=', 'students.id')
-            ->join('users', 'students.user_id', '=', 'users.id')
-            ->select('enrollments.*')
-            ->orderBy('users.first_name', $direction)
-            ->orderBy('users.father_name', $direction)
-            ->orderBy('users.last_name', $direction);
+              ->join('users', 'students.user_id', '=', 'users.id')
+              ->select('enrollments.*')
+              ->orderBy('users.first_name', $direction)
+              ->orderBy('users.father_name', $direction);
 
         return $query->paginate(15);
     }
-
     public function searchStudents(string $searchTerm)
     {
         $query = Enrollment::withTrashed()->with([

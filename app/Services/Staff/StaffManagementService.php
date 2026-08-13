@@ -219,4 +219,88 @@ class StaffManagementService
             return Staff::with(['user.roles'])->findOrFail($staff->id);
         });
     }
+    public function filterStaff(array $filters, int $perPage = 15)
+    {
+        // 1. التاريخ هو السيد (مع وضع تاريخ اليوم كقيمة افتراضية للحماية)
+        $targetDate = $filters['attendance_date'] ?? now()->toDateString();
+
+        $query = Staff::withTrashed()->with([
+            'user.roles',
+            // جلب سجل الحضور لهذا التاريخ فقط (إن وجد)
+            'attendances' => function ($q) use ($targetDate) {
+                $q->whereDate('attendance_date', $targetDate);
+            }
+        ]);
+
+        // --- الفلاتر الأساسية الثابتة ---
+        if (!empty($filters['role'])) {
+            $query->whereHas('user', function ($q) use ($filters) {
+                $q->role($filters['role']);
+            });
+        }
+
+        if (!empty($filters['search'])) {
+            $safeSearch = str_replace(['%', '_'], ['\%', '\_'], trim($filters['search']));
+            $query->whereHas('user', function ($q) use ($safeSearch) {
+                $q->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'LIKE', "%{$safeSearch}%")
+                  ->orWhere('first_name', 'LIKE', "%{$safeSearch}%")
+                  ->orWhere('last_name', 'LIKE', "%{$safeSearch}%");
+            });
+        }
+
+        // --- 💡 فلتر حالة الحضور ونوع الغياب (تم إصلاح منطق الحاضر) ---
+        if (!empty($filters['attendance_status'])) {
+            $attendanceStatus = $filters['attendance_status'];
+            
+            if ($attendanceStatus === 'present') {
+                $query->whereDoesntHave('attendances', function ($q) use ($targetDate) {
+                    $q->whereDate('attendance_date', $targetDate);
+                });
+            } else {
+                // للغياب والإجازات، نبحث في السجلات الموجودة
+                $query->whereHas('attendances', function ($q) use ($targetDate, $attendanceStatus, $filters) {
+                    $q->whereDate('attendance_date', $targetDate)
+                      ->where('status', $attendanceStatus);
+                      
+                    // الفلتر الفرعي لنوع الغياب
+                    if (in_array($attendanceStatus, ['absent', 'partial_absence']) && !empty($filters['absence_type'])) {
+                        $q->where('absence_type', $filters['absence_type']);
+                    }
+                });
+            }
+        }
+
+        // الترتيب
+        $direction = (isset($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
+        $query->join('users', 'staff.user_id', '=', 'users.id')
+              ->select('staff.*')
+              ->orderBy('users.first_name', $direction)
+              ->orderBy('users.father_name', $direction);
+
+        $paginator = $query->paginate($perPage);
+
+        // تطبيق تهيئة الصور أولاً
+        $paginator = $this->formatUserPhotoUrls($paginator);
+
+        // --- 💡 تشكيل الاستجابة (Transform) لتطابق متطلبات الفرونت إند تماماً ---
+        $paginator->getCollection()->transform(function ($staff) use ($targetDate) {
+            $attendanceRecord = $staff->attendances->first();
+
+            // بناء كائن الحضور (سواء كان له سجل أم لا)
+            $staff->setAttribute('attendance', [
+                'id'              => $attendanceRecord ? $attendanceRecord->id : null,
+                'status'          => $attendanceRecord ? $attendanceRecord->status : 'present', // الافتراضي حاضر
+                'absence_type'    => $attendanceRecord ? $attendanceRecord->absence_type : null,
+                'staff_leave_id'  => $attendanceRecord ? $attendanceRecord->staff_leave_id : null,
+                'attendance_date' => $targetDate,
+            ]);
+
+            // إخفاء المصفوفة القديمة المربكة لكي يكون الـ JSON نظيفاً
+            $staff->makeHidden('attendances'); 
+
+            return $staff;
+        });
+
+        return $paginator;
+    }
 }

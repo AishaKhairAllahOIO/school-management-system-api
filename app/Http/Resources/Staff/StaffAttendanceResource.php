@@ -17,7 +17,7 @@ class StaffAttendanceResource extends JsonResource
         return [
             'id'              => $this->id,
             'staff_id'        => $this->staff_id,
-            'attendance_date' => $this->attendance_date,
+            'attendance_date' => $this->attendance_date->format('Y-m-d'),
             'status'          => $this->status,
             'absence_type'    => $this->absence_type,
             // تفاصيل الحصص التي غاب عنها إن كان غيابه جزئياً

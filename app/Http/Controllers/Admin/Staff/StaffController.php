@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\QueryException;
 use Exception;
+use Throwable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Nette\Schema\ValidationException;
 use App\Services\Staff\TeacherWorkloadService;
@@ -341,6 +342,30 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             return $this->errorResponse('سجل الموظف المطلوب غير موجود.', 404);
         } catch (\Throwable $e) {
             return $this->errorResponse($e->getMessage(), 422);
+        }
+    }
+    public function filter(Request $request,StaffManagementService $service): JsonResponse
+    {
+        try {
+            // 1. استخراج الفلاتر المسموح بها فقط
+            $filters = $request->only([
+                'search', 
+                'role', 
+                'account_status', 
+                'attendance_date', 
+                'attendance_status', 
+                'absence_type', 
+                'sort'
+            ]);
+
+            // 2. إرسالها للسيرفس
+            $staff = $service->filterStaff($filters);
+
+            // 3. إرجاع النتيجة
+            return $this->successResponse($staff, 'تم جلب وتصفية بيانات الموظفين بنجاح.');
+
+        } catch (Throwable $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب بيانات الموظفين.', 500, ['error' => $e->getMessage()]);
         }
     }
 }

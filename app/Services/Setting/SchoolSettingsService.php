@@ -1,7 +1,6 @@
 <?php
 namespace App\Services\Setting;
 use App\Models\School;
-use Exception;
 use App\Models\SchoolImage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
@@ -34,8 +33,7 @@ class SchoolSettingsService
                     Storage::disk('public')->delete($logoPath);
                 }
 
-                $logoPath = $validatedData['logo']->store('school_logos', 'public');
-            }
+                $logoPath = $validatedData['logo']->store('school_logos', 's3');            }
 
             $mappedData = [
                 'school_name' => $validatedData['schoolName'] ?? null,

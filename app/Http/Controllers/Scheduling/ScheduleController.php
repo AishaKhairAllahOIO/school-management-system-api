@@ -106,19 +106,19 @@ class ScheduleController extends Controller
         );
     }
 
-public function adminView(Request $request): JsonResponse
+    public function adminView(Request $request): JsonResponse
     {
         $request->validate([
             'academic_year_id' => 'required|integer',
-            'semester_id'      => 'required|integer',
+            'semester_id' => 'required|integer',
         ]);
 
         try {
             $data = $this->scheduleService->getAdminSchedule(
-                $request->academic_year_id, 
+                $request->academic_year_id,
                 $request->semester_id
             );
-            
+
             return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
         } catch (Exception $e) {
             return $this->errorResponse('Schedule not found for the selected term.', 404);
@@ -180,25 +180,35 @@ public function adminView(Request $request): JsonResponse
     }
 
 
-    public function allTeachersWeekly(Request $request, int $scheduleId): JsonResponse
+public function allTeachersWeekly(Request $request): JsonResponse
     {
         try {
             $this->getAuthStaff($request);
 
-             if (!$request->user()->hasAnyRole(['super_admin', 'adviser'])) {
-                 throw new InvalidArgumentException('Unauthorized access. Only admins and advisers can view the master timetable.', 403);
-             }
+            if (!$request->user()->hasAnyRole(['super_admin', 'adviser'])) {
+                throw new InvalidArgumentException('Unauthorized access. Only admins and advisers can view the master timetable.', 403);
+            }
 
-            $schedules = $this->scheduleService->getAllTeachersSchedule($scheduleId);
+            // إضافة التحقق من السنة والفصل
+            $request->validate([
+                'academic_year_id' => 'required|integer',
+                'semester_id'      => 'required|integer',
+            ]);
+
+            // استدعاء الخدمة باستخدام السنة والفصل
+            $schedules = $this->scheduleService->getAllTeachersSchedule(
+                $request->academic_year_id, 
+                $request->semester_id
+            );
 
             return $this->successResponse(
-                $schedules, 
+                $schedules,
                 'All teachers schedules retrieved successfully.'
             );
         } catch (Exception $e) {
             $code = $e->getCode();
-            $code = ($code >= 400 && $code < 600) ? $code : 500; // ضمان أن كود الخطأ صالح لـ HTTP
-            
+            $code = ($code >= 400 && $code < 600) ? $code : 500; 
+
             return $this->errorResponse($e->getMessage(), $code);
         }
     }
@@ -241,7 +251,7 @@ public function adminView(Request $request): JsonResponse
         $user = $request->user();
         $staff = $user->staff;
 
-        if (!$staff || !$user->hasRole('teacher' )) {
+        if (!$staff || !$user->hasRole('teacher')) {
             throw new InvalidArgumentException('This account does not belong to a registered teacher.', 403);
         }
 

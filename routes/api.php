@@ -96,7 +96,7 @@ Route::prefix('auth')->group(function () {
             Route::post('/regenerate', 'regenerate');
             Route::put('/update/{entryId}', 'updateEntry');
             Route::get('/show/all', 'adminView');
-            Route::get('/teacher/show/{scheduleId}', 'allTeachersWeekly');
+            Route::get('/teacher/show', 'allTeachersWeekly');
         });
 
 

@@ -212,13 +212,17 @@ class ScheduleService
     }
 
 
-    public function getAllTeachersSchedule(int $scheduleId): array
+public function getAllTeachersSchedule(int $academicYearId, int $semesterId): array
     {
+        // جلب الجدول باستخدام السنة والفصل بدلاً من الـ ID
         $schedule = Schedule::with([
             'entries.teacher.user',
             'entries.gradeSubject.subject',
             'entries.classRoom.gradeLevel'
-        ])->findOrFail($scheduleId);
+        ])
+        ->where('academic_year_id', $academicYearId)
+        ->where('academic_term_id', $semesterId) // تأكد من اسم العمود لديك (semester_id أو academic_term_id)
+        ->firstOrFail();
 
         $settings = AcademicSetting::firstOrFail()->schedule_settings;
         $teachersTree = [];
@@ -227,7 +231,7 @@ class ScheduleService
             if (!$entry->teacher)
                 continue;
 
-            $teacherName = $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
+            $teacherName = $entry->teacher->user->first_name ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
             $day = strtolower($entry->day);
 
             $times = $this->timeCalculator->calculate($entry->period_index, $settings);
@@ -236,21 +240,19 @@ class ScheduleService
             $roomName = $entry->classRoom->name ?? 'Unknown Room';
 
             $teachersTree[$teacherName][$day][] = [
-                'entry_id' => $entry->id,
+                'entry_id'     => $entry->id,
                 'period_index' => $entry->period_index,
-                'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
-                'grade_name' => $gradeName,
-                'classroom' => $roomName,
-                'is_heavy' => $entry->gradeSubject->difficulty === 'heavy',
-                'start_time' => $times['start_time'],
-                'end_time' => $times['end_time'],
+                'subject_name' => $entry->gradeSubject->subject->name ?? 'N/A',
+                'classroom'    => $gradeName . ' - ' . $roomName,
+                'is_heavy'     => $entry->gradeSubject->difficulty === 'heavy',
+                'start_time'   => $times['start_time'],
+                'end_time'     => $times['end_time'],
             ];
         }
 
         $daysOrder = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'];
 
         foreach ($teachersTree as $teacherName => &$days) {
-
             uksort($days, fn($a, $b) => array_search($a, $daysOrder) <=> array_search($b, $daysOrder));
 
             foreach ($days as $day => &$periods) {

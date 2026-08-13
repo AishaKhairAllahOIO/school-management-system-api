@@ -15,6 +15,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "rap2hpoutre/fast-excel": "^5.9",
+        "resend/resend-php": "^1.8",
         "spatie/laravel-permission": "^6.25"
     },
     "require-dev": {

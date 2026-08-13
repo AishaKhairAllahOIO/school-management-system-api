@@ -180,8 +180,8 @@ Route::prefix('auth')->group(function () {
             });
 
             Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
-                Route::get('/show/all','teacherWeekly');
-                Route::get('/tomorrow','teacherTomorrow');
+                Route::get('/show/all', 'teacherWeekly');
+                Route::get('/tomorrow', 'teacherTomorrow');
             });
         });
 
@@ -252,7 +252,7 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::delete('/', [AcademicSettingsController::class, 'destroy']);
 
     Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
-     Route::get('/academic-stages/with-grades', [AcademicSettingsController::class, 'indexWithGrades']);
+    Route::get('/academic-stages/with-grades', [AcademicSettingsController::class, 'indexWithGrades']);
 
 
 });
@@ -377,7 +377,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function ()
     Route::post('/{enrollmentId}/toggle-account-status', [StudentController::class, 'toggleAccountStatus'])
         ->middleware('can:account:toggle_status');
     Route::post('/{enrollment}/student/restore', [StudentController::class, 'restore']);
-    
+
 
 });
 
@@ -439,18 +439,18 @@ Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function 
 
     Route::delete('/record/{id}', [StudentAttendanceController::class, 'destroy']);
 });
-Route::middleware(['auth:sanctum'])->prefix('admin/leave')->group(function(){
-    Route::get('/leaves',[StaffLeaveTypeController::class,'index']);
-    Route::get('/{id}',[StaffLeaveTypeController::class,'show']);
-    Route::post('/',[StaffLeaveTypeController::class,'store']);
-    Route::post('/{id}',[StaffLeaveTypeController::class,'update']);
-    Route::delete('/{id}',[StaffLeaveTypeController::class,'destroy']);
-   // Route::get('staff/leave/{}')
+Route::middleware(['auth:sanctum'])->prefix('admin/leave')->group(function () {
+    Route::get('/leaves', [StaffLeaveTypeController::class, 'index']);
+    Route::get('/{id}', [StaffLeaveTypeController::class, 'show']);
+    Route::post('/', [StaffLeaveTypeController::class, 'store']);
+    Route::post('/{id}', [StaffLeaveTypeController::class, 'update']);
+    Route::delete('/{id}', [StaffLeaveTypeController::class, 'destroy']);
+    // Route::get('staff/leave/{}')
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff-leaves')->group(function () {
     Route::post('/', [StaffLeaveController::class, 'store']);         // إنشاء سجل إجازة
     Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']);
-    Route::get('/{leaveId}/staff',[StaffLeaveController::class,'getStaffLeaveById']); // 👈 دالة العرض الجديدة
+    Route::get('/{leaveId}/staff', [StaffLeaveController::class, 'getStaffLeaveById']); // 👈 دالة العرض الجديدة
     Route::post('/{id}', [StaffLeaveController::class, 'update']);     // تعديل سجل إجازة
     Route::delete('/{id}', [StaffLeaveController::class, 'destroy']);  // حذف سجل إجازة
 });
@@ -528,10 +528,10 @@ Route::prefix('user')->group(function () {
 
 
         });
-         Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
-                Route::get('/all', 'studentWeekly');
-                Route::get('/tomorrow', 'studentTomorrow');
-            });
+        Route::prefix('/schedules')->controller(ScheduleController::class)->group(function () {
+            Route::get('/all', 'studentWeekly');
+            Route::get('/tomorrow', 'studentTomorrow');
+        });
 
     });
 

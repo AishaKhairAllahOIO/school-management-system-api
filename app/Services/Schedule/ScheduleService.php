@@ -84,7 +84,7 @@ class ScheduleService
 
             $classesMap[$classId]['schedule'][$day][] = [
                 'period_index' => $entry->period_index,
-                'subject_name' => $entry->gradeSubject->subject->name ?? null,
+                'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
                 'teacher_name' => $entry->teacher->user->first_name ?? null,
                 'is_heavy' => $entry->gradeSubject->difficulty === 'heavy',
                 'start_time' => $times['start_time'],
@@ -214,7 +214,6 @@ class ScheduleService
 
 public function getAllTeachersSchedule(int $academicYearId, int $semesterId): array
     {
-        // جلب الجدول باستخدام السنة والفصل بدلاً من الـ ID
         $schedule = Schedule::with([
             'entries.teacher.user',
             'entries.gradeSubject.subject',
@@ -242,7 +241,7 @@ public function getAllTeachersSchedule(int $academicYearId, int $semesterId): ar
             $teachersTree[$teacherName][$day][] = [
                 'entry_id'     => $entry->id,
                 'period_index' => $entry->period_index,
-                'subject_name' => $entry->gradeSubject->subject->name ?? 'N/A',
+                'subject_name' => $entry->gradeSubject->subject->subject_name ?? 'N/A',
                 'classroom'    => $gradeName . ' - ' . $roomName,
                 'is_heavy'     => $entry->gradeSubject->difficulty === 'heavy',
                 'start_time'   => $times['start_time'],

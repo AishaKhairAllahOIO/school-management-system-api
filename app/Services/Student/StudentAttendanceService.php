@@ -171,12 +171,12 @@ class  StudentAttendanceService
                 'allowed_absence_days'   => $allowedAbsenceDays,
                 'total_unexcused_absent' => $unexcused,
                 'remaining_absence_days' => $remaining,
-                'attendance'             =>  [
-                    'id'              => $attendance->id,
-                    'status'          => $attendance->status,
-                    'absence_type'    => $attendance->absence_type,
-                    'attendance_date' => $attendance->attendance_date,
-                ],
+                'attendance' => $attendance ? [
+    'id'              => $attendance->id,
+    'status'          => $attendance->status,
+    'absence_type'    => $attendance->absence_type,
+    'attendance_date' => $attendance->attendance_date,
+] : null,
             ];
         });
 

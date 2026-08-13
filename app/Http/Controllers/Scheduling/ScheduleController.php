@@ -106,10 +106,18 @@ class ScheduleController extends Controller
         );
     }
 
-    public function adminView(int $scheduleId): JsonResponse
+    public function adminView(int $academicId, int $semesterId): JsonResponse
     {
-        $data = $this->scheduleService->getAdminSchedule($scheduleId);
-        return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
+        try {
+            $data = $this->scheduleService->getAdminSchedule(
+                $academicId,
+                $semesterId
+            );
+
+            return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
+        } catch (Exception $e) {
+            return $this->errorResponse('Schedule not found for the selected term.', 404);
+        }
     }
 
 
@@ -167,25 +175,30 @@ class ScheduleController extends Controller
     }
 
 
-    public function allTeachersWeekly(Request $request, int $scheduleId): JsonResponse
+    public function allTeachersWeekly(Request $request,int $academicId, int $semesterId): JsonResponse
     {
         try {
             $this->getAuthStaff($request);
 
-             if (!$request->user()->hasAnyRole(['super_admin', 'adviser'])) {
-                 throw new InvalidArgumentException('Unauthorized access. Only admins and advisers can view the master timetable.', 403);
-             }
+            if (!$request->user()->hasAnyRole(['super_admin', 'adviser'])) {
+                throw new InvalidArgumentException('Unauthorized access. Only admins and advisers can view the master timetable.', 403);
+            }
 
-            $schedules = $this->scheduleService->getAllTeachersSchedule($scheduleId);
+
+
+            $schedules = $this->scheduleService->getAllTeachersSchedule(
+                $academicId,
+                $semesterId
+            );
 
             return $this->successResponse(
-                $schedules, 
+                $schedules,
                 'All teachers schedules retrieved successfully.'
             );
         } catch (Exception $e) {
             $code = $e->getCode();
-            $code = ($code >= 400 && $code < 600) ? $code : 500; // ضمان أن كود الخطأ صالح لـ HTTP
-            
+            $code = ($code >= 400 && $code < 600) ? $code : 500;
+
             return $this->errorResponse($e->getMessage(), $code);
         }
     }
@@ -228,7 +241,7 @@ class ScheduleController extends Controller
         $user = $request->user();
         $staff = $user->staff;
 
-        if (!$staff || !$user->hasRole('teacher' )) {
+        if (!$staff || !$user->hasRole('teacher')) {
             throw new InvalidArgumentException('This account does not belong to a registered teacher.', 403);
         }
 

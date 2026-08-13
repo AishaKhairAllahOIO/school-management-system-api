@@ -21,6 +21,12 @@ class ScheduleService
 
     public function checkBeforeGeneration(int $academicYearId, int $semesterId): void
     {
+        $setting = AcademicSetting::first();
+
+        if (!$setting || $setting->current_academic_year_id != $academicYearId || $setting->current_semester_id != $semesterId) {
+            throw new Exception("Generation is only allowed for the currently active academic year and semester.");
+        }
+
         $exists = Schedule::where('academic_year_id', $academicYearId)
             ->where('academic_term_id', $semesterId)
             ->exists();
@@ -44,16 +50,18 @@ class ScheduleService
         });
     }
 
-    public function getAdminSchedule(int $scheduleId): array
+    public function getAdminSchedule(int $academicYearId, int $semesterId): array
     {
         $schedule = Schedule::with([
             'entries.classRoom.gradeLevel',
             'entries.gradeSubject.subject',
             'entries.teacher.user'
-        ])->findOrFail($scheduleId);
+        ])
+            ->where('academic_year_id', $academicYearId)
+            ->where('academic_term_id', $semesterId)
+            ->firstOrFail();
 
         $report = $this->validator->validate($schedule);
-
         $settings = AcademicSetting::firstOrFail()->schedule_settings;
 
         $classesMap = [];
@@ -88,7 +96,6 @@ class ScheduleService
 
         foreach ($classesMap as &$classData) {
             uksort($classData['schedule'], fn($a, $b) => array_search($a, $daysOrder) <=> array_search($b, $daysOrder));
-
             foreach ($classData['schedule'] as $day => &$periods) {
                 usort($periods, fn($a, $b) => $a['period_index'] <=> $b['period_index']);
             }
@@ -98,13 +105,12 @@ class ScheduleService
 
         foreach ($violations as &$violation) {
             $errorClassId = $violation['class'] ?? $violation['class_room_id'] ?? null;
-
             if ($errorClassId && isset($classesMap[$errorClassId])) {
                 $violation['grade_name'] = $classesMap[$errorClassId]['grade_name'];
                 $violation['class_room_name'] = $classesMap[$errorClassId]['class_room_name'];
             }
         }
-        unset($violation); 
+        unset($violation);
 
         $classesTree = array_values($classesMap);
 
@@ -206,13 +212,16 @@ class ScheduleService
     }
 
 
-    public function getAllTeachersSchedule(int $scheduleId): array
+    public function getAllTeachersSchedule(int $academicYearId, int $semesterId): array
     {
         $schedule = Schedule::with([
             'entries.teacher.user',
             'entries.gradeSubject.subject',
             'entries.classRoom.gradeLevel'
-        ])->findOrFail($scheduleId);
+        ])
+            ->where('academic_year_id', $academicYearId)
+            ->where('academic_term_id', $semesterId)
+            ->firstOrFail();
 
         $settings = AcademicSetting::firstOrFail()->schedule_settings;
         $teachersTree = [];
@@ -221,7 +230,7 @@ class ScheduleService
             if (!$entry->teacher)
                 continue;
 
-            $teacherName = $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
+            $teacherName = $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name  ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
             $day = strtolower($entry->day);
 
             $times = $this->timeCalculator->calculate($entry->period_index, $settings);
@@ -244,7 +253,6 @@ class ScheduleService
         $daysOrder = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'];
 
         foreach ($teachersTree as $teacherName => &$days) {
-
             uksort($days, fn($a, $b) => array_search($a, $daysOrder) <=> array_search($b, $daysOrder));
 
             foreach ($days as $day => &$periods) {
@@ -255,8 +263,6 @@ class ScheduleService
 
         return $teachersTree;
     }
-
-
 
     public function updateEntry(int $entryId, array $data): ScheduleEntry
     {
@@ -273,7 +279,6 @@ class ScheduleService
         return $entry;
     }
 
-
     public function addEntry(array $data): ScheduleEntry
     {
         $entry = ScheduleEntry::create($data);
@@ -283,13 +288,13 @@ class ScheduleService
         return $entry;
     }
 
-
     private function syncDayPeriodsCount(string $day, int $periodIndex): void
     {
         $setting = AcademicSetting::first();
-        if (!$setting || empty($setting->schedule_settings)) return;
+        if (!$setting || empty($setting->schedule_settings))
+            return;
 
-        $scheduleSettings = $setting->schedule_settings; 
+        $scheduleSettings = $setting->schedule_settings;
         $updated = false;
 
         if (isset($scheduleSettings['workingDays'])) {

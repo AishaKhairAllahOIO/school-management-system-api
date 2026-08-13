@@ -5,7 +5,9 @@ namespace App\Http\Requests\Scheduale;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use App\ApiResource; 
+use App\ApiResource;
+use App\Enums\SchoolDay;
+use Illuminate\Validation\Rule;
 
 class StoreScheduleEntryRequest extends FormRequest
 {
@@ -23,7 +25,7 @@ class StoreScheduleEntryRequest extends FormRequest
             'class_room_id'    => ['required', 'exists:classrooms,id'],
             'teacher_id'       => ['required', 'exists:staff,id'],
             'grade_subject_id' => ['required', 'exists:grade_subjects,id'],
-            'day'              => ['required', 'string', 'in:sunday,monday,tuesday,wednesday,thursday'],
+            'day'              => ['required', 'string', Rule::in([SchoolDay::class])],
             'period_index'     => ['required', 'integer', 'min:1', 'max:10'],
         ];
     }

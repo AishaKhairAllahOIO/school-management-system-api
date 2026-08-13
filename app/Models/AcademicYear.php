@@ -41,6 +41,10 @@ class AcademicYear extends Model
     {
         return $this->hasMany(TeacherAssignment::class);
     }
+    public function staffFinancialContracts()
+    {
+        return $this->hasMany(StaffFinancialContract::class);
+    }
 
 
 }

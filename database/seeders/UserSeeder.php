@@ -159,7 +159,7 @@ class UserSeeder extends Seeder
                 'password' => $defaultPassword,
             ]
         );
-        $user7->assignRole('adviser');
+        $user7->assignRole('super_admin');
 
         $user8 = User::updateOrCreate(
             ['phone_number' => '0983846541'],

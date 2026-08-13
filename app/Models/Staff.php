@@ -47,4 +47,8 @@ class Staff extends Model
     {
         return $this->hasMany(StaffAttendance::class);
     }
+    public function financialContracts()
+    {
+        return $this->hasMany(StaffFinancialContract::class);
+    }
 }

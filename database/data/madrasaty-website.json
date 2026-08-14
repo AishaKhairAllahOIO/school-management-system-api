@@ -1,0 +1,173 @@
+{
+  "global": {
+    "brand_name": "Madrasaty Academy",
+    "navbar": {
+      "links": {
+        "home": "Home",
+        "about": "About Us",
+        "activities_events": "Activities & Events",
+        "support_contact": "Support & Contact"
+      },
+      "aria_labels": {
+        "toggle_theme": "Toggle Theme",
+        "toggle_menu": "Toggle Menu"
+      }
+    },
+    "footer": {
+      "description": "Empowering tomorrow's leaders through innovation, excellence, and a holistic education experience.",
+      "sections": {
+        "school": "School",
+        "support_contact": "Support & Contact"
+      },
+      "copyright": "© 2026 Madrasaty Academy. All rights reserved."
+    }
+  },
+
+  "home_page": {
+    "hero": {
+      "badge": "#1 Ranked School in the Region 2026",
+      "title_part_1": "Empowering",
+      "title_highlight": "Tomorrow's",
+      "title_part_2": "Leaders Today",
+      "description": "Madrasaty Academy combines world-class Cambridge education with cutting-edge technology to deliver a transformative learning experience for students from seventh to Grade 12.",
+      "buttons": {
+        "contact": "Contact Us",
+        "discover": "Discover More"
+      }
+    },
+    "features_section": {
+      "badge": "Powered by Smart ERP",
+      "title": "Everything Your School Needs, In One Platform",
+      "description": "Our integrated School ERP ecosystem brings together every aspect of school management into a single, intuitive platform."
+    },
+    "why_us_section": {
+      "badge": "Why Madrasaty Academy",
+      "title": "The Future of Education is Already Here",
+      "description": "We don't just teach — we prepare students for the real world through a blend of rigorous academics, technology, and character development.",
+      "cambridge_badge": {
+        "title": "Cambridge Certified",
+        "subtitle": "Since 1998 · KG to Grade 12"
+      }
+    },
+    "achievements_section": {
+      "title": "By the Numbers",
+      "description": "Our achievements speak for themselves."
+    },
+    "testimonials_section": {
+      "badge": "Real Stories",
+      "title": "What Our Community Says",
+      "description": "Hear from students, parents, and teachers about their Madrasaty Academy experience."
+    }
+  },
+
+  "about_page": {
+    "hero": {
+      "badge": "Our Story",
+      "title": "Building a Legacy of Academic Excellence",
+      "description": "Since 1998, Madrasaty Academy has been shaping the minds of tomorrow's leaders. We combine rigorous Cambridge academics with cutting-edge technology and a nurturing environment to help every student reach their full potential."
+    },
+    "mission_vision": {
+      "mission": { "title": "Our Mission" },
+      "vision": { "title": "Our Vision" },
+      "promise": { "title": "Our Promise" }
+    },
+    "core_values": {
+      "title": "Core Values",
+      "description": "These principles guide every decision we make and every interaction we have."
+    },
+    "principal_message": {
+      "badge": "Principal's Message",
+      "title": "A Message from Our Principal"
+    },
+    "timeline_section": {
+      "title": "Our Journey Through the Years",
+      "description": "From a small campus with big dreams to a regional leader in education."
+    }
+  },
+
+  "activities_events_page": {
+    "hero": {
+      "badge": "Campus Life",
+      "title": "Explore Our Vibrant Community",
+      "description": "Discover opportunities beyond the classroom. Join our diverse clubs, stay updated with the academic calendar, and participate in upcoming school events.",
+      "tabs": {
+        "activities": "Activities & Clubs",
+        "events": "Events Calendar"
+      }
+    },
+    "activities_tab": {
+      "members_label": "members",
+      "open_to_label": "Open to:",
+      "buttons": {
+        "show_less": "Show less",
+        "learn_more": "Learn more"
+      }
+    },
+    "events_tab": {
+      "filter_label": "Filter by type",
+      "clear_date": "Clear date",
+      "all_upcoming": "All Upcoming Events",
+      "events_count_label": "events",
+      "no_events": "No events found for the selected filters.",
+      "multi_day_badge": "Multi-day event"
+    }
+  },
+
+  "support_contact_page": {
+    "hero": {
+      "badge": "Help & Communications Hub",
+      "title": "How Can We Assist You Today?",
+      "description": "Get in touch with our administrative departments or browse our support center. We are always here to help.",
+      "tabs": {
+        "contact": "Contact & Departments",
+        "support": "Support Center & FAQs"
+      }
+    },
+    "contact_tab": {
+      "form": {
+        "title": "Send Us a Direct Message",
+        "description": "Fill out the form below and the relevant department will respond within one business day.",
+        "labels": {
+          "name": "Full Name *",
+          "email": "Email Address *",
+          "phone": "Phone Number",
+          "department": "Department",
+          "subject": "Subject *",
+          "message": "Message *"
+        },
+        "placeholders": {
+          "subject": "What is your enquiry about?",
+          "message": "Please provide details..."
+        },
+        "submit_btn": "Send Message",
+        "submitting_btn": "Sending...",
+        "success": {
+          "title": "Message Sent!",
+          "message": "We've received your message and will reply shortly.",
+          "button": "Send another message"
+        }
+      },
+      "directory": {
+        "title": "Department Directory"
+      },
+      "office_hours": {
+        "title": "Office Hours"
+      }
+    },
+    "support_tab": {
+      "categories": {
+        "title": "Support Categories",
+        "description": "Explore our main help categories for quick answers.",
+        "topics_label": "topics"
+      },
+      "faqs": {
+        "title": "Frequently Asked Questions"
+      }
+    },
+    "map_section": {
+      "title": "Madrasaty Academy",
+      "subtitle": "Academic City, Syria",
+      "button": "Open in Google Maps"
+    }
+  }
+}

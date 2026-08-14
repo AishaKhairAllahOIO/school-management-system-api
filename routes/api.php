@@ -578,5 +578,10 @@ Route::prefix('user')->group(function () {
     });
 
 });
+
+
 Route::get('/content', [ContentController::class, 'index']);
-Route::post('/content', [ContentController::class, 'store']);
+
+Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
+    Route::post('/content', [ContentController::class, 'store']);
+});

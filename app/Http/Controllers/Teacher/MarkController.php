@@ -56,4 +56,25 @@ class MarkController extends Controller
             return $this->errorResponse($e->getMessage(), $code);
         }
     }
+
+    public function index(int $academicYearId, int $semesterId)
+    {
+
+        try {
+            $marks = $this->markService->getAllMarksForAdmin(
+                $academicYearId,
+                $semesterId
+            );
+
+            return $this->successResponse($marks, 'All student marks retrieved successfully.', 200);
+
+        } catch (Exception $e) {
+            $code = $e->getCode() == 422 ? 422 : 500;
+            return $this->errorResponse($e->getMessage(), $code);
+        }
+
+    }
+
+
+
 }

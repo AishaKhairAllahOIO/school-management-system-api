@@ -198,7 +198,7 @@ class ScheduleService
             $formatted[strtolower($entry->day)][] = [
                 'period_index' => $entry->period_index,
                 'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
-                'teacher_name' => $entry->teacher->user->first_name ?? null,
+                'grade_name'   => $entry->gradeSubject->gradeLevel->name,
                 'classroom' => $entry->classRoom->name ?? null,
                 'start_time' => $times['start_time'],
                 'end_time' => $times['end_time'],

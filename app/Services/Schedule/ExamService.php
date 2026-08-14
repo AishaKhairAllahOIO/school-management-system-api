@@ -468,93 +468,97 @@ class ExamService
         return $result;
     }
 
-    public function getAllExamsForAdmin(int $academicYearId): array
-    {
-        $exams = Exam::query()
-            ->where('academic_year_id', $academicYearId)
-            ->with([
-                'gradeLevel',
-                'semester',
+public function getAllExamsForAdmin(int $academicYearId, int $semesterId): array
+{
+    $exams = Exam::query()
+        ->where('academic_year_id', $academicYearId)
+        ->where('semester_id', $semesterId)
+        ->with([
+            'gradeLevel',
+            'semester',
 
-                'subjects' => function ($query) {
-                    $query
-                        ->with([
-                            'gradeSubject.subject',
-                            'teachers.user',
-                        ])
-                        ->orderBy('exam_date')
-                        ->orderBy('start_time');
-                },
-            ])
-            ->orderBy('grade_level_id')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            'subjects' => function ($query) {
+                $query
+                    ->with([
+                        'gradeSubject.subject',
+                        'teachers.user',
+                    ])
+                    ->orderBy('exam_date')
+                    ->orderBy('start_time');
+            },
+        ])
+        ->orderBy('grade_level_id')
+        ->orderBy('created_at', 'desc')
+        ->get();
 
-        return $exams->map(function ($exam) {
 
-            $subjects = $exam->subjects->map(function ($examSubject) {
+    return $exams->map(function ($exam) {
 
-                $teachers = $examSubject->teachers
-                    ->map(function ($staff) {
-                        return [
-                            'staff_id' => $staff->id,
-                            'teacher_id' => $staff->teacher_id ?? $staff->id,
-                            'teacher_name' => trim(
-                                "{$staff->user?->first_name} {$staff->user?->father_name} {$staff->user?->last_name}"
-                            ),
-                        ];
-                    })
-                    ->unique('staff_id')
-                    ->values()
-                    ->toArray();
+        $subjects = $exam->subjects->map(function ($examSubject) {
 
-                return [
-                    'exam_subject_id' => $examSubject->id,
+            $teachers = $examSubject->teachers
+                ->map(function ($staff) {
+                    return [
+                        'staff_id' => $staff->id,
+                        'teacher_id' => $staff->teacher_id ?? $staff->id,
+                        'teacher_name' => trim(
+                            "{$staff->user?->first_name} {$staff->user?->father_name} {$staff->user?->last_name}"
+                        ),
+                    ];
+                })
+                ->unique('staff_id')
+                ->values()
+                ->toArray();
 
-                    'grade_subject_id' => $examSubject->grade_subject_id,
-
-                    'subject_id' =>
-                        $examSubject->gradeSubject?->subject_id,
-
-                    'subject_name' =>
-                        $examSubject->gradeSubject?->subject?->subject_name
-                        ?? 'Unknown',
-
-                    'exam_date' => $examSubject->exam_date,
-
-                    'start_time' => $examSubject->start_time,
-
-                    'end_time' => $examSubject->end_time,
-
-                    'syllabus' => $examSubject->syllabus,
-
-                    'teachers' => $teachers,
-                ];
-            })->values()->toArray();
 
             return [
-                'exam_id' => $exam->id,
+                'exam_subject_id' => $examSubject->id,
 
-                'title' => $exam->title,
+                'grade_subject_id' => $examSubject->grade_subject_id,
 
-                'type' => $exam->type,
+                'subject_id' =>
+                    $examSubject->gradeSubject?->subject_id,
 
-                'grade_level' => [
-                    'id' => $exam->grade_level_id,
-                    'name' => $exam->gradeLevel?->name,
-                ],
+                'subject_name' =>
+                    $examSubject->gradeSubject?->subject?->subject_name
+                    ?? 'Unknown',
 
-                'semester' => [
-                    'id' => $exam->semester_id,
-                    'name' => $exam->semester?->name,
-                ],
+                'exam_date' => $examSubject->exam_date,
+                'start_time' => $examSubject->start_time,
+                'end_time' => $examSubject->end_time,
 
-                'academic_year_id' => $exam->academic_year_id,
+                'syllabus' => $examSubject->syllabus,
 
-                'subjects' => $subjects,
+                'teachers' => $teachers,
             ];
+
         })->values()->toArray();
-    }
+
+
+        return [
+            'exam_id' => $exam->id,
+
+            'title' => $exam->title,
+
+            'type' => $exam->type,
+
+            'grade_level' => [
+                'id' => $exam->grade_level_id,
+                'name' => $exam->gradeLevel?->name,
+            ],
+
+            'semester' => [
+                'id' => $exam->semester_id,
+                'name' => $exam->semester?->semester_name,
+            ],
+
+            'academic_year_id' => $exam->academic_year_id,
+
+            'subjects' => $subjects,
+        ];
+
+    })->values()->toArray();
+}
 
 
 

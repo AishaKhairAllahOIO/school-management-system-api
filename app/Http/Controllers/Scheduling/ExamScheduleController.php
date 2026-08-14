@@ -65,6 +65,18 @@ class ExamScheduleController extends Controller
         return $staff;
     }
 
+        private function getAuthStaff(Request $request)
+    {
+        $user = $request->user();
+        $staff = $user->staff;
+
+        if (!$staff && !$user->hasAnyRole(['super_admin', 'adviser', 'teacher'])) {
+            throw new InvalidArgumentException('This account does not belong to a registered staff member.', 403);
+        }
+
+        return $staff;
+    }
+
 
     private function getCurrentEnrollment($student): Enrollment
     {
@@ -158,6 +170,22 @@ class ExamScheduleController extends Controller
             return $this->errorResponse($e->getMessage(), 403);
         }
     }
+    public function adminExams(Request $request,int $academicYearId,int $semesterId): JsonResponse
+    {
+
+        try {
+            $admin = $this->getAuthStaff($request);
+
+            $data = $this->examService->getAllExamsForAdmin($academicYearId,$semesterId);
+
+            return $this->successResponse(
+                $data,
+                'Admin exams retrieved successfully.'
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 403);
+        }
+    }
 
     public function unreadCount(Request $request): JsonResponse
     {
@@ -166,7 +194,6 @@ class ExamScheduleController extends Controller
             $enrollment = $this->getCurrentEnrollment($student);
             $gradeLevelId = $enrollment->classRoom->grade_level_id;
 
-            // التمرير الصحيح: (المستخدم الحالي، معرف الصف، معرف الطالب)
             $count = $this->examService->unreadCount($request->user(), $gradeLevelId, $student->id);
 
             return $this->successResponse(
@@ -210,4 +237,6 @@ class ExamScheduleController extends Controller
             return $this->errorResponse('Failed to update exam schedule: ' . $e->getMessage(), 500);
         }
     }
+
+
 }

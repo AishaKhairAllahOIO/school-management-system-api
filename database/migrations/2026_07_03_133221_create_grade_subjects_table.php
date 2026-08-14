@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('grade_level_id')->constrained('grade_levels')->cascadeOnDelete();
             $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
 
-            $table->integer('weekly_periods');
+            $table->integer('weekly_periods')->nullable();
             $table->enum('difficulty', ['light', 'medium', 'heavy']);
 
             $table->integer('max_periods_per_day')->default(1);

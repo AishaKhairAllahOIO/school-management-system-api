@@ -38,4 +38,11 @@ class Exam extends Model
     {
         return $this->belongsTo(Semester::class, 'semester_id');
     }
+    public function readers()
+    {
+        return $this->belongsToMany(User::class, 'exam_user_reads', 'exam_id', 'user_id')
+            ->withPivot('read_at');
+    }
+
+
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Content;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class ContentController extends Controller
 {
@@ -14,13 +15,23 @@ class ContentController extends Controller
     {
         $contents = Content::query()
             ->orderBy('key')
-            ->pluck('value', 'key');
+            ->pluck('value', 'key')
+            ->toArray();
 
-        return response()->json($contents);
+        $result = [];
+
+        foreach ($contents as $key => $value) {
+            Arr::set($result, $key, $value);
+        }
+
+        return response()->json($result);
     }
 
     /**
      * Create or update website content.
+     *
+     * If the key exists -> update.
+     * If the key does not exist -> create.
      */
     public function store(Request $request)
     {
@@ -30,12 +41,17 @@ class ContentController extends Controller
         ]);
 
         $content = Content::updateOrCreate(
-            ['key' => $validated['key']],
-            ['value' => $validated['value'] ?? null]
+            [
+                'key' => $validated['key'],
+            ],
+            [
+                'value' => $validated['value'] ?? null,
+            ]
         );
 
         return response()->json([
             'success' => true,
+            'message' => 'Content saved successfully.',
             'content' => $content,
         ]);
     }

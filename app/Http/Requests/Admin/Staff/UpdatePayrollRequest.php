@@ -22,8 +22,8 @@ class UpdatePayrollRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
+      return [
+            'payment_date' => ['sometimes', 'required', 'date'],
         ];
     }
 }

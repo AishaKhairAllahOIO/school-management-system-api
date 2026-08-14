@@ -133,7 +133,7 @@ class UserSeeder extends Seeder
                 'gender' => 'female',
                 'photo_url' => 'defaults/counselor.jpg',
                 'password' => $defaultPassword,
-                'email' => 'nnnnahhmad@gmail.com',
+                'email' => 'aishakhairallah3@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]

@@ -490,7 +490,7 @@ Route::middleware(['auth:sanctum'])->prefix('staff/payroll')->group(function () 
     Route::get('/month', [PayrollController::class, 'indexByMonth']); // رواتب شهر معين
     Route::get('/staff/{staffId}', [PayrollController::class, 'getStaffPayrolls']); // رواتب موظف
     Route::get('/{id}', [PayrollController::class, 'show']); // عرض إيصال
-    Route::put('/{id}', [PayrollController::class, 'update']); // تعديل ملاحظات/تاريخ
+    Route::post('/{id}', [PayrollController::class, 'update']); // تعديل ملاحظات/تاريخ
     Route::delete('/{id}', [PayrollController::class, 'destroy']); // إلغاء إيصال
 });
 

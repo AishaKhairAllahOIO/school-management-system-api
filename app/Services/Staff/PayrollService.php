@@ -1,10 +1,13 @@
-<?php 
+<?php
+
 namespace App\Services\Staff;
+
 use App\Models\Payroll;
 use App\Models\Staff;
 use App\Models\StaffFinancialContract;
 use App\Models\StaffAttendance;
 use App\Models\TeacherPeriodAttendance;
+use App\Models\TeacherWorkload; // 👈 استدعاء موديل النصاب لجلب الحصص المتوقعة آلياً
 use App\Services\User\AlertService;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -20,9 +23,9 @@ class PayrollService
 
     /**
      * 1️⃣ الحساب المبدئي للراتب (المعاينة قبل الحفظ)
-     * يأخذ الموظف، السنة، الشهر، وإجمالي الوحدات المتوقعة (للمعلم: الحصص المتوقعة)
+     * تم الاستغناء عن الإدخال اليدوي لـ expectedUnits وجلبه آلياً من جدول الـ Workload
      */
-    public function previewSalary(int $staffId, int $year, int $month, float $expectedUnits = 30): array
+    public function previewSalary(int $staffId, int $year, int $month): array
     {
         // 1. جلب العقد المالي الفعال للموظف (أحدث عقد)
         $contract = StaffFinancialContract::where('staff_id', $staffId)->latest()->first();
@@ -31,7 +34,7 @@ class PayrollService
             throw new Exception('لا يوجد عقد مالي مهيأ لهذا الموظف.', 404);
         }
 
-        // 2. التحقق من عدم صرف الراتب مسبقاً
+        // 2. التحقق من عدم صرف الراتب مسبقاً لهذا الشهر
         $alreadyPaid = Payroll::where('staff_id', $staffId)
             ->where('year', $year)
             ->where('month', $month)
@@ -45,13 +48,13 @@ class PayrollService
         $rate = $contract->salary_amount;
         $deductions = 0;
         $netSalary = 0;
-        $missedUnits = 0; // أيام غياب للإداري، أو حصص فائتة للمعلم
-        $deductionDetails = []; // لشرح سبب الخصم للمحاسب
+        $missedUnits = 0; 
+        $expectedUnits = 0; 
+        $deductionDetails = []; 
 
         // 3. الحساب بناءً على نوع العقد
         if ($salaryType === 'fixed_monthly') {
-            // -- حساب الإداري (راتب ثابت يخصم منه أيام الغياب) --
-            $dailyRate = $rate / 30; // التسعيرة اليومية
+            $dailyRate = $rate / 30; // التسعيرة اليومية للإداري
 
             // جلب أيام الغياب غير المبرر في هذا الشهر
             $unexcusedAbsences = StaffAttendance::where('staff_id', $staffId)
@@ -73,6 +76,7 @@ class PayrollService
             $missedUnits = $unexcusedAbsences + $unpaidLeaves;
             $deductions = $missedUnits * $dailyRate;
             $netSalary = $rate - $deductions;
+            $expectedUnits = 30; // افتراض الشهر الإداري 30 يوم
 
             if ($missedUnits > 0) {
                 $deductionDetails[] = "تم خصم {$missedUnits} يوم (غياب غير مبرر أو إجازة غير مدفوعة).";
@@ -80,15 +84,26 @@ class PayrollService
 
         } else {
             // -- حساب المعلم (على الحصة) --
-            // expectedUnits هنا تمثل (إجمالي الحصص التي كان يجب أن يعطيها في الشهر)
 
-            // جلب الحصص التي غاب عنها (غير مبرر أو إجازة غير مدفوعة)
-            $missedPeriodsCount = TeacherPeriodAttendance::whereHas('staffAttendance', function ($q) use ($staffId, $year, $month) {
+            // 🚀 السحر المعماري: جلب الحصص المتوقعة (النصاب الشهري) من جدول الـ Workload آلياً
+            $workload = TeacherWorkload::where('teacher_id', $staffId)
+                ->where('academic_year_id', $contract->academic_year_id)
+                ->first();
+
+            if (!$workload) {
+                throw new Exception("هذا المعلم ليس لديه نصاب (Workload) محدد في هذه السنة الدراسية، لا يمكن حساب راتبه.", 422);
+            }
+
+            $expectedUnits = $workload->assigned_monthly_periods;
+
+            // جلب الحصص التي غاب عنها (غياب كلي، غياب جزئي، أو إجازة غير مدفوعة)
+            $missedPeriodsCount = TeacherPeriodAttendance::whereHas('dailyAttendance', function ($q) use ($staffId, $year, $month) {
                 $q->where('staff_id', $staffId)
                   ->whereYear('attendance_date', $year)
                   ->whereMonth('attendance_date', $month)
                   ->where(function ($subQ) {
-                      $subQ->where('status', 'absent')->where('absence_type', 'unexcused')
+                      $subQ->whereIn('status', ['absent', 'partial_absence'])
+                           ->where('absence_type', 'unexcused')
                            ->orWhere(function ($leaveQ) {
                                $leaveQ->where('status', 'on_leave')
                                       ->whereHas('leave.leaveType', function ($typeQ) {
@@ -102,27 +117,25 @@ class PayrollService
             $actualWorkedUnits = max(0, $expectedUnits - $missedUnits);
             
             $netSalary = $actualWorkedUnits * $rate;
-            // في نظام الحصة، الراتب الأساسي يتغير حسب العمل، الخصم هو الحصص الضائعة
             $deductions = $missedUnits * $rate; 
 
             if ($missedUnits > 0) {
-                $deductionDetails[] = "تم خصم {$missedUnits} حصص (غياب غير مبرر أو إجازة غير مدفوعة).";
+                $deductionDetails[] = "تم خصم {$missedUnits} حصص (بسبب غياب أو إجازة غير مدفوعة).";
             }
         }
 
-        // إرجاع مصفوفة المعاينة
+        // إرجاع مصفوفة المعاينة الشاملة
         return [
             'staff_id'      => $staffId,
             'contract_id'   => $contract->id,
             'year'          => $year,
             'month'         => $month,
             'salary_type'   => $salaryType,
-            'contract_rate' => $rate, // للقراءة فقط
-            'expected_units'=> $expectedUnits,
+            'contract_rate' => $rate, 
+            'expected_units'=> $expectedUnits, // محسوبة آلياً من النظام
             'missed_units'  => $missedUnits,
             'deductions'    => round($deductions, 2),
             'net_salary'    => round($netSalary, 2),
-            'notes'         => implode(' | ', $deductionDetails),
         ];
     }
 
@@ -133,15 +146,14 @@ class PayrollService
     {
         return DB::transaction(function () use ($data) {
             
-            // إعادة استدعاء المعاينة برمجياً للتأكد من أن البيانات لم يتم التلاعب بها
+            // إعادة استدعاء المعاينة برمجياً للتأكد من مطابقة البيانات وحسابها آلياً
             $preview = $this->previewSalary(
                 $data['staff_id'], 
                 $data['year'], 
-                $data['month'], 
-                $data['expected_units'] ?? 30
+                $data['month']
             );
 
-            // إنشاء السجل في جدول الرواتب المبسط
+            // إنشاء السجل في جدول الرواتب
             $payroll = Payroll::create([
                 'staff_id'     => $preview['staff_id'],
                 'contract_id'  => $preview['contract_id'],
@@ -149,7 +161,6 @@ class PayrollService
                 'month'        => $preview['month'],
                 'payment_date' => $data['payment_date'] ?? now()->toDateString(),
                 'net_salary'   => $preview['net_salary'],
-                'notes'        => $data['notes'] ?? $preview['notes'], // نأخذ ملاحظات المحاسب أو ملاحظات النظام
             ]);
 
             // 🚀 إرسال إشعار الراتب للموظف آلياً!
@@ -176,6 +187,7 @@ class PayrollService
             ->where('month', $month)
             ->get();
     }
+
     public function getPayrollById(int $id): Payroll
     {
         return Payroll::with(['staff.user', 'contract'])->findOrFail($id);
@@ -194,28 +206,24 @@ class PayrollService
     }
 
     /**
-     * 5️⃣ تعديل سجل الراتب (Update)
-     * 💡 معمارياً: يُسمح بتعديل تاريخ الدفع والملاحظات فقط للحفاظ على الدقة المالية
+     * 5️⃣ تعديل سجل الراتب (تاريخ الدفع والملاحظات فقط للحفاظ على الدقة المالية)
      */
     public function updatePayroll(int $id, array $data): Payroll
     {
         return DB::transaction(function () use ($id, $data) {
             $payroll = Payroll::findOrFail($id);
 
-            // تحديث الحقول المسموحة فقط
             $payroll->update([
                 'payment_date' => $data['payment_date'] ?? $payroll->payment_date,
-                'notes'        => $data['notes'] ?? $payroll->notes,
-                
-                // إذا أردتِ السماح للمحاسب بتغيير الصافي يدوياً (تجاوز النظام)، ألغي التعليق عن السطر التالي:
-                // 'net_salary'   => $data['net_salary'] ?? $payroll->net_salary,
             ]);
 
             return $payroll->refresh()->load(['staff.user', 'contract']);
         });
     }
 
-    
+    /**
+     * 6️⃣ حذف سجل الراتب (لإعادة احتسابه في حال وجود خطأ)
+     */
     public function deletePayroll(int $id): bool
     {
         return DB::transaction(function () use ($id) {

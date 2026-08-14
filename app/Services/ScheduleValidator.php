@@ -154,23 +154,6 @@ class ScheduleValidator
 
         return $errors;
     }
-    private function checkTeacherConflicts($schedule)
-    {
-        return $schedule->entries
-            ->groupBy(
-                fn($e) =>
-                $e->day . '-' . $e->period_index . '-' . $e->teacher_id
-            )
-            ->filter(fn($g) => $g->count() > 1)
-            ->map(fn($g) => [
-                'type' => 'teacher_conflict',
-                'teacher' => $g->first()->teacher_id,
-                'day' => $g->first()->day,
-                'period' => $g->first()->period_index
-            ])
-            ->values()
-            ->toArray();
-    }
     private function checkClassConflicts($schedule)
     {
         return $schedule->entries
@@ -203,7 +186,7 @@ class ScheduleValidator
 
             $generated = $entries->count();
 
-             if ($generated != $required) {
+            if ($generated != $required) {
                 $errors[] = [
                     'type' => 'subject_period_mismatch',
                     'class_room_id' => $firstEntry->class_room_id,
@@ -256,7 +239,6 @@ class ScheduleValidator
                 ->where('teacher_assignment_id', $assignment->id)
                 ->count();
 
-            // الإصلاح: جلب weekly_periods من العلاقة gradeSubject
             $expected = $assignment->gradeSubject->weekly_periods ?? 0;
 
             if ($generated != $expected) {
@@ -290,5 +272,22 @@ class ScheduleValidator
         }
 
         return [];
+    }
+    private function checkTeacherConflicts($schedule)
+    {
+        return $schedule->entries
+            ->groupBy(
+                fn($e) =>
+                $e->day . '-' . $e->period_index . '-' . $e->teacher_id
+            )
+            ->filter(fn($g) => $g->count() > 1)
+            ->map(fn($g) => [
+                'type' => 'teacher_conflict',
+                'teacher' => $g->first()->teacher_id,
+                'day' => $g->first()->day,
+                'period' => $g->first()->period_index
+            ])
+            ->values()
+            ->toArray();
     }
 }

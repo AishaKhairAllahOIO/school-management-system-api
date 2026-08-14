@@ -83,6 +83,7 @@ class ScheduleService
             }
 
             $classesMap[$classId]['schedule'][$day][] = [
+                'entry_id'     => $entry->id,
                 'period_index' => $entry->period_index,
                 'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
                 'teacher_name' => $entry->teacher->user->first_name ?? null,

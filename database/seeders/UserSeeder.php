@@ -345,8 +345,8 @@ class UserSeeder extends Seeder
                 'phone_number' => '0951287463',
             ],
             [
-                'first_name' => 'Mariam',
-                'last_name' => 'Al_khalid',
+                'first_name' => 'Sally',
+                'last_name' => 'Eslim',
                 'father_name' => 'Salem',
                 'mother_name' => 'Lisa Johnson',
                 'birth_date' => '1985-12-10',

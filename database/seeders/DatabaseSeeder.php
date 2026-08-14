@@ -52,6 +52,7 @@ class DatabaseSeeder extends Seeder
             StudentAttendanceSettingSeeder::class,
            // StudentAttendanceSeeder::class,
            StudentMaterialsSeeder::class,
+           ExamScheduleSeeder::class,
 
 
         ]);

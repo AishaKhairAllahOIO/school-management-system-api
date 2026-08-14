@@ -57,12 +57,13 @@ class MarkController extends Controller
         }
     }
 
-    public function index(int $academicYearId)
+    public function index(int $academicYearId, int $semesterId)
     {
 
         try {
             $marks = $this->markService->getAllMarksForAdmin(
-                $academicYearId
+                $academicYearId,
+                $semesterId
             );
 
             return $this->successResponse($marks, 'All student marks retrieved successfully.', 200);

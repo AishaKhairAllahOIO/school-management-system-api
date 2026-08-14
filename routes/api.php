@@ -102,6 +102,9 @@ Route::prefix('auth')->group(function () {
             Route::put('/update/{entryId}', 'updateEntry');
             Route::get('/show/all/{academicId}/{semesterId}', 'adminView');
             Route::get('/teacher/show/{academicId}/{semesterId}', 'allTeachersWeekly');
+            Route::post('add/entry','addEntry');
+            Route::patch('/schedule/entries/{entryId}/empty','emptyEntry');
+
         });
 
         Route::prefix('/exam/schedule')->controller(ExamScheduleController::class)->group(function () {
@@ -109,10 +112,10 @@ Route::prefix('auth')->group(function () {
             Route::post('/store', 'store');
             Route::delete('/delete', 'delete');
             Route::put('/update/{examId}','update');
-            
+
 
         });
-        Route::get('/all/marks/show/{academicYearId}',[MarkController::class,'index']);
+        Route::get('/all/marks/show/{academicYearId}/{semesterId}',[MarkController::class,'index']);
 
 
         Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {

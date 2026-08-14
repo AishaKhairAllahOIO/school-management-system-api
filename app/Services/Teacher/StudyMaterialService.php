@@ -206,6 +206,7 @@ class StudyMaterialService
             $enrollment = Enrollment::where('student_id', $user->student->id)
                 ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
                 ->with('classRoom')
+                ->with('gradLevel')
                 ->latest()
                 ->first();
 

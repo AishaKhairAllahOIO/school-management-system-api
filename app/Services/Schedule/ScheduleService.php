@@ -52,6 +52,8 @@ class ScheduleService
 
     public function getAdminSchedule(int $academicYearId, int $semesterId): array
     {
+
+ 
         $schedule = Schedule::with([
             'entries.classRoom.gradeLevel',
             'entries.gradeSubject.subject',
@@ -281,14 +283,29 @@ class ScheduleService
     }
 
 
-    public function addEntry(array $data): ScheduleEntry
-    {
-        $entry = ScheduleEntry::create($data);
+ public function addEntry(array $data): ScheduleEntry
+{
+    $exists = ScheduleEntry::where('schedule_id', $data['schedule_id'])
+        ->where('day', $data['day'])
+        ->where('period_index', $data['period_index'])
+        ->exists();
 
-        $this->syncDayPeriodsCount($data['day'], $data['period_index']);
-
-        return $entry;
+    if ($exists) {
+        throw new Exception(
+            "This period already exists for {$data['day']}.",
+            422
+        );
     }
+
+    $entry = ScheduleEntry::create($data);
+
+    $this->syncDayPeriodsCount(
+        $data['day'],
+        $data['period_index']
+    );
+
+    return $entry;
+}
 
 
     public function emptyEntry(int $entryId): ScheduleEntry

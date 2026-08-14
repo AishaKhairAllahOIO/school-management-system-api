@@ -21,12 +21,13 @@ class StoreScheduleEntryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'schedule_id'      => ['required', 'exists:schedules,id'],
-            'class_room_id'    => ['required', 'exists:classrooms,id'],
-            'teacher_id'       => ['required', 'exists:staff,id'],
+            'schedule_id' => ['required', 'exists:schedules,id'],
+            'class_room_id' => ['required', 'exists:class_rooms,id'],
+            'teacher_id' => ['required', 'exists:staff,id'],
+            'teacher_assignment_id' => ['required', 'integer', 'exists:teacher_assignments,id'],
             'grade_subject_id' => ['required', 'exists:grade_subjects,id'],
-            'day'              => ['required', 'string', Rule::in([SchoolDay::class])],
-            'period_index'     => ['required', 'integer', 'min:1', 'max:10'],
+            'day' => ['required', 'string', Rule::enum(SchoolDay::class)],
+            'period_index' => ['required', 'integer', 'min:1', 'max:10'],
         ];
     }
 

@@ -106,8 +106,15 @@ class ScheduleController extends Controller
 
             return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('Schedule not found for the selected term.', 404);
-        }
+
+    return $this->errorResponse(
+        $e->getMessage(),
+        500
+    );
+        
+
+
+}
     }
 
 

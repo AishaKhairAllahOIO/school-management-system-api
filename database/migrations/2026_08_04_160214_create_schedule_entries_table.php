@@ -16,13 +16,15 @@ return new class extends Migration {
 
             $table->foreignId('schedule_id');
 
-            $table->unsignedBigInteger('teacher_assignment_id');
+            $table->foreignId('teacher_assignment_id')
+                ->nullable()
+                ->constrained('teacher_assignments')
+                ->nullOnDelete();
+            $table->unsignedBigInteger('teacher_id')->nullable();
 
-            $table->unsignedBigInteger('teacher_id');
+            $table->unsignedBigInteger('class_room_id')->nullable();
 
-            $table->unsignedBigInteger('class_room_id');
-
-            $table->unsignedBigInteger('grade_subject_id');
+            $table->unsignedBigInteger('grade_subject_id')->nullable();
 
             $table->string('day');
 

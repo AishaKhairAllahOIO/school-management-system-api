@@ -199,29 +199,33 @@ class MarkService
         };
     }
 
-    public function getAllMarksForAdmin(int $academicYearId)
+    public function getAllMarksForAdmin(int $academicYearId, int $semesterId)
     {
-
-
-        $gradeSubjects = GradeSubject::query()
-            ->where('academic_year_id', $academicYearId)
-            ->with([
-                'subject:id,subject_name',
-                'gradeLevel:id,name',
-                'assessmentComponents:id,grade_subject_id,name,type,max_mark',
-            ])
-            ->get();
-
+     $gradeSubjects = GradeSubject::query()
+    ->where('academic_year_id', $academicYearId)
+    ->where('semester_id', $semesterId)
+    ->with([
+        'subject:id,subject_name',
+        'gradeLevel:id,name',
+        'assessmentComponents' => function ($query) {
+            $query->select(
+                'id',
+                'grade_subject_id',
+                'name',
+                'type',
+                'max_mark'
+            );
+        },
+    ])
+    ->get();
 
         $enrollments = Enrollment::query()
             ->where('academic_year_id', $academicYearId)
             ->with([
                 'student.user:id,first_name,father_name,last_name,photo_url',
-
                 'gradeLevel:id,name',
-
                 'classRoom:id,name',
-
+                'semester:id,semester_name',
                 'studentMarks' => function ($query) {
                     $query->with([
                         'assessmentComponent:id,grade_subject_id,name,type,max_mark',
@@ -230,13 +234,10 @@ class MarkService
             ])
             ->get();
 
-
         $enrollmentsByGradeAndClass = $enrollments->groupBy([
             'grade_level_id',
             'class_room_id',
         ]);
-
-
 
         $grades = [];
 
@@ -266,7 +267,6 @@ class MarkService
                     continue;
                 }
 
-    
                 $subjectsForGrade = $gradeSubjects
                     ->where('grade_level_id', $gradeId);
 
@@ -280,7 +280,6 @@ class MarkService
                         ->pluck('id')
                         ->toArray();
 
-     
                     $students = $classEnrollments->map(
                         function ($enrollment) use ($componentIds, $components) {
 
@@ -291,17 +290,11 @@ class MarkService
                                 return null;
                             }
 
-
                             $marksDictionary = [];
 
                             foreach ($enrollment->studentMarks as $studentMark) {
 
-                                if (
-                                    !in_array(
-                                        $studentMark->assessment_component_id,
-                                        $componentIds
-                                    )
-                                ) {
+                                if (!in_array($studentMark->assessment_component_id, $componentIds)) {
                                     continue;
                                 }
 
@@ -318,12 +311,9 @@ class MarkService
                                 ];
                             }
 
-
                             return [
                                 'enrollment_id' => $enrollment->id,
-
                                 'student_id' => $student->id,
-
                                 'student_name' => trim(
                                     preg_replace(
                                         '/\s+/',
@@ -331,39 +321,27 @@ class MarkService
                                         "{$user->first_name} {$user->father_name} {$user->last_name}"
                                     )
                                 ),
-
                                 'marks' => (object) $marksDictionary,
-
                             ];
                         }
                     )->filter()->values();
 
-       
                     $subjects[] = [
                         'subject_info' => [
                             'grade_subject_id' => $gradeSubject->id,
-
                             'subject_id' => $gradeSubject->subject_id,
-
-                            'subject_name' =>
-                                $gradeSubject->subject?->subject_name,
+                            'subject_name' => $gradeSubject->subject?->subject_name,
                         ],
-
-
                         'columns' => $components->map(
                             function ($component) {
                                 return [
                                     'id' => $component->id,
-
                                     'name' => $component->name,
-
                                     'type' => $component->type,
-
                                     'max_mark' => (float) $component->max_mark,
                                 ];
                             }
                         )->values(),
-
                         'students' => $students,
                     ];
                 }
@@ -373,7 +351,6 @@ class MarkService
                         'id' => $classRoom->id,
                         'name' => $classRoom->name,
                     ],
-
                     'subjects' => $subjects,
                 ];
             }
@@ -383,8 +360,9 @@ class MarkService
 
         return [
             'academic_year_id' => $academicYearId,
+            'semester_id' => $semesterId,
             'grades' => $grades,
         ];
     }
-
+    
 }

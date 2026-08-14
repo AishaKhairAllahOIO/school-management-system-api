@@ -11,21 +11,25 @@ class ContentController extends Controller
     /**
      * Get all website content.
      */
-    public function index()
-    {
-        $contents = Content::query()
-            ->orderBy('key')
-            ->pluck('value', 'key')
-            ->toArray();
+public function index()
+{
+    $contents = Content::query()
+        ->orderBy('key')
+        ->pluck('value', 'key')
+        ->toArray();
 
-        $result = [];
+    $result = [];
 
-        foreach ($contents as $key => $value) {
-            Arr::set($result, $key, $value);
-        }
-
-        return response()->json($result);
+    foreach ($contents as $key => $value) {
+        \Illuminate\Support\Arr::set(
+            $result,
+            $key,
+            $value
+        );
     }
+
+    return response()->json($result);
+}
 
     /**
      * Create or update website content.

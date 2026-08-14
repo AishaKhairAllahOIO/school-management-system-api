@@ -39,12 +39,16 @@ use App\Http\Controllers\Web\SchoolLawController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceSettingController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceController;
 use App\Http\Controllers\Scheduling\ScheduleController;
+use App\Http\Controllers\Scheduling\ExamScheduleController;
 use App\Http\Controllers\ContentController;
 
 use App\Http\Controllers\Admin\Leave\StaffLeaveTypeController;
 use App\Http\Controllers\Admin\Staff\StaffAttendanceController;
 use App\Http\Controllers\Admin\Staff\StaffLeaveController;
-use App\Http\Controllers\Scheduling\ExamScheduleController;
+use App\Http\Controllers\Admin\Staff\StaffFinancialContractController;
+use App\Http\Controllers\Admin\Staff\PayrollController;
+
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -466,13 +470,29 @@ Route::middleware(['auth:sanctum'])->prefix('admin/staff-leaves')->group(functio
     Route::delete('/{id}', [StaffLeaveController::class, 'destroy']);  // حذف سجل إجازة
 });
 
-Route::prefix('admin/staff-attendances')->group(function () {
+Route::middleware(['auth:sanctum'])->prefix('admin/staff-attendances')->group(function () {
     Route::post('/', [StaffAttendanceController::class, 'store']);         // إنشاء سجل حضور
     Route::get('/{staffId}', [StaffAttendanceController::class, 'show']);       // 👈 دالة العرض الجديدة
     Route::post('/{id}', [StaffAttendanceController::class, 'update']);     // تعديل سجل
     Route::delete('/{id}', [StaffAttendanceController::class, 'destroy']);  // حذف سجل
 });
+Route::middleware(['auth:sanctum'])->prefix('admin/staff/contract')->group(function(){
+    Route::get('/',[StaffFinancialContractController::class,'index']);
+    Route::get('/{id}',[StaffFinancialContractController::class,'show']);
+    Route::post('/',[StaffFinancialContractController::class,'store']);
+    Route::post('/{id}',[StaffFinancialContractController::class,'update']);
+    Route::delete('/{id}',[StaffFinancialContractController::class,'destroy']);
+});
+Route::middleware(['auth:sanctum'])->prefix('staff/payroll')->group(function () {
 
+    Route::post('/preview', [PayrollController::class, 'preview']); // المعاينة
+    Route::post('/commit', [PayrollController::class, 'store']); // الاعتماد
+    Route::get('/month', [PayrollController::class, 'indexByMonth']); // رواتب شهر معين
+    Route::get('/staff/{staffId}', [PayrollController::class, 'getStaffPayrolls']); // رواتب موظف
+    Route::get('/{id}', [PayrollController::class, 'show']); // عرض إيصال
+    Route::put('/{id}', [PayrollController::class, 'update']); // تعديل ملاحظات/تاريخ
+    Route::delete('/{id}', [PayrollController::class, 'destroy']); // إلغاء إيصال
+});
 
 
 
@@ -550,7 +570,7 @@ Route::prefix('user')->group(function () {
             Route::post('/mark/all/read','markAllRead');
         });
 
-        
+
 
 
     });

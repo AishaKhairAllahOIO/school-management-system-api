@@ -159,7 +159,7 @@ class UserSeeder extends Seeder
                 'password' => $defaultPassword,
             ]
         );
-        $user7->assignRole('adviser');
+        $user7->assignRole('super_admin');
 
         $user8 = User::updateOrCreate(
             ['phone_number' => '0983846541'],
@@ -174,7 +174,7 @@ class UserSeeder extends Seeder
                 'nationality' => 'syrian',
                 'gender' => 'male',
                 'photo_url' => 'defaults/secretary.jpg',
-                'email' => 'aishakhairallah23@gmail.com',
+                'email' => 'aishakhairallah2025@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'password' => $defaultPassword,
@@ -212,7 +212,7 @@ class UserSeeder extends Seeder
                 'birth_date' => '1985-11-19',
                 'birth_place' => 'Spy City',
                 'address' => '123 Mission St, Spy City',
-                'email' => 'ranneemmahmmadd@gmail.com',
+                'email' => 'aishakhairallah262005@gmail.com',
                 'password' => $defaultPassword,
                 'nationality' => 'jordanian',
                 'gender' => 'male',

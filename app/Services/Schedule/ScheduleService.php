@@ -280,11 +280,27 @@ class ScheduleService
         return $entry;
     }
 
+
     public function addEntry(array $data): ScheduleEntry
     {
         $entry = ScheduleEntry::create($data);
 
         $this->syncDayPeriodsCount($data['day'], $data['period_index']);
+
+        return $entry;
+    }
+
+
+    public function emptyEntry(int $entryId): ScheduleEntry
+    {
+        $entry = ScheduleEntry::findOrFail($entryId);
+
+        $entry->update([
+            'teacher_id'            => null,
+            'grade_subject_id'      => null,
+            'teacher_assignment_id' => null, 
+            'is_locked'             => false, 
+        ]);
 
         return $entry;
     }

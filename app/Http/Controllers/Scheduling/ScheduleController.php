@@ -79,16 +79,6 @@ class ScheduleController extends Controller
         }
     }
 
-    public function addEntry(StoreScheduleEntryRequest $request): JsonResponse
-    {
-        $entry = $this->scheduleService->addEntry($request->validated());
-
-        return $this->successResponse(
-            $entry,
-            'New entry added successfully (Manual Override)',
-            201
-        );
-    }
 
     public function updateEntry(UpdateScheduleEntryRequest $request, int $entryId): JsonResponse
     {
@@ -275,5 +265,36 @@ class ScheduleController extends Controller
         }
 
         return $enrollment;
+    }
+
+    public function emptyEntry(int $entryId): JsonResponse
+    {
+        try {
+            $updatedEntry = $this->scheduleService->emptyEntry($entryId);
+
+            return $this->successResponse(
+                $updatedEntry,
+                'Schedule entry emptied successfully (Slot is now free).'
+            );
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->errorResponse('The selected session does not exist.', 404);
+        } catch (Exception $e) {
+            return $this->errorResponse('Failed to empty the entry: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function addEntry(StoreScheduleEntryRequest $request): JsonResponse
+    {
+        try {
+            $entry = $this->scheduleService->addEntry($request->validated());
+
+            return $this->successResponse(
+                $entry,
+                'New entry added successfully and academic settings synced.',
+                201
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse('Failed to add entry: ' . $e->getMessage(), 500);
+        }
     }
 }

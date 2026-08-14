@@ -109,8 +109,10 @@ Route::prefix('auth')->group(function () {
             Route::post('/store', 'store');
             Route::delete('/delete', 'delete');
             Route::put('/update/{examId}','update');
+            
 
         });
+        Route::get('/all/marks/show/{academicYearId}',[MarkController::class,'index']);
 
 
         Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {

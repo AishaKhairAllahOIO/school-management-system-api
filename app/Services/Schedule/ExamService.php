@@ -4,13 +4,11 @@ namespace App\Services\Schedule;
 
 use App\Jobs\SendPushNotification;
 use App\Models\Exam;
-use App\Models\ExamSubject;
 use App\Models\GradeSubject;
 use App\Models\AcademicSetting;
 use App\Models\Alert;
 use App\Models\Enrollment;
 use App\Models\Staff;
-use App\Models\Student;
 use App\Services\User\AlertService;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -99,7 +97,7 @@ class ExamService
 
             // 2. تحديث المواد والأساتذة (فقط إذا قام الفرونت إند بإرسال مصفوفة subjects)
             if (array_key_exists('subjects', $data)) {
-                
+
                 // تنظيف القديم
                 foreach ($exam->subjects as $subject) {
                     $subject->teachers()->detach();
@@ -110,10 +108,10 @@ class ExamService
                 foreach ($data['subjects'] as $subjectData) {
                     $examSubject = $exam->subjects()->create([
                         'grade_subject_id' => $subjectData['grade_subject_id'],
-                        'exam_date'        => $subjectData['exam_date'],
-                        'start_time'       => $subjectData['start_time'],
-                        'end_time'         => $subjectData['end_time'],
-                        'syllabus'         => $subjectData['syllabus'] ?? null,
+                        'exam_date' => $subjectData['exam_date'],
+                        'start_time' => $subjectData['start_time'],
+                        'end_time' => $subjectData['end_time'],
+                        'syllabus' => $subjectData['syllabus'] ?? null,
                     ]);
 
                     if (!empty($subjectData['teacher_ids'])) {
@@ -140,10 +138,10 @@ class ExamService
             $examTypeAr = $exam->type === 'quiz' ? 'مذاكرة' : 'امتحان';
 
             $studentTitle = "تعديل في برنامج ال{$examTypeAr} 🔄";
-            $studentBody  = "تم تحديث تفاصيل ومواعيد: {$exam->title}. يرجى الاطلاع على التعديلات الجديدة.";
+            $studentBody = "تم تحديث تفاصيل ومواعيد: {$exam->title}. يرجى الاطلاع على التعديلات الجديدة.";
 
-            $staffTitle   = "تعديل في برنامج ال{$examTypeAr} 🔄";
-            $staffBody    = "تم إجراء تعديلات على البرنامج: {$exam->title} الذي أنت مكلف به. يرجى المراجعة.";
+            $staffTitle = "تعديل في برنامج ال{$examTypeAr} 🔄";
+            $staffBody = "تم إجراء تعديلات على البرنامج: {$exam->title} الذي أنت مكلف به. يرجى المراجعة.";
 
             // سنستخدم نفس منطق الجلب السابق
             $alertsToInsert = [];
@@ -157,11 +155,17 @@ class ExamService
             $studentUserIds = [];
             foreach ($enrollments as $enrollment) {
                 $alertsToInsert[] = [
-                    'title' => $studentTitle, 'description' => $studentBody, 'audience' => 'student',
-                    'type' => 'exam_schedule_update', 'notifiable_type' => Enrollment::class,
-                    'notifiable_id' => $enrollment->id, 'created_at' => $now, 'updated_at' => $now,
+                    'title' => $studentTitle,
+                    'description' => $studentBody,
+                    'audience' => 'student',
+                    'type' => 'exam_schedule_update',
+                    'notifiable_type' => Enrollment::class,
+                    'notifiable_id' => $enrollment->id,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
-                if ($enrollment->student && $enrollment->student->user) $studentUserIds[] = $enrollment->student->user->id;
+                if ($enrollment->student && $enrollment->student->user)
+                    $studentUserIds[] = $enrollment->student->user->id;
             }
 
             // للموظفين
@@ -173,27 +177,38 @@ class ExamService
                 foreach ($subject->teachers as $staff) {
                     if (!in_array($staff->id, $notifiedStaffIds)) {
                         $alertsToInsert[] = [
-                            'title' => $staffTitle, 'description' => $staffBody, 'audience' => 'staff',
-                            'type' => 'exam_schedule_update', 'notifiable_type' => Staff::class,
-                            'notifiable_id' => $staff->id, 'created_at' => $now, 'updated_at' => $now,
+                            'title' => $staffTitle,
+                            'description' => $staffBody,
+                            'audience' => 'staff',
+                            'type' => 'exam_schedule_update',
+                            'notifiable_type' => Staff::class,
+                            'notifiable_id' => $staff->id,
+                            'created_at' => $now,
+                            'updated_at' => $now,
                         ];
                         $notifiedStaffIds[] = $staff->id;
-                        if ($staff->user) $staffUserIds[] = $staff->user->id;
+                        if ($staff->user)
+                            $staffUserIds[] = $staff->user->id;
                     }
                 }
             }
 
-            if (!empty($alertsToInsert)) Alert::insert($alertsToInsert);
+            if (!empty($alertsToInsert))
+                Alert::insert($alertsToInsert);
 
             if (!empty($studentUserIds)) {
                 SendPushNotification::dispatch(array_unique($studentUserIds), $studentTitle, $studentBody, [
-                    'type' => 'update_exam_schedule', 'exam_id' => (string) $exam->id, 'target' => 'student'
+                    'type' => 'update_exam_schedule',
+                    'exam_id' => (string) $exam->id,
+                    'target' => 'student'
                 ]);
             }
 
             if (!empty($staffUserIds)) {
                 SendPushNotification::dispatch(array_unique($staffUserIds), $staffTitle, $staffBody, [
-                    'type' => 'update_exam_schedule', 'exam_id' => (string) $exam->id, 'target' => 'staff'
+                    'type' => 'update_exam_schedule',
+                    'exam_id' => (string) $exam->id,
+                    'target' => 'staff'
                 ]);
             }
         } catch (Exception $e) {
@@ -453,7 +468,97 @@ class ExamService
         return $result;
     }
 
+    public function getAllExamsForAdmin(int $academicYearId): array
+    {
+        $exams = Exam::query()
+            ->where('academic_year_id', $academicYearId)
+            ->with([
+                'gradeLevel',
+                'semester',
 
-    
+                'subjects' => function ($query) {
+                    $query
+                        ->with([
+                            'gradeSubject.subject',
+                            'teachers.user',
+                        ])
+                        ->orderBy('exam_date')
+                        ->orderBy('start_time');
+                },
+            ])
+            ->orderBy('grade_level_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $exams->map(function ($exam) {
+
+            $subjects = $exam->subjects->map(function ($examSubject) {
+
+                $teachers = $examSubject->teachers
+                    ->map(function ($staff) {
+                        return [
+                            'staff_id' => $staff->id,
+                            'teacher_id' => $staff->teacher_id ?? $staff->id,
+                            'teacher_name' => trim(
+                                "{$staff->user?->first_name} {$staff->user?->father_name} {$staff->user?->last_name}"
+                            ),
+                        ];
+                    })
+                    ->unique('staff_id')
+                    ->values()
+                    ->toArray();
+
+                return [
+                    'exam_subject_id' => $examSubject->id,
+
+                    'grade_subject_id' => $examSubject->grade_subject_id,
+
+                    'subject_id' =>
+                        $examSubject->gradeSubject?->subject_id,
+
+                    'subject_name' =>
+                        $examSubject->gradeSubject?->subject?->subject_name
+                        ?? 'Unknown',
+
+                    'exam_date' => $examSubject->exam_date,
+
+                    'start_time' => $examSubject->start_time,
+
+                    'end_time' => $examSubject->end_time,
+
+                    'syllabus' => $examSubject->syllabus,
+
+                    'teachers' => $teachers,
+                ];
+            })->values()->toArray();
+
+            return [
+                'exam_id' => $exam->id,
+
+                'title' => $exam->title,
+
+                'type' => $exam->type,
+
+                'grade_level' => [
+                    'id' => $exam->grade_level_id,
+                    'name' => $exam->gradeLevel?->name,
+                ],
+
+                'semester' => [
+                    'id' => $exam->semester_id,
+                    'name' => $exam->semester?->name,
+                ],
+
+                'academic_year_id' => $exam->academic_year_id,
+
+                'subjects' => $subjects,
+            ];
+        })->values()->toArray();
+    }
+
+
+
+
+
 
 }

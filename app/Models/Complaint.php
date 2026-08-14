@@ -14,8 +14,7 @@ class Complaint extends Model
         'academic_year_id',
         'semester_id',
         'status',
-        'admin_response'
-    ];
+   ];
 
     public function guardian(): BelongsTo
     {

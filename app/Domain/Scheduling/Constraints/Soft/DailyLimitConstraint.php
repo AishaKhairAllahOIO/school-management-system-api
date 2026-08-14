@@ -16,7 +16,6 @@ class DailyLimitConstraint
 
         $maxPeriods = $lesson['maxPeriodsPerDay'] ?? 1;
 
-        // إذا تجاوز الحد اليومي (مثلاً حصتين لنفس المادة)، نعطيه عقوبة صارمة جداً
         if ($count >= $maxPeriods) {
             return 100;
         }

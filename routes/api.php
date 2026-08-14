@@ -39,6 +39,7 @@ use App\Http\Controllers\Web\SchoolLawController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceSettingController;
 use App\Http\Controllers\Admin\Student\StudentAttendanceController;
 use App\Http\Controllers\Scheduling\ScheduleController;
+use App\Http\Controllers\Scheduling\ExamScheduleController;
 use App\Http\Controllers\ContentController;
 
 use App\Http\Controllers\Admin\Leave\StaffLeaveTypeController;
@@ -46,6 +47,8 @@ use App\Http\Controllers\Admin\Staff\StaffAttendanceController;
 use App\Http\Controllers\Admin\Staff\StaffLeaveController;
 use App\Http\Controllers\Admin\Staff\StaffFinancialContractController;
 use App\Http\Controllers\Admin\Staff\PayrollController;
+
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -101,6 +104,13 @@ Route::prefix('auth')->group(function () {
             Route::get('/teacher/show/{academicId}/{semesterId}', 'allTeachersWeekly');
         });
 
+        Route::prefix('/exam/schedule')->controller(ExamScheduleController::class)->group(function () {
+            Route::get('/form/setup/{gradeLevelId}', 'getSetupData');
+            Route::post('/store', 'store');
+            Route::delete('/delete', 'delete');
+            Route::put('/update/{examId}','update');
+
+        });
 
 
         Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {
@@ -165,6 +175,8 @@ Route::prefix('auth')->group(function () {
             Route::get('/show/one/evaluation/{id}', [ClassStudentEvaluationController::class, 'show']);
             Route::post('/gradebook/marks', [MarkController::class, 'storeMarks']);
             Route::get('/gradebook/subject/{gradeSubjectId}/classroom/{classRoomId}', [MarkController::class, 'getGradebook']);
+            Route::get('/exam/schedule/show',[ExamScheduleController::class,'teacherExams']);
+
             Route::prefix('practice-quizzes')->controller(PracticeQuizController::class)->group(function () {
                 Route::post('/create/quiz', 'store');
                 Route::get('/show/quiz/by/grade-subject/{gradeSubjectId}', 'getQuizzesByGradeSubject');
@@ -185,7 +197,8 @@ Route::prefix('auth')->group(function () {
                 Route::get('/show/all', 'teacherWeekly');
                 Route::get('/tomorrow', 'teacherTomorrow');
             });
-        });
+
+                    });
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
             Route::get('/show-profile', [UserController::class, 'counselorProfile']);
@@ -471,7 +484,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/staff/contract')->group(funct
     Route::delete('/{id}',[StaffFinancialContractController::class,'destroy']);
 });
 Route::middleware(['auth:sanctum'])->prefix('staff/payroll')->group(function () {
-  
+
     Route::post('/preview', [PayrollController::class, 'preview']); // المعاينة
     Route::post('/commit', [PayrollController::class, 'store']); // الاعتماد
     Route::get('/month', [PayrollController::class, 'indexByMonth']); // رواتب شهر معين
@@ -550,6 +563,15 @@ Route::prefix('user')->group(function () {
             Route::get('/all', 'studentWeekly');
             Route::get('/tomorrow', 'studentTomorrow');
         });
+
+        Route::prefix('/exam/schedule')->controller(ExamScheduleController::class)->group(function () {
+            Route::get('/show', 'studentExams');
+            Route::get('/unread/count', 'unreadCount');
+            Route::post('/mark/all/read','markAllRead');
+        });
+
+
+
 
     });
 

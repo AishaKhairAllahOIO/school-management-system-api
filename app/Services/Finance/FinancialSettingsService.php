@@ -13,21 +13,15 @@ use App\Models\FinancialAccount;
 
 class FinancialSettingsService
 {
-    // =========================================================
-    // 1. سياسات التقسيط (Installment Policies)
-    // =========================================================
 
     public function getPolicies(): Collection
     {
         return InstallmentPolicy::with('items')->get();
     }
-
-    // 👈 إضافة دالة جلب سياسة واحدة
     public function getPolicyById(int $id): InstallmentPolicy
     {
         return InstallmentPolicy::with('items')->findOrFail($id);
     }
-
     public function createPolicy(array $data): InstallmentPolicy
     {
         return DB::transaction(function () use ($data) {
@@ -51,7 +45,6 @@ class FinancialSettingsService
             return $policy->load('items');
         });
     }
-
     public function updatePolicy(int $id, array $data): InstallmentPolicy
     {
         return DB::transaction(function () use ($id, $data) {
@@ -86,7 +79,6 @@ class FinancialSettingsService
             return $policy->fresh('items');
         });
     }
-
     public function deletePolicy(int $id): void
     {
         $policy = InstallmentPolicy::findOrFail($id);
@@ -100,8 +92,7 @@ class FinancialSettingsService
 
         $policy->delete();
     }
-
-    public function updatePolicyItem(int $id, array $data): \App\Models\InstallmentPolicyItem
+    public function updatePolicyItem(int $id, array $data): InstallmentPolicyItem
     {
         $item = \App\Models\InstallmentPolicyItem::findOrFail($id);
         
@@ -113,27 +104,18 @@ class FinancialSettingsService
 
         return $item->fresh();
     }
-
     public function deletePolicyItem(int $id): void
     {
         throw new Exception('لا يمكن حذف دفعة واحدة بشكل مستقل لأن ذلك سيكسر مجموع الـ 100%. لحذف دفعة، يرجى تعديل سياسة التقسيط بالكامل من الواجهة الرئيسية.', 422);
     }
-
-    // =========================================================
-    // 2. خطط الرسوم الموحدة (Fee Plans)
-    // =========================================================
-
     public function getFeePlans(): Collection
     {
         return FeePlan::with(['academicYear', 'gradeLevel', 'extraServices'])->get();
     }
-
-    // 👈 إضافة دالة جلب خطة مالية واحدة
     public function getFeePlanById(int $id): FeePlan
     {
         return FeePlan::with(['academicYear', 'gradeLevel', 'extraServices'])->findOrFail($id);
     }
-
     public function createFeePlan(array $data): FeePlan
     {
         return DB::transaction(function () use ($data) {
@@ -151,7 +133,6 @@ class FinancialSettingsService
             return $feePlan->load(['academicYear', 'gradeLevel', 'extraServices']);
         });
     }
-
     public function updateFeePlan(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
@@ -177,7 +158,6 @@ class FinancialSettingsService
             return $feePlan->fresh(['academicYear', 'gradeLevel', 'extraServices']);
         });
     }
-
     public function deleteFeePlan(int $id): void
     {
         $feePlan = FeePlan::findOrFail($id);
@@ -189,7 +169,6 @@ class FinancialSettingsService
 
         $feePlan->delete();
     }
-
     public function updateExtraService(int $id, array $data)
     {
         $service = FeePlanExtraService::findOrFail($id);
@@ -207,7 +186,6 @@ class FinancialSettingsService
 
         return $service->fresh();
     }
-
     public function deleteExtraService(int $id): void
     {
         $service = FeePlanExtraService::findOrFail($id);
@@ -219,12 +197,10 @@ class FinancialSettingsService
 
         $service->delete();
     }
-    // اريد انشاء دالة لعرض ExtraService محددة
     public function getExtraService(int $id)
     {
         return FeePlanExtraService::findOrFail($id);
     }
-    //اريد دالة لعرض item محددد من الinsallmentpolicy
     public function getInstallmentPolicyItem(int $id)
     {
         return InstallmentPolicyItem::findOrFail($id);

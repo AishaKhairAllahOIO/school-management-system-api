@@ -27,7 +27,6 @@ class StoreScheduleEntryRequest extends FormRequest
             'teacher_assignment_id' => ['required', 'integer', 'exists:teacher_assignments,id'],
             'grade_subject_id' => ['required', 'exists:grade_subjects,id'],
             'day' => ['required', 'string', Rule::enum(SchoolDay::class)],
-            'period_index' => ['required', 'integer', 'min:1', 'max:10'],
         ];
     }
 

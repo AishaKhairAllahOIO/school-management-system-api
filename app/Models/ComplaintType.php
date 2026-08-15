@@ -16,6 +16,6 @@ class ComplaintType extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(ComplaintCategory::class);
+        return $this->belongsTo(ComplaintCategory::class, 'complaint_category_id');
     }
 }

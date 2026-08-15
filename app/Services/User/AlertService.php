@@ -8,6 +8,7 @@ use App\Models\Enrollment;
 use App\Models\SchoolLaw;
 use App\Models\Staff;
 use App\Models\Student;
+use App\Models\StudentAttendanceSetting;
 use App\Models\User;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -18,48 +19,6 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class AlertService
 {
-    // public function createStudentAbsence(Enrollment $enrollment, array $meta = []): Alert
-    // {
-    //     $absenceDate = $meta['date'] ?? now()->toDateString();
-
-    //     $existingAbsence = Alert::where('notifiable_type', Enrollment::class)
-    //         ->where('notifiable_id', $enrollment->id)
-    //         ->where('type', Alert::TYPE_ABSENCE)
-    //         ->where('meta->date', $absenceDate)
-    //         ->exists();
-
-    //     if ($existingAbsence) {
-    //         throw new Exception("An absence alert has already been created for this student on {$absenceDate}. You cannot create two absence alerts on the same day.");
-    //     }
-
-    //     $alert = $this->createStudentAlert(
-    //         $enrollment,
-    //         Alert::TYPE_ABSENCE,
-    //         'تنبيه غياب',
-    //         'تم تسجيل غياب الطالب اليوم.',
-    //         array_merge(['date' => $absenceDate], $meta)
-    //     );
-
-    //     $absenceCount = Alert::where('notifiable_type', Enrollment::class)
-    //         ->where('notifiable_id', $enrollment->id)
-    //         ->where('type', Alert::TYPE_ABSENCE)
-    //         ->count();
-
-    //     if ($absenceCount == 5) {
-    //         $this->createStudentWarning(
-    //             $enrollment,
-    //             $meta,
-    //             'تحذير: اقتراب تجاوز الحد المسموح للغياب',
-    //             'يرجى الانتباه: لقد بلغت عدد مرات غياب الطالب 5 مرات. عند الوصول إلى 7 غيابات سيتم إصدار قرار فصل بحق الطالب وإيقاف حسابه في نهاية الفصل الدراسي ما لم يتم التبرير.'
-    //         );
-    //     }
-
-    //     if ($absenceCount == 7) {
-    //         $this->createStudentExpulsion($enrollment, ['law_id' => 1]);
-    //     }
-
-    //     return $alert;
-    // }
     public function createStudentAbsence(Enrollment $enrollment, array $meta = []): Alert
     {
         $absenceDate = $meta['date'] ?? now()->toDateString();
@@ -74,7 +33,6 @@ class AlertService
             throw new Exception("An absence alert has already been created for this student on {$absenceDate}. You cannot create two absence alerts on the same day.");
         }
 
-        // 1. إنشاء تنبيه الغياب الأساسي
         $alert = $this->createStudentAlert(
             $enrollment,
             Alert::TYPE_ABSENCE,
@@ -83,8 +41,8 @@ class AlertService
             array_merge(['date' => $absenceDate], $meta)
         );
 
-        $semesterId = $enrollment->semester_id; // تأكدي من حقل الفصل في جدول الـ enrollments لديكِ
-        $setting = \App\Models\StudentAttendanceSetting::where('semester_id', $semesterId)->first();
+        $semesterId = $enrollment->semester_id;
+        $setting = StudentAttendanceSetting::where('semester_id', $semesterId)->first();
 
         $allowedDays = $setting ? $setting->allowed_absence_days : 10;
 
@@ -110,9 +68,7 @@ class AlertService
 
         return $alert;
     }
-
-
-public function createSystemNotice(Staff $staff, string $title, string $description, array $meta = []): Alert
+    public function createSystemNotice(Staff $staff, string $title, string $description, array $meta = []): Alert
     {
         return $this->createStaffAlert(
             $staff,
@@ -143,7 +99,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             $meta
         );
     }
-
     public function createStudentWarning(Enrollment $enrollment, array $meta = [], ?string $title = null, ?string $description = null): Alert
     {
         $absenceCount = Alert::where('notifiable_type', Enrollment::class)
@@ -161,7 +116,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             $meta
         );
     }
-
     public function createStudentLate(Enrollment $enrollment, array $meta = []): Alert
     {
         return $this->createStudentAlert(
@@ -172,7 +126,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             $meta
         );
     }
-
     public function createStudentBehavior(Enrollment $enrollment, array $meta = []): Alert
     {
         return $this->createStudentAlert(
@@ -183,7 +136,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             $meta
         );
     }
-
     public function createStudentPayment(Enrollment $enrollment, array $meta = []): Alert
     {
         return $this->createStudentAlert(
@@ -194,7 +146,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             $meta
         );
     }
-
     public function createStudentPayed(Enrollment $enrollment, array $meta = []): Alert
     {
         return $this->createStudentAlert(
@@ -205,7 +156,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             $meta
         );
     }
-
     public function createStudentHomework(Enrollment $enrollment, array $meta = []): Alert
     {
         return $this->createStudentAlert(
@@ -216,7 +166,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             array_merge(['date' => now()->toDateString()], $meta)
         );
     }
-
     public function createStudentEscape(Enrollment $enrollment, array $meta = []): Alert
     {
         return $this->createStudentAlert(
@@ -227,7 +176,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             $meta
         );
     }
-
     public function createStaffAbsence(Staff $staff, array $meta = []): Alert
     {
         return $this->createStaffAlert(
@@ -238,7 +186,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             array_merge(['date' => now()->toDateString()], $meta)
         );
     }
-
     public function createStaffLate(Staff $staff, array $meta = []): Alert
     {
         return $this->createStaffAlert(
@@ -249,7 +196,16 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             $meta
         );
     }
-
+    public function createStaffComplaint(Staff $staff, array $meta = [], ?string $title = null, ?string $description = null): Alert
+    {
+        return $this->createStaffAlert(
+            $staff,
+            Alert::TYPE_COMPLAIN,
+            $title ?? 'تنبيه شكوى',
+            $description ?? 'تم تسجيل شكوى مقدمة من ولي أمر.',
+            $meta
+        );
+    }
     public function createStaffSalary(Staff $staff, array $meta = []): Alert
     {
         return $this->createStaffAlert(
@@ -260,7 +216,6 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
             array_merge(['month' => now()->format('F Y')], $meta)
         );
     }
-
     private function createStudentAlert(
         Enrollment $enrollment,
         string $type,
@@ -404,6 +359,7 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
                 Alert::TYPE_ABSENCE => $this->createStaffAbsence($staff, $meta),
                 Alert::TYPE_LATE => $this->createStaffLate($staff, $meta),
                 Alert::TYPE_SALARY => $this->createStaffSalary($staff, $meta),
+                Alert::TYPE_COMPLAIN => $this->createStaffComplaint($staff, $meta, $title, $description),
                 default => $this->createStaffAlert($staff, $type, $title ?? '', $description ?? '', $meta),
             };
             $alerts->push($alert);
@@ -622,14 +578,14 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
 
     public function unreadSystemNoticesCount(User $user): int
     {
-       $query = $this->getBaseAlertQueryForUser($user);
+        $query = $this->getBaseAlertQueryForUser($user);
 
-       return $query
-       ->where('type',Alert::TYPE_SYSTEM_NOTICE)
-       ->whereDoesntHave('readers',function($query)use ($user){
-        $query->where('user_id',$user->id);
-       })
-       ->count();
+        return $query
+            ->where('type', Alert::TYPE_SYSTEM_NOTICE)
+            ->whereDoesntHave('readers', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->count();
     }
 
 
@@ -656,12 +612,14 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
 
     public function getAlertsCreatedByUser(User $user, int $perPage = 15): LengthAwarePaginator
     {
-        $query = Alert::with(['notifiable' => function ($morphTo) {
-            $morphTo->morphWith([
-                Enrollment::class => ['student.user:id,first_name,last_name'],
-                Staff::class => ['user:id,first_name,last_name'],
-            ]);
-        }]);
+        $query = Alert::with([
+            'notifiable' => function ($morphTo) {
+                $morphTo->morphWith([
+                    Enrollment::class => ['student.user:id,first_name,last_name'],
+                    Staff::class => ['user:id,first_name,last_name'],
+                ]);
+            }
+        ]);
 
         if (!$user->hasRole('super_admin')) {
             $query->where('created_by', $user->id);
@@ -676,22 +634,31 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
         $alert = Alert::findOrFail($id);
 
         if ($alert->created_by !== $user->id && !$user->hasRole('super_admin')) {
-            throw new AccessDeniedHttpException('Update denied you are not the creater',null,403);
+            throw new AccessDeniedHttpException('Update denied you are not the creater', null, 403);
         }
 
         if (isset($data['type'])) {
             $studentTypes = [
-                Alert::TYPE_ABSENCE, Alert::TYPE_LATE, Alert::TYPE_BEHAVIOR,
-                Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_ESCAPE,
-                Alert::TYPE_HOMEWORK, Alert::TYPE_WARNING, Alert::TYPE_EXPULSION
+                Alert::TYPE_ABSENCE,
+                Alert::TYPE_LATE,
+                Alert::TYPE_BEHAVIOR,
+                Alert::TYPE_PAYMENT,
+                Alert::TYPE_PAYED,
+                Alert::TYPE_ESCAPE,
+                Alert::TYPE_HOMEWORK,
+                Alert::TYPE_WARNING,
+                Alert::TYPE_EXPULSION
             ];
 
             $staffTypes = [
-                Alert::TYPE_ABSENCE, Alert::TYPE_LATE, Alert::TYPE_SALARY, Alert::TYPE_SYSTEM_NOTICE
+                Alert::TYPE_ABSENCE,
+                Alert::TYPE_LATE,
+                Alert::TYPE_SALARY,
+                Alert::TYPE_SYSTEM_NOTICE
             ];
 
             if ($alert->audience === Alert::AUDIENCE_STUDENT && !in_array($data['type'], $studentTypes)) {
-                throw new InvalidArgumentException('The type of the alert does not match the student audience.',422);
+                throw new InvalidArgumentException('The type of the alert does not match the student audience.', 422);
             }
 
             if ($alert->audience === Alert::AUDIENCE_STAFF && !in_array($data['type'], $staffTypes)) {
@@ -700,10 +667,10 @@ public function createSystemNotice(Staff $staff, string $title, string $descript
         }
 
         $alert->update([
-            'title'       => $data['title'] ?? $alert->title,
+            'title' => $data['title'] ?? $alert->title,
             'description' => $data['description'] ?? $alert->description,
-            'type'        => $data['type'] ?? $alert->type,
-            'meta'        => isset($data['meta']) ? array_merge($alert->meta ?? [], $data['meta']) : $alert->meta,
+            'type' => $data['type'] ?? $alert->type,
+            'meta' => isset($data['meta']) ? array_merge($alert->meta ?? [], $data['meta']) : $alert->meta,
         ]);
 
         return $alert;

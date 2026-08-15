@@ -181,7 +181,7 @@ class ScheduleService
     {
         $tomorrow = Carbon::tomorrow();
 
-        if ($tomorrow->isFriday() || $tomorrow->isSaturday()) {
+        if ($tomorrow->isFriday() || $tomorrow->isSaturday() || $tomorrow->isThursday()) {
             return 'sunday';
         }
 
@@ -284,10 +284,35 @@ class ScheduleService
         return $entry;
     }
 
-
     public function addEntry(array $data): ScheduleEntry
     {
+        $setting = AcademicSetting::firstOrFail();
+        $scheduleSettings = $setting->schedule_settings ?? [];
+        $workingDays = $scheduleSettings['workingDays'] ?? [];
+
+        $currentPeriodsCount = 0;
+
+        foreach ($workingDays as $workingDay) {
+            if (strtolower($workingDay['day']) === strtolower($data['day'])) {
+                $currentPeriodsCount = (int) $workingDay['periodsCount'];
+                break;
+            }
+        }
+
+        $newPeriodIndex = $currentPeriodsCount + 1;
+
+        if ($newPeriodIndex > 9) {
+            throw new Exception(
+                "You add sessions more than the allwoed number of sessions.",
+                422
+            );
+        }
+
+
+        $data['period_index'] = $newPeriodIndex;
+
         $exists = ScheduleEntry::where('schedule_id', $data['schedule_id'])
+            ->where('class_room_id', $data['class_room_id'])
             ->where('day', $data['day'])
             ->where('period_index', $data['period_index'])
             ->exists();
@@ -301,14 +326,10 @@ class ScheduleService
 
         $entry = ScheduleEntry::create($data);
 
-        $this->syncDayPeriodsCount(
-            $data['day'],
-            $data['period_index']
-        );
+        $this->syncDayPeriodsCount($data['day'], $data['period_index']);
 
         return $entry;
     }
-
     private function syncDayPeriodsCount(string $day, int $periodIndex): void
     {
         $setting = AcademicSetting::first();

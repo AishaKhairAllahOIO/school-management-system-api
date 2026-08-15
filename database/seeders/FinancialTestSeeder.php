@@ -27,23 +27,19 @@ class FinancialTestSeeder extends Seeder
             return;
         }
 
-        // $year = AcademicYear::firstOrCreate(
-        //     ['is_current' => true],
-        //     ['year_name' => '2025-2026', 'start_date' => '2025-09-01', 'end_date' => '2026-06-30']
-        // );
+ 
 
 
 
         DB::transaction(function () use ($student) {
 
-            // 3. إنشاء سياسة تقسيط تجريبية
             $policy = InstallmentPolicy::updateOrCreate(
-                ['name' => 'سياسة اختبار الكوماند (3 دفعات)'],
+                ['name' => 'تقسيط الرسوم الدراسية السنوي (3 دفعات)'],
                 ['installments_count' => 3]
             );
 
             $plan = FeePlan::updateOrCreate(
-                ['name' => 'خطة اختبار الكوماند'],
+                ['name' => 'الرسوم الدراسية السنوية'],
                 [
                     'academic_year_id'      => 1,
                     'grade_level_id'        => 1,
@@ -66,7 +62,7 @@ class FinancialTestSeeder extends Seeder
             $installment1 = ScheduledInstallment::create([
                 'financial_account_id' => $account->id,
                 'installment_number'   => 1,
-                'title'                => 'الدفعة الأولى (مسددة)',
+                'title'                => 'الدفعة الأولى (رسوم التسجيل)',
                 'amount_due'           => 400000.00,
                 'amount_paid'          => 400000.00,
                 'due_date'             => Carbon::now()->subDays(30)->format('Y-m-d'),
@@ -83,7 +79,7 @@ class FinancialTestSeeder extends Seeder
             ScheduledInstallment::create([
                 'financial_account_id' => $account->id,
                 'installment_number'   => 2,
-                'title'                => 'الدفعة الثانية (تستحق قريباً)',
+                'title'                => 'الدفعة الثانية (منتصف العام الدراسي)',
                 'amount_due'           => 300000.00,
                 'amount_paid'          => 0.00,
                 'due_date'             => Carbon::now()->addDays(3)->format('Y-m-d'), 
@@ -93,11 +89,11 @@ class FinancialTestSeeder extends Seeder
             ScheduledInstallment::create([
                 'financial_account_id' => $account->id,
                 'installment_number'   => 3,
-                'title'                => 'الدفعة الثالثة (متأخرة)',
+                'title'                => 'الدفعة الثالثة (الدفعة الختامية)',
                 'amount_due'           => 300000.00,
                 'amount_paid'          => 0.00,
-                'due_date'             => Carbon::now()->subDays(5)->format('Y-m-d'), // 👈 قبل 5 أيام
-                'status'               => 'pending', // نتركها pending لكي يكتشفها الكوماند ويعدلها
+                'due_date'             => Carbon::now()->subDays(5)->format('Y-m-d'), 
+                'status'               => 'pending', 
             ]);
 
             $this->command->info('✅ student added successfuly ' . $student->first_name);

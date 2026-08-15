@@ -20,9 +20,7 @@ return new class extends Migration
         
         $table->foreignId('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
         $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
-        
-        $table->enum('status', ['pending', 'in_progress', 'resolved', 'rejected'])->default('pending');
-        
+            
         $table->timestamps();
     });
 }

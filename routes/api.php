@@ -47,12 +47,15 @@ use App\Http\Controllers\Admin\Staff\StaffAttendanceController;
 use App\Http\Controllers\Admin\Staff\StaffLeaveController;
 use App\Http\Controllers\Admin\Staff\StaffFinancialContractController;
 use App\Http\Controllers\Admin\Staff\PayrollController;
+use App\Http\Controllers\Complaint\ComplaintController;
 use App\Http\Controllers\Admin\Report\AttendanceReportController;
 use App\Http\Controllers\Admin\Report\FinanceReportController;
 use App\Http\Controllers\Admin\Report\ReportCardAdminController;
 use App\Http\Controllers\Student\GuardianReportController;
 
 
+use App\Http\Controllers\Finance\GuardianFinanceController;
+use App\Http\Controllers\Finance\StaffPayrollController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -86,6 +89,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/announcements/unread-count', [UserAnnouncementController::class, 'getUnreadCount']);
         Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
+        Route::get('/staff/finance/report/show',[StaffPayrollController::class,'myPayrolls']);
 
         Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
             Route::get('/show/general/staff', 'getStaffAlerts');
@@ -106,19 +110,19 @@ Route::prefix('auth')->group(function () {
             Route::put('/update/{entryId}', 'updateEntry');
             Route::get('/show/all/{academicId}/{semesterId}', 'adminView');
             Route::get('/teacher/show/{academicId}/{semesterId}', 'allTeachersWeekly');
-            Route::post('add/entry','addEntry');
+            Route::post('add/entry', 'addEntry');
         });
 
         Route::prefix('/exam/schedule')->controller(ExamScheduleController::class)->group(function () {
             Route::get('/form/setup/{gradeLevelId}', 'getSetupData');
             Route::post('/store', 'store');
             Route::delete('/delete/{examId}', 'destroy');
-            Route::delete('/delete/one/subject/{examId}/{gradeSubjectId}','destroySubject');
-            Route::put('/update/{examId}','update');
-            Route::get('/show/{academicId}/{semesterId}','adminExams');
+            Route::delete('/delete/one/subject/{examId}/{gradeSubjectId}', 'destroySubject');
+            Route::put('/update/{examId}', 'update');
+            Route::get('/show/{academicId}/{semesterId}', 'adminExams');
 
         });
-        Route::get('/all/marks/show/{academicYearId}/{semesterId}',[MarkController::class,'index']);
+        Route::get('/all/marks/show/{academicYearId}/{semesterId}', [MarkController::class, 'index']);
 
 
         Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {
@@ -183,7 +187,7 @@ Route::prefix('auth')->group(function () {
             Route::get('/show/one/evaluation/{id}', [ClassStudentEvaluationController::class, 'show']);
             Route::post('/gradebook/marks', [MarkController::class, 'storeMarks']);
             Route::get('/gradebook/subject/{gradeSubjectId}/classroom/{classRoomId}', [MarkController::class, 'getGradebook']);
-            Route::get('/exam/schedule/show',[ExamScheduleController::class,'teacherExams']);
+            Route::get('/exam/schedule/show', [ExamScheduleController::class, 'teacherExams']);
 
             Route::prefix('practice-quizzes')->controller(PracticeQuizController::class)->group(function () {
                 Route::post('/create/quiz', 'store');
@@ -206,7 +210,7 @@ Route::prefix('auth')->group(function () {
                 Route::get('/tomorrow', 'teacherTomorrow');
             });
 
-                    });
+        });
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
             Route::get('/show-profile', [UserController::class, 'counselorProfile']);
@@ -484,12 +488,12 @@ Route::middleware(['auth:sanctum'])->prefix('admin/staff-attendances')->group(fu
     Route::post('/{id}', [StaffAttendanceController::class, 'update']);     // تعديل سجل
     Route::delete('/{id}', [StaffAttendanceController::class, 'destroy']);  // حذف سجل
 });
-Route::middleware(['auth:sanctum'])->prefix('admin/staff/contract')->group(function(){
-    Route::get('/',[StaffFinancialContractController::class,'index']);
-    Route::get('/{id}',[StaffFinancialContractController::class,'show']);
-    Route::post('/',[StaffFinancialContractController::class,'store']);
-    Route::post('/{id}',[StaffFinancialContractController::class,'update']);
-    Route::delete('/{id}',[StaffFinancialContractController::class,'destroy']);
+Route::middleware(['auth:sanctum'])->prefix('admin/staff/contract')->group(function () {
+    Route::get('/', [StaffFinancialContractController::class, 'index']);
+    Route::get('/{id}', [StaffFinancialContractController::class, 'show']);
+    Route::post('/', [StaffFinancialContractController::class, 'store']);
+    Route::post('/{id}', [StaffFinancialContractController::class, 'update']);
+    Route::delete('/{id}', [StaffFinancialContractController::class, 'destroy']);
 });
 Route::middleware(['auth:sanctum'])->prefix('staff/payroll')->group(function () {
 
@@ -591,11 +595,20 @@ Route::prefix('user')->group(function () {
         Route::prefix('/exam/schedule')->controller(ExamScheduleController::class)->group(function () {
             Route::get('/show', 'studentExams');
             Route::get('/unread/count', 'unreadCount');
-            Route::post('/mark/all/read','markAllRead');
+            Route::post('/mark/all/read', 'markAllRead');
         });
 
+        Route::middleware('role:guardian')->group(function (){
+            Route::get('/show/finance/report/{studentId}',[GuardianFinanceController::class,'childFinance']);
+        Route::prefix('/complaint')->controller(ComplaintController::class)->group(function(){
+            Route::get('options','options');
+            Route::post('/create','store');
+            Route::put('update/{complaintId}','update');
+            Route::delete('delete/{complaintId}','destroy');
+            Route::get('show/{studentId}','index');
+        });
 
-
+        });
 
     });
 

@@ -36,7 +36,8 @@ class AlertRequest extends FormRequest
                     Alert::TYPE_PAYED,
                     Alert::TYPE_EXPULSION,
                     Alert::TYPE_WARNING,
-                    Alert::TYPE_SYSTEM_NOTICE
+                    Alert::TYPE_SYSTEM_NOTICE,
+                    Alert::TYPE_COMPLAIN,
                 ])
             ],
             'title' => ['nullable', 'string', 'max:255'],
@@ -89,6 +90,9 @@ class AlertRequest extends FormRequest
             ],
             Alert::TYPE_SYSTEM_NOTICE => [
                 'meta.action' => ['nullable','string']
+            ],
+            Alert::TYPE_COMPLAIN => [
+                'meta.severity' => ['nullable','string',Rule::in(['low', 'medium', 'high'])]
             ],
 
             default => [],

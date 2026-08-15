@@ -181,7 +181,7 @@ class ScheduleService
     {
         $tomorrow = Carbon::tomorrow();
 
-        if ($tomorrow->isFriday() || $tomorrow->isSaturday()) {
+        if ($tomorrow->isFriday() || $tomorrow->isSaturday() || $tomorrow->isThursday()) {
             return 'sunday';
         }
 

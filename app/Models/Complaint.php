@@ -13,7 +13,6 @@ class Complaint extends Model
         'complaint_type_id',
         'academic_year_id',
         'semester_id',
-        'status',
    ];
 
     public function guardian(): BelongsTo

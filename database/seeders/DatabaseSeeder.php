@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             SchoolLawSeeder::class,
             UserSeeder::class,
-           // TestSeeder::class,
             AcademicYearSeeder::class,
             SemesterSeeder::class,
             AcademicStageSeeder::class,
@@ -50,10 +49,11 @@ class DatabaseSeeder extends Seeder
             StudentMarkSeeder::class,
             PracticeQuizSeeder::class,
             StudentAttendanceSettingSeeder::class,
-           // StudentAttendanceSeeder::class,
-           StudentMaterialsSeeder::class,
-           ExamScheduleSeeder::class,
-           ContentSeeder::class,
+            StudentAttendanceSeeder::class,
+            StudentMaterialsSeeder::class,
+            ExamScheduleSeeder::class,
+            ContentSeeder::class,
+            ComplaintSeeder::class,
 
 
         ]);

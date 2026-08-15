@@ -77,7 +77,6 @@ class ComplaintService
                 Alert::TYPE_COMPLAIN,
                 [
                     'severity' => $complaint->type->severity ?? 'medium',
-                    'complaint_id' => $complaint->id
                 ],
                 "شكوى جديدة من ولي الأمر: {$guardianName}",
                 "تتعلق بالطالب {$studentName} حول: {$complaint->type->title}"

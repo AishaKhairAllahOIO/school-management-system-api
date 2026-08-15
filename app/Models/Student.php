@@ -8,7 +8,7 @@ use Override;
 class Student extends Model
 {
 
-   protected $guarded = [];
+    protected $guarded = [];
 
     public function user()
     {
@@ -23,6 +23,11 @@ class Student extends Model
     public function enrollments()
     {
         return $this->hasMany(Enrollment::class);
+    }
+
+    public function financialAccount()
+    {
+        return $this->hasOne(FinancialAccount::class);
     }
 
 

@@ -21,8 +21,6 @@ class UpdateScheduleEntryRequest extends FormRequest
         return [
             'teacher_id'       => ['sometimes', 'exists:staff,id'],
             'grade_subject_id' => ['sometimes', 'exists:grade_subjects,id'],
-            'day'              => ['sometimes', 'string', 'in:sunday,monday,tuesday,wednesday,thursday'],
-            'period_index'     => ['sometimes', 'integer', 'min:1', 'max:10'],
         ];
     }
 

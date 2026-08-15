@@ -50,8 +50,8 @@ use App\Http\Controllers\Admin\Staff\PayrollController;
 use App\Http\Controllers\Complaint\ComplaintController;
 use App\Http\Controllers\Admin\Report\AttendanceReportController;
 use App\Http\Controllers\Admin\Report\FinanceReportController;
-
-
+use App\Http\Controllers\Finance\GuardianFinanceController;
+use App\Http\Controllers\Finance\StaffPayrollController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -85,6 +85,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/announcements/unread-count', [UserAnnouncementController::class, 'getUnreadCount']);
         Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
+        Route::get('/staff/finance/report/show',[StaffPayrollController::class,'myPayrolls']);
 
         Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
             Route::get('/show/general/staff', 'getStaffAlerts');
@@ -585,6 +586,7 @@ Route::prefix('user')->group(function () {
         });
 
         Route::middleware('role:guardian')->group(function (){
+            Route::get('/show/finance/report/{studentId}',[GuardianFinanceController::class,'childFinance']);
         Route::prefix('/complaint')->controller(ComplaintController::class)->group(function(){
             Route::get('options','options');
             Route::post('/create','store');

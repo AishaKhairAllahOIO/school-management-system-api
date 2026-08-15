@@ -8,13 +8,8 @@ use App\Models\ScheduledInstallment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Exception;
-use App\Models\Alert;
-use App\Services\Notification\PushNotificationService;
-use Illuminate\Support\Facades\Log; // 👈 استدعاء الـ Log لتسجيل أخطاء الفايربيز بصمت
 use App\Services\User\AlertService;
 use Carbon\Carbon;
-use App\Models\User;
-use GPBMetadata\Google\Api\Auth as ApiAuth;
 
 class PaymentService
 {
@@ -25,7 +20,6 @@ class PaymentService
     {
         $query = PaymentTransaction::with(['account.student.user'])->latest();
 
-        // هنا يمكنك إضافة فلاتر مستقبلاً (مثلاً البحث برقم الإيصال أو طريقة الدفع)
         if (!empty($filters['payment_method'])) {
             $query->where('payment_method', $filters['payment_method']);
         }
@@ -33,9 +27,7 @@ class PaymentService
         return $query->get();
     }
 
-    /**
-     * 🔍 جلب إيصال دفع محدد
-     */
+
     public function getPaymentById(int $id)
     {
         return PaymentTransaction::with(['account.student.user'])->findOrFail($id);
@@ -45,7 +37,6 @@ class PaymentService
     {
         return DB::transaction(function () use ($data) {
             
-            // 1. جلب المحفظة المالية الفعالة للطالب
             $account = FinancialAccount::where('student_id', $data['studentId'])
                                        ->whereIn('payment_status', ['unpaid', 'partially_paid'])
                                        ->first();
@@ -56,27 +47,24 @@ class PaymentService
 
             $paidAmount = (float) $data['paidAmount'];
 
-            // 2. حماية: منع الدفع بأكثر من الرصيد المتبقي
             if ($paidAmount > $account->remaining_balance) {
                 throw new Exception("المبلغ المدفوع ($paidAmount) أكبر من الرصيد المتبقي على الطالب ({$account->remaining_balance}).", 422);
             }
 
 
             $pendingInstallments = ScheduledInstallment::where('financial_account_id', $account->id)
-                ->whereIn('status', ['pending', 'overdue']) // قد نستخدم overdue لاحقاً
+                ->whereIn('status', ['pending', 'overdue']) 
                 ->orderBy('due_date', 'asc')
                 ->get();
 
             $remainingMoneyToDistribute = $paidAmount;
 
             foreach ($pendingInstallments as $installment) {
-                if ($remainingMoneyToDistribute <= 0) break; // نفد مبلغ الدفعة
+                if ($remainingMoneyToDistribute <= 0) break;
 
-                // كم يتبقى لسداد هذا القسط تحديداً؟
                 $amountNeededForThisInstallment = $installment->amount_due - $installment->amount_paid;
 
                 if ($remainingMoneyToDistribute >= $amountNeededForThisInstallment) {
-                    // المبلغ يكفي لإغلاق هذا القسط بالكامل
                     $installment->update([
                         'amount_paid' => $installment->amount_due,
                         'status'      => 'paid'

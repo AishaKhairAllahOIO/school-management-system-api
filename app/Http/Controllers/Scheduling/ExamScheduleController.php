@@ -10,6 +10,7 @@ use App\Http\Resources\Scheduale\ExamResource;
 use App\Models\Enrollment;
 use App\Services\Schedule\ExamService;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
@@ -65,7 +66,7 @@ class ExamScheduleController extends Controller
         return $staff;
     }
 
-        private function getAuthStaff(Request $request)
+    private function getAuthStaff(Request $request)
     {
         $user = $request->user();
         $staff = $user->staff;
@@ -134,6 +135,18 @@ class ExamScheduleController extends Controller
         }
     }
 
+    public function destroySubject(int $examId, int $gradeSubjectId): JsonResponse
+    {
+        try {
+            $this->examService->deleteExamSubject($examId, $gradeSubjectId);
+            return $this->successResponse(null, 'Subject removed from exam schedule successfully.');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('The selected exam or subject was not found.', 404);
+        } catch (Exception $e) {
+            return $this->errorResponse('Failed to remove subject from exam schedule: ' . $e->getMessage(), 500);
+        }
+    }
+
     public function studentExams(Request $request): JsonResponse
     {
         try {
@@ -170,13 +183,13 @@ class ExamScheduleController extends Controller
             return $this->errorResponse($e->getMessage(), 403);
         }
     }
-    public function adminExams(Request $request,int $academicYearId,int $semesterId): JsonResponse
+    public function adminExams(Request $request, int $academicYearId, int $semesterId): JsonResponse
     {
 
         try {
             $admin = $this->getAuthStaff($request);
 
-            $data = $this->examService->getAllExamsForAdmin($academicYearId,$semesterId);
+            $data = $this->examService->getAllExamsForAdmin($academicYearId, $semesterId);
 
             return $this->successResponse(
                 $data,
@@ -194,11 +207,11 @@ class ExamScheduleController extends Controller
             $enrollment = $this->getCurrentEnrollment($student);
             $gradeLevelId = $enrollment->classRoom->grade_level_id;
 
-            $count = $this->examService->unreadCount($request->user(), $gradeLevelId, $student->id);
+            $counts = $this->examService->unreadCount($request->user(), $gradeLevelId, $student->id);
 
             return $this->successResponse(
-                ['unread_count' => $count],
-                'Unread exams count retrieved successfully.'
+                $counts,
+                'Unread counts retrieved successfully.'
             );
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
@@ -207,17 +220,24 @@ class ExamScheduleController extends Controller
 
     public function markAllRead(Request $request): JsonResponse
     {
+        $request->validate([
+            'type' => 'nullable|string|in:exam,quiz'
+        ]);
+
         try {
             $student = $this->getResolvedStudent($request);
             $enrollment = $this->getCurrentEnrollment($student);
             $gradeLevelId = $enrollment->classRoom->grade_level_id;
 
-            $this->examService->markAllRead($request->user(), $gradeLevelId, $student->id);
+            $type = $request->input('type');
 
-            return $this->successResponse(
-                null,
-                'All exams marked as read successfully.'
-            );
+            $this->examService->markAllRead($request->user(), $gradeLevelId, $student->id, $type);
+
+            $message = $type
+                ? "All unread {$type}s marked as read successfully."
+                : 'All exams and quizzes marked as read successfully.';
+
+            return $this->successResponse(null, $message);
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }

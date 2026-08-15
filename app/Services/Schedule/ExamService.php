@@ -8,6 +8,7 @@ use App\Models\GradeSubject;
 use App\Models\AcademicSetting;
 use App\Models\Alert;
 use App\Models\Enrollment;
+use App\Models\ExamSubject;
 use App\Models\Staff;
 use App\Services\User\AlertService;
 use Illuminate\Support\Facades\DB;
@@ -327,41 +328,83 @@ class ExamService
         $exam->delete();
     }
 
-    public function unreadCount($user, int $gradeLevelId, int $studentId): int
+
+    public function deleteExamSubject(int $examId, int $gradeSubjectId): void
     {
-        $setting = AcademicSetting::first();
+        DB::transaction(function () use ($examId, $gradeSubjectId) {
+            $exam = Exam::findOrFail($examId);
 
-        $totalExamsIds = Exam::where('grade_level_id', $gradeLevelId)
-            ->where('academic_year_id', $setting->current_academic_year_id)
-            ->where('semester_id', $setting->current_semester_id)
-            ->pluck('id');
+            $examSubject = ExamSubject::where('exam_id', $examId)
+                ->where('grade_subject_id', $gradeSubjectId)
+                ->firstOrFail();
 
-        if ($totalExamsIds->isEmpty()) {
-            return 0;
-        }
+            $examSubject->teachers()->detach();
 
-        $readCount = DB::table('exam_reads')
-            ->where('user_id', $user->id)
-            ->where('student_id', $studentId)
-            ->whereIn('exam_id', $totalExamsIds)
-            ->count();
+            $examSubject->delete();
 
-        return max(0, $totalExamsIds->count() - $readCount);
+            DB::table('exam_reads')->where('exam_id', $exam->id)->delete();
+        });
+
+        $this->notifyUsersOfExamUpdate(Exam::find($examId));
     }
 
-    public function markAllRead($user, int $gradeLevelId, int $studentId): void
+
+
+
+    public function unreadCount($user, int $gradeLevelId, int $studentId): array
     {
         $setting = AcademicSetting::first();
 
-        $unreadExamsIds = Exam::where('grade_level_id', $gradeLevelId)
+        $exams = Exam::where('grade_level_id', $gradeLevelId)
             ->where('academic_year_id', $setting->current_academic_year_id)
             ->where('semester_id', $setting->current_semester_id)
-            ->whereNotIn('id', function ($query) use ($user, $studentId) {
-                $query->select('exam_id')
-                    ->from('exam_reads')
-                    ->where('user_id', $user->id)
-                    ->where('student_id', $studentId);
-            })
+            ->select('id', 'type') 
+            ->get();
+
+        if ($exams->isEmpty()) {
+            return ['exams_count' => 0, 'quizzes_count' => 0];
+        }
+
+        $totalExamIds = $exams->where('type', 'exam')->pluck('id');
+        $totalQuizIds = $exams->where('type', 'quiz')->pluck('id'); 
+
+        $readExamIds = DB::table('exam_reads')
+            ->where('user_id', $user->id)
+            ->where('student_id', $studentId)
+            ->pluck('exam_id')
+            ->toArray();
+
+        $readExamsCount = $totalExamIds->intersect($readExamIds)->count();
+        $unreadExams = max(0, $totalExamIds->count() - $readExamsCount);
+
+        $readQuizzesCount = $totalQuizIds->intersect($readExamIds)->count();
+        $unreadQuizzes = max(0, $totalQuizIds->count() - $readQuizzesCount);
+
+        return [
+            'exams_count' => $unreadExams,
+            'quizzes_count' => $unreadQuizzes,
+        ];
+    }
+
+
+    public function markAllRead($user, int $gradeLevelId, int $studentId, ?string $type = null): void
+    {
+        $setting = AcademicSetting::first();
+
+        $query = Exam::where('grade_level_id', $gradeLevelId)
+            ->where('academic_year_id', $setting->current_academic_year_id)
+            ->where('semester_id', $setting->current_semester_id);
+
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        $unreadExamsIds = $query->whereNotIn('id', function ($subQuery) use ($user, $studentId) {
+            $subQuery->select('exam_id')
+                ->from('exam_reads')
+                ->where('user_id', $user->id)
+                ->where('student_id', $studentId);
+        })
             ->pluck('id');
 
         $inserts = $unreadExamsIds->map(function ($examId) use ($user, $studentId) {
@@ -468,97 +511,97 @@ class ExamService
         return $result;
     }
 
-public function getAllExamsForAdmin(int $academicYearId, int $semesterId): array
-{
-    $exams = Exam::query()
-        ->where('academic_year_id', $academicYearId)
-        ->where('semester_id', $semesterId)
-        ->with([
-            'gradeLevel',
-            'semester',
+    public function getAllExamsForAdmin(int $academicYearId, int $semesterId): array
+    {
+        $exams = Exam::query()
+            ->where('academic_year_id', $academicYearId)
+            ->where('semester_id', $semesterId)
+            ->with([
+                'gradeLevel',
+                'semester',
 
-            'subjects' => function ($query) {
-                $query
-                    ->with([
-                        'gradeSubject.subject',
-                        'teachers.user',
-                    ])
-                    ->orderBy('exam_date')
-                    ->orderBy('start_time');
-            },
-        ])
-        ->orderBy('grade_level_id')
-        ->orderBy('created_at', 'desc')
-        ->get();
+                'subjects' => function ($query) {
+                    $query
+                        ->with([
+                            'gradeSubject.subject',
+                            'teachers.user',
+                        ])
+                        ->orderBy('exam_date')
+                        ->orderBy('start_time');
+                },
+            ])
+            ->orderBy('grade_level_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
 
-    return $exams->map(function ($exam) {
+        return $exams->map(function ($exam) {
 
-        $subjects = $exam->subjects->map(function ($examSubject) {
+            $subjects = $exam->subjects->map(function ($examSubject) {
 
-            $teachers = $examSubject->teachers
-                ->map(function ($staff) {
-                    return [
-                        'staff_id' => $staff->id,
-                        'teacher_id' => $staff->teacher_id ?? $staff->id,
-                        'teacher_name' => trim(
-                            "{$staff->user?->first_name} {$staff->user?->father_name} {$staff->user?->last_name}"
-                        ),
-                    ];
-                })
-                ->unique('staff_id')
-                ->values()
-                ->toArray();
+                $teachers = $examSubject->teachers
+                    ->map(function ($staff) {
+                        return [
+                            'staff_id' => $staff->id,
+                            'teacher_id' => $staff->teacher_id ?? $staff->id,
+                            'teacher_name' => trim(
+                                "{$staff->user?->first_name} {$staff->user?->father_name} {$staff->user?->last_name}"
+                            ),
+                        ];
+                    })
+                    ->unique('staff_id')
+                    ->values()
+                    ->toArray();
+
+
+                return [
+                    'exam_subject_id' => $examSubject->id,
+
+                    'grade_subject_id' => $examSubject->grade_subject_id,
+
+                    'subject_id' =>
+                        $examSubject->gradeSubject?->subject_id,
+
+                    'subject_name' =>
+                        $examSubject->gradeSubject?->subject?->subject_name
+                        ?? 'Unknown',
+
+                    'exam_date' => $examSubject->exam_date,
+                    'start_time' => $examSubject->start_time,
+                    'end_time' => $examSubject->end_time,
+
+                    'syllabus' => $examSubject->syllabus,
+
+                    'teachers' => $teachers,
+                ];
+
+            })->values()->toArray();
 
 
             return [
-                'exam_subject_id' => $examSubject->id,
+                'exam_id' => $exam->id,
 
-                'grade_subject_id' => $examSubject->grade_subject_id,
+                'title' => $exam->title,
 
-                'subject_id' =>
-                    $examSubject->gradeSubject?->subject_id,
+                'type' => $exam->type,
 
-                'subject_name' =>
-                    $examSubject->gradeSubject?->subject?->subject_name
-                    ?? 'Unknown',
+                'grade_level' => [
+                    'id' => $exam->grade_level_id,
+                    'name' => $exam->gradeLevel?->name,
+                ],
 
-                'exam_date' => $examSubject->exam_date,
-                'start_time' => $examSubject->start_time,
-                'end_time' => $examSubject->end_time,
+                'semester' => [
+                    'id' => $exam->semester_id,
+                    'name' => $exam->semester?->semester_name,
+                ],
 
-                'syllabus' => $examSubject->syllabus,
+                'academic_year_id' => $exam->academic_year_id,
 
-                'teachers' => $teachers,
+                'subjects' => $subjects,
             ];
 
         })->values()->toArray();
-
-
-        return [
-            'exam_id' => $exam->id,
-
-            'title' => $exam->title,
-
-            'type' => $exam->type,
-
-            'grade_level' => [
-                'id' => $exam->grade_level_id,
-                'name' => $exam->gradeLevel?->name,
-            ],
-
-            'semester' => [
-                'id' => $exam->semester_id,
-                'name' => $exam->semester?->semester_name,
-            ],
-
-            'academic_year_id' => $exam->academic_year_id,
-
-            'subjects' => $subjects,
-        ];
-
-    })->values()->toArray();
-}
+    }
 
 
 

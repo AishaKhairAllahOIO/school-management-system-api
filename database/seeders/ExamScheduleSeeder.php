@@ -52,5 +52,19 @@ class ExamScheduleSeeder extends Seeder
         ]);
         $sExam2->teachers()->syncWithoutDetaching([1]);
 
+
+        $sExam3 = ExamSubject::updateOrCreate([
+            'exam_id' => $exam2->id,
+            'grade_subject_id' => 8,
+            'exam_date' => '2026-09-25',
+            'start_time' => '08:00:00',
+            'end_time' => '10:30:00',
+            'syllabus' => 'كامل ابحاث الفصل الاول',
+
+        ]);
+        $sExam3->teachers()->syncWithoutDetaching([1]);
+
+        
+
     }
 }

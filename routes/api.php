@@ -109,6 +109,7 @@ Route::prefix('auth')->group(function () {
             Route::get('/form/setup/{gradeLevelId}', 'getSetupData');
             Route::post('/store', 'store');
             Route::delete('/delete/{examId}', 'destroy');
+            Route::delete('/delete/one/subject/{examId}/{gradeSubjectId}','destroySubject');
             Route::put('/update/{examId}','update');
             Route::get('/show/{academicId}/{semesterId}','adminExams');
 

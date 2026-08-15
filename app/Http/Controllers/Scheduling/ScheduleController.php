@@ -107,14 +107,14 @@ class ScheduleController extends Controller
             return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
         } catch (Exception $e) {
 
-    return $this->errorResponse(
-        $e->getMessage(),
-        500
-    );
-        
+            return $this->errorResponse(
+                $e->getMessage(),
+                500
+            );
 
 
-}
+
+        }
     }
 
 
@@ -172,7 +172,7 @@ class ScheduleController extends Controller
     }
 
 
-    public function allTeachersWeekly(Request $request,int $academicId, int $semesterId): JsonResponse
+    public function allTeachersWeekly(Request $request, int $academicId, int $semesterId): JsonResponse
     {
         try {
             $this->getAuthStaff($request);
@@ -272,22 +272,6 @@ class ScheduleController extends Controller
         }
 
         return $enrollment;
-    }
-
-    public function emptyEntry(int $entryId): JsonResponse
-    {
-        try {
-            $updatedEntry = $this->scheduleService->emptyEntry($entryId);
-
-            return $this->successResponse(
-                $updatedEntry,
-                'Schedule entry emptied successfully (Slot is now free).'
-            );
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->errorResponse('The selected session does not exist.', 404);
-        } catch (Exception $e) {
-            return $this->errorResponse('Failed to empty the entry: ' . $e->getMessage(), 500);
-        }
     }
 
     public function addEntry(StoreScheduleEntryRequest $request): JsonResponse

@@ -53,7 +53,7 @@ class ScheduleService
     public function getAdminSchedule(int $academicYearId, int $semesterId): array
     {
 
- 
+
         $schedule = Schedule::with([
             'entries.classRoom.gradeLevel',
             'entries.gradeSubject.subject',
@@ -85,7 +85,7 @@ class ScheduleService
             }
 
             $classesMap[$classId]['schedule'][$day][] = [
-                'entry_id'     => $entry->id,
+                'entry_id' => $entry->id,
                 'period_index' => $entry->period_index,
                 'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
                 'teacher_name' => $entry->teacher->user->first_name ?? null,
@@ -180,9 +180,11 @@ class ScheduleService
     private function getSyrianTomorrowDayString(): ?string
     {
         $tomorrow = Carbon::tomorrow();
+
         if ($tomorrow->isFriday() || $tomorrow->isSaturday()) {
-            return null;
+            return 'sunday';
         }
+
         return strtolower($tomorrow->englishDayOfWeek);
     }
 
@@ -198,7 +200,7 @@ class ScheduleService
             $formatted[strtolower($entry->day)][] = [
                 'period_index' => $entry->period_index,
                 'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
-                'grade_name'   => $entry->gradeSubject->gradeLevel->name,
+                'grade_name' => $entry->gradeSubject->gradeLevel->name,
                 'classroom' => $entry->classRoom->name ?? null,
                 'start_time' => $times['start_time'],
                 'end_time' => $times['end_time'],
@@ -233,7 +235,7 @@ class ScheduleService
             if (!$entry->teacher)
                 continue;
 
-            $teacherName = $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name  ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
+            $teacherName = $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name ?? $entry->teacher->user->name ?? 'Teacher ' . $entry->teacher_id;
             $day = strtolower($entry->day);
 
             $times = $this->timeCalculator->calculate($entry->period_index, $settings);
@@ -283,41 +285,26 @@ class ScheduleService
     }
 
 
- public function addEntry(array $data): ScheduleEntry
-{
-    $exists = ScheduleEntry::where('schedule_id', $data['schedule_id'])
-        ->where('day', $data['day'])
-        ->where('period_index', $data['period_index'])
-        ->exists();
-
-    if ($exists) {
-        throw new Exception(
-            "This period already exists for {$data['day']}.",
-            422
-        );
-    }
-
-    $entry = ScheduleEntry::create($data);
-
-    $this->syncDayPeriodsCount(
-        $data['day'],
-        $data['period_index']
-    );
-
-    return $entry;
-}
-
-
-    public function emptyEntry(int $entryId): ScheduleEntry
+    public function addEntry(array $data): ScheduleEntry
     {
-        $entry = ScheduleEntry::findOrFail($entryId);
+        $exists = ScheduleEntry::where('schedule_id', $data['schedule_id'])
+            ->where('day', $data['day'])
+            ->where('period_index', $data['period_index'])
+            ->exists();
 
-        $entry->update([
-            'teacher_id'            => null,
-            'grade_subject_id'      => null,
-            'teacher_assignment_id' => null, 
-            'is_locked'             => false, 
-        ]);
+        if ($exists) {
+            throw new Exception(
+                "This period already exists for {$data['day']}.",
+                422
+            );
+        }
+
+        $entry = ScheduleEntry::create($data);
+
+        $this->syncDayPeriodsCount(
+            $data['day'],
+            $data['period_index']
+        );
 
         return $entry;
     }

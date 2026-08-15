@@ -284,7 +284,7 @@ class ScheduleService
         return $entry;
     }
 
-   public function addEntry(array $data): ScheduleEntry
+    public function addEntry(array $data): ScheduleEntry
     {
         $setting = AcademicSetting::firstOrFail();
         $scheduleSettings = $setting->schedule_settings ?? [];
@@ -301,10 +301,18 @@ class ScheduleService
 
         $newPeriodIndex = $currentPeriodsCount + 1;
 
+        if ($newPeriodIndex > 9) {
+            throw new Exception(
+                "You add sessions more than the allwoed number of sessions.",
+                422
+            );
+        }
+
+
         $data['period_index'] = $newPeriodIndex;
 
         $exists = ScheduleEntry::where('schedule_id', $data['schedule_id'])
-            ->where('class_room_id', $data['class_room_id']) // يفضل فحص الصف أيضاً لتجنب التضارب
+            ->where('class_room_id', $data['class_room_id'])
             ->where('day', $data['day'])
             ->where('period_index', $data['period_index'])
             ->exists();

@@ -48,4 +48,8 @@ class GradeSubject extends Model
     {
         return $this->hasMany(Homework::class, 'grade_subject_id');
     }
+    public function reportCardDetails()
+    {
+        return $this->hasMany(ReportCardDetail::class, 'grade_subject_id');
+    }
 }

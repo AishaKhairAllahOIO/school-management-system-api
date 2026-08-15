@@ -18,4 +18,8 @@ class AssessmentComponent extends Model
     {
         return $this->belongsTo(GradeSubject::class, 'grade_subject_id');
     }
+    public function studentMarks()
+{
+    return $this->hasMany(StudentMark::class, 'assessment_component_id');
+}
 }

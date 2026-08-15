@@ -33,6 +33,10 @@ class Semester extends Model
     {
         return $this->hasMany(TeacherAssignment::class, 'academic_term_id'); // تأكدي من اسم الفورين كي لديكم
     }
+    public function reportCards()
+    {
+        return $this->hasMany(ReportCard::class);
+    }
 
 
 }

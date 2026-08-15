@@ -50,4 +50,8 @@ public function attendances()
     {
         return $this->hasMany(StudentAttendance::class);
     }
+ public function reportCards()
+{
+    return $this->hasMany(ReportCard::class);
+}   
 }

@@ -56,6 +56,7 @@ use App\Http\Controllers\Student\GuardianReportController;
 
 use App\Http\Controllers\Finance\GuardianFinanceController;
 use App\Http\Controllers\Finance\StaffPayrollController;
+use App\Http\Controllers\Admin\Dashboard\DashboardController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -522,6 +523,13 @@ Route::middleware(['auth:sanctum'])->prefix('admin/report-cards')->group(functio
     Route::post('/promote', [ReportCardAdminController::class, 'promote']);         // زر ترفيع الطلاب للعام الجديد
     Route::post('/toggle-publish', [ReportCardAdminController::class, 'togglePublish']);
     });
+Route::middleware(['auth:sanctum'])->prefix('dashboard')->group(function () {
+    
+    Route::middleware(['role:super_admin'])->get('/super-admin', [DashboardController::class, 'superAdminDashboard']);
+    Route::middleware(['role:adviser|super_admin'])->get('/adviser', [DashboardController::class, 'adviserDashboard']);
+    Route::middleware(['role:secretary|super_admin'])->get('/secretary', [DashboardController::class, 'secretaryDashboard']);
+
+});    
 
 
 /// /////////////////////////////////////Mobile/////////////////////////////////////// ///

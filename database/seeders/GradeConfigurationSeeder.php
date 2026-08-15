@@ -19,7 +19,7 @@ class GradeConfigurationSeeder extends Seeder
                 'grade_level_id'   => 1,
             ],
             [
-                'supervisor_id'             => 10,
+                'supervisor_id'             => 4,
                 'planned_classrooms_count'  => 4,
                 'planned_students_capacity' => 120,
             ]
@@ -30,7 +30,7 @@ class GradeConfigurationSeeder extends Seeder
                 'grade_level_id'   => 2,
             ],
             [
-                'supervisor_id'             => 10,
+                'supervisor_id'             => 4,
                 'planned_classrooms_count'  => 3,
                 'planned_students_capacity' => 120,
             ]

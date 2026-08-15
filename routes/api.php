@@ -104,15 +104,19 @@ Route::prefix('auth')->group(function () {
             Route::put('/update/{entryId}', 'updateEntry');
             Route::get('/show/all/{academicId}/{semesterId}', 'adminView');
             Route::get('/teacher/show/{academicId}/{semesterId}', 'allTeachersWeekly');
+            Route::post('add/entry','addEntry');
         });
 
         Route::prefix('/exam/schedule')->controller(ExamScheduleController::class)->group(function () {
             Route::get('/form/setup/{gradeLevelId}', 'getSetupData');
             Route::post('/store', 'store');
-            Route::delete('/delete', 'delete');
+            Route::delete('/delete/{examId}', 'destroy');
+            Route::delete('/delete/one/subject/{examId}/{gradeSubjectId}','destroySubject');
             Route::put('/update/{examId}','update');
+            Route::get('/show/{academicId}/{semesterId}','adminExams');
 
         });
+        Route::get('/all/marks/show/{academicYearId}/{semesterId}',[MarkController::class,'index']);
 
 
         Route::prefix('created/alerts')->controller(SentAlertController::class)->group(function () {
@@ -181,7 +185,7 @@ Route::prefix('auth')->group(function () {
 
             Route::prefix('practice-quizzes')->controller(PracticeQuizController::class)->group(function () {
                 Route::post('/create/quiz', 'store');
-                Route::get('/show/quiz/by/grade-subject/{gradeSubjectId}', 'getQuizzesByGradeSubject');
+                Route::get('/show/quiz/by/grade-subject/{gradeSubjectId}/{gradeLevelId}', 'getQuizzesByGradeSubject');
                 Route::get('/show/one/quiz/{quizId}', 'show');
                 Route::patch('/toggle-active/quiz/{id}', 'toggleActive');
                 Route::delete('/delete/quiz/{id}', 'destroy');
@@ -585,5 +589,10 @@ Route::prefix('user')->group(function () {
     });
 
 });
+
+
 Route::get('/content', [ContentController::class, 'index']);
-Route::post('/content', [ContentController::class, 'store']);
+
+Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
+    Route::post('/content', [ContentController::class, 'store']);
+});

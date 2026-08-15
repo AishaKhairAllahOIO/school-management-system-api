@@ -94,68 +94,70 @@ class PracticeQuizService
     }
 
 
-    public function getTeacherQuizzes(
-        int $gradeSubjectId,
-        int $teacherId
-    ): Collection {
+public function getTeacherQuizzes(
+    int $gradeLevelId,
+    int $subjectId,
+    int $teacherId
+): Collection {
 
-        $gradeSubject = GradeSubject::query()
-            ->where('id', $gradeSubjectId)
-            ->whereHas('teacherAssignments', function ($query) use ($teacherId) {
-                $query
-                    ->where('teacher_id', $teacherId)
-                    ->whereHas('academicYear', function ($q) {
-                        $q->where('is_current', true);
-                    });
-            })
-            ->first();
+    $gradeSubject = GradeSubject::query()
+        ->where('grade_level_id', $gradeLevelId)
+        ->where('subject_id', $subjectId)
+        ->whereHas('teacherAssignments', function ($query) use ($teacherId) {
+            $query
+                ->where('teacher_id', $teacherId)
+                ->whereHas('academicYear', function ($q) {
+                    $q->where('is_current', true);
+                });
+        })
+        ->first();
 
-        if (!$gradeSubject) {
-            throw new Exception(
-                'You are not authorized to view or manage this subject.',
-                403
-            );
-        }
-
-        return PracticeQuiz::query()
-            ->where('grade_subject_id', $gradeSubjectId)
-            ->where('teacher_id', $teacherId)
-            ->with('gradeLevel')
-            ->withCount('attempts')
-            ->withSum('questions', 'mark')
-            ->latest()
-            ->get()
-            ->map(function (PracticeQuiz $quiz) {
-
-                return [
-                    'id' => $quiz->id,
-
-                    'title' => $quiz->title,
-
-                    'description' => $quiz->description,
-
-                    'grade_level' => [
-                        'id' => $quiz->gradeLevel?->id,
-                        'name' => $quiz->gradeLevel?->name?->value
-                            ?? $quiz->gradeLevel?->name,
-                        'level' => $quiz->gradeLevel?->level,
-                    ],
-
-                    'total_mark' => (float) (
-                        $quiz->questions_sum_mark ?? 0
-                    ),
-
-                    'attempts_count' => (int) $quiz->attempts_count,
-
-                    'is_active' => (bool) $quiz->is_active,
-
-                    'is_locked' => $quiz->attempts_count > 0,
-
-                    'created_at' => $quiz->created_at
-                        ->format('Y-m-d H:i'),
-                ];
-            });
+    if (!$gradeSubject) {
+        throw new Exception(
+            'You are not authorized to view or manage this subject.',
+            403
+        );
     }
+
+    return PracticeQuiz::query()
+        ->where('grade_subject_id', $gradeSubject->id)
+        ->where('teacher_id', $teacherId)
+        ->with('gradeLevel')
+        ->withCount('attempts')
+        ->withSum('questions', 'mark')
+        ->latest()
+        ->get()
+        ->map(function (PracticeQuiz $quiz) {
+
+            return [
+                'id' => $quiz->id,
+
+                'title' => $quiz->title,
+
+                'description' => $quiz->description,
+
+                'grade_level' => [
+                    'id' => $quiz->gradeLevel?->id,
+                    'name' => $quiz->gradeLevel?->name?->value
+                        ?? $quiz->gradeLevel?->name,
+                    'level' => $quiz->gradeLevel?->level,
+                ],
+
+                'total_mark' => (float) (
+                    $quiz->questions_sum_mark ?? 0
+                ),
+
+                'attempts_count' => (int) $quiz->attempts_count,
+
+                'is_active' => (bool) $quiz->is_active,
+
+                'is_locked' => $quiz->attempts_count > 0,
+
+                'created_at' => $quiz->created_at
+                    ->format('Y-m-d H:i'),
+            ];
+        });
+}
 
 
     public function getQuizDetails(

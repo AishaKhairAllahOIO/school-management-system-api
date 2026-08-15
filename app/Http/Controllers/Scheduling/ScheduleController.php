@@ -79,16 +79,6 @@ class ScheduleController extends Controller
         }
     }
 
-    public function addEntry(StoreScheduleEntryRequest $request): JsonResponse
-    {
-        $entry = $this->scheduleService->addEntry($request->validated());
-
-        return $this->successResponse(
-            $entry,
-            'New entry added successfully (Manual Override)',
-            201
-        );
-    }
 
     public function updateEntry(UpdateScheduleEntryRequest $request, int $entryId): JsonResponse
     {
@@ -116,7 +106,14 @@ class ScheduleController extends Controller
 
             return $this->successResponse(new AdminScheduleResource((object) $data), 'Admin schedule retrieved successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('Schedule not found for the selected term.', 404);
+
+            return $this->errorResponse(
+                $e->getMessage(),
+                500
+            );
+
+
+
         }
     }
 
@@ -175,7 +172,7 @@ class ScheduleController extends Controller
     }
 
 
-    public function allTeachersWeekly(Request $request,int $academicId, int $semesterId): JsonResponse
+    public function allTeachersWeekly(Request $request, int $academicId, int $semesterId): JsonResponse
     {
         try {
             $this->getAuthStaff($request);
@@ -275,5 +272,20 @@ class ScheduleController extends Controller
         }
 
         return $enrollment;
+    }
+
+    public function addEntry(StoreScheduleEntryRequest $request): JsonResponse
+    {
+        try {
+            $entry = $this->scheduleService->addEntry($request->validated());
+
+            return $this->successResponse(
+                $entry,
+                'New entry added successfully and academic settings synced.',
+                201
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse('Failed to add entry: ' . $e->getMessage(), 500);
+        }
     }
 }

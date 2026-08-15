@@ -22,7 +22,6 @@ return new class extends Migration
         $table->foreignId('semester_id')->constrained('semesters')->cascadeOnDelete();
         
         $table->enum('status', ['pending', 'in_progress', 'resolved', 'rejected'])->default('pending');
-        $table->text('admin_response')->nullable(); 
         
         $table->timestamps();
     });

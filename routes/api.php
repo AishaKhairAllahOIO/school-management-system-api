@@ -47,6 +47,8 @@ use App\Http\Controllers\Admin\Staff\StaffAttendanceController;
 use App\Http\Controllers\Admin\Staff\StaffLeaveController;
 use App\Http\Controllers\Admin\Staff\StaffFinancialContractController;
 use App\Http\Controllers\Admin\Staff\PayrollController;
+use App\Http\Controllers\Admin\Report\AttendanceReportController;
+use App\Http\Controllers\Admin\Report\FinanceReportController;
 
 
 
@@ -493,7 +495,14 @@ Route::middleware(['auth:sanctum'])->prefix('staff/payroll')->group(function () 
     Route::post('/{id}', [PayrollController::class, 'update']); // تعديل ملاحظات/تاريخ
     Route::delete('/{id}', [PayrollController::class, 'destroy']); // إلغاء إيصال
 });
-
+Route::middleware(['auth:sanctum'])->prefix('admin/reports/attendance')->group(function () {
+    Route::get('/students', [AttendanceReportController::class, 'getStudentAttendanceReport']);
+    Route::get('/staff', [AttendanceReportController::class, 'getStaffAttendanceReport']);
+});
+Route::middleware(['auth:sanctum'])->prefix('admin/reports/finance')->group(function () {
+    Route::get('/students', [FinanceReportController::class, 'getStudentFinanceReport']);
+    Route::get('/staff', [FinanceReportController::class, 'getStaffFinanceReport']);
+});
 
 
 /// /////////////////////////////////////Mobile/////////////////////////////////////// ///

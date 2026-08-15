@@ -19,7 +19,6 @@ return new class extends Migration
                 
             $table->foreignId('schedule_entry_id')->constrained('schedule_entries')->cascadeOnDelete();
                 
-            //$table->string('status', 20); // 'present', 'absent', 'substitute'
             $table->timestamps();
 
              $table->unique(['staff_attendance_id', 'schedule_entry_id'], 'unq_teacher_period_att');

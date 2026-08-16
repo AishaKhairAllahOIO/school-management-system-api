@@ -41,6 +41,9 @@ class DashboardService
     /**
      * 🧑‍🏫 2. إحصائيات الموجه (Adviser Dashboard)
      */
+    /**
+     * 🧑‍🏫 2. إحصائيات الموجه (Adviser Dashboard)
+     */
     public function getAdviserDashboard(): array
     {
         $today = Carbon::today()->toDateString();
@@ -70,7 +73,7 @@ class DashboardService
                 'students_count' => $c->students_count,
             ])->toArray();
 
-        // 💡 إجمالي طلاب هذا الموجه
+        // 💡 إجمالي الطلاب (المثبتين) في شُعب هذا الموجه فقط
         $studentsCount = \App\Models\Enrollment::whereIn('class_room_id', $classRoomIds)
             ->where('enrollment_status', 'enrolled')
             ->count();
@@ -81,6 +84,7 @@ class DashboardService
             ->whereHas('enrollment', fn($q) => $q->whereIn('class_room_id', $classRoomIds))
             ->count();
 
+        // تفصيل الغيابات (لطلاب الموجه فقط)
         $studentsWithUnexcusedAbsence = StudentAttendance::whereDate('attendance_date', $today)
             ->where('absence_type', 'unexcused')
             ->whereHas('enrollment', fn($q) => $q->whereIn('class_room_id', $classRoomIds))
@@ -91,7 +95,7 @@ class DashboardService
             ->whereHas('enrollment', fn($q) => $q->whereIn('class_room_id', $classRoomIds))
             ->count();
 
-        // 💡 الحاضرون = إجمالي الطلاب مطروحاً منه الغائبون اليوم!
+        // 💡 الحاضرون = إجمالي الطلاب مطروحاً منه إجمالي الغائبين اليوم!
         $presentCount = max(0, $studentsCount - $studentsWithAbsence);
 
         return [
@@ -102,13 +106,13 @@ class DashboardService
                 'students_with_unexcused_absence' => $studentsWithUnexcusedAbsence,
             ],
             'attendance' => [
-                'present'           => $presentCount, // تم التصحيح
+                'present'           => $presentCount, // تم التصحيح ليعتمد على الاستثناء
                 'excused_absence'   => $excusedCount,
                 'unexcused_absence' => $studentsWithUnexcusedAbsence,
             ],
             'students_by_stage' => $this->getStudentsByStageForGradeLevels($gradeLevelIds),
             'classes'           => $classesData,
-            'activities'        => $this->getRecentActivities(5), // 💡 من جدول الأنشطة
+            'activities'        => $this->getRecentActivities(5), 
             'notifications'     => $this->getUnreadNotificationsForAuthUser(),
         ];
     }

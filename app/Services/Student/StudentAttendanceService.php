@@ -131,7 +131,7 @@ class StudentAttendanceService
      * 2. الفلترة المتقدمة لعرض طلاب شعبة معينة مع حالة حضورهم
      * تم التعديل لافتراض أن الطالب "حاضر" إذا لم يمتلك سجل غياب
      */
-    public function filterStudentsAttendance(array $filters)
+public function filterStudentsAttendance(array $filters)
     {
         // 1. استخراج الفلاتر الأساسية للحضور
         $attendanceDate = $filters['attendance_date'] ?? now()->toDateString();
@@ -139,7 +139,7 @@ class StudentAttendanceService
         $statusFilter = $filters['status'] ?? null;
         $absenceTypeFilter = $filters['absence_type'] ?? null;
 
-        // 2. استخراج الفلاتر العامة (الجديدة)
+        // 2. استخراج الفلاتر العامة
         $searchName = $filters['search_name'] ?? null;
         $gradeId = $filters['grade_id'] ?? null;
         $classroomId = $filters['class_room_id'] ?? null;
@@ -147,16 +147,13 @@ class StudentAttendanceService
         $setting = StudentAttendanceSetting::where('semester_id', $semesterId)->first();
         $allowedAbsenceDays = $setting ? $setting->allowed_absence_days : 0;
 
-        // 3. بناء الاستعلام الأساسي على جدول القيود الأكاديمية
+        // 3. بناء الاستعلام الأساسي
         $query = Enrollment::whereIn('enrollment_status', ['enrolled', 'confirmed']);
 
-        // --- 💡 تطبيق الفلاتر العامة الديناميكية ---
-        
         if ($classroomId) {
             $query->where('class_room_id', $classroomId);
         }
 
-        // بافتراض أن الـ Enrollment يرتبط بجدول ClassRoom الذي يحتوي على grade_id
         if ($gradeId) {
             $query->whereHas('classRoom', function ($q) use ($gradeId) {
                 $q->where('grade_level_id', $gradeId);
@@ -165,15 +162,13 @@ class StudentAttendanceService
 
         if ($searchName) {
             $query->whereHas('student.user', function ($q) use ($searchName) {
-                // البحث بالاسم الأول، أو الأخير، أو دمج الاسمين معاً
                 $q->where('first_name', 'LIKE', "%{$searchName}%")
                   ->orWhere('last_name', 'LIKE', "%{$searchName}%")
                   ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$searchName}%"]);
             });
         }
-        // ---------------------------------------------
 
-        // 4. دمج العلاقات (Eager Loading) وتحديد تاريخ الحضور المطلوب
+        // 4. دمج العلاقات
         $query->with([
             'student.user:id,first_name,father_name,last_name',
             'attendances' => function ($q) use ($attendanceDate, $semesterId) {
@@ -185,32 +180,35 @@ class StudentAttendanceService
         // 5. حساب الغيابات التراكمية غير المبررة
         $query->withCount(['attendances as unexcused_count' => function ($q) use ($semesterId) {
             $q->where('semester_id', $semesterId)
-              ->where('status', 'absent')
+              ->whereIn('status', ['absent', 'partial_absence']) // 💡 تأكيد أنها غيابات فقط
               ->where('absence_type', 'unexcused');
         }]);
 
-        // 6. تطبيق فلاتر حالة الحضور (الحضور بالاستثناء)
+        // 6. تطبيق فلاتر حالة الحضور (تصحيح المنطق)
         if ($statusFilter === 'absent' || $absenceTypeFilter) {
             $query->whereHas('attendances', function ($q) use ($attendanceDate, $semesterId, $statusFilter, $absenceTypeFilter) {
                 $q->whereDate('attendance_date', $attendanceDate)
-                  ->where('semester_id', $semesterId);
+                  ->where('semester_id', $semesterId)
+                  ->where('status', 'absent'); // 💡 يجب أن يكون السجل الفعلي غياباً
                 
                 if ($absenceTypeFilter) {
                     $q->where('absence_type', $absenceTypeFilter);
                 }
             });
         } elseif ($statusFilter === 'present') {
-            // 💡 التعديل هنا: البحث عن الحاضرين (الذين لا يوجد لديهم سجل حضور في هذا اليوم)
+            // 💡 التعديل الذكي: الطالب حاضر إذا (لم يمتلك سجل غياب) في هذا اليوم
+            // هذا يشمل من ليس له سجل أبداً، ومن له سجل مكتوب فيه present
             $query->whereDoesntHave('attendances', function ($q) use ($attendanceDate, $semesterId) {
                 $q->whereDate('attendance_date', $attendanceDate)
-                  ->where('semester_id', $semesterId);
+                  ->where('semester_id', $semesterId)
+                  ->where('status', '!=', 'present'); // نستبعد فقط من لديه سجل غياب فعلي
             });
         }
 
         // 7. تنفيذ الاستعلام
         $enrollments = $query->paginate($filters['per_page'] ?? 15);
 
-        // 8. تشكيل الاستجابة (Transform) لتطابق متطلبات الواجهة الأمامية
+        // 8. تشكيل الاستجابة (التصحيح הגراحي للـ Contradiction)
         $enrollments->getCollection()->transform(function ($enrollment) use ($allowedAbsenceDays, $attendanceDate) {
             $attendanceRecord = $enrollment->attendances->first();
              
@@ -218,8 +216,12 @@ class StudentAttendanceService
             $remaining = max(0, $allowedAbsenceDays - $unexcused);
             $user = $enrollment->student?->user;
 
-            $computedStatus = $attendanceRecord ? 'absent' : 'present';
-            $computedAbsenceType = $attendanceRecord ? $attendanceRecord->absence_type : null;
+            // 💡 التعديل الجوهري هنا: نقرأ الحالة من الداتابيز إن وجدت، وإلا نفترضه حاضراً
+            $computedStatus = $attendanceRecord ? $attendanceRecord->status : 'present';
+            
+            // 💡 إذا كان حاضراً، فنوع الغياب حتماً null
+            $computedAbsenceType = ($computedStatus === 'present') ? null : ($attendanceRecord ? $attendanceRecord->absence_type : null);
+            
             $recordId = $attendanceRecord ? $attendanceRecord->id : null;
 
             return [

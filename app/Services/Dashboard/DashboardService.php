@@ -80,7 +80,7 @@ class DashboardService
 
         // إجمالي الغيابات لطلاب هذا الموجه (سواء مبرر أو غير مبرر)
         $studentsWithAbsence = StudentAttendance::whereDate('attendance_date', $today)
-            ->whereIn('status', ['absent', 'partial_absence'])
+            ->whereIn('status', ['absent'])
             ->whereHas('enrollment', fn($q) => $q->whereIn('class_room_id', $classRoomIds))
             ->count();
 

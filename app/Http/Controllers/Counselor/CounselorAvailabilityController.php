@@ -31,9 +31,8 @@ class CounselorAvailabilityController extends Controller
             $request->schedule
         );
 
-        return $this->successResponse($times,'Available times saved successfuly')
+        return $this->successResponse($times,'Available times saved successfuly.',201);
        
-
     }
     public function index(Request $request)
     {

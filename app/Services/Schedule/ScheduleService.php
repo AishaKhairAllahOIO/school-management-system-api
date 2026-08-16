@@ -6,7 +6,6 @@ use App\Models\Schedule;
 use App\Models\ScheduleEntry;
 use App\Models\AcademicSetting;
 use App\Services\ScheduleValidator;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Exception;

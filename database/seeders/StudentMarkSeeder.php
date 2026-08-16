@@ -22,6 +22,7 @@ class StudentMarkSeeder extends Seeder
             ['id' => 6, 'max_mark' => 360],
         ];
 
+
         $teacherId = 1;
 
         $marksToInsert = [];
@@ -30,15 +31,14 @@ class StudentMarkSeeder extends Seeder
         foreach ($enrollmentIds as $enrollmentId) {
             foreach ($assessmentComponents as $component) {
 
-                $randomMark = rand($component['max_mark'] / 2, $component['max_mark']);
 
                 $marksToInsert[] = [
-                    'enrollment_id'           => $enrollmentId,
+                    'enrollment_id' => $enrollmentId,
                     'assessment_component_id' => $component['id'],
-                    'teacher_id'              => $teacherId,
-                    'mark'                    => $randomMark,
-                    'created_at'              => $now,
-                    'updated_at'              => $now,
+                    'teacher_id' => $teacherId,
+                    'mark' =>  $component['max_mark'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
             }
         }

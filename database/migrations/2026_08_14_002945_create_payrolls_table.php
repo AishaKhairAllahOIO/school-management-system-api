@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('staff_id')->constrained('staff')->cascadeOnDelete();
             $table->foreignId('contract_id')->constrained('staff_financial_contracts')->restrictOnDelete();
             
-            $table->unsignedSmallInteger('year');  // مثال: 2026
-            $table->unsignedTinyInteger('month');  // مثال: 10 (لشهر أكتوبر)
+            $table->unsignedSmallInteger('year'); 
+            $table->unsignedTinyInteger('month'); 
             
             $table->date('payment_date'); 
             $table->decimal('net_salary', 10, 2); 

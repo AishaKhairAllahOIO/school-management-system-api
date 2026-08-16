@@ -12,7 +12,7 @@ class StaffLeaveTypeSeeder extends Seeder
         $leaveTypes = [
             [
                 'name' => 'إجازة صحية (مرضية)',
-                'payment_type' => 'paid', // مدفوعة (لا تُخصم من الراتب)
+                'payment_type' => 'paid', 
                 'max_days_per_academic_year' => 15,
             ],
             [
@@ -22,7 +22,7 @@ class StaffLeaveTypeSeeder extends Seeder
             ],
             [
                 'name' => 'إجازة بلا أجر',
-                'payment_type' => 'unpaid', // غير مدفوعة (تُخصم من الراتب)
+                'payment_type' => 'unpaid', 
                 'max_days_per_academic_year' => 30,
             ],
             [

@@ -19,9 +19,8 @@ class StaffLeaveSeeder extends Seeder
 
         if (!$staff || !$unpaidLeaveType || !$currentYear) return;
 
-        // تاريخ الإجازة في الشهر الحالي لكي تظهر في الرواتب
         $startDate = Carbon::now()->startOfMonth()->addDays(5);
-        $endDate = $startDate->copy()->addDay(); // يومين إجازة
+        $endDate = $startDate->copy()->addDay(); 
 
         StaffLeave::updateOrCreate(
             [

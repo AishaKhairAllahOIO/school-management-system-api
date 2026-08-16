@@ -21,8 +21,7 @@ class StaffFinancialContractSeeder extends Seeder
             [
                 'salary_type' => 'fixed_monthly',
                 'salary_amount' => 3000.00, 
-                'start_date' => $currentYear->start_date,
-                'end_date' => $currentYear->end_date,
+               
             ]
         );
 
@@ -30,9 +29,8 @@ class StaffFinancialContractSeeder extends Seeder
             ['staff_id' => 1, 'academic_year_id' => $currentYear->id],
             [
                 'salary_type' => 'per_period',
-                'salary_amount' => 50.00,
-                'start_date' => $currentYear->start_date,
-                'end_date' => $currentYear->end_date,
+                'salary_amount' => 50.00, 
+              
             ]
         );
     }

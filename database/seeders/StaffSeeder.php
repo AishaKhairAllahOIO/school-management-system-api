@@ -201,6 +201,8 @@ class StaffSeeder extends Seeder
                 'hire_date' => '2023-09-01',
             ]
         );
+      
+
 
     }
 }

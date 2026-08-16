@@ -10,6 +10,7 @@ use App\Models\StudentAttendance;
 use App\Models\ScheduledInstallment;
 use App\Models\PaymentTransaction;
 use App\Models\Alert;
+use App\Models\Activity; // 💡 استدعاء موديل الأنشطة الفعلي
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role;
@@ -25,18 +26,21 @@ class DashboardService
             'overview' => [
                 'students_count' => Student::count(),
                 'teachers_count' => $this->safeRoleCount('teacher'),
-                'staff_count'    => Staff::count(), // 💡 إجمالي الموظفين من جدول الـ Staff مباشرة
+                'staff_count'    => $this->getTotalStaffCount(), 
                 'classes_count'  => ClassRoom::count(),
             ],
             'finance' => $this->getFinanceSummary(),
-            'attendance' => $this->getTodayAttendanceSummary(),
+            'attendance' => $this->getTodayAttendanceSummary(), // يعتمد على الحضور بالاستثناء
             'students_by_stage' => $this->getStudentsByStage(),
             'staff_by_type' => $this->getStaffByType(),
-            'activities' => $this->getRecentActivities(5),
+            'activities' => $this->getRecentActivities(5), // 💡 من جدول الأنشطة
             'notifications' => $this->getUnreadNotificationsForAuthUser(),
         ];
     }
 
+    /**
+     * 🧑‍🏫 2. إحصائيات الموجه (Adviser Dashboard)
+     */
     /**
      * 🧑‍🏫 2. إحصائيات الموجه (Adviser Dashboard)
      */
@@ -69,22 +73,20 @@ class DashboardService
                 'students_count' => $c->students_count,
             ])->toArray();
 
+        // 💡 إجمالي الطلاب (المثبتين) في شُعب هذا الموجه فقط
         $studentsCount = \App\Models\Enrollment::whereIn('class_room_id', $classRoomIds)
             ->where('enrollment_status', 'enrolled')
             ->count();
 
+        // إجمالي الغيابات لطلاب هذا الموجه (سواء مبرر أو غير مبرر)
         $studentsWithAbsence = StudentAttendance::whereDate('attendance_date', $today)
             ->whereIn('status', ['absent', 'partial_absence'])
             ->whereHas('enrollment', fn($q) => $q->whereIn('class_room_id', $classRoomIds))
             ->count();
 
+        // تفصيل الغيابات (لطلاب الموجه فقط)
         $studentsWithUnexcusedAbsence = StudentAttendance::whereDate('attendance_date', $today)
             ->where('absence_type', 'unexcused')
-            ->whereHas('enrollment', fn($q) => $q->whereIn('class_room_id', $classRoomIds))
-            ->count();
-
-        $presentCount = StudentAttendance::whereDate('attendance_date', $today)
-            ->where('status', 'present')
             ->whereHas('enrollment', fn($q) => $q->whereIn('class_room_id', $classRoomIds))
             ->count();
 
@@ -92,6 +94,9 @@ class DashboardService
             ->where('absence_type', 'excused')
             ->whereHas('enrollment', fn($q) => $q->whereIn('class_room_id', $classRoomIds))
             ->count();
+
+        // 💡 الحاضرون = إجمالي الطلاب مطروحاً منه إجمالي الغائبين اليوم!
+        $presentCount = max(0, $studentsCount - $studentsWithAbsence);
 
         return [
             'overview' => [
@@ -101,13 +106,13 @@ class DashboardService
                 'students_with_unexcused_absence' => $studentsWithUnexcusedAbsence,
             ],
             'attendance' => [
-                'present'           => $presentCount,
+                'present'           => $presentCount, // تم التصحيح ليعتمد على الاستثناء
                 'excused_absence'   => $excusedCount,
                 'unexcused_absence' => $studentsWithUnexcusedAbsence,
             ],
             'students_by_stage' => $this->getStudentsByStageForGradeLevels($gradeLevelIds),
             'classes'           => $classesData,
-            'activities'        => $this->getRecentActivities(5),
+            'activities'        => $this->getRecentActivities(5), 
             'notifications'     => $this->getUnreadNotificationsForAuthUser(),
         ];
     }
@@ -121,13 +126,13 @@ class DashboardService
             'overview' => [
                 'students_count' => Student::count(),
                 'teachers_count' => $this->safeRoleCount('teacher'),
-                'staff_count'    => Staff::count(),
+                'staff_count'    => $this->getTotalStaffCount(),
                 'classes_count'  => ClassRoom::count(),
             ],
             'attendance' => $this->getTodayAttendanceSummary(),
             'finance' => $this->getFinanceSummary(),
             'students_by_stage' => $this->getStudentsByStage(),
-            'activities' => $this->getRecentActivities(5),
+            'activities' => $this->getRecentActivities(5), // 💡 من جدول الأنشطة
             'notifications' => $this->getUnreadNotificationsForAuthUser(),
         ];
     }
@@ -137,18 +142,42 @@ class DashboardService
     // ==========================================
 
     /**
-     * 🛡️ فحص الدور بأمان تام لمنع أي استثناءات
+     * 🧠 الدالة الموحدة: تكتشف دور المستخدم الحالي وتجلب الداشبورد المناسبة له تلقائياً
      */
+    public function getDashboardForAuthUser(\App\Models\User $user): array
+    {
+        if ($user->hasRole('super_admin')) {
+            return ['role' => 'super_admin', 'dashboard_data' => $this->getSuperAdminDashboard()];
+        }
+
+        if ($user->hasRole('adviser')) {
+            return ['role' => 'adviser', 'dashboard_data' => $this->getAdviserDashboard()];
+        }
+
+        if ($user->hasRole('secretary')) {
+            return ['role' => 'secretary', 'dashboard_data' => $this->getSecretaryDashboard()];
+        }
+
+        throw new \Exception('لا تتوفر لوحة تحكم مخصصة للدور الأكاديمي الخاص بحسابك.', 403);
+    }
+
     private function safeRoleCount(string $roleName): int
     {
         try {
             if (Role::where('name', $roleName)->where('guard_name', 'sanctum')->exists()) {
                 return Staff::whereHas('user', fn($q) => $q->role($roleName))->count();
             }
-        } catch (\Throwable $e) {
-            // صيد الخطأ بصمت
-        }
+        } catch (\Throwable $e) {}
         return 0;
+    }
+
+    private function getTotalStaffCount(): int
+    {
+        return Staff::whereHas('user', function ($query) {
+            $query->whereDoesntHave('roles', function ($roleQuery) {
+                $roleQuery->where('name', 'super_admin');
+            });
+        })->count();
     }
 
     private function getFinanceSummary(): array
@@ -168,10 +197,21 @@ class DashboardService
     {
         $today = Carbon::today()->toDateString();
         
+        // 💡 التعديل هنا: تطبيق مبدأ الحضور بالاستثناء لجميع الطلاب
+        $totalEnrolledStudents = \App\Models\Enrollment::where('enrollment_status', 'enrolled')->count();
+        
+        $totalAbsentStudents = StudentAttendance::whereDate('attendance_date', $today)
+            ->whereIn('status', ['absent', 'partial_absence'])
+            ->count();
+
+        $excusedCount = StudentAttendance::whereDate('attendance_date', $today)->where('absence_type', 'excused')->count();
+        $unexcusedCount = StudentAttendance::whereDate('attendance_date', $today)->where('absence_type', 'unexcused')->count();
+
         return [
-            'present'           => StudentAttendance::whereDate('attendance_date', $today)->where('status', 'present')->count(),
-            'excused_absence'   => StudentAttendance::whereDate('attendance_date', $today)->where('absence_type', 'excused')->count(),
-            'unexcused_absence' => StudentAttendance::whereDate('attendance_date', $today)->where('absence_type', 'unexcused')->count(),
+            // الحاضرون = إجمالي المسجلين - من سُجل له غياب اليوم
+            'present'           => max(0, $totalEnrolledStudents - $totalAbsentStudents), 
+            'excused_absence'   => $excusedCount,
+            'unexcused_absence' => $unexcusedCount,
         ];
     }
 
@@ -185,7 +225,7 @@ class DashboardService
 
             return [
                 'stage_id'       => $stage->id,
-                'stage_name'     => $stage->name,
+                'stage_name'     => $stage->type ?? 'غير محدد',
                 'students_count' => $studentsCount,
             ];
         })->toArray();
@@ -198,14 +238,14 @@ class DashboardService
         })
         ->get()
         ->map(function ($stage) use ($gradeLevelIds) {
-            $matchedGradeIds = $stage->gradeLevels()->whereIn('id', $gradeLevelIds)->pluck('id');
+            $matchedGradeIds = $stage->gradeLevels->whereIn('id', $gradeLevelIds)->pluck('id');
             $studentsCount = \App\Models\Enrollment::whereIn('grade_level_id', $matchedGradeIds)
                 ->where('enrollment_status', 'enrolled')
                 ->count();
 
             return [
                 'stage_id'       => $stage->id,
-                'stage_name'     => $stage->name,
+                'stage_name'     => $stage->name ?? 'غير محدد',
                 'students_count' => $studentsCount,
             ];
         })->toArray();
@@ -214,11 +254,11 @@ class DashboardService
     private function getStaffByType(): array
     {
         $rolesMap = [
-            'teachers'      => 'teacher',       // المعلمون
-            'advisers'      => 'adviser',       // الموجهون
-            'secretaries'   => 'secretary',     // أمناء السر
-            'counselors'    => 'counselor',     // المرشد النفسي
-            'service_staff' => 'service',       // موظفو الخدمات
+            'teachers'      => 'teacher',       
+            'advisers'      => 'adviser',       
+            'secretaries'   => 'secretary',     
+            'counselors'    => 'counselor',     
+            'service_staff' => 'service_staff', 
         ];
 
         $labels = [
@@ -241,15 +281,22 @@ class DashboardService
         return $result;
     }
 
+    /**
+     * 💡 تم تعديل الدالة لتقرأ من جدول الأنشطة الحقيقي بدلاً من التنبيهات
+     */
     private function getRecentActivities(int $limit = 5): array
     {
-        return Alert::latest()->take($limit)->get()->map(fn($alert) => [
-            'id'          => $alert->id,
-            'type'        => $alert->type,
-            'title'       => $alert->title,
-            'description' => $alert->description,
-            'created_at'  => $alert->created_at->toIso8601String(),
-        ])->toArray();
+        return Activity::latest('activity_date')
+            ->take($limit)
+            ->get()
+            ->map(fn($activity) => [
+                'id'          => $activity->id,
+                'type'        => $activity->type,
+                'title'       => $activity->activity_name, // تمت المطابقة مع الحقل بجدول الأنشطة
+                'description' => $activity->description,
+                'created_at'  => clone $activity->created_at ? $activity->created_at->toIso8601String() : null,
+                'date'        => $activity->activity_date, // إضافة التاريخ لمزيد من التفاصيل للواجهة
+            ])->toArray();
     }
 
     private function getUnreadNotificationsForAuthUser(): array
@@ -280,37 +327,5 @@ class DashboardService
                 'message' => $n->description,
             ])->toArray(),
         ];
-    }
-    /**
-     * 🧠 الدالة الموحدة: تكتشف دور المستخدم الحالي وتجلب الداشبورد المناسبة له تلقائياً
-     */
-    public function getDashboardForAuthUser(\App\Models\User $user): array
-    {
-        // 1. إذا كان مدير عام
-        if ($user->hasRole('super_admin')) {
-            return [
-                'role' => 'super_admin',
-                'dashboard_data' => $this->getSuperAdminDashboard()
-            ];
-        }
-
-        // 2. إذا كان مووجهاً
-        if ($user->hasRole('adviser')) {
-            return [
-                'role' => 'adviser',
-                'dashboard_data' => $this->getAdviserDashboard()
-            ];
-        }
-
-        // 3. إذا كان أمين سر / سكرتير
-        if ($user->hasRole('secretary')) {
-            return [
-                'role' => 'secretary',
-                'dashboard_data' => $this->getSecretaryDashboard()
-            ];
-        }
-
-        // 4. خيار افتراضي في حال كان الموظف له دور آخر
-        throw new \Exception('لا تتوفر لوحة تحكم مخصصة للدور الأكاديمي الخاص بحسابك.', 403);
     }
 }

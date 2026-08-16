@@ -523,6 +523,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/report-cards')->group(functio
     Route::post('/promote', [ReportCardAdminController::class, 'promote']);         // زر ترفيع الطلاب للعام الجديد
     Route::post('/toggle-publish', [ReportCardAdminController::class, 'togglePublish']);
     });
+
 Route::middleware(['auth:sanctum'])->prefix('dashboard')->group(function () {
     
     Route::middleware(['role:super_admin'])->get('/super-admin', [DashboardController::class, 'superAdminDashboard']);

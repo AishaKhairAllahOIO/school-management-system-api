@@ -22,27 +22,27 @@ class UpdateAvailabilityRequest extends FormRequest
         return [
 
             'start_time'=>[
-                'required',
+                'sometimes',
                 'date_format:H:i'
             ],
 
 
             'end_time'=>[
-                'required',
+                'sometimes',
                 'date_format:H:i',
                 'after:start_time'
             ],
 
 
             'session_duration'=>[
-                'required',
+                'sometimes',
                 'integer',
                 'min:10'
             ],
 
 
             'daily_sessions_limit'=>[
-                'required',
+                'sometimes',
                 'integer',
                 'min:1'
             ],

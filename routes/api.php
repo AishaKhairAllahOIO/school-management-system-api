@@ -92,6 +92,7 @@ Route::prefix('auth')->group(function () {
         Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
         Route::get('/staff/finance/report/show',[StaffPayrollController::class,'myPayrolls']);
+        Route::get('/staff/leaves/report/show',[StaffLeaveController::class,'getMyLeaves']);
 
         Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
             Route::get('/show/general/staff', 'getStaffAlerts');
@@ -221,7 +222,7 @@ Route::prefix('auth')->group(function () {
                 Route::post('/availability','store');
                 Route::get('/availability','index');
                 Route::put('/availability/{day}','update');
-                Route::delete('/availability','destroy');
+                Route::delete('/availability/{day}','destroy');
 
             });
         });
@@ -534,12 +535,12 @@ Route::middleware(['auth:sanctum'])->prefix('admin/report-cards')->group(functio
     });
 
 Route::middleware(['auth:sanctum'])->prefix('dashboard')->group(function () {
-    
+
     Route::middleware(['role:super_admin'])->get('/super-admin', [DashboardController::class, 'superAdminDashboard']);
     Route::middleware(['role:adviser|super_admin'])->get('/adviser', [DashboardController::class, 'adviserDashboard']);
     Route::middleware(['role:secretary|super_admin'])->get('/secretary', [DashboardController::class, 'secretaryDashboard']);
 
-});    
+});
 //Route::middleware(['auth:sanctum'])->get('/dashboard', [DashboardController::class, 'index']);
 
 

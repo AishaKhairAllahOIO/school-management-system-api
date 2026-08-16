@@ -20,158 +20,158 @@ class StudentFinancialSeeder extends Seeder
     public function run(): void
     {
 
-        DB::transaction(function () {
+        // DB::transaction(function () {
 
 
-            $students = Student::whereIn('id',[1,3,2])->get();
+        //     $students = Student::whereIn('id',[1,3,2])->get();
 
 
 
 
-            foreach ($students as $student) {
+        //     foreach ($students as $student) {
 
 
-                $account = FinancialAccount::firstOrCreate(
-                    [
-                        'student_id'=>$student->id,
-                        'academic_year_id'=>1,
-                    ],
-                    [
-                        'fee_plan_id'=>FeePlan::first()?->id,
+        //         $account = FinancialAccount::firstOrCreate(
+        //             [
+        //                 'student_id'=>$student->id,
+        //                 'academic_year_id'=>1,
+        //             ],
+        //             [
+        //                 'fee_plan_id'=>FeePlan::first()?->id,
 
-                        'installment_policy_id'
-                            =>InstallmentPolicy::first()?->id,
+        //                 'installment_policy_id'
+        //                     =>InstallmentPolicy::first()?->id,
 
 
-                        'total_required_amount'=>3000,
+        //                 'total_required_amount'=>3000,
 
-                        'remaining_balance'=>3000,
+        //                 'remaining_balance'=>3000,
 
-                        'payment_status'=>'unpaid',
-                    ]
-                );
+        //                 'payment_status'=>'unpaid',
+        //             ]
+        //         );
 
 
 
 
 
-                $installments = [
+        //         $installments = [
 
-                    [
-                        'number'=>1,
-                        'title'=>'القسط الأول - رسوم التسجيل',
-                        'amount'=>1000,
-                    ],
+        //             [
+        //                 'number'=>1,
+        //                 'title'=>'القسط الأول - رسوم التسجيل',
+        //                 'amount'=>1000,
+        //             ],
 
-                    [
-                        'number'=>2,
-                        'title'=>'القسط الثاني',
-                        'amount'=>1000,
-                    ],
+        //             [
+        //                 'number'=>2,
+        //                 'title'=>'القسط الثاني',
+        //                 'amount'=>1000,
+        //             ],
 
-                    [
-                        'number'=>3,
-                        'title'=>'القسط الثالث',
-                        'amount'=>1000,
-                    ],
+        //             [
+        //                 'number'=>3,
+        //                 'title'=>'القسط الثالث',
+        //                 'amount'=>1000,
+        //             ],
 
-                ];
+        //         ];
 
 
 
-                foreach($installments as $item){
+        //         foreach($installments as $item){
 
 
-                    ScheduledInstallment::firstOrCreate(
-                        [
-                            'financial_account_id'=>$account->id,
+        //             ScheduledInstallment::firstOrCreate(
+        //                 [
+        //                     'financial_account_id'=>$account->id,
 
-                            'installment_number'
-                                =>$item['number'],
-                        ],
-                        [
+        //                     'installment_number'
+        //                         =>$item['number'],
+        //                 ],
+        //                 [
 
-                            'title'=>$item['title'],
+        //                     'title'=>$item['title'],
 
-                            'amount_due'=>$item['amount'],
+        //                     'amount_due'=>$item['amount'],
 
-                            'amount_paid'=>0,
+        //                     'amount_paid'=>0,
 
-                            'status'=>'pending',
+        //                     'status'=>'pending',
 
-                            'due_date'=>now()
-                                ->addMonths($item['number'])
-                                ->toDateString(),
+        //                     'due_date'=>now()
+        //                         ->addMonths($item['number'])
+        //                         ->toDateString(),
 
-                        ]
-                    );
+        //                 ]
+        //             );
 
-                }
+        //         }
 
 
 
 
-                /*
-                 | إنشاء دفعة مالية
-                 */
+        //         /*
+        //          | إنشاء دفعة مالية
+        //          */
 
 
-                $transaction = PaymentTransaction::create([
+        //         $transaction = PaymentTransaction::create([
 
 
-                    'financial_account_id'=>$account->id,
+        //             'financial_account_id'=>$account->id,
 
 
-                    'paid_amount'=>1000,
+        //             'paid_amount'=>1000,
 
 
-                    'payment_method'=>'cash',
+        //             'payment_method'=>'cash',
 
 
-                    'paper_receipt_no'
-                        =>'REC-'.$student->id.'-001',
+        //             'paper_receipt_no'
+        //                 =>'REC-'.$student->id.'-001',
 
 
-                    'collected_by_user_id'=>1,
+        //             'collected_by_user_id'=>1,
 
 
-                ]);
+        //         ]);
 
 
 
 
-                ScheduledInstallment::where(
-                    'financial_account_id',
-                    $account->id
-                )
-                ->where(
-                    'installment_number',
-                    1
-                )
-                ->update([
+        //         ScheduledInstallment::where(
+        //             'financial_account_id',
+        //             $account->id
+        //         )
+        //         ->where(
+        //             'installment_number',
+        //             1
+        //         )
+        //         ->update([
 
-                    'amount_paid'=>1000,
+        //             'amount_paid'=>1000,
 
-                    'status'=>'paid',
+        //             'status'=>'paid',
 
-                ]);
+        //         ]);
 
 
 
 
-                $account->update([
+        //         $account->update([
 
-                    'remaining_balance'=>2000,
+        //             'remaining_balance'=>2000,
 
-                    'payment_status'=>'partially_paid',
+        //             'payment_status'=>'partially_paid',
 
-                ]);
+        //         ]);
 
 
-            }
+        //     }
 
 
-        });
+        // });
 
     }
 

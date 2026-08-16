@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Throwable;
 use App\Http\Resources\Staff\StaffLeaveResource;
 use App\Http\Requests\Admin\Staff\UpadateStaffLeaveRequest;
+use Illuminate\Http\Request;
 
 class StaffLeaveController extends Controller
 {
@@ -79,6 +80,17 @@ class StaffLeaveController extends Controller
         try {
             $leaves = $this->service->getStaffLeaves($staffId);
             return $this->successResponse(StaffLeaveResource::collection($leaves), 'تم جلب سجل إجازات الموظف بنجاح.');
+        } catch (Throwable $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب سجل إجازات الموظف.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function getMyLeaves(Request $request): JsonResponse
+    {
+        try {
+            $staffId = $request->user()->staff->id;
+            $leaves = $this->service->getStaffLeaves($staffId);
+            return $this->successResponse(StaffLeaveResource::collection($leaves), 'تم جلب سجل إجازاتي بنجاح.');
         } catch (Throwable $e) {
             return $this->errorResponse('حدث خطأ أثناء جلب سجل إجازات الموظف.', 500, ['error' => $e->getMessage()]);
         }

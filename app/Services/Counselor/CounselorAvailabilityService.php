@@ -56,7 +56,6 @@ class CounselorAvailabilityService
         });
 
     }
-
     public function getSchedule(int $counselorId)
     {
 
@@ -68,7 +67,6 @@ class CounselorAvailabilityService
             ->get();
 
     }
-
     public function updateDay(int $counselorId, string $day, array $data)
     {
 
@@ -84,7 +82,6 @@ class CounselorAvailabilityService
         return $availability;
 
     }
-
     public function deleteDay(int $counselorId, string $day)
     {
 

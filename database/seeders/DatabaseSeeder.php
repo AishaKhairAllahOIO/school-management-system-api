@@ -54,6 +54,12 @@ class DatabaseSeeder extends Seeder
             ExamScheduleSeeder::class,
             ContentSeeder::class,
             ComplaintSeeder::class,
+            StaffLeaveTypeSeeder::class,
+            StaffLeaveSeeder::class,
+            StaffFinancialContractSeeder::class,
+            StaffAttendanceSeeder::class,
+            PayrollSeeder::class,
+
 
 
         ]);

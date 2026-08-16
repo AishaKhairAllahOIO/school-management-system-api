@@ -22,8 +22,7 @@ class StaffFinancialContractSeeder extends Seeder
             [
                 'salary_type' => 'fixed_monthly',
                 'salary_amount' => 3000.00, // 3000 دولار أو عملة محلية
-                'start_date' => $currentYear->start_date,
-                'end_date' => $currentYear->end_date,
+               
             ]
         );
 
@@ -33,8 +32,7 @@ class StaffFinancialContractSeeder extends Seeder
             [
                 'salary_type' => 'per_period',
                 'salary_amount' => 50.00, // 50 للحصة الواحدة
-                'start_date' => $currentYear->start_date,
-                'end_date' => $currentYear->end_date,
+              
             ]
         );
     }

@@ -281,4 +281,36 @@ class DashboardService
             ])->toArray(),
         ];
     }
+    /**
+     * 🧠 الدالة الموحدة: تكتشف دور المستخدم الحالي وتجلب الداشبورد المناسبة له تلقائياً
+     */
+    public function getDashboardForAuthUser(\App\Models\User $user): array
+    {
+        // 1. إذا كان مدير عام
+        if ($user->hasRole('super_admin')) {
+            return [
+                'role' => 'super_admin',
+                'dashboard_data' => $this->getSuperAdminDashboard()
+            ];
+        }
+
+        // 2. إذا كان مووجهاً
+        if ($user->hasRole('adviser')) {
+            return [
+                'role' => 'adviser',
+                'dashboard_data' => $this->getAdviserDashboard()
+            ];
+        }
+
+        // 3. إذا كان أمين سر / سكرتير
+        if ($user->hasRole('secretary')) {
+            return [
+                'role' => 'secretary',
+                'dashboard_data' => $this->getSecretaryDashboard()
+            ];
+        }
+
+        // 4. خيار افتراضي في حال كان الموظف له دور آخر
+        throw new \Exception('لا تتوفر لوحة تحكم مخصصة للدور الأكاديمي الخاص بحسابك.', 403);
+    }
 }

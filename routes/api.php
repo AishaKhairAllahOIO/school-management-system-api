@@ -530,6 +530,7 @@ Route::middleware(['auth:sanctum'])->prefix('dashboard')->group(function () {
     Route::middleware(['role:secretary|super_admin'])->get('/secretary', [DashboardController::class, 'secretaryDashboard']);
 
 });    
+Route::middleware(['auth:sanctum'])->get('/dashboard', [DashboardController::class, 'index']);
 
 
 /// /////////////////////////////////////Mobile/////////////////////////////////////// ///

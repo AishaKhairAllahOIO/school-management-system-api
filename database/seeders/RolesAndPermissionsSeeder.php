@@ -12,10 +12,8 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. مسح الكاش أوتوماتيكياً
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // مصفوفة الصلاحيات الخاصة بك، مع الأسماء المقترحة للموديولات
         $modulesWithPermissions = [
             'auth' => [
                 'name' => 'Authentication & Accounts',
@@ -154,15 +152,11 @@ class RolesAndPermissionsSeeder extends Seeder
             ]
         ];
 
-        // ═══════════════════════════════════════════════════════════════════
-        // 2. البناء الديناميكي للموديولات والصلاحيات
-        // ═══════════════════════════════════════════════════════════════════
+
         foreach ($modulesWithPermissions as $moduleKey => $moduleData) {
             
-            // إنشاء الوحدة (SystemModule)
             $module = SystemModule::firstOrCreate(['name' => $moduleData['name']]);
 
-            // إنشاء الصلاحيات (Permissions) وربطها بالوحدة
             foreach ($moduleData['perms'] as $permissionName) {
                 Permission::firstOrCreate(
                     ['name' => $permissionName, 'guard_name' => 'sanctum'],
@@ -174,17 +168,12 @@ class RolesAndPermissionsSeeder extends Seeder
             }
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // 3. إنشاء الأدوار الأساسية وتعيين الصلاحيات
-        // ═══════════════════════════════════════════════════════════════════
 
-        // ROLE 1: Super Admin
         $superAdmin = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'sanctum'], ['is_system' => true]);
         $superAdmin->syncPermissions(Permission::whereNotIn('name', [
             'counseling:book', 'counseling:cancel', 'counseling:view_own', 'tool:ai_assistant', 'tool:todo_list'
         ])->pluck('name'));
 
-        // ROLE 2: Teacher
         $teacher = Role::firstOrCreate(['name' => 'teacher', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $teacher->syncPermissions([
             'login', 'logout', 'view_own_profile',
@@ -197,7 +186,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'announcement:view', 'notification:system_receive', 'rule:view', 'complaint:submit_to_adviser'
         ]);
 
-        // ROLE 3: Secretary
         $secretary = Role::firstOrCreate(['name' => 'secretary', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $secretary->syncPermissions([
             'login', 'logout', 'reset_password', 'view_own_profile',
@@ -218,7 +206,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'notification:system_receive'
         ]);
 
-        // ROLE 4: Adviser
         $adviser = Role::firstOrCreate(['name' => 'adviser', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $adviser->syncPermissions([
             'login', 'logout', 'reset_password', 'view_own_profile', 
@@ -230,7 +217,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'report_attendance:view', 'report_grades:view', 'report_performance:view', 'complaint:view', 'salary:view_own'
         ]);
 
-        // ROLE 5: Counselor
         $counselor = Role::firstOrCreate(['name' => 'counselor', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $counselor->syncPermissions([
             'login', 'logout', 'view_own_profile',
@@ -239,7 +225,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'notification:system_receive', 'salary:view_own', 'schedule:view_own'
         ]);
 
-        // ROLE 6: Guardian
         $guardian = Role::firstOrCreate(['name' => 'guardian', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $guardian->syncPermissions([
             'login', 'logout', 'view_own_profile',
@@ -250,7 +235,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'complaint:submit_to_adviser'
         ]);
 
-        // ROLE 7: Student
         $student = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
         $student->syncPermissions([
             'login', 'logout', 'view_own_profile',
@@ -260,16 +244,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'tool:ai_assistant', 'tool:todo_list'
         ]);
         
-        // ROLE 8: Service Staff
         $service_staff = Role::firstOrCreate(['name' => 'service_staff', 'guard_name' => 'sanctum'], ['is_system' => true,'is_active'=>true]);
 
-        // مسح الكاش النهائي
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    /**
-     * دالة مساعدة لتحديد نطاق الصلاحية برمجياً بناءً على اسمها
-     */
     private function inferAccessLevel(string $permissionName): string
     {
         if (str_contains($permissionName, 'own') || str_contains($permissionName, 'profile') || str_contains($permissionName, 'children')) {

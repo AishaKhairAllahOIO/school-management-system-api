@@ -12,11 +12,9 @@ class PayrollSeeder extends Seeder
     public function run(): void
     {
         $contracts = StaffFinancialContract::all();
-        $lastMonth = Carbon::now()->subMonth(); // رواتب الشهر الماضي
+        $lastMonth = Carbon::now()->subMonth(); 
 
         foreach ($contracts as $contract) {
-            // راتب وهمي مبسط (في الواقع سيُحسب آلياً عبر PayrollService)
-            // لكن هنا نضع داتا افتراضية لاختبار التقارير
             $netSalary = $contract->salary_type === 'fixed_monthly' ? $contract->salary_amount : 1500; // للمعلم افترضنا 1500
 
             Payroll::updateOrCreate(

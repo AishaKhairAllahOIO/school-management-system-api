@@ -17,7 +17,6 @@ class StaffAttendanceSeeder extends Seeder
 
         $today = Carbon::now()->toDateString();
         
-        // 1. تسجيل غياب غير مبرر للمعلم (الموظف الثاني) لكي نختصم منه
         StaffAttendance::updateOrCreate(
             ['staff_id' => $staffList[1]->id, 'attendance_date' => $today],
             [
@@ -27,7 +26,6 @@ class StaffAttendanceSeeder extends Seeder
         );
           
 
-        // 2. ترحيل أيام الإجازة للموظف الأول (الإداري) إلى جدول الحضور
         $leave = StaffLeave::where('staff_id', $staffList[0]->id)->first();
         if ($leave) {
             $currentDate = Carbon::parse($leave->start_date);

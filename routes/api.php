@@ -57,6 +57,7 @@ use App\Http\Controllers\Student\GuardianReportController;
 use App\Http\Controllers\Finance\GuardianFinanceController;
 use App\Http\Controllers\Finance\StaffPayrollController;
 use App\Http\Controllers\Admin\Dashboard\DashboardController;
+use App\Http\Controllers\Counselor\CounselorAvailabilityController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -215,6 +216,14 @@ Route::prefix('auth')->group(function () {
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
             Route::get('/show-profile', [UserController::class, 'counselorProfile']);
+
+            Route::prefix('/config')->controller(CounselorAvailabilityController::class)->group(function () {
+                Route::post('/availability','store');
+                Route::get('/availability','index');
+                Route::put('/availability/{day}','update');
+                Route::delete('/availability','destroy');
+
+            });
         });
 
         Route::middleware('permission:account:toggle_status')->prefix('expulsions')->group(function () {

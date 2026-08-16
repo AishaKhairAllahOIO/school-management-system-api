@@ -2,134 +2,50 @@
 
 namespace App\Http\Resources\Finance;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class GuardianFinancialAccountResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     */
-    public function toArray(Request $request): array
-    {
-        return [
 
-            'id' => $this->id,
+ public function toArray($request)
+{
+    return [
 
-            'student_id' => $this->student_id,
+        'student'=>[
+            'id'=>$this->student->id,
+            'name'=>$this->student->user->first_name,
+        ],
 
-            'summary' => [
-                'total_amount' => (float) $this->total_required_amount,
 
-                'paid_amount' => (float) (
-                    $this->total_required_amount 
-                    - $this->remaining_balance
+        'financialSummary'=>[
+
+            'totalAmount'=>
+                (float)$this->total_required_amount,
+
+
+            'paidAmount'=>
+                (float)(
+                    $this->total_required_amount
+                    -
+                    $this->remaining_balance
                 ),
 
-                'remaining_amount' => (float) $this->remaining_balance,
 
-                'status' => $this->payment_status,
-            ],
-
-
-            'plan' => $this->feePlan ? [
-                'id' => $this->feePlan->id,
-                'name' => $this->feePlan->name,
-            ] : null,
+            'remainingBalance'=>
+                (float)$this->remaining_balance,
 
 
-            'installment_policy' => $this->installmentPolicy ? [
-                'id' => $this->installmentPolicy->id,
-                'name' => $this->installmentPolicy->name,
-                'count' => $this->installmentPolicy->installments_count,
-            ] : null,
+            'paymentStatus'=>
+                $this->payment_status,
+
+        ],
 
 
-            'installments' => $this->whenLoaded(
-                'scheduledInstallments',
-                function () {
-
-                    return $this->scheduledInstallments
-                        ->sortBy('installment_number')
-                        ->values()
-                        ->map(function ($installment) {
-
-                            return [
-                                'id' => $installment->id,
-
-                                'number' =>
-                                    $installment->installment_number,
-
-                                'title' =>
-                                    $installment->title,
-
-                                'amount' => [
-                                    'due' =>
-                                        (float) $installment->amount_due,
-
-                                    'paid' =>
-                                        (float) $installment->amount_paid,
-
-                                    'remaining' =>
-                                        (float) (
-                                            $installment->amount_due -
-                                            $installment->amount_paid
-                                        ),
-                                ],
-
-
-                                'due_date' =>
-                                    $installment->due_date?->toDateString(),
-
-                                'status' =>
-                                    $installment->status,
-                            ];
-                        });
-                }
+        'transactions'=>
+            PaymentTransactionResource::collection(
+                $this->whenLoaded('transactions')
             ),
 
-
-            'transactions' => $this->whenLoaded(
-                'transactions',
-                function () {
-
-                    return $this->paymentTransactions
-                        ->map(function ($transaction) {
-
-                            return [
-
-                                'id' =>
-                                    $transaction->id,
-
-                                'amount' =>
-                                    (float) $transaction->paid_amount,
-
-
-                                'payment_method' =>
-                                    $transaction->payment_method,
-
-
-                                'receipt_number' =>
-                                    $transaction->paper_receipt_no,
-
-
-                                'reference' =>
-                                    $transaction->digital_reference,
-
-
-                                'date' =>
-                                    $transaction->created_at
-                                        ?->toDateString(),
-
-                            ];
-                        });
-                }
-            ),
-
-
-            'created_at' =>
-                $this->created_at?->toISOString(),
-
-        ];
-    }
+    ];
+}
 }

@@ -33,5 +33,6 @@ class StaffFinancialContractSeeder extends Seeder
               
             ]
         );
+        
     }
 }

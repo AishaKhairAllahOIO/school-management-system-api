@@ -21,8 +21,8 @@ class PaymentTransactionResource extends JsonResource
             
             // جلب اسم المحاسب الذي استلم المبلغ
             'user_id'       => $this->collected_by_user_id,
-            'createdAt'                  => $this->created_at ? \Carbon\Carbon::parse($this->created_at)->toIso8601String() : null,
-            'updatedAt'                  => $this->updated_at ? \Carbon\Carbon::parse($this->updated_at)->toIso8601String() : null,
+            'createdAt'                  => $this->created_at ?  Carbon::parse($this->created_at)->toIso8601String() : null,
+            'updatedAt'                  => $this->updated_at ?  Carbon::parse($this->updated_at)->toIso8601String() : null,
                     
         ];
     }

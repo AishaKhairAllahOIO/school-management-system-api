@@ -11,10 +11,8 @@ class CounselorAvailabilityService
 {
 
 
-    public function saveSchedule(
-        int $counselorId,
-        array $schedule
-    ) {
+    public function saveSchedule(int $counselorId, array $schedule)
+    {
 
         return DB::transaction(function () use ($counselorId, $schedule) {
 
@@ -59,8 +57,6 @@ class CounselorAvailabilityService
 
     }
 
-
-
     public function getSchedule(int $counselorId)
     {
 
@@ -73,11 +69,8 @@ class CounselorAvailabilityService
 
     }
 
-    public function updateDay(
-        int $counselorId,
-        string $day,
-        array $data
-    ) {
+    public function updateDay(int $counselorId, string $day, array $data)
+    {
 
         $availability =
             CounselorAvailability::where('counselor_id', $counselorId)
@@ -92,10 +85,8 @@ class CounselorAvailabilityService
 
     }
 
-    public function deleteDay(
-        int $counselorId,
-        string $day
-    ) {
+    public function deleteDay(int $counselorId, string $day)
+    {
 
         return CounselorAvailability::where('counselor_id', $counselorId)
             ->where('day', $day)

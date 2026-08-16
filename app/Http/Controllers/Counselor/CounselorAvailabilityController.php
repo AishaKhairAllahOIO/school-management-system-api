@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Counselor;
 
 
+use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Counselor\StoreAvailabilityRequest;
 use App\Http\Requests\Counselor\UpdateAvailabilityRequest;
@@ -12,48 +13,33 @@ use Illuminate\Http\Request;
 
 class CounselorAvailabilityController extends Controller
 {
+  use ApiResource;
 
-
-    public function __construct(
-        private CounselorAvailabilityService $service
-    ) {
-    }
+    public function __construct(private CounselorAvailabilityService $service) {}
 
 
 
-    public function store(
-        StoreAvailabilityRequest $request
-    ) {
+    public function store(StoreAvailabilityRequest $request)
+    {
 
-        $counselorId =
-            $request->user()->counselor->id;
+        $counselorId = $request->user()->id;
 
 
 
-        $this->service->saveSchedule(
+       $times = $this->service->saveSchedule(
             $counselorId,
             $request->schedule
         );
 
-
-        return response()->json([
-
-            'status' => true,
-
-            'message' => 'تم حفظ جدول التواجد بنجاح'
-
-        ]);
+        return $this->successResponse($times,'Available times saved successfuly')
+       
 
     }
-
-
-
-
     public function index(Request $request)
     {
 
         $data = $this->service->getSchedule(
-            $request->user()->counselor->id
+            $request->user()->id
         );
 
 
@@ -66,18 +52,10 @@ class CounselorAvailabilityController extends Controller
         ]);
 
     }
+    public function update(UpdateAvailabilityRequest $request, string $day)
+    {
 
-
-
-    public function update(
-        UpdateAvailabilityRequest $request,
-        string $day
-    ) {
-
-        $counselorId =
-            $request->user()
-                ->counselor
-                ->id;
+        $counselorId = $request->user()->id;
 
 
         $availability =
@@ -99,26 +77,21 @@ class CounselorAvailabilityController extends Controller
         ]);
 
     }
+    public function destroy(Request $request, string $day)
+    {
+
+        $this->service->deleteDay(
+            $request->user()->id,
+            $day
+        );
 
 
-    public function destroy(
-    Request $request,
-    string $day
-)
-{
+        return response()->json([
+            'status' => true,
+            'message' => 'تم حذف اليوم'
+        ]);
 
-    $this->service->deleteDay(
-        $request->user()->counselor->id,
-        $day
-    );
-
-
-    return response()->json([
-        'status'=>true,
-        'message'=>'تم حذف اليوم'
-    ]);
-
-}
+    }
 
 
 }

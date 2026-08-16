@@ -59,6 +59,7 @@ class DatabaseSeeder extends Seeder
             StaffFinancialContractSeeder::class,
             StaffAttendanceSeeder::class,
             PayrollSeeder::class,
+            StudentFinancialSeeder::class,
 
 
 

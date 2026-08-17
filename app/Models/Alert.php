@@ -10,24 +10,29 @@ class Alert extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'meta'    => 'array',
+        'meta' => 'array',
         'is_read' => 'boolean',
     ];
 
-    public const TYPE_ABSENCE  = 'absence';
+    public const AUDIENCE_STUDENT = 'student';
+    public const AUDIENCE_GUARDIAN = 'guardian';
+    public const AUDIENCE_STAFF = 'staff';
+
+
+    public const TYPE_ABSENCE = 'absence';
     public const TYPE_BEHAVIOR = 'behavior';
-    public const TYPE_LATE     = 'late';
-    public const TYPE_ESCAPE   = 'escape';
-    public const TYPE_PAYMENT  = 'payment';
+    public const TYPE_LATE = 'late';
+    public const TYPE_ESCAPE = 'escape';
+    public const TYPE_PAYMENT = 'payment';
     public const TYPE_SALARY = 'salary';
     public const TYPE_HOMEWORK = 'homework';
     public const TYPE_PAYED = 'payed';
     public const TYPE_EXPULSION = 'expulsion';
-    public const AUDIENCE_STUDENT = 'student';
-    public const AUDIENCE_STAFF   = 'staff';
     public const TYPE_WARNING = 'warning';
     public const TYPE_SYSTEM_NOTICE = 'system_notice';
     public const TYPE_COMPLAIN = 'complain';
+    public const TYPE_COUNSELING_REQUEST = 'counseling_request';
+    public const TYPE_COUNSELING_RESPONSE = 'counseling_response';
     public const TYPE_REPORT_CARD = 'report_card';
 
 

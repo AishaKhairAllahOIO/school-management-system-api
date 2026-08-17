@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Web;
 
 use App\Models\Alert;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,15 +13,10 @@ class AlertRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         $rules = [
-            'audience' => ['required', Rule::in([Alert::AUDIENCE_STUDENT, Alert::AUDIENCE_STAFF])],
+            'audience' => ['required', Rule::in([Alert::AUDIENCE_STUDENT, Alert::AUDIENCE_STAFF, Alert::AUDIENCE_GUARDIAN])],
             'type' => [
                 'required',
                 Rule::in([
@@ -38,13 +32,15 @@ class AlertRequest extends FormRequest
                     Alert::TYPE_WARNING,
                     Alert::TYPE_SYSTEM_NOTICE,
                     Alert::TYPE_COMPLAIN,
+                    Alert::TYPE_COUNSELING_REQUEST,
+                    Alert::TYPE_COUNSELING_RESPONSE,
                 ])
             ],
             'title' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
         ];
 
-        if ($this->input('audience') === Alert::AUDIENCE_STUDENT) {
+        if ($this->input('audience') === Alert::AUDIENCE_STUDENT || $this->input('audience') === Alert::AUDIENCE_GUARDIAN) {
             $rules['enrollment_ids'] = ['required', 'array', 'min:1'];
             $rules['enrollment_ids.*'] = ['integer', 'exists:enrollments,id'];
         } else {
@@ -89,10 +85,18 @@ class AlertRequest extends FormRequest
                 'meta.absence_count' => ['nullable', 'integer']
             ],
             Alert::TYPE_SYSTEM_NOTICE => [
-                'meta.action' => ['nullable','string']
+                'meta.action' => ['nullable', 'string']
             ],
             Alert::TYPE_COMPLAIN => [
-                'meta.severity' => ['nullable','string',Rule::in(['low', 'medium', 'high'])]
+                'meta.severity' => ['nullable', 'string', Rule::in(['low', 'medium', 'high'])]
+            ],
+            Alert::TYPE_COUNSELING_REQUEST => [
+                'meta.student_name' => ['nullable', 'string'],
+                // تم التعديل هنا لضمان دقة التاريخ
+                'meta.appointment_date' => ['required', 'date_format:Y-m-d'],
+            ],
+            Alert::TYPE_COUNSELING_RESPONSE => [
+                'meta.status' => ['nullable', 'string', Rule::in(['accepted', 'not_available'])]
             ],
             Alert::TYPE_REPORT_CARD => [
                 'meta.semester' => ['nullable','integer', 'exists:semester,semester_name'],

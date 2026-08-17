@@ -180,7 +180,7 @@ class ReportCardGenerationService
         $currentGrade = $enrollment->gradeLevel ?? $enrollment->classRoom?->gradeLevel;
 
         if ($currentGrade && $currentGrade->is_graduation_grade) {
-            $enrollment->update(['academic_result' => 'graduated']);
+            $enrollment->update(['academic_result' => 'passed']);
         } else {
             $enrollment->update(['academic_result' => 'passed']);
         }

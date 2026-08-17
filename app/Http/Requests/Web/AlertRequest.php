@@ -98,6 +98,9 @@ class AlertRequest extends FormRequest
             Alert::TYPE_COUNSELING_RESPONSE => [
                 'meta.status' => ['nullable', 'string', Rule::in(['accepted', 'not_available'])]
             ],
+            Alert::TYPE_REPORT_CARD => [
+                'meta.semester' => ['nullable','integer', 'exists:semester,semester_name'],
+            ],
 
             default => [],
         };

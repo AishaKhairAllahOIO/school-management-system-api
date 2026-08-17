@@ -18,7 +18,7 @@ class Alert extends Model
     public const AUDIENCE_GUARDIAN = 'guardian';
     public const AUDIENCE_STAFF = 'staff';
 
-    
+
     public const TYPE_ABSENCE = 'absence';
     public const TYPE_BEHAVIOR = 'behavior';
     public const TYPE_LATE = 'late';
@@ -33,6 +33,7 @@ class Alert extends Model
     public const TYPE_COMPLAIN = 'complain';
     public const TYPE_COUNSELING_REQUEST = 'counseling_request';
     public const TYPE_COUNSELING_RESPONSE = 'counseling_response';
+    public const TYPE_REPORT_CARD = 'report_card';
 
 
     public function notifiable(): MorphTo

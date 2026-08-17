@@ -13,13 +13,15 @@ use App\Http\Resources\ReportCardResource;
 use App\ApiResource;
 use Illuminate\Http\JsonResponse;
 use Throwable;
+use App\Services\User\AlertService;
 
 class ReportCardAdminController extends Controller
 {
     use ApiResource;
 
     public function __construct(
-        private StudentPromotionService $promotionService
+        private StudentPromotionService $promotionService,
+        private AlertService $alertService
     ) {}
 
     /**
@@ -74,6 +76,8 @@ class ReportCardAdminController extends Controller
             return $this->errorResponse('حدث خطأ أثناء جلب قائمة الجلاءات.', 500, ['error' => $e->getMessage()]);
         }
     }
+    // دالة عرض جلاء معين :
+
 
     /**
      * 3. 📢 زر نشر / إلغاء نشر الجلاءات (للمدرسة كاملة أو لشعبة معينة)
@@ -93,8 +97,24 @@ class ReportCardAdminController extends Controller
                     $q->where('class_room_id', $classRoomId);
                 });
             }
+            $enrollmentsToAlert = collect();
+            if ($isPublished) {
+                // نجلب فقط الجلاءات التي كانت (غير منشورة) وستصبح (منشورة)
+                $enrollmentsToAlert = (clone $query)->where('is_published', false)
+                    ->with('enrollment')
+                    ->get()
+                    ->pluck('enrollment');
+            }
 
             $updatedCount = $query->update(['is_published' => $isPublished]);
+            if ($isPublished && $updatedCount > 0 && $enrollmentsToAlert->isNotEmpty()) {
+                foreach ($enrollmentsToAlert as $enrollment) {
+                    $this->alertService->createPublishReportCardAlart($enrollment, [
+                        'semester_id'   => $semesterId,
+                        'class_room_id' => $enrollment->class_room_id
+                    ]);
+                }
+            }
 
             $actionText = $isPublished ? 'نشر' : 'إلغاء نشر';
 
@@ -141,4 +161,28 @@ class ReportCardAdminController extends Controller
         return $this->errorResponse('حدث خطأ فادح أثناء عملية ترفيع الطلاب.', 500, ['error' => $e->getMessage()]);
     }
 }
+public function show($id): JsonResponse
+    {
+        try {
+            // جلب الجلاء مع كل العلاقات المرتبطة به لتجنب مشكلة N+1
+            $reportCard = ReportCard::with([
+                'details.gradeSubject.subject', 
+                'enrollment.student.user', 
+                'enrollment.classRoom'
+            ])->find($id);
+
+            // التحقق من وجود الجلاء
+            if (!$reportCard) {
+                return $this->errorResponse('الجلاء المطلوب غير موجود.', 404);
+            }
+
+            // إرجاع الجلاء باستخدام الـ Resource المخصص
+            return $this->successResponse(
+                new ReportCardResource($reportCard),
+                'تم جلب تفاصيل الجلاء بنجاح.'
+            );
+        } catch (Throwable $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب تفاصيل الجلاء.', 500, ['error' => $e->getMessage()]);
+        }
+    }
 }

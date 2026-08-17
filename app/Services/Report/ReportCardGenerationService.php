@@ -185,4 +185,30 @@ class ReportCardGenerationService
             $enrollment->update(['academic_result' => 'passed']);
         }
     }
+
+    /**
+     * جلب العشرة الأوائل حسب الصف (Grade Level) أو الشعبة (Class Room)
+     */
+    public function getTopStudentsByGrade($semesterId, $gradeLevelId = null, int $limit = 10)
+    {
+        $query = ReportCard::with([
+                'enrollment.student.user', 
+                'enrollment.gradeLevel', 
+                'enrollment.classRoom'
+            ])
+            ->where('semester_id', $semesterId)
+            ->where('final_result', 'passed'); // فقط الناجحون هم من ينافسون على المراكز الأولى
+
+        // إذا أردنا صفاً معيناً (Grade Level)
+        if ($gradeLevelId) {
+            $query->whereHas('enrollment', function ($q) use ($gradeLevelId) {
+                $q->where('grade_level_id', $gradeLevelId);
+            });
+        }
+
+        // جلب الطلاب مرتبين تنازلياً حسب المجموع الكلي (total_marks)
+        return $query->orderByDesc('total_marks')
+            ->limit($limit)
+            ->get();
+    }
 }

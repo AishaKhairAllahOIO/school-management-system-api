@@ -245,24 +245,24 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/grades', [GradeAndClassroomController::class, 'indexGrades']);
     Route::get('/configurations', [GradeAndClassroomController::class, 'indexConfigurations']);
     Route::get('/classrooms', [GradeAndClassroomController::class, 'indexClassrooms']);
-    Route::put('/', [AcademicSettingsController::class, 'update']);
+    Route::put('/', [AcademicSettingsController::class, 'update'])->middleware('role:super_admin');
 
-    Route::post('/years', [AcademicSettingsController::class, 'storeYear']);
-    Route::put('/years/{year}', [AcademicSettingsController::class, 'updateYear']);
+    Route::post('/years', [AcademicSettingsController::class, 'storeYear'])->middleware('role:super_admin');
+    Route::put('/years/{year}', [AcademicSettingsController::class, 'updateYear'])->middleware('role:super_admin');
 
-    Route::post('/terms', [AcademicSettingsController::class, 'storeTerm']);
-    Route::put('/terms/{term}', [AcademicSettingsController::class, 'updateTerm']);
+    Route::post('/terms', [AcademicSettingsController::class, 'storeTerm'])->middleware('role:super_admin');
+    Route::put('/terms/{term}', [AcademicSettingsController::class, 'updateTerm'])->middleware('role:super_admin');
 
-    Route::post('/stages', [AcademicSettingsController::class, 'storeStage']);
-    Route::post('/stages/{stage}', [AcademicSettingsController::class, 'updateStage']);
+    Route::post('/stages', [AcademicSettingsController::class, 'storeStage'])->middleware('role:super_admin');
+    Route::post('/stages/{stage}', [AcademicSettingsController::class, 'updateStage'])->middleware('role:super_admin');
 
 
-    Route::post('/grades', [GradeAndClassroomController::class, 'storeGrade']);
-    Route::post('/grades/{grade}', [GradeAndClassroomController::class, 'updateGrade']);
-    Route::post('/configurations', [GradeAndClassroomController::class, 'storeConfiguration']);
-    Route::post('/configurations/{config}', [GradeAndClassroomController::class, 'updateConfiguration']);
-    Route::post('/classrooms', [GradeAndClassroomController::class, 'storeClassroom']);
-    Route::post('/classrooms/{classroom}', [GradeAndClassroomController::class, 'updateClassroom']);
+    Route::post('/grades', [GradeAndClassroomController::class, 'storeGrade'])->middleware('role:super_admin');
+    Route::post('/grades/{grade}', [GradeAndClassroomController::class, 'updateGrade'])->middleware('role:super_admin');
+    Route::post('/configurations', [GradeAndClassroomController::class, 'storeConfiguration'])->middleware('role:super_admin');
+    Route::post('/configurations/{config}', [GradeAndClassroomController::class, 'updateConfiguration'])->middleware('role:super_admin');
+    Route::post('/classrooms', [GradeAndClassroomController::class, 'storeClassroom'])->middleware('role:super_admin');
+    Route::post('/classrooms/{classroom}', [GradeAndClassroomController::class, 'updateClassroom'])->middleware('role:super_admin');
 
 
     // جلب القوائم (الأعوام، الفصول، المراحل)
@@ -518,7 +518,8 @@ Route::middleware(['auth:sanctum'])->prefix('admin/reports/finance')->group(func
 
 
 Route::middleware(['auth:sanctum'])->prefix('admin/report-cards')->group(function () {
-    Route::post('/generate', [ReportCardAdminController::class, 'generate']);      // زر توليد الجلاءات (Job)
+    Route::post('/generate', [ReportCardAdminController::class, 'generate']);  
+    Route::get('/top-students', [ReportCardAdminController::class, 'getTopStudentsForAdmin']);
     Route::get('/', [ReportCardAdminController::class, 'index']);    
     Route::get('/{id}', [ReportCardAdminController::class, 'show']);        // زر ترفيع الطلاب للعام الجديد
     Route::post('/publish', [ReportCardAdminController::class, 'togglePublish']);   // زر نشر / إلغاء النشر للأهالي
@@ -636,5 +637,6 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
 Route::middleware(['auth:sanctum'])->group(function () {
   Route::get('/guardian/students/{student_id}/report-cards/{semester_id}',[GuardianReportController::class,'showStudentReportCard']);
   Route::middleware(['auth:sanctum'])->get('/student/report-cards/{semesterId}/', [GuardianReportController::class, 'showMyReportCard']);
+  Route::get('/parent/report-cards/top-students', [GuardianReportController::class, 'getTopStudentsForMyChild']);
   });
 Route::get('/website',[ContentController::class,'getPublicStats']);  

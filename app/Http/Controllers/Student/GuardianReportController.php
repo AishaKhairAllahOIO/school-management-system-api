@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ReportCard;
 use App\Http\Resources\ReportCardResource;
 use App\ApiResource;
+use App\Http\Resources\Student\TopStudentResource as StudentTopStudentResource;
+use App\Http\Resources\TopStudentResource;
 use App\Services\Report\ReportCardGenerationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -51,9 +53,6 @@ class GuardianReportController extends Controller
         return $this->fetchReportCard($studentId, $semesterId);
     }
 
-    /**
-     * ⚙️ ميثود مركزية مشتركة لجلب الجلاء (منع تكرار الكود - DRY Principle)
-     */
     private function fetchReportCard($studentId, $semesterId): JsonResponse
     {
         $reportCard = ReportCard::with(['details.gradeSubject.subject', 'enrollment.student.user'])
@@ -73,42 +72,67 @@ class GuardianReportController extends Controller
             'تم جلب الجلاء بنجاح.'
         );
     }
-    public function getTopStudentsForMyChild(ReportCardGenerationService $topStudentsService): JsonResponse
+
+    public function getTopStudentsForMyClass(ReportCardGenerationService $service): JsonResponse
     {
-        try {
-            $user = auth()->user();
-            
-            // 💡 1. استخراج قيد الطالب الحالي (أو الطالب التابع لولي الأمر)
-            // سنفترض أن المستخدم لديه علاقة student أو سنأخذ أول قيد نشط له
-            $student = $user->student ?? $user->students()->first();
-            
-            if (!$student) {
-                return $this->errorResponse('حساب الطالب غير مرتبود، لا يمكن تحديد الصف.', 404);
-            }
+        $user = Auth::user();
 
-            $activeEnrollment = $student->enrollments()->latest()->first();
-
-            if (!$activeEnrollment) {
-                return $this->errorResponse('لا يوجد قيد دراسي فعال لهذا الطالب.', 404);
-            }
-
-            $semesterId = request('semester_id');
-            if (!$semesterId) {
-                return $this->errorResponse('معرف الفصل الدراسي (semester_id) مطلوب.', 422);
-            }
-
-            // 💡 2. جلب grade_level_id الخاص بابن المستخدم تلقائياً دون تدخل بشري
-            $gradeLevelId = $activeEnrollment->grade_level_id ?? $activeEnrollment->classRoom?->grade_level_id;
-
-            // 💡 3. استدعاء نفس السيرفس لجلب أوائل هذا الصف فقط!
-            $topStudents = $topStudentsService->getTopStudentsByGrade($semesterId, $gradeLevelId, 10);
-
-            return $this->successResponse(
-                ReportCardResource::collection($topStudents),
-                'تم جلب قائمة العشرة الأوائل لصف ابنك بنجاح.'
+        if (!$user->student) {
+            return $this->errorResponse(
+                'الحساب ليس طالباً',
+                403
             );
-        } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب قائمة الأوائل.', 500, ['error' => $e->getMessage()]);
         }
+
+
+        $semesterId = request('semester_id');
+
+
+        $topStudents = $service->getTopStudentsByStudent(
+            $user->student->id,
+            $semesterId
+        );
+
+
+        return $this->successResponse(
+           StudentTopStudentResource ::collection($topStudents),
+            'تم جلب أوائل الصف'
+        );
     }
+
+    public function getTopStudentsForChild(ReportCardGenerationService $service): JsonResponse
+    {
+
+        $user = Auth::user();
+
+        $studentId = request('student_id');
+        $semesterId = request('semester_id');
+
+
+        $isChild = $user->guardian
+            ->students()
+            ->where('students.id', $studentId)
+            ->exists();
+
+
+        if (!$isChild) {
+            return $this->errorResponse(
+                'لا يمكنك الوصول لهذا الطالب',
+                403
+            );
+        }
+
+
+        $topStudents = $service->getTopStudentsByStudent(
+            $studentId,
+            $semesterId
+        );
+
+
+        return $this->successResponse(
+            StudentTopStudentResource::collection($topStudents),
+            'تم جلب أوائل صف الطالب'
+        );
+    }
+
 }

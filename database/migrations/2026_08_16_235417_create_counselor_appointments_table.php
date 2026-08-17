@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('counselor_appointments', function (Blueprint $table) {
@@ -36,17 +35,20 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique([
-                'counselor_id',
-                'appointment_date',
-                'start_time',
-            ]);
+            $table->unique(
+                [
+                    'counselor_id',
+                    'appointment_date',
+                    'start_time'
+                ],
+                'counselor_slot_unique'
+            );
 
-            $table->index([
-                'counselor_id',
-                'appointment_date',
-                'booking_status',
-            ]);
+           $table->index([
+            'counselor_id',
+            'appointment_date',
+            'booking_status',
+        ], 'counselor_status_index');
         });
     }
 

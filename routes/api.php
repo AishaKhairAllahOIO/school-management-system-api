@@ -52,12 +52,15 @@ use App\Http\Controllers\Admin\Report\AttendanceReportController;
 use App\Http\Controllers\Admin\Report\FinanceReportController;
 use App\Http\Controllers\Admin\Report\ReportCardAdminController;
 use App\Http\Controllers\Student\GuardianReportController;
+use App\Http\Controllers\Student\StudentCounselorAppointmentController;
 
 
 use App\Http\Controllers\Finance\GuardianFinanceController;
 use App\Http\Controllers\Finance\StaffPayrollController;
 use App\Http\Controllers\Admin\Dashboard\DashboardController;
 use App\Http\Controllers\Counselor\CounselorAvailabilityController;
+use App\Http\Controllers\Counselor\CounselorAppointmentController;
+use App\Http\Controllers\Counselor\CounselingSessionController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -224,6 +227,17 @@ Route::prefix('auth')->group(function () {
                 Route::put('/availability/{day}','update');
                 Route::delete('/availability/{day}','destroy');
 
+            });
+
+            Route::prefix('/appointments')->controller(CounselorAppointmentController::class)->group(function (){
+                Route::get('/pending','pending');
+                Route::post('/approve','approve');
+                Route::delete('/cancel/{appointmentId}','cancel');
+            });
+
+            Route::prefix('/session')->controller(CounselingSessionController::class)->group(function () {
+                    Route::get('pending','pending');
+                    Route::put('update/state','update');
             });
         });
 
@@ -475,12 +489,12 @@ Route::middleware('auth:sanctum')->prefix('admin/leave')->group(function () {
     // Route::get('staff/leave/{}')
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff-leaves')->group(function () {
-    Route::post('/', [StaffLeaveController::class, 'store']);      
-     Route::get('/allRecords', [StaffLeaveController::class, 'getAllRecords']);   
+    Route::post('/', [StaffLeaveController::class, 'store']);
+     Route::get('/allRecords', [StaffLeaveController::class, 'getAllRecords']);
     Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']);
     Route::get('/{leaveId}/staff', [StaffLeaveController::class, 'getStaffLeaveById']); // 👈 دالة العرض الجديدة
     Route::post('/{id}', [StaffLeaveController::class, 'update']);     // تعديل سجل إجازة
-    Route::delete('/{id}', [StaffLeaveController::class, 'destroy']); 
+    Route::delete('/{id}', [StaffLeaveController::class, 'destroy']);
     // جلب جميع الإجازات لموظف معين
 });
 
@@ -619,6 +633,12 @@ Route::prefix('user')->group(function () {
             Route::get('show/{studentId}','index');
         });
 
+        });
+
+        Route::prefix('/counselor')->controller(StudentCounselorAppointmentController::class)->group(function () {
+                Route::get('/available/slot','availableSlots');
+                Route::post('/counseling/appointments','store');
+                Route::delete('/cancel/{appointmentId}','cancel');
         });
 
     });

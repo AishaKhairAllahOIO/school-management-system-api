@@ -14,89 +14,69 @@ class StudentCounselorAppointmentController extends Controller
 {
     use ApiResource;
 
-    public function __construct( private CounselorAppointmentService $service) {}
-
+    public function __construct(private CounselorAppointmentService $service) {}
 
     public function availableSlots()
     {
         try {
-
-            $appointments =
-                $this->service
-                    ->getAvailableTomorrowSlots();
-
+            $appointments = $this->service->getAvailableTomorrowSlots();
 
             return $this->successResponse(
-                CounselorAppointmentResource::collection(
-                    $appointments
-                ),
+                CounselorAppointmentResource::collection($appointments),
                 'Available counseling times retrieved successfully.',
                 200
             );
-
         } catch (Exception $e) {
-
             return $this->errorResponse(
                 'Failed to retrieve available counseling times.',
                 500
             );
         }
     }
+
     public function store(BookCounselorAppointmentRequest $request)
     {
         try {
+            $studentId = $request->user()->student->id;
 
-            $studentId =
-                $request->user()->student->id;
-
-
-            $appointment =
-                $this->service->bookAppointment(
-                    $studentId,
-                    $request->appointment_date,
-                    $request->start_time,
-                    $request->end_time
-                );
-
+            $appointment = $this->service->bookAppointment(
+                $studentId,
+                $request->appointment_date,
+                $request->start_time,
+                $request->end_time
+            );
 
             return $this->successResponse(
-                new CounselorAppointmentResource(
-                    $appointment
-                ),
+                new CounselorAppointmentResource($appointment),
                 'Counseling appointment request submitted successfully.',
                 201
             );
-
         } catch (Exception $e) {
-
             return $this->errorResponse(
                 $e->getMessage(),
                 422
             );
         }
     }
+
     public function cancel(Request $request, int $appointmentId)
     {
         try {
-
             $studentId = $request->user()->student->id;
 
-            $appointment = $this->service->cancelByStudent(
-                $appointmentId,
-                $studentId
-            );
+            $this->service->cancelByStudent($appointmentId, $studentId);
 
             return $this->successResponse(
                 null,
                 'Counseling appointment cancelled successfully.',
                 200
             );
-
         } catch (Exception $e) {
-
+            // تحسين: إرجاع 403 أو 404 بدلاً من 422 إذا كان الموعد غير موجود أو لا يخص الطالب
+            $statusCode = str_contains($e->getMessage(), 'غير موجود') ? 404 : 403;
             return $this->errorResponse(
                 $e->getMessage(),
-                422
+                $statusCode
             );
         }
     }

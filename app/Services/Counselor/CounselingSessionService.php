@@ -2,6 +2,7 @@
 
 namespace App\Services\Counselor;
 
+use App\Models\Alert;
 use App\Models\CounselingSession;
 use App\Services\User\AlertService;
 use Exception;
@@ -14,10 +15,31 @@ class CounselingSessionService
     ) {
     }
 
-    public function updateSession(int $sessionId, int $counselorId, array $data): CounselingSession
+    public function getPendingSessions(int $counselorId)
     {
+        return CounselingSession::query()
+            ->whereHas('appointment', function ($query) use ($counselorId) {
+                $query->where('counselor_id', $counselorId);
+            })
+            ->where('attendance_status', 'not_marked')
+            ->with([
+                'appointment.student.user',
+            ])
+            ->orderByDesc('created_at')
+            ->get();
+    }
 
-        return DB::transaction(function () use ($sessionId, $counselorId, $data) {
+    public function updateSession(
+        int $sessionId,
+        int $counselorId,
+        array $data
+    ): CounselingSession {
+
+        return DB::transaction(function () use (
+            $sessionId,
+            $counselorId,
+            $data
+        ) {
 
             $session = CounselingSession::query()
                 ->where('id', $sessionId)
@@ -45,6 +67,14 @@ class CounselingSessionService
             }
 
             if (
+                $session->attendance_status !== 'not_marked'
+            ) {
+                throw new Exception(
+                    'تم تسجيل نتيجة هذه الجلسة مسبقاً.'
+                );
+            }
+
+            if (
                 $data['attendance_status'] === 'absent'
                 && !empty($data['assessment'])
             ) {
@@ -54,23 +84,21 @@ class CounselingSessionService
             }
 
             $session->update([
-                'attendance_status' =>
-                    $data['attendance_status'],
+                'attendance_status' => $data['attendance_status'],
 
                 'assessment' =>
                     $data['attendance_status'] === 'present'
-                    ? ($data['assessment'] ?? null)
-                    : null,
+                        ? ($data['assessment'] ?? null)
+                        : null,
 
-                'notes' =>
-                    $data['notes'] ?? null,
+                'notes' => $data['notes'] ?? null,
             ]);
 
             $session->refresh();
 
             /*
             |--------------------------------------------------------------------------
-            | إرسال إشعار لولي الأمر عند الحالة الحرجة
+            | حالة حرجة → ولي الأمر فقط
             |--------------------------------------------------------------------------
             */
 
@@ -81,17 +109,34 @@ class CounselingSessionService
 
                 $student = $session->appointment->student;
 
-                if ($student && $student->guardian) {
+                if ($student) {
 
-                    // هنا نستخدم AlertService الخاص بك
-                    // ونرسل رسالة عامة دون تفاصيل حساسة.
+                    $enrollment = $student
+                        ->enrollments()
+                        ->latest()
+                        ->first();
 
-                    // مثال:
-                    //
-                    // $this->alertService->createGuardianAlert(
-                    //     $student->guardian,
-                    //     ...
-                    // );
+                    if ($enrollment) {
+
+                        $this->alertService->createGuardianAlert(
+                            $enrollment,
+                            Alert::TYPE_WARNING,
+                            'إشعار إرشادي هام',
+                            'يرجى مراجعة إدارة المدرسة بخصوص الجلسة الإرشادية الأخيرة للطالب للحصول على تفاصيل هامة.',
+                            [
+                                'appointment_id' =>
+                                    $session->appointment_id,
+
+                                'appointment_date' =>
+                                    $session
+                                        ->appointment
+                                        ->appointment_date
+                                        ->toDateString(),
+
+                                'status' => 'critical',
+                            ]
+                        );
+                    }
                 }
             }
 

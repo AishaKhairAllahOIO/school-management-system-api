@@ -12,3 +12,11 @@ Artisan::command('inspire', function () {
 Schedule::command('queue:work database --stop-when-empty')
     ->everyMinute()
     ->withoutOverlapping();
+
+    Schedule::command(
+    'counselor:generate-tomorrow-appointments'
+)->dailyAt('23:55');
+
+Schedule::command(
+    'counselor:complete-expired-appointments'
+)->everyMinute();

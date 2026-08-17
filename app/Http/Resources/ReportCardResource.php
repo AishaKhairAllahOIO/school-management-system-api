@@ -29,7 +29,7 @@ class ReportCardResource extends JsonResource
         return [
             'report_card_id' => $this->id,
             'student_id'     => $this->enrollment->student_id,
-            'student_name'   => $this->enrollment->student->user->name ?? 'غير محدد',
+            'student_name'   => $this->enrollment->student->user->first_name+" "+ $this->enrollment->student->user->last_name?? 'غير محدد',
             
             'summary' => [
                 'total_marks'           => $this->total_marks,

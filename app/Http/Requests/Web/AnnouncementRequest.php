@@ -11,7 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class AnnouncementRequest extends FormRequest
-{
+{//
   use ApiResource;
 
     public function authorize(): bool

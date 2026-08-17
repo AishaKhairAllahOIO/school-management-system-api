@@ -12,7 +12,7 @@ class UpdatePolicyItemRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('installment:edit_policy');
+        return true;
     }
 
     /**

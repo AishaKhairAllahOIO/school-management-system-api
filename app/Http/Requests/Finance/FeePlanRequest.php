@@ -12,7 +12,7 @@ class FeePlanRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('fee:edit') || $this->user()->can('fee:set') || $this->user()->can('fee:view') ;
+        return true ;
     }
 
     /**

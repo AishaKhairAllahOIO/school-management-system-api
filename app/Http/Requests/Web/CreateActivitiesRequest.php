@@ -11,6 +11,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Validator;
 class CreateActivitiesRequest extends FormRequest
 {
+    //
     use ApiResource;
   public function authorize(): bool
     {

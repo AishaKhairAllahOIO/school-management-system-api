@@ -292,7 +292,6 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
     Route::get('/academic-stages/with-grades', [AcademicSettingsController::class, 'indexWithGrades']);
 
-
 });
 
 Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () {
@@ -384,36 +383,26 @@ Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(fun
     Route::put('/{id}/permissions', [RoleController::class, 'sync']);
 });
 
-Route::middleware('auth:sanctum')->prefix('admin/student')->group(function () {
+Route::middleware('auth:sanctum','role:super_admin|secretary')->prefix('admin/student')->group(function () {
 
     Route::post('/register', [StudentController::class, 'store']);
     Route::post('/import', [StudentController::class, 'importExcel']);
-    Route::get('/import-batches/{batch}/errors/export', [StudentController::class, 'exportErrors'])
-        ->middleware('can:student:create');
-    Route::get('/import-batches/{batch}/status', [StudentController::class, 'getImportStatus'])
-        ->middleware('can:student:create');
+    Route::get('/import-batches/{batch}/errors/export', [StudentController::class, 'exportErrors']);
+    Route::get('/import-batches/{batch}/status', [StudentController::class, 'getImportStatus']);
     Route::get('/import-batches/history', [StudentController::class, 'getBatchesHistory']);
 });
 
-Route::middleware(['auth:sanctum'])->prefix('admin/students')->group(function () {
+Route::middleware('auth:sanctum')->prefix('admin/students')->group(function () {
 
-    Route::get('/filter', [StudentController::class, 'filter'])
-        ->middleware('can:student:view_profile');
-    Route::get('/search', [StudentController::class, 'search'])
-        ->middleware('can:student:view_profile');
-    Route::get('/{id}', [StudentController::class, 'show'])
-        ->middleware('can:student:view_profile');
-    Route::get('/{enrollmentId}/full-profile', [StudentController::class, 'showFullProfile'])
-        ->middleware('can:student:view_profile');
-    Route::post('/{student}/personal', [StudentController::class, 'updatePersonal'])
-        ->middleware('can:student:edit');
+    Route::get('/filter', [StudentController::class, 'filter']);
+    Route::get('/search', [StudentController::class, 'search']);
+    Route::get('/{id}', [StudentController::class, 'show']);
+    Route::get('/{enrollmentId}/full-profile', [StudentController::class, 'showFullProfile']);
+    Route::post('/{student}/personal', [StudentController::class, 'updatePersonal']);
     Route::post('/enrollments/{enrollment}', [StudentController::class, 'updateEnrollment']);
-    Route::post('/guardians/{guardian}/personal', [StudentController::class, 'updateGuardian'])
-        ->middleware('can:student:edit');
-    Route::delete('/{id}', [StudentController::class, 'destroy'])
-        ->middleware('can:student:delete');
-    Route::post('/{enrollmentId}/toggle-account-status', [StudentController::class, 'toggleAccountStatus'])
-        ->middleware('can:account:toggle_status');
+    Route::post('/guardians/{guardian}/personal', [StudentController::class, 'updateGuardian']);
+    Route::delete('/{id}', [StudentController::class, 'destroy']);
+    Route::post('/{enrollmentId}/toggle-account-status', [StudentController::class, 'toggleAccountStatus']);
     Route::post('/{enrollment}/student/restore', [StudentController::class, 'restore']);
 
 
@@ -477,7 +466,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function 
 
     Route::delete('/record/{id}', [StudentAttendanceController::class, 'destroy']);
 });
-Route::middleware(['auth:sanctum'])->prefix('admin/leave')->group(function () {
+Route::middleware('auth:sanctum')->prefix('admin/leave')->group(function () {
     Route::get('/leaves', [StaffLeaveTypeController::class, 'index']);
     Route::get('/{id}', [StaffLeaveTypeController::class, 'show']);
     Route::post('/', [StaffLeaveTypeController::class, 'store']);
@@ -486,11 +475,13 @@ Route::middleware(['auth:sanctum'])->prefix('admin/leave')->group(function () {
     // Route::get('staff/leave/{}')
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff-leaves')->group(function () {
-    Route::post('/', [StaffLeaveController::class, 'store']);         // إنشاء سجل إجازة
+    Route::post('/', [StaffLeaveController::class, 'store']);      
+     Route::get('/allRecords', [StaffLeaveController::class, 'getAllRecords']);   
     Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']);
     Route::get('/{leaveId}/staff', [StaffLeaveController::class, 'getStaffLeaveById']); // 👈 دالة العرض الجديدة
     Route::post('/{id}', [StaffLeaveController::class, 'update']);     // تعديل سجل إجازة
-    Route::delete('/{id}', [StaffLeaveController::class, 'destroy']);  // حذف سجل إجازة
+    Route::delete('/{id}', [StaffLeaveController::class, 'destroy']); 
+    // جلب جميع الإجازات لموظف معين
 });
 
 Route::middleware(['auth:sanctum'])->prefix('admin/staff-attendances')->group(function () {

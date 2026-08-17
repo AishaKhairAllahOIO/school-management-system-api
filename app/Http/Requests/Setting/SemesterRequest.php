@@ -11,7 +11,7 @@ class SemesterRequest extends BaseRequest
 
     public function authorize(): bool
     {
-        return $this->user()->can('school:initialize');
+        return true;
     }
     public function rules(): array
     {

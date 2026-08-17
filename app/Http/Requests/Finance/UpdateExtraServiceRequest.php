@@ -12,7 +12,7 @@ class UpdateExtraServiceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return  $this->user()->can('fee:edit');
+        return  true;
     }
 
     /**

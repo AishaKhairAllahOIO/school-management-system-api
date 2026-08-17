@@ -10,7 +10,6 @@ class AssessmentComponentSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. جلب كافة المواد الدراسية المعرفة في الصف
         $gradeSubjects = GradeSubject::all();
 
         if ($gradeSubjects->isEmpty()) {
@@ -18,10 +17,8 @@ class AssessmentComponentSeeder extends Seeder
             return;
         }
 
-        // تنظيف المكونات القديمة إن وجدت
         AssessmentComponent::query()->delete();
 
-        // 2. الهيكلية المعيارية لمكونات التقييم لكل مادة بناءً على علامتها العظمى (max_mark)
         foreach ($gradeSubjects as $gs) {
             $max = $gs->max_mark; // العلامة العظمى للمادة (مثلاً 600 أو 400 أو 200 أو 100)
 

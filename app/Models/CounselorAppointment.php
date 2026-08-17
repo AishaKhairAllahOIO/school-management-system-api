@@ -36,4 +36,11 @@ class CounselorAppointment extends Model
     {
         return $this->hasOne(CounselingSession::class, 'appointment_id');
     }
+
+
+
+    public function counselingSession()
+    {
+        return $this->hasOne(CounselingSession::class, 'appointment_id');
+    }
 }

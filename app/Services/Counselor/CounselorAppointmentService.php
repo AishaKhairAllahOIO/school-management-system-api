@@ -42,14 +42,14 @@ class CounselorAppointmentService
                     // استخدام upsert أو insertIgnore هنا أفضل بكثير،
                     // ولكن لتجنب تعقيد المفاتيح المركبة، سنقوم بتجهيز مصفوفة
                     $insertData[] = [
-                        'counselor_id'     => $availability->counselor_id,
-                        'student_id'       => null,
+                        'counselor_id' => $availability->counselor_id,
+                        'student_id' => null,
                         'appointment_date' => $tomorrow->toDateString(),
-                        'start_time'       => $slotStart,
-                        'end_time'         => $slotEnd,
-                        'booking_status'   => 'available',
-                        'created_at'       => now(),
-                        'updated_at'       => now(),
+                        'start_time' => $slotStart,
+                        'end_time' => $slotEnd,
+                        'booking_status' => 'available',
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
 
                     $start->addMinutes($duration);
@@ -69,14 +69,19 @@ class CounselorAppointmentService
 
     public function getAvailableTomorrowSlots()
     {
-        // التحسين الكبير هنا باستخدام select و distinct على الداتابيز مباشرة
+        $date = Carbon::now()->addDay()->toDateString();
+
         return CounselorAppointment::query()
-            ->select('appointment_date', 'start_time', 'end_time', 'booking_status')
-            ->whereDate('appointment_date', Carbon::tomorrow()->toDateString())
+            ->whereDate('appointment_date', $date)
             ->where('booking_status', 'available')
-            ->distinct() // يمنع تكرار الوقت في حال وجود أكثر من مرشد
             ->orderBy('start_time')
-            ->get();
+            ->get([
+                'id',
+                'appointment_date',
+                'start_time',
+                'end_time',
+                'booking_status',
+            ]);
     }
 
     public function bookAppointment(int $studentId, string $appointmentDate, string $startTime, string $endTime): CounselorAppointment
@@ -124,11 +129,13 @@ class CounselorAppointmentService
             foreach ($appointments as $appointment) {
                 $availability = $availabilities->get($appointment->counselor_id);
 
-                if (!$availability) continue;
+                if (!$availability)
+                    continue;
 
                 $acceptedCount = $acceptedCounts->get($appointment->counselor_id, 0);
 
-                if ($acceptedCount >= $availability->daily_sessions_limit) continue;
+                if ($acceptedCount >= $availability->daily_sessions_limit)
+                    continue;
 
                 if ($acceptedCount < $lowestLoad) {
                     $lowestLoad = $acceptedCount;
@@ -226,10 +233,12 @@ class CounselorAppointmentService
                 ->get();
 
             foreach ($processedAppointments as $appointment) {
-                if (!$appointment->student) continue;
+                if (!$appointment->student)
+                    continue;
 
                 $enrollment = $appointment->student->enrollments()->latest()->first();
-                if (!$enrollment) continue;
+                if (!$enrollment)
+                    continue;
 
                 if ($appointment->booking_status === 'accepted') {
                     $this->alertService->createStudentOnlyAlert(
@@ -266,7 +275,50 @@ class CounselorAppointmentService
         });
     }
 
+    public function getPendingCounselorAppointments(int $counselorId, ?string $date = null)
+    {
 
+        $date = $date
+            ? Carbon::parse($date)->toDateString()
+            : Carbon::tomorrow()->toDateString();
+
+        return CounselorAppointment::query()
+            ->where(
+                'counselor_id',
+                $counselorId
+            )
+            ->whereDate(
+                'appointment_date',
+                $date
+            )
+            ->where(
+                'booking_status',
+                'pending'
+            )
+            ->with([
+                'student.user',
+            ])
+            ->orderBy('start_time')
+            ->get();
+    }
+
+    public function getStudentAppointments(int $studentId)
+    {
+        return CounselorAppointment::query()
+            ->where('student_id', $studentId)
+            ->whereIn('booking_status', [
+                'pending',
+                'accepted',
+                'completed',
+                'cancelled',
+            ])
+            ->with([
+                'counselor.user',
+            ])
+            ->orderByDesc('appointment_date')
+            ->orderByDesc('start_time')
+            ->get();
+    }
 
     public function cancelByStudent(int $appointmentId, int $studentId): CounselorAppointment
     {
@@ -321,8 +373,6 @@ class CounselorAppointmentService
             return $appointment->fresh();
         });
     }
-
-
     public function cancelByCounselor(int $appointmentId, int $counselorId): CounselorAppointment
     {
 
@@ -379,4 +429,130 @@ class CounselorAppointmentService
             return $appointment->fresh();
         });
     }
+    public function getCounselorStudents(int $counselorId, ?int $gradeLevelId = null, ?string $search = null)
+    {
+        return Student::query()
+
+            ->whereHas('counselorAppointments', function ($query) use ($counselorId) {
+
+                $query->where('counselor_id', $counselorId)
+                    ->where('booking_status', 'completed');
+
+            })
+
+
+            ->when($gradeLevelId, function ($query) use ($gradeLevelId) {
+
+                $query->whereHas('enrollments', function ($q) use ($gradeLevelId) {
+
+                    $q->whereHas('classRoom', function ($class) use ($gradeLevelId) {
+                        $class->where('grade_level_id', $gradeLevelId);
+                    });
+
+                });
+
+            })
+
+            ->when($search, function ($query) use ($search) {
+
+                $query->whereHas('user', function ($q) use ($search) {
+
+                    $q->where(function ($name) use ($search) {
+
+                        $name->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+
+                    });
+
+                });
+
+            })
+            ->with([
+                'user',
+                'enrollments.classRoom.gradeLevel',
+                'counselorAppointments' => function ($query) use ($counselorId) {
+
+                    $query->where('counselor_id', $counselorId)
+                        ->where('booking_status', 'completed')
+                        ->with('counselingSession')
+                        ->latest('appointment_date');
+
+                }
+            ])
+
+            ->withCount([
+                'counselorAppointments as sessions_count' => function ($query) use ($counselorId) {
+
+                    $query->where('counselor_id', $counselorId)
+                        ->where('booking_status', 'completed');
+
+                }
+            ])
+
+            ->get();
+    }
+
+    public function getStudentSessions(int $studentId, int $counselorId)
+    {
+
+
+        return CounselorAppointment::query()
+
+            ->where(
+                'student_id',
+                $studentId
+            )
+
+            ->where(
+                'counselor_id',
+                $counselorId
+            )
+
+
+            ->with([
+                'counselingSession'
+            ])
+
+            ->orderByDesc(
+                'appointment_date'
+            )
+
+            ->orderByDesc(
+                'start_time'
+            )
+
+            ->get();
+
+    }
+
+    public function getTomorrowSchedule(int $counselorId)
+{
+    return CounselorAppointment::query()
+
+        ->where(
+            'counselor_id',
+            $counselorId
+        )
+
+        ->whereDate(
+            'appointment_date',
+            Carbon::tomorrow()->toDateString()
+        )
+
+        ->with([
+            'student.user'
+        ])
+
+        ->orderBy(
+            'start_time'
+        )
+
+        ->get();
+}
+
+
+
+    
+
+    
 }

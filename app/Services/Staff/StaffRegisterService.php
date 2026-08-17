@@ -21,7 +21,8 @@ class StaffRegisterService
             $photoPath = 'defaults/staff.png';
             $photoPath = 'defaults/staff.png';
             if (isset($data['photo_url']) && $data['photo_url'] instanceof UploadedFile) {
-                $photoPath = $data['photo_url']->store('users/staff', 'local');
+                $photoPath = $data['photo_url']
+                    ->store('users/staff', config('filesystems.default'));
             }
             $password = !empty($data['password'])
                 ? bcrypt($data['password'])
@@ -62,12 +63,12 @@ class StaffRegisterService
             return $staff->load('user');
         });
     }
-    public function initiateStaffExcelImport(UploadedFile $file, string $role,int $adminId): ImportBatch
+    public function initiateStaffExcelImport(UploadedFile $file, string $role, int $adminId): ImportBatch
     {
         $filePath = $file->storeAs(
             'imports/staff',
             'staff_import_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension(),
-            'local'
+            config('filesystems.default')
         );
 
         $batch = ImportBatch::create([
@@ -77,7 +78,7 @@ class StaffRegisterService
             'status' => 'pending'
         ]);
 
-        ProcessStaffImportJob::dispatch($batch->id,$role);
+        ProcessStaffImportJob::dispatch($batch->id, $role);
 
         return $batch;
     }

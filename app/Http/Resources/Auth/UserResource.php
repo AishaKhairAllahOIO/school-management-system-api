@@ -23,7 +23,14 @@ class UserResource extends JsonResource
             'gender' => $this->gender,
 
             'photo_url' => $this->photo_url
-                ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $this->photo_url), '/'))
+                ? url('/api/documents/photos/' . ltrim(
+                    preg_replace(
+                        '/^.*?(users\/|defaults\/)/',
+                        '$1',
+                        trim($this->photo_url)
+                    ),
+                    '/'
+                ))
                 : null,
 
             'account_status' => $this->account_status,

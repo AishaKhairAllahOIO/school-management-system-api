@@ -20,6 +20,7 @@ class ClassStudentEvaluationResource extends JsonResource
             'created_at'    => $this->created_at?->format('Y-m-d H:i'),
             'updated_at'    => $this->updated_at?->format('Y-m-d H:i'),
 
+
             'subject' => $this->whenLoaded('gradeSubject', function () {
                 return [
                     'id'   => $this->gradeSubject->subject?->id,
@@ -27,18 +28,43 @@ class ClassStudentEvaluationResource extends JsonResource
                 ];
             }),
 
+
             'student' => $this->whenLoaded('enrollment', function () {
-                $student = $this->enrollment->student;
+
+                $student = $this->enrollment?->student;
                 $user = $student?->user;
 
+
                 return [
-                    'id'             => $student?->id,
-                    'full_name'      => $user ? trim("{$user->first_name} {$user->father_name} {$user->last_name}") : 'طالب غير معرف',
-                    'personal_photo' => $user->photo_url
-                    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))
-                    : null,
+                    'id' => $student?->id,
+
+                    'full_name' => $user
+                        ? trim(
+                            preg_replace(
+                                '/\s+/',
+                                ' ',
+                                "{$user->first_name} {$user->father_name} {$user->last_name}"
+                            )
+                        )
+                        : 'طالب غير معرف',
+
+
+                    'personal_photo' => $user?->photo_url
+                        ? url(
+                            '/api/documents/photos/' .
+                            ltrim(
+                                preg_replace(
+                                    '/^.*?(users\/|defaults\/)/',
+                                    '$1',
+                                    trim($user->photo_url)
+                                ),
+                                '/'
+                            )
+                        )
+                        : null,
                 ];
             }),
+
 
             'classroom' => $this->whenLoaded('enrollment', function () {
                 return [
@@ -46,6 +72,8 @@ class ClassStudentEvaluationResource extends JsonResource
                     'name' => $this->enrollment->classRoom?->name ?? 'شعبة غير معرفة',
                 ];
             }),
+
+
             'grade' => $this->whenLoaded('enrollment', function () {
                 return [
                     'id'   => $this->enrollment->gradeLevel?->id,

@@ -28,12 +28,15 @@ class StaffProfileResource extends JsonResource
             'birthPlace' => $user->birth_place,
             'address' => $user->address,
             'nationality' => $user->nationality,
-            
-
-
-
             'photoUrl' => $user->photo_url
-                ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))
+                ? url('/api/documents/photos/' . ltrim(
+                    preg_replace(
+                        '/^.*?(users\/|defaults\/)/',
+                        '$1',
+                        trim($user->photo_url)
+                    ),
+                    '/'
+                ))
                 : null,
 
             'accountStatus' => $user->account_status,

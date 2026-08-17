@@ -114,19 +114,15 @@ for ($i = 1; $i <= 25; $i++) {
                 ]);
 
                 // 💡 4. تحديد الحالة المالية وحالة التسجيل بناءً على قاعدة متسقة وصارمة
-                if ($i <= 10) {
-                    $paymentStatus    = 'fully_paid';
-                    $enrollmentStatus = 'completed'; // أبرأ ذمته المالية
-                    $paidBalance      = 600000.00;
-                } elseif ($i <= 20) {
-                    $paymentStatus    = 'partially_paid';
-                    $enrollmentStatus = 'enrolled';   // دفع جزءاً ولم ينهِ ذمته
-                    $paidBalance      = 300000.00;
-                } else {
-                    $paymentStatus    = 'unpaid';
-                    $enrollmentStatus = 'suspended';  // لم يدفع شيئاً ومعلق
-                    $paidBalance      = 0.00;
-                }
+            if ($i <= 13) {
+                $paymentStatus    = 'fully_paid';
+                $enrollmentStatus = 'completed'; 
+                $paidBalance      = 600000.00;
+            } else {
+                $paymentStatus    = 'partially_paid';
+                $enrollmentStatus = 'enrolled';   
+                $paidBalance      = 300000.00;
+            }
 
                 $totalAmount = 600000.00;
                 $remainingBalance = $totalAmount - $paidBalance;

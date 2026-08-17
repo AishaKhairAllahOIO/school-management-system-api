@@ -3,7 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\StudentMark;
-use App\Models\AssessmentComponent;
+use App\Models\GradeSubject;
+use App\Models\Enrollment;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -11,51 +12,76 @@ class StudentMarkSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. جلب كافة مكونات التقييم لكل المواد الموجودة في الداتابيز
-        $components = AssessmentComponent::all();
+        $teacherId = 1;
+        $now = Carbon::now();
 
-        if ($components->isEmpty()) {
-            $this->command->warn('⚠️ تنبيه: لا توجد مكونات تقييم مدخلة. يجدر بك تشغيل AssessmentComponentSeeder أولاً!');
+        // 1. جلب كافة القيود (Enrollments) الموجودة في النظام مهما كان عددها (سواء 3 أو 25 أو أكثر)
+        $enrollments = Enrollment::all();
+
+        if ($enrollments->isEmpty()) {
+          //  $this->command->error('❌ خطأ: لا توجد قيود طلابية (Enrollments). يرجى تسجيل الطلاب أولاً!');
             return;
         }
 
-        // 2. 🎮 لوحة التحكم بالرسوب والنجاح للطلاب (Enrollments)
-        // يمكنك إضافة أي قيد وتحديد سيناريو النجاح أو الرسوب له بدقة:
-        // 'passed' -> سينال العلامة الكاملة في كل المكونات (نجاح باهر)
-        // 'failed' -> سينال 20% فقط من العلامة في كل المكونات (رسوب كلي)
-        $studentScenarios = [
-            1 => 'passed',  // الطالب صاحب القيد 1 -> ناجح
-            3 => 'failed',  // الطالب صاحب القيد 3 -> راسب
-        ];
+        // جلب كافة المواد الدراسية ومكونات التقييم الخاصة بها
+        $gradeSubjects = GradeSubject::with('assessmentComponents')->get();
 
-        $teacherId = 1;
-        $marksToInsert = [];
-        $now = Carbon::now();
-
-        // 3. تنظيف العلامات القديمة لمنع التكرار
-        StudentMark::whereIn('enrollment_id', array_keys($studentScenarios))->delete();
-
-        foreach ($studentScenarios as $enrollmentId => $scenario) {
-            foreach ($components as $component) {
-                
-                // تحديد نسبة العلامة بناءً على السيناريو (نجاح أو رسوب)
-                $multiplier = ($scenario === 'passed') ? 1.0 : 0.20; // 20% رسوب
-                $mark = round($component->max_mark * $multiplier, 2);
-
-                $marksToInsert[] = [
-                    'enrollment_id'           => $enrollmentId,
-                    'assessment_component_id' => $component->id,
-                    'teacher_id'              => $teacherId,
-                    'mark'                    => $mark,
-                    'created_at'              => $now,
-                    'updated_at'              => $now,
-                ];
-            }
+        if ($gradeSubjects->isEmpty()) {
+           // $this->command->error('❌ خطأ: لا توجد مواد دراسية أو مكونات تقييم معرفة.');
+            return;
         }
 
-        // إدخال العلامات دفعة واحدة بأداء عالي جداً (Bulk Insert)
-        StudentMark::insert($marksToInsert);
-        
-        $this->command->info('✨ تم توزيع العلامات بنجاح بناءً على سيناريوهات النجاح والرسوب المحددة!');
+        // 2. تنظيف العلامات القديمة لمنع التكرار
+        StudentMark::query()->delete();
+
+        $marksToInsert = [];
+        $counter = 1;
+
+        foreach ($enrollments as $enrollment) {
+            
+            // 💡 تنويع مستويات الطلاب بناءً على تسلسلهم في النظام لضمان تنوع نتائج الجلاءات والإحصائيات:
+            // - أول 5 طلاب: متفوقون جداً (ينافسون على العشرة الأوائل) -> نسبة 90%
+            // - الطلاب من 6 إلى 20: ناجحون طبيعيون -> نسبة 70%
+            // - الباقون: حالات رسوب (لاختبار فلتر المواد المرسبة أو المجموع) -> نسبة 35% إلى 45%
+            $level = match(true) {
+                ($counter <= 5)  => 'top_student',
+                ($counter <= 20) => 'regular_passed',
+                default          => 'failing_student',
+            };
+
+            foreach ($gradeSubjects as $gradeSubject) {
+                if ($gradeSubject->assessmentComponents->isEmpty()) {
+                    continue;
+                }
+
+                foreach ($gradeSubject->assessmentComponents as $component) {
+                    
+                    $mark = match($level) {
+                        'top_student'     => round($component->max_mark * 0.90, 2),
+                        'regular_passed'  => round($component->max_mark * 0.70, 2),
+                        'failing_student' => $gradeSubject->is_failing_subject 
+                            ? round($component->max_mark * 0.35, 2) // رسوب في المادة الأساسية
+                            : round($component->max_mark * 0.45, 2), // رسوب في مادة غير مرسبة
+                    };
+
+                    $marksToInsert[] = [
+                        'enrollment_id'           => $enrollment->id,
+                        'assessment_component_id' => $component->id,
+                        'teacher_id'              => $teacherId,
+                        'mark'                    => $mark,
+                        'created_at'              => $now,
+                        'updated_at'              => $now,
+                    ];
+                }
+            }
+
+            $counter++;
+        }
+
+        // 3. إدخال العلامات دفعة واحدة بأداء عالي جداً (Bulk Insert)
+        if (!empty($marksToInsert)) {
+            StudentMark::insert($marksToInsert);
+            //$this->command->info('✨ تم حقن العلامات بنجاح تام لجميع طلاب المدرسة (' . $enrollments->count() . ' طالباً)!');
+        }
     }
 }

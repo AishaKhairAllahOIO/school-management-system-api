@@ -105,5 +105,9 @@ class User extends Authenticatable
         return $this->belongsToMany(StudyMaterial::class, 'exam_user_reads', 'user_id', 'exam_id')
                     ->withPivot('read_at');
     }
+    public function gradeConfiguration()
+    {
+        return $this->hasOne(GradeConfiguration::class);
+    }
 
 }

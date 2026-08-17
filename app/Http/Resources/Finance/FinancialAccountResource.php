@@ -19,7 +19,6 @@ class FinancialAccountResource extends JsonResource
             'paymentStatus'              => $this->payment_status,
             'contractActivationSnapshot' => $this->contract_activation_snapshot,
             
-            // العلاقات المحملة
             'feePlan'                    => new FeePlanResource($this->whenLoaded('feePlan')),
             'installmentPolicy'          => new InstallmentPolicyResource($this->whenLoaded('installmentPolicy')),
             'installments'               => ScheduledInstallmentResource::collection($this->whenLoaded('scheduledInstallments')),

@@ -15,7 +15,7 @@ class PayrollSeeder extends Seeder
         $lastMonth = Carbon::now()->subMonth(); 
 
         foreach ($contracts as $contract) {
-            $netSalary = $contract->salary_type === 'fixed_monthly' ? $contract->salary_amount : 1500; // للمعلم افترضنا 1500
+            $netSalary = $contract->salary_type === 'fixed_monthly' ? $contract->salary_amount : 1500; 
 
             Payroll::updateOrCreate(
                 [

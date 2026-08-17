@@ -18,9 +18,7 @@ class PaymentController extends Controller
 
     public function __construct(private PaymentService $service) {}
 
-    /**
-     * تسجيل دفعة مالية جديدة للطالب (الصندوق)
-     */
+
      public function index()
     {
         try {

@@ -73,7 +73,7 @@ class GuardianFinanceService
                 'feePlan',
                 'installmentPolicy',
                 'scheduledInstallments',
-                'Transactions',
+                'transactions',
             ])
 
             ->first();

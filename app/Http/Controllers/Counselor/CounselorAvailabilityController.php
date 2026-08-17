@@ -3,122 +3,118 @@
 namespace App\Http\Controllers\Counselor;
 
 
+use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Counselor\StoreAvailabilityRequest;
 use App\Http\Requests\Counselor\UpdateAvailabilityRequest;
 use App\Services\Counselor\CounselorAvailabilityService;
+use Exception;
 use Illuminate\Http\Request;
 
 
 class CounselorAvailabilityController extends Controller
 {
+    use ApiResource;
 
-
-    public function __construct(
-        private CounselorAvailabilityService $service
-    ) {
+    public function __construct(private CounselorAvailabilityService $service)
+    {
     }
 
 
 
-    public function store(
-        StoreAvailabilityRequest $request
-    ) {
+    public function store(StoreAvailabilityRequest $request)
+    {
 
-        $counselorId =
-            $request->user()->counselor->id;
+        try {
 
+            $counselorId = $request->user()->id;
+            $times = $this->service->saveSchedule($counselorId, $request->schedule);
 
+            return $this->successResponse(null, 'Available times saved successfuly.', 201);
+        } catch (Exception $e) {
 
-        $this->service->saveSchedule(
-            $counselorId,
-            $request->schedule
-        );
+            return $this->errorResponse(
+                $e->getMessage(),
+                500
+            );
+        }
 
-
-        return response()->json([
-
-            'status' => true,
-
-            'message' => 'تم حفظ جدول التواجد بنجاح'
-
-        ]);
 
     }
-
-
-
-
     public function index(Request $request)
     {
 
-        $data = $this->service->getSchedule(
-            $request->user()->counselor->id
-        );
+        try {
 
+            $data = $this->service->getSchedule($request->user()->id);
 
-        return response()->json([
+            return $this->successResponse(
+                $data,
+                'Available times shown successfully.',
+                200
+            );
+        } catch (Exception $e) {
 
-            'status' => true,
+            return $this->errorResponse(
+                $e->getMessage(),
+                500
+            );
 
-            'data' => $data
+        }
 
-        ]);
 
     }
+    public function update(UpdateAvailabilityRequest $request, string $day)
+    {
+
+        try {
+
+            $counselorId = $request->user()->id;
+            $availability = $this->service->updateDay($counselorId, $day, $request->validated());
 
 
+            return $this->successResponse(
+                $availability,
+                'Available times updated successfully.',
+                200
+            );
+        } catch (Exception $e) {
 
-    public function update(
-        UpdateAvailabilityRequest $request,
-        string $day
-    ) {
+            return $this->errorResponse(
+                $e->getMessage(),
+                500
+            );
+        }
 
-        $counselorId =
-            $request->user()
-                ->counselor
-                ->id;
+    }
+    public function destroy(Request $request, string $day)
+    {
+        try {
 
-
-        $availability =
-            $this->service->updateDay(
-                $counselorId,
-                $day,
-                $request->validated()
+            $this->service->deleteDay(
+                $request->user()->id,
+                $day
             );
 
 
-        return response()->json([
+            return $this->successResponse(null, 'Day deleted successfully.', 200);
+        } catch (Exception $e) {
 
-            'status' => true,
+            return $this->errorResponse(
+                $e->getMessage(),
+                500
+            );
 
-            'message' => 'تم تعديل وقت التواجد بنجاح',
 
-            'data' => $availability
 
-        ]);
+        }
+
 
     }
 
-
-    public function destroy(
-    Request $request,
-    string $day
-)
-{
-
-    $this->service->deleteDay(
-        $request->user()->counselor->id,
-        $day
-    );
-
-
-    return response()->json([
-        'status'=>true,
-        'message'=>'تم حذف اليوم'
-    ]);
-
-}
+    public function addDay(Request $request, string $day){
+        
+    }
 
 
 }

@@ -238,7 +238,7 @@ class PayrollService
                     'id' => $payroll->contract?->id,
                     'salary_type' => $payroll->contract?->salary_type,
                     'salary_amount' => $payroll->contract?->salary_amount,
-                    'academic_year' => $payroll->contract?->academicYear?->name,
+                    'academic_year' => $payroll->contract?->academicYear?->year_name,
                 ],
             ];
 

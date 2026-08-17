@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Throwable;
 use App\Http\Resources\Staff\StaffLeaveResource;
 use App\Http\Requests\Admin\Staff\UpadateStaffLeaveRequest;
+use App\Models\StaffLeave;
 
 class StaffLeaveController extends Controller
 {
@@ -27,6 +28,10 @@ class StaffLeaveController extends Controller
     /**
      * تسجيل طلب إجازة جديد للموظف
      */
+ public function getAllRecords()
+    {
+        return StaffLeave::get();
+    }
     public function store(StoreStaffLeaveRequest $request): JsonResponse
     {
         try {

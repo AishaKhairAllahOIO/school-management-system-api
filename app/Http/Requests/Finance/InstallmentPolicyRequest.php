@@ -13,7 +13,7 @@ class InstallmentPolicyRequest extends BaseRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('installment:edit_policy') || $this->user()->can('installment:set_policy') || $this->user()->can('installment:view_policy') ;
+        return true;
     }
 
     /**

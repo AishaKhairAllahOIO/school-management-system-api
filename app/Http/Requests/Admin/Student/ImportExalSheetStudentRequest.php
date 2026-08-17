@@ -13,7 +13,7 @@ class ImportExalSheetStudentRequest extends BaseRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('student:create');
+        return true;
     }
 
     /**

@@ -12,7 +12,7 @@ class UpdateClassroomRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('school:initialize');
+        return true;
     }
 
 

@@ -9,9 +9,13 @@ use Illuminate\Database\Eloquent\Collection;
 
 class RoleManagementService
 {
+    /**
+     * السيناريو الأول: جلب الأدوار مع حساب الإحصائيات (Full, Limited, No Access)
+     */
     public function getRolesWithStatistics(): Collection
     {
         $modules = SystemModule::withCount('permissions as total_perms')->get();
+        
         $roles = Role::with('permissions')->get();
 
         foreach ($roles as $role) {
@@ -42,8 +46,7 @@ class RoleManagementService
 
         return $roles;
     }
-
-    public function getSystemModules(): Collection
+PUBLIC FUNCTION getSystemModules(): Collection
     {
         return SystemModule::with('permissions')->get();
     }
@@ -57,6 +60,6 @@ class RoleManagementService
         }
 
         $role->syncPermissions($permissionIds);
-        return $role->permissions()->pluck('name');
+        return $role->permissions()->pluck('name'); // إرجاع الصلاحيات الجديدة بعد المزامنة
     }
 }

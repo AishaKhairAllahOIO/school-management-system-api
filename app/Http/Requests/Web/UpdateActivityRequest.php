@@ -10,7 +10,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Validator;
 
 class UpdateActivityRequest extends FormRequest
-{
+{//
 
 use ApiResource;
     public function authorize(): bool

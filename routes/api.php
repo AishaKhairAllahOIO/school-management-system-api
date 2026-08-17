@@ -519,9 +519,10 @@ Route::middleware(['auth:sanctum'])->prefix('admin/reports/finance')->group(func
 
 Route::middleware(['auth:sanctum'])->prefix('admin/report-cards')->group(function () {
     Route::post('/generate', [ReportCardAdminController::class, 'generate']);      // زر توليد الجلاءات (Job)
-    Route::get('/', [ReportCardAdminController::class, 'index']);                  // استعراض الجلاءات
+    Route::get('/', [ReportCardAdminController::class, 'index']);    
+    Route::get('/{id}', [ReportCardAdminController::class, 'show']);        // زر ترفيع الطلاب للعام الجديد
     Route::post('/publish', [ReportCardAdminController::class, 'togglePublish']);   // زر نشر / إلغاء النشر للأهالي
-    Route::post('/promote', [ReportCardAdminController::class, 'promote']);         // زر ترفيع الطلاب للعام الجديد
+    Route::post('/promote', [ReportCardAdminController::class, 'promote']); 
     Route::post('/toggle-publish', [ReportCardAdminController::class, 'togglePublish']);
     });
 
@@ -636,3 +637,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
   Route::get('/guardian/students/{student_id}/report-cards/{semester_id}',[GuardianReportController::class,'showStudentReportCard']);
   Route::middleware(['auth:sanctum'])->get('/student/report-cards/{semesterId}/', [GuardianReportController::class, 'showMyReportCard']);
   });
+Route::get('/website',[ContentController::class,'getPublicStats']);  

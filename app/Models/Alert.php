@@ -28,6 +28,7 @@ class Alert extends Model
     public const TYPE_WARNING = 'warning';
     public const TYPE_SYSTEM_NOTICE = 'system_notice';
     public const TYPE_COMPLAIN = 'complain';
+    public const TYPE_REPORT_CARD = 'report_card';
 
 
     public function notifiable(): MorphTo

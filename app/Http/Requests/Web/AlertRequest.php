@@ -94,6 +94,9 @@ class AlertRequest extends FormRequest
             Alert::TYPE_COMPLAIN => [
                 'meta.severity' => ['nullable','string',Rule::in(['low', 'medium', 'high'])]
             ],
+            Alert::TYPE_REPORT_CARD => [
+                'meta.semester' => ['nullable','integer', 'exists:semester,semester_name'],
+            ],
 
             default => [],
         };

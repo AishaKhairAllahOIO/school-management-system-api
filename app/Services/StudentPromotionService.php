@@ -36,7 +36,7 @@ class StudentPromotionService
                 }
 
                 if ($currentGrade->is_graduation_grade) {
-                    $enrollment->update(['academic_result' => 'graduated']);
+                    $enrollment->update(['academic_result' => 'passed']);
                     $graduatedCount++;
                     continue;
                 }
@@ -64,7 +64,7 @@ class StudentPromotionService
                     ->withCount(['enrollments' => function ($query) use ($toAcademicYearId) {
                         // نحسب كم مقعد محجوز في هذه الشعبة (للعام القادم) سواء كان مثبتاً أو معلقاً
                         $query->where('academic_year_id', $toAcademicYearId)
-                              ->whereIn('enrollment_status', ['enrolled', 'suspended']);
+                              ->whereIn('enrollment_status', ['enrolled', 'suspended','completed']);
                     }])
                     ->get()
                     ->first(function ($room) {

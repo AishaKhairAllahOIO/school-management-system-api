@@ -421,6 +421,16 @@ class AlertService
             $data['description'] ?? null
         );
     }
+    public function createPublishReportCardAlart(Enrollment $enrollment, array $meta = []): Alert
+    {
+         return $this->createStudentAlert(
+            $enrollment,
+            Alert::TYPE_LATE,
+            'تنبيه اصدار الجلاء',
+             'تم نشر جلاء الطلاب , يمكنك الاستعلام عنه الان',
+            $meta
+        );
+    }
 
     public function deleteAlert(int $id): void
     {

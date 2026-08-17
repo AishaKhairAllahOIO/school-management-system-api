@@ -40,8 +40,8 @@ class StaffManagementService
     {
         if ($roleName === 'student') {
             $paginator = Student::whereHas('user', function ($query) use ($roleName) {
-                    $query->role($roleName);
-                })
+                $query->role($roleName);
+            })
                 ->with([
                     'user.roles',
                     'enrollments' => function ($query) {
@@ -99,11 +99,13 @@ class StaffManagementService
 
             if (isset($data['photo_url']) && $data['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
                 if ($user->photo_url && !str_contains($user->photo_url, 'defaults/')) {
-                    if (Storage::disk('local')->exists($user->photo_url)) {
-                        Storage::disk('local')->delete($user->photo_url);
+                    $disk = config('filesystems.default');
+                    if (Storage::disk($disk)->exists($user->photo_url)) {
+                        Storage::disk($disk)->delete($user->photo_url);
                     }
                 }
-                $data['photo_url'] = $data['photo_url']->store('users/staff', 'local');
+                $data['photo_url'] = $data['photo_url']
+                    ->store('users/staff', config('filesystems.default'));
             }
 
             $userFields = [
@@ -243,15 +245,15 @@ class StaffManagementService
             $safeSearch = str_replace(['%', '_'], ['\%', '\_'], trim($filters['search']));
             $query->whereHas('user', function ($q) use ($safeSearch) {
                 $q->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'LIKE', "%{$safeSearch}%")
-                  ->orWhere('first_name', 'LIKE', "%{$safeSearch}%")
-                  ->orWhere('last_name', 'LIKE', "%{$safeSearch}%");
+                    ->orWhere('first_name', 'LIKE', "%{$safeSearch}%")
+                    ->orWhere('last_name', 'LIKE', "%{$safeSearch}%");
             });
         }
 
         // --- 💡 فلتر حالة الحضور ونوع الغياب (تم إصلاح منطق الحاضر) ---
         if (!empty($filters['attendance_status'])) {
             $attendanceStatus = $filters['attendance_status'];
-            
+
             if ($attendanceStatus === 'present') {
                 $query->whereDoesntHave('attendances', function ($q) use ($targetDate) {
                     $q->whereDate('attendance_date', $targetDate);
@@ -260,8 +262,8 @@ class StaffManagementService
                 // للغياب والإجازات، نبحث في السجلات الموجودة
                 $query->whereHas('attendances', function ($q) use ($targetDate, $attendanceStatus, $filters) {
                     $q->whereDate('attendance_date', $targetDate)
-                      ->where('status', $attendanceStatus);
-                      
+                        ->where('status', $attendanceStatus);
+
                     // الفلتر الفرعي لنوع الغياب
                     if (in_array($attendanceStatus, ['absent', 'partial_absence']) && !empty($filters['absence_type'])) {
                         $q->where('absence_type', $filters['absence_type']);
@@ -273,9 +275,9 @@ class StaffManagementService
         // الترتيب
         $direction = (isset($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
         $query->join('users', 'staff.user_id', '=', 'users.id')
-              ->select('staff.*')
-              ->orderBy('users.first_name', $direction)
-              ->orderBy('users.father_name', $direction);
+            ->select('staff.*')
+            ->orderBy('users.first_name', $direction)
+            ->orderBy('users.father_name', $direction);
 
         $paginator = $query->paginate($perPage);
 
@@ -288,15 +290,15 @@ class StaffManagementService
 
             // بناء كائن الحضور (سواء كان له سجل أم لا)
             $staff->setAttribute('attendance', [
-                'id'              => $attendanceRecord ? $attendanceRecord->id : null,
-                'status'          => $attendanceRecord ? $attendanceRecord->status : 'present', // الافتراضي حاضر
-                'absence_type'    => $attendanceRecord ? $attendanceRecord->absence_type : null,
-                'staff_leave_id'  => $attendanceRecord ? $attendanceRecord->staff_leave_id : null,
+                'id' => $attendanceRecord ? $attendanceRecord->id : null,
+                'status' => $attendanceRecord ? $attendanceRecord->status : 'present', // الافتراضي حاضر
+                'absence_type' => $attendanceRecord ? $attendanceRecord->absence_type : null,
+                'staff_leave_id' => $attendanceRecord ? $attendanceRecord->staff_leave_id : null,
                 'attendance_date' => $targetDate,
             ]);
 
             // إخفاء المصفوفة القديمة المربكة لكي يكون الـ JSON نظيفاً
-            $staff->makeHidden('attendances'); 
+            $staff->makeHidden('attendances');
 
             return $staff;
         });

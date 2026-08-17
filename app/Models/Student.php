@@ -30,6 +30,13 @@ class Student extends Model
         return $this->hasOne(FinancialAccount::class);
     }
 
+    public function counselorAppointments()
+    {
+        return $this->hasMany(
+            CounselorAppointment::class
+        );
+    }
+
 
 
 }

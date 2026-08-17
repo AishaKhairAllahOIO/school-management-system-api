@@ -497,7 +497,6 @@ class AlertService
             $meta
         );
     }
-
     public function deleteAlert(int $id): void
     {
         $alert = Alert::findOrFail($id);

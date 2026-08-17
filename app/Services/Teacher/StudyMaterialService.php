@@ -33,8 +33,11 @@ class StudyMaterialService
             if ($data['type'] === 'file' && $file) {
                 $extension = $file->getClientOriginalExtension();
                 $fileName = Str::uuid() . '.' . $extension;
-                $path = $file->storeAs("materials/" . date('Y'), $fileName, 'local');
-
+                $path = $file->storeAs(
+                    "materials/" . date('Y'),
+                    $fileName,
+                    config('filesystems.default')
+                );
                 $materialData['file_path'] = $path;
                 $materialData['original_name'] = $file->getClientOriginalName();
                 $materialData['file_extension'] = $extension;
@@ -230,7 +233,8 @@ class StudyMaterialService
 
         if ($material->type === 'file' && $material->file_path) {
             try {
-                Storage::disk('local')->delete($material->file_path);
+                Storage::disk(config('filesystems.default'))
+                    ->delete($material->file_path);
             } catch (Exception $e) {
                 Log::error("Failed to delete file for material ID {$material->id}: " . $e->getMessage());
             }

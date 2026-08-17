@@ -63,12 +63,14 @@ class StudentRegisterService
 
             $guardianPhotoPath = 'defaults/guardian.png';
             if (isset($data['guardian']['photo_url']) && $data['guardian']['photo_url'] instanceof UploadedFile) {
-                $guardianPhotoPath = $data['guardian']['photo_url']->store('users/guardians', 'local');
+                $guardianPhotoPath = $data['guardian']['photo_url']
+                    ->store('users/guardians', config('filesystems.default'));
             }
 
             $studentPhotoPath = 'defaults/student.png';
             if (isset($data['student']['photo_url']) && $data['student']['photo_url'] instanceof UploadedFile) {
-                $studentPhotoPath = $data['student']['photo_url']->store('users/students', 'local');
+                $studentPhotoPath = $data['student']['photo_url']
+                    ->store('users/students', config('filesystems.default'));
             }
 
 
@@ -107,7 +109,8 @@ class StudentRegisterService
 
                 if (isset($data['guardian']['photo_url']) && $data['guardian']['photo_url'] instanceof UploadedFile) {
                     if ($guardianUser->photo_url && !str_starts_with($guardianUser->photo_url, 'defaults/')) {
-                        Storage::disk('local')->delete($guardianUser->photo_url);
+                        Storage::disk(config('filesystems.default'))
+                            ->delete($guardianUser->photo_url);
                     }
                     $guardianUser->update(['photo_url' => $guardianPhotoPath]);
                 }
@@ -179,8 +182,10 @@ class StudentRegisterService
 
     public function initiateExcelImport(UploadedFile $file, int $importerId)
     {
-        $storedPath = $file->store('temp_imports', 'local');
-
+        $storedPath = $file->store(
+            'temp_imports',
+            config('filesystems.default')
+        );
         $batch = ImportBatch::create([
             'batch_title' => $file->getClientOriginalName(),
             'file_path' => $storedPath,

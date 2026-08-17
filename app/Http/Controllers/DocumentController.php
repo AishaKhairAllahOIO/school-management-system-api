@@ -13,7 +13,7 @@ class DocumentController extends Controller
     use ApiResource;
 
 
-public function showPhoto($path)
+    public function showPhoto($path)
     {
         $userAuth = Auth::guard('sanctum')->user();
         if (!$userAuth) {
@@ -36,10 +36,14 @@ public function showPhoto($path)
         }
 
         $disk = null;
-        if (Storage::disk('local')->exists($safePath)) {
-            $disk = 'local';
-        } elseif (Storage::disk('public')->exists($safePath)) {
-            $disk = 'public';
+
+        $privateDisk = config('filesystems.default');
+        $publicDisk = config('filesystems.public_disk');
+
+        if (Storage::disk($privateDisk)->exists($safePath)) {
+            $disk = $privateDisk;
+        } elseif (Storage::disk($publicDisk)->exists($safePath)) {
+            $disk = $publicDisk;
         }
 
         if (!$disk) {
@@ -60,7 +64,7 @@ public function showPhoto($path)
             return true;
         }
 
-        if ($userAuth->hasAnyRole(['super_admin', 'secretary', 'counselor','teacher'])) {
+        if ($userAuth->hasAnyRole(['super_admin', 'secretary', 'counselor', 'teacher'])) {
             return true;
         }
 

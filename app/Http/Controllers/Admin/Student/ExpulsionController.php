@@ -24,7 +24,7 @@ class ExpulsionController extends Controller
         try {
             $candidates = $this->alertService->getPendingExpulsions();
 
-            return $this->paginatedResponse(
+            return $this->successResponse(
                 PendingExpulsionResource::collection($candidates),
                 'Pending expulsion list retrieved successfully.',
                 200

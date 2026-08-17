@@ -29,11 +29,15 @@ class SchoolSettingsService
 
             if (isset($validatedData['logo']) && $validatedData['logo'] instanceof \Illuminate\Http\UploadedFile) {
 
-                if ($logoPath && !str_starts_with($logoPath, 'http') && Storage::disk('public')->exists($logoPath)) {
-                    Storage::disk('public')->delete($logoPath);
+                $publicDisk = config('filesystems.public_disk');
+
+                if ($logoPath && !str_starts_with($logoPath, 'http') && Storage::disk($publicDisk)->exists($logoPath)) {
+                    Storage::disk($publicDisk)->delete($logoPath);
                 }
 
-                $logoPath = $validatedData['logo']->store('school_logos', 's3');            }
+                $logoPath = $validatedData['logo']
+                    ->store('school_logos', config('filesystems.public_disk'));
+            }
 
             $mappedData = [
                 'school_name' => $validatedData['schoolName'] ?? null,
@@ -79,7 +83,8 @@ class SchoolSettingsService
         $imagesData = [];
 
         foreach ($data['images'] as $imageData) {
-            $path = $imageData['file']->store('school_images', 'public');
+            $path = $imageData['file']
+                ->store('school_images', config('filesystems.public_disk'));
 
             $imagesData[] = [
                 'url' => $path,
@@ -96,10 +101,14 @@ class SchoolSettingsService
         if (!$image)
             throw new ModelNotFoundException("The specified image does not exist in the gallery.", 404);
         if (isset($data['file'])) {
-            if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
-                Storage::disk('public')->delete($image->url);
+            $publicDisk = config('filesystems.public_disk');
+
+            if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk($publicDisk)->exists($image->url)) {
+                Storage::disk($publicDisk)->delete($image->url);
             }
-            $data['url'] = $data['file']->store('school_images', 'public');
+
+            $data['url'] = $data['file']
+                ->store('school_images', $publicDisk);
         }
 
         $image->update([
@@ -115,35 +124,61 @@ class SchoolSettingsService
         $image = SchoolImage::findOrFail($id);
         if (!$image)
             throw new ModelNotFoundException("The specified image does not exist in the gallery.", 404);
-        if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
-            Storage::disk('public')->delete($image->url);
-        }
+        if (
+            $image->url && !str_starts_with($image->url, 'http')
+            && Storage::disk(config('filesystems.public_disk'))->exists($image->url)
+        ) {
 
-        $image->delete();
+            Storage::disk(config('filesystems.public_disk'))
+                ->delete($image->url);
+        }
     }
     public function deleteSettings(): void
     {
         $school = School::findOrFail(1);
-        if ($school) {
-            if ($school->logo && !str_starts_with($school->logo, 'http') && Storage::disk('public')->exists($school->logo)) {
-                Storage::disk('public')->delete($school->logo);
-            }
-            foreach ($school->images as $image) {
-                if ($image->url && !str_starts_with($image->url, 'http') && Storage::disk('public')->exists($image->url)) {
-                    Storage::disk('public')->delete($image->url);
-                }
-            }
-            $school->delete();
+
+        $publicDisk = config('filesystems.public_disk');
+
+        if (
+            $school->logo_url
+            && !str_starts_with($school->logo_url, 'http')
+            && Storage::disk($publicDisk)->exists($school->logo_url)
+        ) {
+            Storage::disk($publicDisk)->delete($school->logo_url);
         }
+
+        foreach ($school->images as $image) {
+
+            if (
+                $image->url
+                && !str_starts_with($image->url, 'http')
+                && Storage::disk($publicDisk)->exists($image->url)
+            ) {
+                Storage::disk($publicDisk)->delete($image->url);
+            }
+
+        }
+
+        $school->delete();
     }
     public function index()
     {
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk(config('filesystems.public_disk'));
+
         $school = School::find(1);
         return [
             'schoolName' => $school->school_name ?: "school",
             'shortName' => $school->short_name ?: "sch",
             'website' => $school->website ?: null,
-            'logo' => $school->logo_url ? (str_starts_with($school->logo_url, 'http') ? $school->logo_url : asset('storage/' . $school->logo_url)) : null
+
+            'logo' => $school->logo_url
+                ? (
+                    str_starts_with($school->logo_url, 'http')
+                    ? $school->logo_url
+                    : $disk->url($school->logo_url)
+                )
+                : null
         ];
     }
 }

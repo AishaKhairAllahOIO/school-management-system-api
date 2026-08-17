@@ -31,7 +31,14 @@ class StudentProfileWithEnrollmentResource extends JsonResource
                 'address' => $studentUser->address,
                 'phoneNumber' => $studentUser->phone_number,
                 'photoUrl' => $studentUser->photo_url
-                    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $studentUser->photo_url), '/'))
+                    ? url('/api/documents/photos/' . ltrim(
+                        preg_replace(
+                            '/^.*?(users\/|defaults\/)/',
+                            '$1',
+                            trim($studentUser->photo_url)
+                        ),
+                        '/'
+                    ))
                     : null,
             ],
 
@@ -48,8 +55,15 @@ class StudentProfileWithEnrollmentResource extends JsonResource
                 'nationality' => $guardianUser->nationality,
                 'address' => $guardianUser->address,
                 'phoneNumber' => $guardianUser->phone_number,
-                'photoUrl' => $guardianUser->photo_url
-                    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $guardianUser->photo_url), '/'))
+                 'photoUrl' => $guardianUser->photo_url
+                    ? url('/api/documents/photos/' . ltrim(
+                        preg_replace(
+                            '/^.*?(users\/|defaults\/)/',
+                            '$1',
+                            trim($guardianUser->photo_url)
+                        ),
+                        '/'
+                    ))
                     : null,
             ] : null,
 

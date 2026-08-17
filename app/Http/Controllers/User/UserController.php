@@ -28,12 +28,24 @@ class UserController extends Controller
             return $this->errorResponse('User not found.', 404);
         }
 
-        if ($user->hasRole('student'))
+        if ($user->hasRole('student')) {
+
             $result = $this->userService->getStudent($user);
-        else if ($user->hasRole('guardian'))
+
+        } elseif ($user->hasRole('guardian')) {
+
             $result = $this->userService->getGuardian($user);
 
-        return $this->successResponse($result, 'User information retrieved successfully.', 200);
+        } else {
+
+            return $this->errorResponse('Unsupported user role.', 403);
+        }
+
+        return $this->successResponse(
+            $result,
+            'User information retrieved successfully.',
+            200
+        );
     }
 
     public function teacherProfile(Request $request)
@@ -83,7 +95,19 @@ class UserController extends Controller
             return null;
         }
 
-        return url('/api/documents/photos/' . ltrim($user->photo_url, '/'));
+        $photo = trim($user->photo_url);
+
+        if (str_starts_with($photo, 'http')) {
+            return $photo;
+        }
+
+        $photo = preg_replace(
+            '/^.*?(users\/|defaults\/)/',
+            '$1',
+            $photo
+        );
+
+        return url('/api/documents/photos/' . ltrim($photo, '/'));
     }
 
     public function childPersonalPhotoUrl(Request $request, int $studentId)
@@ -108,8 +132,15 @@ class UserController extends Controller
             ], 'The student does not have a photo in the system.', 200);
         }
 
-        $photoUrl = url('/api/documents/photos/' . ltrim($studentUser->photo_url, '/'));
+        $photo = trim($studentUser->photo_url);
 
+        $photo = preg_replace(
+            '/^.*?(users\/|defaults\/)/',
+            '$1',
+            $photo
+        );
+
+        $photoUrl = url('/api/documents/photos/' . ltrim($photo, '/'));
         return $this->successResponse([
             'photo_url' => $photoUrl,
         ], 'Child\'s photo URL retrieved successfully.', 200);

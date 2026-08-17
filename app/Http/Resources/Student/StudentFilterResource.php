@@ -27,9 +27,16 @@ class StudentFilterResource extends JsonResource
 
             'fullName' => $user?->first_name . ' ' . $user?->father_name . ' ' . $user?->last_name,
             'phoneNumber' => $user?->phone_number,
-            'photoUrl' => $user->photo_url
-                ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))
-                : null,
+             'photoUrl' => $user->photo_url
+                    ? url('/api/documents/photos/' . ltrim(
+                        preg_replace(
+                            '/^.*?(users\/|defaults\/)/',
+                            '$1',
+                            trim($user->photo_url)
+                        ),
+                        '/'
+                    ))
+                    : null,
 
 
             'grade' => [

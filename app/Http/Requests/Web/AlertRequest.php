@@ -34,6 +34,7 @@ class AlertRequest extends FormRequest
                     Alert::TYPE_COMPLAIN,
                     Alert::TYPE_COUNSELING_REQUEST,
                     Alert::TYPE_COUNSELING_RESPONSE,
+                    Alert::TYPE_REPORT_CARD,
                 ])
             ],
             'title' => ['nullable', 'string', 'max:255'],

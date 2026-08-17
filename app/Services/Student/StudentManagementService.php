@@ -12,16 +12,14 @@ use Illuminate\Support\Facades\Storage;
 
 class StudentManagementService
 {
-   public function filterStudents(array $filters)
+    public function filterStudents(array $filters)
     {
-        // 1. التاريخ هو السيد (The Master Filter)
         $targetDate = $filters['attendance_date'] ?? \Carbon\Carbon::today()->toDateString();
 
         $query = Enrollment::withTrashed()->with([
             'student.user:id,first_name,last_name,father_name,mother_name,phone_number,photo_url,account_status',
             'gradeLevel',
             'classRoom',
-            // جلب سجل الحضور لهذا التاريخ فقط
             'attendances' => function ($q) use ($targetDate) {
                 $q->whereDate('attendance_date', $targetDate);
             }
@@ -32,8 +30,8 @@ class StudentManagementService
             $safeSearch = str_replace(['%', '_'], ['\%', '\_'], trim($filters['search']));
             $query->whereHas('student.user', function ($userQuery) use ($safeSearch) {
                 $userQuery->where(DB::raw("CONCAT(first_name, ' ', father_name, ' ', last_name)"), 'like', "%{$safeSearch}%")
-                          ->orWhere('first_name', 'like', "%{$safeSearch}%")
-                          ->orWhere('last_name', 'like', "%{$safeSearch}%");
+                    ->orWhere('first_name', 'like', "%{$safeSearch}%")
+                    ->orWhere('last_name', 'like', "%{$safeSearch}%");
             });
         }
 
@@ -53,12 +51,12 @@ class StudentManagementService
         // --- 💡 فلتر حالة الحضور ونوع الغياب المربوط بالزمن ---
         if (!empty($filters['attendance_status'])) {
             $attendanceStatus = $filters['attendance_status'];
-            
+
             // الفلترة حسب الحالة (حاضر، غائب، الخ) مباشرة
             $query->whereHas('attendances', function ($q) use ($targetDate, $attendanceStatus, $filters) {
                 $q->whereDate('attendance_date', $targetDate)
-                  ->where('status', $attendanceStatus);
-                  
+                    ->where('status', $attendanceStatus);
+
                 // الفلتر الفرعي: إذا كان غائباً وأرسلنا نوع الغياب (مبرر/غير مبرر)
                 if (in_array($attendanceStatus, ['absent']) && !empty($filters['absence_type'])) {
                     $q->where('absence_type', $filters['absence_type']);
@@ -69,10 +67,10 @@ class StudentManagementService
         // الترتيب
         $direction = (isset($filters['sort']) && strtolower($filters['sort']) === 'desc') ? 'desc' : 'asc';
         $query->join('students', 'enrollments.student_id', '=', 'students.id')
-              ->join('users', 'students.user_id', '=', 'users.id')
-              ->select('enrollments.*')
-              ->orderBy('users.first_name', $direction)
-              ->orderBy('users.father_name', $direction);
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->select('enrollments.*')
+            ->orderBy('users.first_name', $direction)
+            ->orderBy('users.father_name', $direction);
 
         return $query->paginate(15);
     }
@@ -145,11 +143,13 @@ class StudentManagementService
 
             if (isset($data['photo_url']) && $data['photo_url'] instanceof UploadedFile) {
                 if ($student->user->photo_url && !str_contains($student->user->photo_url, 'defaults/')) {
-                    if (Storage::disk('local')->exists($student->user->photo_url)) {
-                        Storage::disk('local')->delete($student->user->photo_url);
+                    $disk = config('filesystems.default');
+                    if (Storage::disk($disk)->exists($student->user->photo_url)) {
+                        Storage::disk($disk)->delete($student->user->photo_url);
                     }
                 }
-                $data['photo_url'] = $data['photo_url']->store('users/students', 'local');
+                $data['photo_url'] = $data['photo_url']
+                    ->store('users/students', config('filesystems.default'));
             }
 
             $studentUserFields = [
@@ -179,13 +179,16 @@ class StudentManagementService
                     $guardianUser = $student->guardian->user;
 
                     if ($guardianUser->photo_url && !str_starts_with($guardianUser->photo_url, 'defaults/')) {
-                        if (Storage::disk('local')->exists($guardianUser->photo_url)) {
-                            Storage::disk('local')->delete($guardianUser->photo_url);
+                        $disk = config('filesystems.default');
+
+                        if (Storage::disk($disk)->exists($guardianUser->photo_url)) {
+                            Storage::disk($disk)->delete($guardianUser->photo_url);
                         }
                     }
 
                     $guardianUser->update([
-                        'photo_url' => $data['guardian_photo_url']->store('users/guardians', 'local'),
+                        'photo_url' => $data['guardian_photo_url']
+                            ->store('users/guardians', config('filesystems.default')),
                     ]);
                 }
 

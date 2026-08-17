@@ -220,6 +220,7 @@ Route::prefix('auth')->group(function () {
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
             Route::get('/show-profile', [UserController::class, 'counselorProfile']);
+            Route::get('/tomorrow/schedule/show',[CounselorAppointmentController::class,'tomorrowSchedule']);
 
             Route::prefix('/config')->controller(CounselorAvailabilityController::class)->group(function () {
                 Route::post('/availability','store');
@@ -233,11 +234,13 @@ Route::prefix('auth')->group(function () {
                 Route::get('/pending','pending');
                 Route::post('/approve','approve');
                 Route::delete('/cancel/{appointmentId}','cancel');
+                Route::get('/show/students/sessions','students');
+                Route::get('/get/student/session/{studentId}','sessions');
             });
 
             Route::prefix('/session')->controller(CounselingSessionController::class)->group(function () {
                     Route::get('pending','pending');
-                    Route::put('update/state','update');
+                    Route::put('update/state/{sessionId}','update');
             });
         });
 
@@ -641,6 +644,7 @@ Route::prefix('user')->group(function () {
                 Route::post('/counseling/appointments','store');
                 Route::delete('/cancel/{appointmentId}','cancel');
         });
+        Route::get('/get/my/appointments',[CounselorAppointmentController::class,'myAppointments']);
 
     });
 

@@ -8,7 +8,7 @@ use App\Models\StudentAttendance;
 use App\Models\StudentAttendanceSetting;
 use App\Models\GradeSubject;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Collection;
 class ReportCardGenerationService
 {
     /**
@@ -184,5 +184,55 @@ class ReportCardGenerationService
         } else {
             $enrollment->update(['academic_result' => 'passed']);
         }
+    }
+
+    /**
+     * جلب العشرة الأوائل حسب الصف (Grade Level) أو الشعبة (Class Room)
+     */
+public function getTopStudentsByGrade($semesterId, $gradeLevelId = null, int $limit = 10): Collection
+    {
+        $query = ReportCard::with([
+                'enrollment.student.user', 
+                'enrollment.gradeLevel', 
+                'enrollment.classRoom'
+            ])
+            ->where('semester_id', $semesterId)
+            ->where('final_result', 'passed')
+            ->orderByDesc('total_marks');
+
+        if ($gradeLevelId) {
+            $query->whereHas('enrollment', function ($q) use ($gradeLevelId) {
+                $q->where('grade_level_id', $gradeLevelId);
+            });
+        }
+
+        // 1. جلب جميع الطلاب الناجحين مرتبين تنازلياً حسب المجموع
+        $allPassedStudents = $query->get();
+
+        if ($allPassedStudents->isEmpty()) {
+            return collect();
+        }
+
+        // 2. إذا كان عدد الطلاب أقل من أو يساوي الحد الأقصى (مثلاً 10)، نرجعهم كلهم
+        if ($allPassedStudents->count() <= $limit) {
+            return $allPassedStudents;
+        }
+
+        // 3. تحديد مجموع الدرجات الخاص بالصاحب المركز الـ 10 (الدليل رقم 9 في المصفوفة)
+        $tenthStudentMark = $allPassedStudents[$limit - 1]->total_marks;
+
+        // 4. إرجاع العشرة الأوائل + أي طالب آخر مجموعه يساوي مجموعة الطالب العاشر (لتغطية حالات التساوي)
+        return $allPassedStudents->filter(function ($student, $index) use ($limit, $tenthStudentMark) {
+            // إذا كان ضمن الـ 10 الأوائل الأساسيين
+            if ($index < $limit) {
+                return true;
+            }
+            // إذا كان بعد المركز العاشر لكن مجموعه مساوٍ تماماً لمجموع الطالب العاشر
+            if ($student->total_marks == $tenthStudentMark) {
+                return true;
+            }
+
+            return false;
+        })->values();
     }
 }

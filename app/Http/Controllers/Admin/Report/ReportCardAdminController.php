@@ -11,6 +11,7 @@ use App\Models\ReportCard;
 use App\Models\AcademicYear;
 use App\Http\Resources\ReportCardResource;
 use App\ApiResource;
+use App\Services\Report\ReportCardGenerationService;
 use Illuminate\Http\JsonResponse;
 use Throwable;
 use App\Services\User\AlertService;
@@ -183,6 +184,26 @@ public function show($id): JsonResponse
             );
         } catch (Throwable $e) {
             return $this->errorResponse('حدث خطأ أثناء جلب تفاصيل الجلاء.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+    public function getTopStudentsForAdmin(ReportCardGenerationService $topStudentsService): JsonResponse
+    {
+        try {
+            $semesterId = request('semester_id');
+            $gradeLevelId = request('grade_level_id'); //اختياري: لتصفية صف معين
+
+            if (!$semesterId) {
+                return $this->errorResponse('معرف الفصل الدراسي (semester_id) مطلوب.', 422);
+            }
+
+            $topStudents = $topStudentsService->getTopStudentsByGrade($semesterId, $gradeLevelId, 10);
+
+            return $this->successResponse(
+                ReportCardResource::collection($topStudents),
+                'تم جلب قائمة الطلاب العشرة الأوائل بنجاح.'
+            );
+        } catch (Throwable $e) {
+            return $this->errorResponse('حدث خطأ أثناء جلب قائمة الأوائل.', 500, ['error' => $e->getMessage()]);
         }
     }
 }

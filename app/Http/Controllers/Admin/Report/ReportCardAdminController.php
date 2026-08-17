@@ -166,11 +166,12 @@ public function show($id): JsonResponse
     {
         try {
             // جلب الجلاء مع كل العلاقات المرتبطة به لتجنب مشكلة N+1
-            $reportCard = ReportCard::with([
-                'details.gradeSubject.subject', 
-                'enrollment.student.user', 
-                'enrollment.classRoom'
-            ])->find($id);
+           $reportCard = ReportCard::with([
+            'details.gradeSubject.subject', 
+            'enrollment.student.user', 
+            'enrollment.gradeLevel',
+            'enrollment.classRoom.supervisor.user' // جلب الشعبة مع موجهها واسم المستخدم الخاص به
+        ])->find($id);
 
             // التحقق من وجود الجلاء
             if (!$reportCard) {

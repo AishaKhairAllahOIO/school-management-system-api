@@ -57,7 +57,6 @@ class CounselorAvailabilityService
                 ->where('day', $day)
                 ->firstOrFail();
 
-            // تحقق من أن التعديل لن يضر بالحجوزات النشطة
             $activeAppointmentsCount = CounselorAppointment::where('counselor_id', $counselorId)
                 ->where('appointment_date', '>=', now()->toDateString())
                 ->whereRaw("LOWER(DAYNAME(appointment_date)) = ?", [$day])
@@ -78,45 +77,93 @@ class CounselorAvailabilityService
 
     public function deleteDay(int $counselorId, string $day)
     {
-        $hasActiveAppointments = CounselorAppointment::where('counselor_id', $counselorId)
-            ->where('appointment_date', '>=', now()->toDateString())
-            ->whereRaw("LOWER(DAYNAME(appointment_date)) = ?", [$day])
-            ->whereIn('booking_status', ['pending', 'accepted'])
-            ->exists();
+        return DB::transaction(function () use ($counselorId, $day) {
 
-        if ($hasActiveAppointments) {
-            throw new Exception('لا يمكن حذف توافر هذا اليوم لوجود حجوزات نشطة للطلاب.');
-        }
+            $availability = CounselorAvailability::where('counselor_id', $counselorId)
+                ->where('day', $day)
+                ->first();
 
-        return CounselorAvailability::where('counselor_id', $counselorId)
-            ->where('day', $day)
-            ->delete();
+            if (!$availability) {
+                throw new Exception(
+                    'لا يوجد جدول توافر لهذا اليوم.'
+                );
+            }
+
+
+            // البحث عن الحجوزات القادمة في هذا اليوم
+            $hasActiveAppointments = CounselorAppointment::where('counselor_id', $counselorId)
+                ->whereIn('booking_status', [
+                    'pending',
+                    'accepted'
+                ])
+                ->where('appointment_date', '>=', now()->toDateString())
+                ->where(function ($query) use ($day) {
+
+                    $days = [
+                        'sunday' => 0,
+                        'monday' => 1,
+                        'tuesday' => 2,
+                        'wednesday' => 3,
+                        'thursday' => 4,
+                        'friday' => 5,
+                        'saturday' => 6,
+                    ];
+
+
+                    if (!isset($days[$day])) {
+                        return;
+                    }
+
+
+                    $query->whereRaw(
+                        'DAYOFWEEK(appointment_date) = ?',
+                        [
+                            $days[$day] + 1
+                        ]
+                    );
+
+                })
+                ->exists();
+
+
+            if ($hasActiveAppointments) {
+
+                throw new Exception(
+                    'لا يمكن حذف هذا اليوم لأنه يحتوي على حجوزات طلاب نشطة.'
+                );
+
+            }
+
+
+            return $availability->delete();
+
+        });
     }
 
     public function addDay(int $counselorId, array $data)
-{
-    return DB::transaction(function () use ($counselorId, $data) {
+    {
+        return DB::transaction(function () use ($counselorId, $data) {
 
-        $exists = CounselorAvailability::where('counselor_id', $counselorId)
-            ->where('day', $data['day'])
-            ->exists();
+            $exists = CounselorAvailability::where('counselor_id', $counselorId)
+                ->where('day', $data['day'])
+                ->exists();
 
-        if ($exists) {
-            throw new Exception(
-                'يوجد جدول توافر لهذا اليوم مسبقاً.'
-            );
-        }
+            if ($exists) {
+                throw new Exception(
+                    'يوجد جدول توافر لهذا اليوم مسبقاً.'
+                );
+            }
 
 
-        return CounselorAvailability::create([
-            'counselor_id' => $counselorId,
-            'day' => $data['day'],
-            'start_time' => $data['start_time'],
-            'end_time' => $data['end_time'],
-            'session_duration' => $data['session_duration'],
-            'daily_sessions_limit' => $data['daily_sessions_limit'],
-        ]);
+            return CounselorAvailability::create([
+                'counselor_id' => $counselorId,
+                'day' => $data['day'],
+                'start_time' => $data['start_time'],
+                'end_time' => $data['end_time'],
+                'session_duration' => $data['session_duration'],
+                'daily_sessions_limit' => $data['daily_sessions_limit'],
+            ]);
 
-    });
-}
+        });
+    }
 }

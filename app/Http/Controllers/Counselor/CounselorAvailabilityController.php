@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Counselor;
 
 use App\ApiResource;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Counselor\AddAvailabilityRequest;
 use App\Http\Requests\Counselor\StoreAvailabilityRequest;
 use App\Http\Requests\Counselor\UpdateAvailabilityRequest;
 use App\Services\Counselor\CounselorAvailabilityService;
@@ -85,4 +86,32 @@ class CounselorAvailabilityController extends Controller
             );
         }
     }
+
+    public function addDay(AddAvailabilityRequest $request)
+{
+    try {
+
+        $availability = $this->service->addDay(
+            $request->user()->id,
+            $request->validated()
+        );
+
+
+        return $this->successResponse(
+            $availability,
+            'Day added successfully.',
+            201
+        );
+
+
+    } catch (Exception $e) {
+
+        return $this->errorResponse(
+            $e->getMessage(),
+            422
+        );
+    }
+}
+
+
 }

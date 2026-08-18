@@ -227,6 +227,7 @@ Route::prefix('auth')->group(function () {
                 Route::get('/availability','index');
                 Route::put('/availability/{day}','update');
                 Route::delete('/availability/{day}','destroy');
+                Route::post('/availability/add/day','addDay');
 
             });
 

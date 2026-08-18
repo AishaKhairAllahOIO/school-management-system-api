@@ -32,7 +32,7 @@ class StaffLeaveTypeController extends Controller
             $types = $this->service->getAllLeaveTypes();
             return $this->successResponse(StaffLeaveTypeResource::collection($types), 'تم جلب أنواع الإجازات بنجاح.');
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب أنواع الإجازات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
     public function show(int $id)
@@ -42,7 +42,7 @@ class StaffLeaveTypeController extends Controller
             $leaveType = $this->service->getLeaveById($id);
             return $this->successResponse(new StaffLeaveTypeResource($leaveType), 'تم جلب نوع الإجازة بنجاح.');
          }catch (ModelNotFoundException $e) {
-            return $this->errorResponse('نوع الإجازة غير موجود.', 404);
+            return $this->errorResponse('This type of leave does not exist', 404);
          }
     }
 
@@ -52,7 +52,7 @@ class StaffLeaveTypeController extends Controller
             $type = $this->service->createLeaveType($request->validated());
             return $this->successResponse(new StaffLeaveTypeResource($type), 'تم إنشاء نوع الإجازة بنجاح.', 201);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء إنشاء نوع الإجازة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 

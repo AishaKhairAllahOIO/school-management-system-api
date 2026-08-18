@@ -30,10 +30,10 @@ class AttendanceReportController extends Controller
             $data = $this->service->getOverallStudentsAttendanceReport();
             return $this->successResponse(
                 new StudentAttendanceManagementReportResource($data),
-                'تم جلب تقرير غياب وحضور الطلاب الكلي للمدرسة بنجاح.'
+                'Student attendance report retrieved successfully.'
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء إعداد التقرير الكلي للطلاب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -46,10 +46,10 @@ class AttendanceReportController extends Controller
             $data = $this->service->getOverallStaffAttendanceReport();
             return $this->successResponse(
                 new StaffAttendanceManagementReportResource($data),
-                'تم جلب تقرير غياب وحضور الموظفين المعلم الكلي للمدرسة بنجاح.'
+                'Staff attendance report retrieved successfully.'
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء إعداد التقرير الكلي للموظفين.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

@@ -31,7 +31,7 @@ class ComplaintController extends Controller
                 'Complaint options retrieved successfully.'
             );
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to retrieve complaint options.', 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -55,7 +55,7 @@ class ComplaintController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Student or Guardian not found.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to submit complaint: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error:Server' . $e->getMessage(), 500);
         } catch (Exception $e) {
             return $this->errorResponse(
                 $e->getMessage(),
@@ -107,7 +107,7 @@ class ComplaintController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Complaint not found or you do not have permission to edit it.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to update complaint: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error:Server' . $e->getMessage(), 500);
         }
     }
 
@@ -127,7 +127,7 @@ class ComplaintController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Complaint not found or you do not have permission to delete it.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to delete complaint: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error:Server' . $e->getMessage(), 500);
         }
     }
 }

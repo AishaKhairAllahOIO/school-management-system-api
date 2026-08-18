@@ -27,9 +27,9 @@ class DashboardController extends Controller
     {
         try {
             $data = $this->dashboardService->getSuperAdminDashboard();
-            return $this->successResponse($data, 'تم جلب إحصائيات المدير العام بنجاح.');
+            return $this->successResponse($data,'Super admin dashboard statistics retrieved successfully.');
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب لوحة تحكم المدير العام.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -40,9 +40,9 @@ class DashboardController extends Controller
     {
         try {
             $data = $this->dashboardService->getAdviserDashboard();
-            return $this->successResponse($data, 'تم جلب إحصائيات الموجه بنجاح.');
+            return $this->successResponse($data, 'Adviser dashboard statistics retrieved successfully.');
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب لوحة تحكم الموجه.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -53,9 +53,9 @@ class DashboardController extends Controller
     {
         try {
             $data = $this->dashboardService->getSecretaryDashboard();
-            return $this->successResponse($data, 'تم جلب إحصائيات السكرتير بنجاح.');
+            return $this->successResponse($data, 'Secretary dashboard statistics retrieved successfully.');
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب لوحة تحكم السكرتير.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function index(): JsonResponse
@@ -67,11 +67,11 @@ class DashboardController extends Controller
 
             return $this->successResponse(
                 $data['dashboard_data'],
-                "تم جلب بيانات لوحة التحكم الخاصة بدور ({$data['role']}) بنجاح."
+                "Dashboard statistics retrieved successfully for role ({$data['role']})."
             );
         } catch (Throwable $e) {
             $statusCode = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            return $this->errorResponse('Error:Server', $statusCode,[$e->getMessage()]);
         }
     }
     

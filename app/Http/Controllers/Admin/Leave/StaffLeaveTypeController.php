@@ -30,9 +30,9 @@ class StaffLeaveTypeController extends Controller
     {
         try {
             $types = $this->service->getAllLeaveTypes();
-            return $this->successResponse(StaffLeaveTypeResource::collection($types), 'تم جلب أنواع الإجازات بنجاح.');
+            return $this->successResponse(StaffLeaveTypeResource::collection($types), 'Staff leave types retrieved successfully.');
         } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500);
+            return $this->errorResponse('Error:Server', 500,[$e->getMessage()]);
         }
     }
     public function show(int $id)
@@ -40,9 +40,9 @@ class StaffLeaveTypeController extends Controller
         try{
             
             $leaveType = $this->service->getLeaveById($id);
-            return $this->successResponse(new StaffLeaveTypeResource($leaveType), 'تم جلب نوع الإجازة بنجاح.');
+            return $this->successResponse(new StaffLeaveTypeResource($leaveType), 'Staff leave type retrieved successfully.');
          }catch (ModelNotFoundException $e) {
-            return $this->errorResponse('This type of leave does not exist', 404);
+            return $this->errorResponse('Staff leave type not found.', 404);
          }
     }
 
@@ -50,9 +50,9 @@ class StaffLeaveTypeController extends Controller
     {
         try {
             $type = $this->service->createLeaveType($request->validated());
-            return $this->successResponse(new StaffLeaveTypeResource($type), 'تم إنشاء نوع الإجازة بنجاح.', 201);
+            return $this->successResponse(new StaffLeaveTypeResource($type), 'Staff leave type created successfully.', 201);
         } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500);
+            return $this->errorResponse('Error:Server', 500,[$e->getMessage()]);
         }
     }
 
@@ -60,11 +60,11 @@ class StaffLeaveTypeController extends Controller
     {
         try {
             $type = $this->service->updateLeaveType($id, $request->validated());
-            return $this->successResponse(new StaffLeaveTypeResource($type), 'تم تعديل نوع الإجازة بنجاح.');
+            return $this->successResponse(new StaffLeaveTypeResource($type), 'Staff leave type updated successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('نوع الإجازة غير موجود.', 404);
+            return $this->errorResponse('Staff leave type not found.', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل نوع الإجازة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500,[$e->getMessage()]);
         }
     }
 
@@ -72,13 +72,13 @@ class StaffLeaveTypeController extends Controller
     {
         try {
             $this->service->deleteLeaveType($id);
-            return $this->successResponse(null, 'تم حذف نوع الإجازة بنجاح.');
+            return $this->successResponse(null, 'Staff leave type deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('نوع الإجازة غير موجود.', 404);
+            return $this->errorResponse('Staff leave type not found.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 400,['error' => $e->getMessage()]);
+            return $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف نوع الإجازة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500,[$e->getMessage()]);
         }
     }
 }

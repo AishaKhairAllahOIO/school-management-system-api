@@ -44,7 +44,7 @@ class BellController extends Controller
             ]);
 
             return $this->errorResponse(
-                'An error occurred while fetching the unread notifications count.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );

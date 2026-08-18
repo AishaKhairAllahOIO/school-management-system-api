@@ -33,10 +33,10 @@ class StaffFinancialContractController extends Controller
             $contracts = $this->service->getAllContracts($request->all());
             return $this->successResponse(
                 StaffFinancialContractResource::collection($contracts),
-                'تم جلب العقود المالية للموظفين بنجاح.'
+                'Contract details retrieved successfully.'
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب العقود المالية.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -49,13 +49,13 @@ class StaffFinancialContractController extends Controller
             $contract = $this->service->createContract($request->validated());
             return $this->successResponse(
                 new StaffFinancialContractResource($contract->load(['staff.user', 'academicYear'])),
-                'تم إنشاء العقد المالي بنجاح.',
+                'Contract created successfully.',
                 201
             );
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 422);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء إنشاء العقد المالي.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -68,12 +68,12 @@ class StaffFinancialContractController extends Controller
             $contract = $this->service->getContractById($id);
             return $this->successResponse(
                 new StaffFinancialContractResource($contract),
-                'تم جلب تفاصيل العقد بنجاح.'
+                'Contract details retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('العقد المالي غير موجود.', 404);
+            return $this->errorResponse('Contract not found', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب العقد.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -86,14 +86,14 @@ class StaffFinancialContractController extends Controller
             $contract = $this->service->updateContract($id, $request->validated());
             return $this->successResponse(
                 new StaffFinancialContractResource($contract),
-                'تم تعديل العقد المالي بنجاح.'
+                'Contract updated successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('العقد المالي غير موجود.', 404);
+            return $this->errorResponse('Contract not found', 404);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 422);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل العقد.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -104,13 +104,13 @@ class StaffFinancialContractController extends Controller
     {
         try {
             $this->service->deleteContract($id);
-            return $this->successResponse(null, 'تم حذف العقد المالي بنجاح.');
+            return $this->successResponse(null, 'Contract deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('العقد المالي غير موجود.', 404);
+            return $this->errorResponse('Contract not found', 404);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 422);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف العقد.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

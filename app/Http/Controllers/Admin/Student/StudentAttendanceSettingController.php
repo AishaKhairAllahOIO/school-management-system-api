@@ -28,7 +28,7 @@ class StudentAttendanceSettingController extends Controller
         
         return $this->successResponse(
             StudentAttendanceSettingResource::collection($settings),
-            'تم جلب الإعدادات بنجاح'
+            'Student attendance settings retrieved successfully.'
         );
     }
 
@@ -38,7 +38,7 @@ class StudentAttendanceSettingController extends Controller
         
     //     return $this->successResponse(
     //         new StudentAttendanceSettingResource($setting),
-    //         'تم جلب الإعداد بنجاح'
+    //         'Student attendance setting retrieved successfully.'
     //     );
     // }
 
@@ -49,19 +49,19 @@ class StudentAttendanceSettingController extends Controller
          
          return $this->successResponse(
              new StudentAttendanceSettingResource($setting),
-             'تم جلب إعدادات الفصل بنجاح'
+             'Student attendance settings retrieved successfully.'
          );
         }catch(ModelNotFoundException $e)
         {
             return $this->errorResponse(
-                'لا توجد إعدادات لهذا الفصل الدراسي.',
+                'No attendance settings found for the specified semester.',
                 404 // 404 Not Found
             );
         }
         catch(Exception $e)
         {
             return $this->errorResponse(
-                'حدث خطأ أثناء جلب إعدادات الفصل الدراسي.',
+                'Error:Server',
                 500 // 500 Internal Server Error
             );
         }
@@ -73,14 +73,15 @@ class StudentAttendanceSettingController extends Controller
         
         return $this->successResponse(
             new StudentAttendanceSettingResource($setting),
-            'تم إنشاء إعدادات الحضور بنجاح',
+            'Student attendance settings created successfully.',
             201 // 201 Created
         );
     }catch(Exception $e)
         {
             return $this->errorResponse(
-                'حدث خطأ أثناء إنشاء إعدادات الحضور.',
-                500 ,$e->getMessage()// 500 Internal Server Error
+                'Error:Server',
+                500,
+                ['error' => $e->getMessage()]
             );
         }
     }
@@ -92,19 +93,19 @@ class StudentAttendanceSettingController extends Controller
         
         return $this->successResponse(
             new StudentAttendanceSettingResource($setting),
-            'تم تعديل إعدادات الحضور بنجاح'
+            'Student attendance settings updated successfully.'
         );}
         catch(ModelNotFoundException $e)
         {
             return $this->errorResponse(
-                'الإعدادات غير موجودة.',
+                'Student attendance setting not found.',
                 404 // 404 Not Found
             );
         }
         catch(Exception $e)
         {
             return $this->errorResponse(
-                'حدث خطأ أثناء تعديل إعدادات الحضور.',
+                'Error:Server',
                 500 // 500 Internal Server Error
             );
         }
@@ -117,17 +118,18 @@ class StudentAttendanceSettingController extends Controller
             
             return $this->successResponse(
                 null,
-                'تم حذف الإعدادات بنجاح'
+                'Student attendance settings deleted successfully.'
             );
             
         }catch (ModelNotFoundException $e) {
             return $this->errorResponse(
-                'الإعدادات غير موجودة.',
+                'Student attendance settings not found.',
                 404 // 404 Not Found
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                $e->getMessage(),
+                'Error:Server',
+                500,
                 403 // 403 Forbidden
             );
         }

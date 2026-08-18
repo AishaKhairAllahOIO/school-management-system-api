@@ -31,7 +31,7 @@ class ExpulsionController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while retrieving the list.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -55,7 +55,7 @@ class ExpulsionController extends Controller
 
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while disabling accounts.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );

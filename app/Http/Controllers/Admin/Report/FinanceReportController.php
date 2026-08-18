@@ -30,10 +30,10 @@ class FinanceReportController extends Controller
             $data = $this->service->getOverallStudentsFinanceReport();
             return $this->successResponse(
                 new StudentFinanceReportResource($data),
-                'تم جلب التقرير المالي الكلي للطلاب بنجاح.'
+                'Student finance report retrieved successfully.'
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء إعداد التقرير المالي للطلاب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -46,10 +46,10 @@ class FinanceReportController extends Controller
             $data = $this->service->getOverallStaffFinanceReport();
             return $this->successResponse(
                 new StaffFinanceReportResource($data),
-                'تم جلب التقرير المالي الكلي للموظفين بنجاح.'
+                'Staff finance report retrieved successfully.'
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء إعداد التقرير المالي للموظفين.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

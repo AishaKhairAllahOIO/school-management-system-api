@@ -9,6 +9,7 @@ use App\Services\Staff\StaffAttendanceService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\ApiResource; // الـ Trait الخاص بك
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Throwable;
 use App\Http\Resources\Staff\StaffAttendanceResource;
 
@@ -27,9 +28,9 @@ class StaffAttendanceController extends Controller
     {
         try {
             $attendance = $this->service->storeAttendance($request->validated());
-            return $this->successResponse(new StaffAttendanceResource($attendance), 'تم إنشاء سجل الحضور/الغياب بنجاح.', 201);
+            return $this->successResponse(new StaffAttendanceResource($attendance), 'Staff attendance created successfully.', 201);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء تسجيل الدوام.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -37,20 +38,20 @@ class StaffAttendanceController extends Controller
     {
         try {
             $attendance = $this->service->updateAttendance($id, $request->validated());
-            return $this->successResponse(new StaffAttendanceResource($attendance), 'تم تعديل سجل الدوام وتحديث الحصص بنجاح.');
+            return $this->successResponse(new StaffAttendanceResource($attendance), 'Staff attendance updated successfully.');
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل السجل.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function show(int $id): JsonResponse
     {
         try {
             $attendance = $this->service->getAttendanceById($id);
-            return $this->successResponse(new StaffAttendanceResource($attendance), 'تم جلب سجل الدوام بنجاح.');
+            return $this->successResponse($attendance, 'Staff attendance fetched successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل الحضور غير موجود.', 404);
+            return $this->errorResponse('Staff attendance record not found.', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب سجل الحضور.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -58,9 +59,20 @@ class StaffAttendanceController extends Controller
     {
         try {
             $this->service->deleteAttendance($id);
-            return $this->successResponse(null, 'تم حذف السجل بالكامل بنجاح.');
+            return $this->successResponse(null, 'Staff attendance record deleted successfully.');
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء الحذف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+        }
+    }
+    public function getAllRecords(int $staffId, Request $request): JsonResponse
+    {
+        try {
+            $fromDate = $request->from_date;
+            $toDate = $request->to_date;
+            $records = $this->service->getStaffAttendance($staffId, $fromDate, $toDate);
+            return $this->successResponse($records, 'Staff attendance records fetched successfully.');
+        } catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

@@ -37,11 +37,11 @@ class StaffLeaveController extends Controller
     {
         try {
             $leave = $this->service->createLeave($request->validated());
-            return $this->successResponse(new StaffLeaveResource($leave->load('leaveType')), 'تم تسجيل إجازة الموظف بنجاح.', 201);
+            return $this->successResponse(new StaffLeaveResource($leave->load('leaveType')), 'Leave request submitted successfully.', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 422);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء تسجيل الإجازة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -52,13 +52,13 @@ class StaffLeaveController extends Controller
     {
         try {
             $leave = $this->service->updateLeave($id, $request->validated());
-            return $this->successResponse(new StaffLeaveResource($leave->load('leaveType')), 'تم تعديل إجازة الموظف بنجاح.');
+            return $this->successResponse(new StaffLeaveResource($leave->load('leaveType')), 'Leave updated successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل الإجازة غير موجود.', 404);
+            return $this->errorResponse('Leave not found', 404);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 422);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل الإجازة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -69,11 +69,11 @@ class StaffLeaveController extends Controller
     {
         try {
             $this->service->deleteLeave($id);
-            return $this->successResponse(null, 'تم حذف إجازة الموظف وإعادة تفعيل دوامه بنجاح.');
+            return $this->successResponse(null, 'Leave deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل الإجازة غير موجود.', 404);
+            return $this->errorResponse('Leave not found', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف الإجازة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -84,9 +84,9 @@ class StaffLeaveController extends Controller
     {
         try {
             $leaves = $this->service->getStaffLeaves($staffId);
-            return $this->successResponse(StaffLeaveResource::collection($leaves), 'تم جلب سجل إجازات الموظف بنجاح.');
+            return $this->successResponse(StaffLeaveResource::collection($leaves), 'Staff leaves retrieved successfully.');
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب سجل إجازات الموظف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -95,20 +95,20 @@ class StaffLeaveController extends Controller
         try {
             $staffId = $request->user()->staff->id;
             $leaves = $this->service->getStaffLeaves($staffId);
-            return $this->successResponse(StaffLeaveResource::collection($leaves), 'تم جلب سجل إجازاتي بنجاح.');
+            return $this->successResponse(StaffLeaveResource::collection($leaves), 'My leaves retrieved successfully.');
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب سجل إجازات الموظف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function getStaffLeaveById(int $id): JsonResponse
     {
         try {
             $leave = $this->service->getStaffLeaveById($id);
-            return $this->successResponse(new StaffLeaveResource($leave), 'تم جلب سجل الإجازة بنجاح.');
+            return $this->successResponse(new StaffLeaveResource($leave), 'Leave details retrieved successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل الإجازة غير موجود.', 404);
+            return $this->errorResponse('Leave not found', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب سجل الإجازة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

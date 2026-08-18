@@ -510,8 +510,9 @@ Route::middleware(['auth:sanctum'])->prefix('admin/staff-attendances')->group(fu
     Route::post('/', [StaffAttendanceController::class, 'store'])->middleware('role:super_admin|secretary');         // إنشاء سجل حضور
     Route::get('/{id}', [StaffAttendanceController::class, 'show']);       // 👈 دالة العرض الجديدة
     Route::post('/{id}', [StaffAttendanceController::class, 'update'])->middleware('role:super_admin|secretary');     // تعديل سجل
-    Route::delete('/{id}', [StaffAttendanceController::class, 'destroy'])->middleware('role:super_admin|secretary');  // حذف سجل
-});
+    Route::delete('/{id}', [StaffAttendanceController::class, 'destroy'])->middleware('role:super_admin|secretary');
+    Route::get('/staff/{staffId}', [StaffAttendanceController::class, 'getAllRecords']); // جلب جميع سجلات الحضور لموظف معين 
+ });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff/contract')->group(function () {
     Route::get('/', [StaffFinancialContractController::class, 'index']);
     Route::get('/{id}', [StaffFinancialContractController::class, 'show']);

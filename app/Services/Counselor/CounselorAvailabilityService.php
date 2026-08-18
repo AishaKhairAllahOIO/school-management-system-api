@@ -5,10 +5,17 @@ namespace App\Services\Counselor;
 use App\Models\CounselorAvailability;
 use App\Models\CounselorAppointment;
 use Exception;
+use App\Services\Counselor\CounselorAppointmentService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class CounselorAvailabilityService
 {
+
+    public function __construct(
+        private CounselorAppointmentService $appointmentService
+    ) {
+    }
     public function saveSchedule(int $counselorId, array $schedule)
     {
         return DB::transaction(function () use ($counselorId, $schedule) {
@@ -52,28 +59,57 @@ class CounselorAvailabilityService
     public function updateDay(int $counselorId, string $day, array $data)
     {
         return DB::transaction(function () use ($counselorId, $day, $data) {
-            $availability = CounselorAvailability::where('counselor_id', $counselorId)
+
+            $day = strtolower($day);
+
+            $availability = CounselorAvailability::query()
+                ->where('counselor_id', $counselorId)
                 ->where('day', $day)
-                ->firstOrFail();
+                ->lockForUpdate()
+                ->first();
 
-            $activeAppointmentsCount = CounselorAppointment::where('counselor_id', $counselorId)
-                ->where('appointment_date', '>=', now()->toDateString())
-                ->whereRaw("LOWER(DAYNAME(appointment_date)) = ?", [$day])
-                ->whereIn('booking_status', ['pending', 'accepted'])
-                ->count();
-
-            if ($activeAppointmentsCount > 0 && isset($data['daily_sessions_limit'])) {
-                if ($data['daily_sessions_limit'] < $activeAppointmentsCount) {
-                    throw new Exception('لا يمكن تقليل حد الجلسات اليومي، لأن لديك بالفعل ' . $activeAppointmentsCount . ' حجوزات نشطة في هذا اليوم.');
-                }
+            if (!$availability) {
+                throw new Exception(
+                    'No availability schedule exists for this day.'
+                );
             }
 
-            $availability->update($data);
+            $nextDate = $this->getNextDateForDay($day);
 
-            return $availability;
+            $hasActiveAppointments = CounselorAppointment::query()
+                ->where('counselor_id', $counselorId)
+                ->whereDate('appointment_date', $nextDate)
+                ->whereIn('booking_status', [
+                    'pending',
+                    'accepted',
+                ])
+                ->exists();
+
+            if ($hasActiveAppointments) {
+                throw new Exception(
+                    'This day cannot be updated because it has active student appointments.'
+                );
+            }
+
+            $availability->update([
+                'start_time' => $data['start_time'],
+                'end_time' => $data['end_time'],
+                'session_duration' => $data['session_duration'],
+                'daily_sessions_limit' => $data['daily_sessions_limit'],
+            ]);
+
+            CounselorAppointment::query()
+                ->where('counselor_id', $counselorId)
+                ->whereDate('appointment_date', $nextDate)
+                ->where('booking_status', 'available')
+                ->where('slot_status', 'available')
+                ->delete();
+
+            $this->appointmentService->generateForDate($nextDate);
+
+            return $availability->fresh();
         });
     }
-
     public function deleteDay(int $counselorId, string $day)
     {
         return DB::transaction(function () use ($counselorId, $day) {
@@ -164,5 +200,38 @@ class CounselorAvailabilityService
             ]);
 
         });
+    }
+
+    private function getNextDateForDay(string $day): Carbon
+    {
+        $days = [
+            'sunday',
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+        ];
+
+        if (!in_array($day, $days, true)) {
+            throw new Exception(
+                'The selected day is invalid.'
+            );
+        }
+
+        $today = Carbon::today();
+
+        $targetDayIndex = array_search($day, $days, true);
+
+        $daysUntilTarget = (
+            $targetDayIndex - $today->dayOfWeek + 7
+        ) % 7;
+
+        if ($daysUntilTarget === 0) {
+            $daysUntilTarget = 7;
+        }
+
+        return $today->copy()->addDays($daysUntilTarget);
     }
 }

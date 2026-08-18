@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         $defaultPassword = Hash::make(env('DEFAULT_USER_PASSWORD', 'password'));
 
         $user1 = User::updateOrCreate(
-            ['phone_number' => '0968661500'],
+            ['phone_number' => '0996930692'],
             [
                 'first_name' => 'نور',
                 'last_name' => 'العلي الصالح',
@@ -100,7 +100,7 @@ class UserSeeder extends Seeder
         $user4->assignRole('super_admin');
 
         $user5 = User::updateOrCreate(
-            ['phone_number' => '0983964422'],
+            ['phone_number' => '0967774111'],
             [
                 'first_name' => 'يزن',
                 'last_name' => 'سطيف',

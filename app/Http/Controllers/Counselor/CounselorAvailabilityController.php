@@ -28,7 +28,7 @@ class CounselorAvailabilityController extends Controller
             return $this->successResponse(null, 'Available times saved successfully.', 201);
         } catch (Exception $e) {
             return $this->errorResponse(
-               'Error:Server',
+                'Error:Server',
                 500
             );
         }
@@ -88,30 +88,30 @@ class CounselorAvailabilityController extends Controller
     }
 
     public function addDay(AddAvailabilityRequest $request)
-{
-    try {
+    {
+        try {
 
-        $availability = $this->service->addDay(
-            $request->user()->id,
-            $request->validated()
-        );
-
-
-        return $this->successResponse(
-            $availability,
-            'Day added successfully.',
-            201
-        );
+            $availability = $this->service->addDay(
+                $request->user()->id,
+                $request->validated()
+            );
 
 
-    } catch (Exception $e) {
+            return $this->successResponse(
+                $availability,
+                'Day added successfully.',
+                201
+            );
 
-        return $this->errorResponse(
-            $e->getMessage(),
-            422
-        );
+
+        } catch (Exception $e) {
+
+            return $this->errorResponse(
+                $e->getMessage(),
+                422
+            );
+        }
     }
-}
 
 
 }

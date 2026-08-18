@@ -37,9 +37,8 @@ class BaseUserProfileResource extends JsonResource
             'phone_number' => $user->phone_number,
             'nationality' => $user->nationality,
             'gender' => $user->gender,
-            'photoUrl' => FileUrl::make(
-                $user->photo_url,
-                config('filesystems.default')
+            'photoUrl' => FileUrl::endpoint(
+                $user->photo_url
             ),
             'account_status' => $user->account_status,
             'record_status' => $user->record_status,

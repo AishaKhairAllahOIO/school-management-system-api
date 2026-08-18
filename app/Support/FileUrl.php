@@ -37,4 +37,25 @@ class FileUrl
         // Local public disk
         return $storage->url($path);
     }
+
+    public static function endpoint(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        $path = trim($path);
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        $path = preg_replace(
+            '/^.*?(users\/|defaults\/|documents\/|guardians\/|staff\/|students\/)/',
+            '$1',
+            $path
+        );
+
+        return url('/api/documents/photos/' . ltrim($path, '/'));
+    }
 }

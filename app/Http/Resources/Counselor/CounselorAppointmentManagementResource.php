@@ -31,9 +31,8 @@ class CounselorAppointmentManagementResource extends JsonResource
                     . $this->student->user->last_name
                     : null,
 
-                'photoUrl' => FileUrl::make(
-                    $this->student->user->photo_url,
-                    config('filesystems.default')
+                'photoUrl' => FileUrl::endpoint(
+                    $this->student->user->photo_url
                 ),
             ] : null,
         ];

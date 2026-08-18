@@ -18,9 +18,8 @@ class TopStudentResource extends JsonResource
                 'fullName' => trim(preg_replace('/\s+/', ' ', "{$this->enrollment->student->user->first_name} {$this->enrollment->student->user->father_name} {$this->enrollment->student->user->last_name}")),
 
 
-                'photoUrl' => FileUrl::make(
-                    $this->enrollment->student->user->photo_url,
-                    config('filesystems.default')
+                'photoUrl' => FileUrl::endpoint(
+                    $this->enrollment->student->user->photo_url
                 ),
             ],
 

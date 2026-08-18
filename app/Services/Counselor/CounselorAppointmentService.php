@@ -48,6 +48,7 @@ class CounselorAppointmentService
                         'start_time' => $slotStart,
                         'end_time' => $slotEnd,
                         'booking_status' => 'available',
+                        'slot_status' => 'available',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -74,6 +75,7 @@ class CounselorAppointmentService
         return CounselorAppointment::query()
             ->whereDate('appointment_date', $date)
             ->where('booking_status', 'available')
+            ->where('slot_status', 'available')
             ->orderBy('start_time')
             ->get([
                 'id',
@@ -150,6 +152,7 @@ class CounselorAppointmentService
             $selectedAppointment->update([
                 'student_id' => $studentId,
                 'booking_status' => 'pending',
+                'slot_status' => 'booked',
             ]);
 
             $selectedAppointment->load(['student.user', 'counselor.user']);
@@ -311,6 +314,7 @@ class CounselorAppointmentService
                 'accepted',
                 'completed',
                 'cancelled',
+                'not_available'
             ])
             ->with([
                 'counselor.user',
@@ -366,8 +370,8 @@ class CounselorAppointmentService
             }
 
             $appointment->update([
-                'student_id' => null,
-                'booking_status' => 'available',
+                'booking_status' => 'cancelled',
+                'slot_status' => 'available',
             ]);
 
             return $appointment->fresh();
@@ -422,8 +426,8 @@ class CounselorAppointmentService
             }
 
             $appointment->update([
-                'student_id' => null,
-                'booking_status' => 'available',
+                'booking_status' => 'cancelled',
+                'slot_status' => 'available',
             ]);
 
             return $appointment->fresh();
@@ -526,33 +530,33 @@ class CounselorAppointmentService
     }
 
     public function getTomorrowSchedule(int $counselorId)
-{
-    return CounselorAppointment::query()
+    {
+        return CounselorAppointment::query()
 
-        ->where(
-            'counselor_id',
-            $counselorId
-        )
+            ->where(
+                'counselor_id',
+                $counselorId
+            )
 
-        ->whereDate(
-            'appointment_date',
-            Carbon::tomorrow()->toDateString()
-        )
+            ->whereDate(
+                'appointment_date',
+                Carbon::tomorrow()->toDateString()
+            )
 
-        ->with([
-            'student.user'
-        ])
+            ->with([
+                'student.user'
+            ])
 
-        ->orderBy(
-            'start_time'
-        )
+            ->orderBy(
+                'start_time'
+            )
 
-        ->get();
-}
+            ->get();
+    }
 
 
 
-    
 
-    
+
+
 }

@@ -39,13 +39,11 @@ class CompleteExpiredCounselingAppointments extends Command
                         continue;
                     }
 
-                    DB::transaction(function () use (
-                        $appointment,
-                        &$completed
-                    ) {
+                    DB::transaction(function () use ($appointment, &$completed) {
 
                         $appointment->update([
                             'booking_status' => 'completed',
+                            'slot_status' => 'booked',
                         ]);
 
                         CounselingSession::firstOrCreate(

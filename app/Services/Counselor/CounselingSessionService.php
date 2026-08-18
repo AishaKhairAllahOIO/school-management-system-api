@@ -29,17 +29,10 @@ class CounselingSessionService
             ->get();
     }
 
-    public function updateSession(
-        int $sessionId,
-        int $counselorId,
-        array $data
-    ): CounselingSession {
+    public function updateSession(int $sessionId, int $counselorId, array $data): CounselingSession
+    {
 
-        return DB::transaction(function () use (
-            $sessionId,
-            $counselorId,
-            $data
-        ) {
+        return DB::transaction(function () use ($sessionId, $counselorId, $data) {
 
             $session = CounselingSession::query()
                 ->where('id', $sessionId)
@@ -88,8 +81,8 @@ class CounselingSessionService
 
                 'assessment' =>
                     $data['attendance_status'] === 'present'
-                        ? ($data['assessment'] ?? null)
-                        : null,
+                    ? ($data['assessment'] ?? null)
+                    : null,
 
                 'notes' => $data['notes'] ?? null,
             ]);

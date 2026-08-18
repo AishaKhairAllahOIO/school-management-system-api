@@ -33,6 +33,12 @@ return new class extends Migration {
                 'completed',
             ])->default('available');
 
+            $table->enum('slot_status', [
+                'available',
+                'booked',
+                'blocked'
+            ])->default('available');
+
             $table->timestamps();
 
             $table->unique(
@@ -44,11 +50,11 @@ return new class extends Migration {
                 'counselor_slot_unique'
             );
 
-           $table->index([
-            'counselor_id',
-            'appointment_date',
-            'booking_status',
-        ], 'counselor_status_index');
+            $table->index([
+                'counselor_id',
+                'appointment_date',
+                'booking_status',
+            ], 'counselor_status_index');
         });
     }
 

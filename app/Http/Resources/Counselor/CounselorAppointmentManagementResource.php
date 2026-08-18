@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Counselor;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CounselorAppointmentManagementResource extends JsonResource
@@ -26,13 +27,14 @@ class CounselorAppointmentManagementResource extends JsonResource
 
                 'name' => $this->student->user
                     ? $this->student->user->first_name
-                        . ' '
-                        . $this->student->user->last_name
+                    . ' '
+                    . $this->student->user->last_name
                     : null,
 
-                'photoUrl' => $this->student->user->photo_url
-                ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $this->student->user->photo_url), '/'))
-                : null,
+                'photoUrl' => FileUrl::make(
+                    $this->student->user->photo_url,
+                    config('filesystems.default')
+                ),
             ] : null,
         ];
     }

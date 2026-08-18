@@ -23,10 +23,10 @@ class StudentMark extends Model
         return $this->belongsTo(Enrollment::class);
     }
 
-     public function gradeSubject(): BelongsTo
-    {
-        return $this->belongsTo(GradeSubject::class, 'grade_subject_id');
-    }
+    //  public function gradeSubject(): BelongsTo
+    // {
+    //     return $this->belongsTo(GradeSubject::class, 'grade_subject_id');
+    // }
 
     public function assessmentComponent()
     {

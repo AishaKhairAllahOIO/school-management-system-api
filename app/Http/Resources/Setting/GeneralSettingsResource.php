@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Setting;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
@@ -42,13 +43,10 @@ class GeneralSettingsResource extends JsonResource
             ],
 
 
-            'logoUrl' => $this->logo_url
-                ? (
-                    str_starts_with(trim($this->logo_url), 'http')
-                    ? trim($this->logo_url)
-                    : $disk->url(trim($this->logo_url))
-                )
-                : null,
+            'logoUrl' => FileUrl::make(
+                $this->logo_url,
+                config('filesystems.public_disk')
+            ),
 
 
             'images' => SchoolImageResource::collection(

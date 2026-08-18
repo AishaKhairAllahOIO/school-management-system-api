@@ -3,6 +3,7 @@
 namespace App\Http\Resources\User;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class BaseUserProfileResource extends JsonResource
@@ -25,22 +26,23 @@ class BaseUserProfileResource extends JsonResource
         }
 
         return [
-            'id'             => $this->id,
-            'user_id'        => $user->id,
-            'full_name'      => $user->first_name . ' ' . $user->last_name,
-            'father_name'    => $user->father_name,
-            'mother_name'    => $user->mother_name,
-            'birth_date'     => $user->birth_date,
-            'birth_place'    => $user->birth_place,
-            'address'        => $user->address,
-            'phone_number'   => $user->phone_number,
-            'nationality'    => $user->nationality,
-            'gender'         => $user->gender,
-            'photo_url'      => $user->photo_url
-    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))
-    : null,
+            'id' => $this->id,
+            'user_id' => $user->id,
+            'full_name' => $user->first_name . ' ' . $user->last_name,
+            'father_name' => $user->father_name,
+            'mother_name' => $user->mother_name,
+            'birth_date' => $user->birth_date,
+            'birth_place' => $user->birth_place,
+            'address' => $user->address,
+            'phone_number' => $user->phone_number,
+            'nationality' => $user->nationality,
+            'gender' => $user->gender,
+            'photoUrl' => FileUrl::make(
+                $user->photo_url,
+                config('filesystems.default')
+            ),
             'account_status' => $user->account_status,
-            'record_status'  => $user->record_status,
+            'record_status' => $user->record_status,
         ];
     }
 }

@@ -62,8 +62,6 @@ class DatabaseSeeder extends Seeder
             StudentFinancialSeeder::class,
             MasterStudentSystemSeeder::class,
 
-
-
         ]);
     }
 }

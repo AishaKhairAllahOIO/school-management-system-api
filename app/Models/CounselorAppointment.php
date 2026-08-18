@@ -16,6 +16,8 @@ class CounselorAppointment extends Model
         'start_time',
         'end_time',
         'booking_status',
+        'slot_status',
+
     ];
 
     protected $casts = [

@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Student;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class StudentFilterResource extends JsonResource
@@ -27,16 +28,10 @@ class StudentFilterResource extends JsonResource
 
             'fullName' => $user?->first_name . ' ' . $user?->father_name . ' ' . $user?->last_name,
             'phoneNumber' => $user?->phone_number,
-             'photoUrl' => $user->photo_url
-                    ? url('/api/documents/photos/' . ltrim(
-                        preg_replace(
-                            '/^.*?(users\/|defaults\/)/',
-                            '$1',
-                            trim($user->photo_url)
-                        ),
-                        '/'
-                    ))
-                    : null,
+            'photoUrl' => FileUrl::make(
+                $user->photo_url,
+                config('filesystems.default')
+            ),
 
 
             'grade' => [

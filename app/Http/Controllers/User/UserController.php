@@ -6,6 +6,7 @@ use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\User\TeacherProfileResource;
 use App\Models\User;
+use App\Support\FileUrl;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
 use App\Http\Resources\User\CounselorProfileResource;
@@ -95,19 +96,10 @@ class UserController extends Controller
             return null;
         }
 
-        $photo = trim($user->photo_url);
-
-        if (str_starts_with($photo, 'http')) {
-            return $photo;
-        }
-
-        $photo = preg_replace(
-            '/^.*?(users\/|defaults\/)/',
-            '$1',
-            $photo
+        return FileUrl::make(
+            $user->photo_url,
+            config('filesystems.default')
         );
-
-        return url('/api/documents/photos/' . ltrim($photo, '/'));
     }
 
     public function childPersonalPhotoUrl(Request $request, int $studentId)
@@ -132,15 +124,11 @@ class UserController extends Controller
             ], 'The student does not have a photo in the system.', 200);
         }
 
-        $photo = trim($studentUser->photo_url);
-
-        $photo = preg_replace(
-            '/^.*?(users\/|defaults\/)/',
-            '$1',
-            $photo
+        $photoUrl = FileUrl::make(
+            $studentUser->photo_url,
+            config('filesystems.default')
         );
-
-        $photoUrl = url('/api/documents/photos/' . ltrim($photo, '/'));
+        
         return $this->successResponse([
             'photo_url' => $photoUrl,
         ], 'Child\'s photo URL retrieved successfully.', 200);

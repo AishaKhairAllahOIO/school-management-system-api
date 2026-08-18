@@ -41,7 +41,6 @@ class CounselingSessionController extends Controller
             );
         }
     }
-
     public function update(UpdateCounselingSessionRequest $request, int $sessionId)
     {
         try {
@@ -66,4 +65,5 @@ class CounselingSessionController extends Controller
             );
         }
     }
+    
 }

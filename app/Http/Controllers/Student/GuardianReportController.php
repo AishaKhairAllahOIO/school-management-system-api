@@ -16,19 +16,13 @@ class GuardianReportController extends Controller
 {
     use ApiResource;
 
-    /**
-     * 👨‍👩‍👧 عرض جلاء أحد أبناء ولي الأمر بناءً على معرف الولد وفصل الدراسه
-     */
+
     public function showStudentReportCard($studentId, $semesterId): JsonResponse
     {
         $user = Auth::user();
 
-        // 🔒 حماية أمنية سيادية: التأكد أن ولي الأمر يمتلك هذا الطالب حقاً
-        // (بافتراض أن لديكِ علاقة guardians مرتبطة بالـ student، أو جدول ربط)
         $isHisChild = $user->guardian && $user->guardian->students()->where('students.id', $studentId)->exists();
 
-        // إذا كان النظام يربط جدول الـ students بجدول الـ users مباشرة لولي الأمر، يمكنكِ تعديل الشرط حسب علاقاتكِ، 
-        // لكن هذا التحقق يمنع تماماً أي تسريب للبيانات بين العائلات.
         if (!$isHisChild) {
             return $this->errorResponse('غير مسموح لك بالاطلاع على جلاء هذا الطالب.', 403);
         }
@@ -36,9 +30,6 @@ class GuardianReportController extends Controller
         return $this->fetchReportCard($studentId, $semesterId);
     }
 
-    /**
-     * 🎓 عرض الطالب لجلاءه الشخصي مباشرة
-     */
     public function showMyReportCard($semesterId): JsonResponse
     {
         $user = Auth::user();

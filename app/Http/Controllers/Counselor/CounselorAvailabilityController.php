@@ -85,4 +85,32 @@ class CounselorAvailabilityController extends Controller
             );
         }
     }
+
+    public function addDay(StoreAvailabilityRequest $request)
+{
+    try {
+
+        $availability = $this->service->addDay(
+            $request->user()->id,
+            $request->validated()
+        );
+
+
+        return $this->successResponse(
+            $availability,
+            'Day added successfully.',
+            201
+        );
+
+
+    } catch (Exception $e) {
+
+        return $this->errorResponse(
+            $e->getMessage(),
+            422
+        );
+    }
+}
+
+
 }

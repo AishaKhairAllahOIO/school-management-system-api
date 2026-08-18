@@ -92,4 +92,31 @@ class CounselorAvailabilityService
             ->where('day', $day)
             ->delete();
     }
+
+    public function addDay(int $counselorId, array $data)
+{
+    return DB::transaction(function () use ($counselorId, $data) {
+
+        $exists = CounselorAvailability::where('counselor_id', $counselorId)
+            ->where('day', $data['day'])
+            ->exists();
+
+        if ($exists) {
+            throw new Exception(
+                'يوجد جدول توافر لهذا اليوم مسبقاً.'
+            );
+        }
+
+
+        return CounselorAvailability::create([
+            'counselor_id' => $counselorId,
+            'day' => $data['day'],
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'],
+            'session_duration' => $data['session_duration'],
+            'daily_sessions_limit' => $data['daily_sessions_limit'],
+        ]);
+
+    });
+}
 }

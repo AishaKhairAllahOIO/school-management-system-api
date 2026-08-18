@@ -50,7 +50,18 @@ class DocumentController extends Controller
             return $this->errorResponse('Photo not found.', 404);
         }
 
-        return response()->file(Storage::disk($disk)->path($safePath));
+        if ($disk === 's3') {
+            return redirect()->away(
+                Storage::disk('s3')->temporaryUrl(
+                    $safePath,
+                    now()->addMinutes(30)
+                )
+            );
+        }
+
+        return response()->file(
+            Storage::disk($disk)->path($safePath)
+        );
     }
 
 

@@ -106,7 +106,7 @@ class ExamScheduleController extends Controller
                 'Exam setup data retrieved successfully.'
             );
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -121,7 +121,7 @@ class ExamScheduleController extends Controller
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to create exam schedule: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -131,7 +131,7 @@ class ExamScheduleController extends Controller
             $this->examService->deleteExamSchedule($examId);
             return $this->successResponse(null, 'Exam schedule deleted successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to delete exam schedule.', 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -143,7 +143,7 @@ class ExamScheduleController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('The selected exam or subject was not found.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to remove subject from exam schedule: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -214,7 +214,7 @@ class ExamScheduleController extends Controller
                 'Unread counts retrieved successfully.'
             );
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -239,7 +239,7 @@ class ExamScheduleController extends Controller
 
             return $this->successResponse(null, $message);
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -254,7 +254,7 @@ class ExamScheduleController extends Controller
                 200
             );
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to update exam schedule: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error:Server' . $e->getMessage(), 500);
         }
     }
 

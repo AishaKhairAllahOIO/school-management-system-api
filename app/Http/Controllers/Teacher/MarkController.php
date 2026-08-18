@@ -32,7 +32,7 @@ class MarkController extends Controller
             return $this->successResponse($matrix, "Gradebook retrieved successfully.", 200);
 
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -70,7 +70,7 @@ class MarkController extends Controller
 
         } catch (Exception $e) {
             $code = $e->getCode() == 422 ? 422 : 500;
-            return $this->errorResponse($e->getMessage(), $code);
+            return $this->errorResponse('Error:Server', $code);
         }
 
     }

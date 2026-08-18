@@ -99,7 +99,7 @@ class PracticeQuizController extends Controller
             );
 
             return $this->errorResponse(
-                'Failed to retrieve subjects.',
+                'Error:Server',
                 500
             );
         }

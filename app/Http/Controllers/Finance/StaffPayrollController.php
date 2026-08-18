@@ -39,7 +39,7 @@ public function myPayrolls(Request $request): JsonResponse
     } catch (Exception $e) {
 
         return $this->errorResponse(
-            'Failed to retrieve payroll history.',
+            'Error:Server',
             500
         );
     }

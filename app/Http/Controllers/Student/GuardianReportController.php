@@ -24,7 +24,7 @@ class GuardianReportController extends Controller
         $isHisChild = $user->guardian && $user->guardian->students()->where('students.id', $studentId)->exists();
 
         if (!$isHisChild) {
-            return $this->errorResponse('غير مسموح لك بالاطلاع على جلاء هذا الطالب.', 403);
+            return $this->errorResponse("You are not authorized to view this student's report card.", 403);
         }
 
         return $this->fetchReportCard($studentId, $semesterId);
@@ -36,7 +36,7 @@ class GuardianReportController extends Controller
 
         // التأكد أن المستخدم الحالي هو طالب ولديه سجل في جدول students
         if (!$user->student) {
-            return $this->errorResponse('حساب المستخدم الحالي ليس طالباً مسجلاً.', 403);
+            return $this->errorResponse('The current user account is not a registered student.', 403);
         }
 
         $studentId = $user->student->id;
@@ -55,12 +55,12 @@ class GuardianReportController extends Controller
             ->first();
 
         if (!$reportCard) {
-            return $this->errorResponse('الجلاء غير متوفر أو لم يتم نشره بعد من قبل إدارة المدرسة.', 404);
+            return $this->errorResponse('Report card is not available or has not been published yet by the school administration.', 404);
         }
 
         return $this->successResponse(
             new ReportCardResource($reportCard),
-            'تم جلب الجلاء بنجاح.'
+            'Report card retrieved successfully.'
         );
     }
 
@@ -70,7 +70,7 @@ class GuardianReportController extends Controller
 
         if (!$user->student) {
             return $this->errorResponse(
-                'الحساب ليس طالباً',
+                'The account is not a student.',
                 403
             );
         }
@@ -87,7 +87,7 @@ class GuardianReportController extends Controller
 
         return $this->successResponse(
            StudentTopStudentResource ::collection($topStudents),
-            'تم جلب أوائل الصف'
+           'Class top students retrieved successfully.'
         );
     }
 
@@ -108,7 +108,7 @@ class GuardianReportController extends Controller
 
         if (!$isChild) {
             return $this->errorResponse(
-                'لا يمكنك الوصول لهذا الطالب',
+               'You are not authorized to access this student.',
                 403
             );
         }
@@ -122,7 +122,7 @@ class GuardianReportController extends Controller
 
         return $this->successResponse(
             StudentTopStudentResource::collection($topStudents),
-            'تم جلب أوائل صف الطالب'
+           'Student class top students retrieved successfully.'
         );
     }
 

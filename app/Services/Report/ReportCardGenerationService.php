@@ -47,13 +47,16 @@ class ReportCardGenerationService
             $gradeLevelId = $enrollment->grade_level_id ?? $enrollment->classRoom?->grade_level_id;
 
             // جلب مواد الفصل الدراسي الحالي حصراً وبدون تكرار المواد
-            $gradeSubjects = GradeSubject::with(['subject', 'assessmentComponents.studentMarks' => function ($query) use ($enrollment) {
-                $query->where('enrollment_id', $enrollment->id);
-            }])
-            ->where('grade_level_id', $gradeLevelId)
-            ->where('semester_id', $semesterId)
-            ->get()
-            ->unique('subject_id');
+            $gradeSubjects = GradeSubject::with([
+                'subject',
+                'assessmentComponents.studentMarks' => function ($query) use ($enrollment) {
+                    $query->where('enrollment_id', $enrollment->id);
+                }
+            ])
+                ->where('grade_level_id', $gradeLevelId)
+                ->where('semester_id', $semesterId)
+                ->get()
+                ->unique('subject_id');
 
             $totalMarks = 0;
             $maxTotalMarks = 0;
@@ -74,12 +77,12 @@ class ReportCardGenerationService
                     $markRecord = $component->studentMarks->where('enrollment_id', $enrollment->id)->first();
                     $mark = $markRecord ? $markRecord->mark : 0;
                     $maxMark = $component->max_mark;
-                    
+
                     $subjectTotal += $mark;
-                    
+
                     $evaluationsSummary[$component->type] = [
-                        'name'     => $component->name,
-                        'mark'     => $mark,
+                        'name' => $component->name,
+                        'mark' => $mark,
                         'max_mark' => $maxMark
                     ];
                 }
@@ -105,13 +108,13 @@ class ReportCardGenerationService
 
                 // تجهيز تفاصيل المادة للحفظ (Snapshot)
                 $detailsData[] = [
-                    'grade_subject_id'    => $gs->id,
+                    'grade_subject_id' => $gs->id,
                     'evaluations_summary' => json_encode($evaluationsSummary, JSON_UNESCAPED_UNICODE),
-                    'subject_total'       => $subjectTotal,
-                    'passing_mark'        => $gs->passing_mark,
-                    'max_mark'            => $gs->max_mark,
-                    'is_failing_subject'  => $gs->is_failing_subject,
-                    'status'              => $subjectStatus,
+                    'subject_total' => $subjectTotal,
+                    'passing_mark' => $gs->passing_mark,
+                    'max_mark' => $gs->max_mark,
+                    'is_failing_subject' => $gs->is_failing_subject,
+                    'status' => $subjectStatus,
                 ];
             }
 
@@ -141,16 +144,16 @@ class ReportCardGenerationService
             $reportCard = ReportCard::updateOrCreate(
                 [
                     'enrollment_id' => $enrollment->id,
-                    'semester_id'   => $semesterId,
+                    'semester_id' => $semesterId,
                 ],
                 [
-                    'academic_year_id'  => $enrollment->academic_year_id,
-                    'total_marks'       => $totalMarks,
-                    'max_total_marks'   => $maxTotalMarks,
+                    'academic_year_id' => $enrollment->academic_year_id,
+                    'total_marks' => $totalMarks,
+                    'max_total_marks' => $maxTotalMarks,
                     'attendance_status' => $attendanceStatus,
-                    'final_result'      => $finalResult,
-                    'failure_reasons'   => count($failureReasons) > 0 ? $failureReasons : null,
-                    'is_published'      => false,
+                    'final_result' => $finalResult,
+                    'failure_reasons' => count($failureReasons) > 0 ? $failureReasons : null,
+                    'is_published' => false,
                 ]
             );
 
@@ -189,13 +192,13 @@ class ReportCardGenerationService
     /**
      * جلب العشرة الأوائل حسب الصف (Grade Level) أو الشعبة (Class Room)
      */
-public function getTopStudentsByGrade($semesterId, $gradeLevelId = null, int $limit = 10): Collection
+    public function getTopStudentsByGrade($semesterId, $gradeLevelId = null, int $limit = 10): Collection
     {
         $query = ReportCard::with([
-                'enrollment.student.user', 
-                'enrollment.gradeLevel', 
-                'enrollment.classRoom'
-            ])
+            'enrollment.student.user',
+            'enrollment.gradeLevel',
+            'enrollment.classRoom'
+        ])
             ->where('semester_id', $semesterId)
             ->where('final_result', 'passed')
             ->orderByDesc('total_marks');
@@ -234,5 +237,36 @@ public function getTopStudentsByGrade($semesterId, $gradeLevelId = null, int $li
 
             return false;
         })->values();
+    }
+
+    public function getTopStudentsByStudent(int $studentId, int $semesterId, int $limit = 10): Collection
+    {
+        $enrollment = Enrollment::where('student_id', $studentId)
+            ->whereHas('academicYear', function ($q) {
+                $q->where('is_current', true);
+            })
+            ->first();
+
+        if (!$enrollment) {
+            return collect();
+        }
+
+        $gradeLevelId = $enrollment->grade_level_id
+            ?? $enrollment->classRoom?->grade_level_id;
+
+
+        return ReportCard::with([
+            'enrollment.student.user',
+            'enrollment.gradeLevel',
+            'enrollment.classRoom'
+        ])
+            ->where('semester_id', $semesterId)
+            ->where('final_result', 'passed')
+            ->whereHas('enrollment', function ($q) use ($gradeLevelId) {
+                $q->where('grade_level_id', $gradeLevelId);
+            })
+            ->orderByDesc('total_marks')
+            ->limit($limit)
+            ->get();
     }
 }

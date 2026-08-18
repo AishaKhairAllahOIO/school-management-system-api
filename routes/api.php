@@ -660,7 +660,8 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
   Route::get('/guardian/students/{student_id}/report-cards/{semester_id}',[GuardianReportController::class,'showStudentReportCard']);
+    Route::get('/student/report-cards/top-students', [GuardianReportController::class, 'getTopStudentsForMyClass']);
   Route::middleware(['auth:sanctum'])->get('/student/report-cards/{semesterId}/', [GuardianReportController::class, 'showMyReportCard']);
-  Route::get('/parent/report-cards/top-students', [GuardianReportController::class, 'getTopStudentsForMyChild']);
+  Route::get('/parent/report-cards/top-students', [GuardianReportController::class, 'getTopStudentsForChild']);
   });
 Route::get('/website',[ContentController::class,'getPublicStats']);  

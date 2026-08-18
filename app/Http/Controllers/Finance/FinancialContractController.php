@@ -20,7 +20,7 @@ class FinancialContractController extends Controller
     public function __construct(private FinancialContractService $service) {}
 
 
-    
+
     public function installmentsIndex()
     {
         try {
@@ -31,7 +31,7 @@ class FinancialContractController extends Controller
                 'تم جلب جميع الأقساط بنجاح.'
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب الأقساط', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -51,7 +51,7 @@ class FinancialContractController extends Controller
             return $this->errorResponse('القسط المطلوب غير موجود.', 404);
         }
     }
-     public function index()
+    public function index()
     {
         try {
             $accounts = $this->service->getAllAccounts();
@@ -61,7 +61,7 @@ class FinancialContractController extends Controller
                 'تم جلب جميع الحسابات المالية بنجاح.'
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب البيانات', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -75,13 +75,13 @@ class FinancialContractController extends Controller
 
             return $this->successResponse(
                 new FinancialAccountResource($account),
-                'تم جلب تفاصيل الحساب المالي بنجاح.'
+                'Finance Contract for this Student not found'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('لا يوجد حساب مالي مسجل لهذا الطالب.', 404);
+            return $this->errorResponse('Finance Contract for this Student not found', 404);
         }
     }
-    
+
     public function finalize(FinancialContractRequest $request): JsonResponse
     {
         try {
@@ -89,26 +89,25 @@ class FinancialContractController extends Controller
 
             return $this->successResponse(
                 new FinancialAccountResource($account),
-                'تم اعتماد العقد المالي وتوليد الأقساط الزمنية بنجاح.'
+                'Finance Contract Finalized Successfully'
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطاء اثناء العملية', 422,$e->getMessage());
+            return $this->errorResponse('Error:Server', 500, $e->getMessage());
         }
     }
-        public function update(FinancialContractRequest $request, int $id): JsonResponse
+    public function update(FinancialContractRequest $request, int $id): JsonResponse
     {
         try {
             $account = $this->service->updateContract($id, $request->validated());
 
             return $this->successResponse(
                 new FinancialAccountResource($account),
-                'تم تعديل العقد المالي وإعادة توليد الأقساط بنجاح.'
+                'Finance Contract updated Successfully'
             );
-        }catch(ModelNotFoundException $e){
-            return $this->errorResponse('لا يوجد حساب مالي مسجل لهذا الطالب.', 404);
-        }
-         catch (Exception $e) {
-            return $this->errorResponse('حدث خطاء اثناء العملية', 422,$e->getMessage());
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Contract not found', 404);
+        } catch (Exception $e) {
+            return $this->errorResponse('Error:Server', 500, $e->getMessage());
         }
     }
 }

@@ -27,12 +27,13 @@ class StudentController extends Controller
 {
     use ApiResource;
 
+// MAKE THE MESSAGES IN ENGLISH:
 
     public function store(StudentRegisterService $service, StoreStudentRegisterRequest $request)
     {
         try {
             $data = $service->registerStudentWithGuardian($request->validated());
-            return $this->successResponse(new StudentProfileWithEnrollmentResource($data), 'تم تسجيل الطالب وولي أمره بنجاح.', 201);
+            return $this->successResponse(new StudentProfileWithEnrollmentResource($data), 'Student registeration Successfuly', 201);
         } catch (Exception $e) {
     $statusCode = $e->getCode();
 
@@ -41,7 +42,7 @@ class StudentController extends Controller
     }
 
     return $this->errorResponse(
-        'حدث خطأ أثناء التسجيل',
+       'Error:Server',
         $statusCode,
         [
             'exception_message' => $e->getMessage(),
@@ -58,7 +59,7 @@ class StudentController extends Controller
 
         return $this->successResponse(
             ['batch_id' => $batch->id],
-            'تم استلام الملف بنجاح، جاري معالجة البيانات في الخلفية',
+            'File received successfully, processing data in the background',
             202
         );
     }
@@ -86,13 +87,13 @@ class StudentController extends Controller
             'successful_rows' => $batch->successful_rows,
             'failed_rows' => $batch->failed_rows,
             'has_errors' => ($batch->failed_rows > 0 || $batch->status === 'failed'),
-        ], 'تم جلب حالة الحزمة بنجاح.');
+        ], 'File status retrieved successfully.');
     }
     public function getBatchesHistory(GetBatchesHistoryExalFilesRequest $request, StudentRegisterService $service)
     {
         $batches = $service->getImportBatchesArchive($request->validated());
 
-        return $this->successResponse($batches, 'تم جلب الأرشيف التاريخي لعمليات الرفع بنجاح.');
+        return $this->successResponse($batches, 'File history retrieved successfully.');
     }
     public function filter(IndexStudentRequest $request, StudentManagementService $service)
     {
@@ -100,7 +101,7 @@ class StudentController extends Controller
 
         return $this->successResponse(
             StudentFilterResource::collection($students)->response()->getData(true),
-            'تم جلب سجلات الطلاب المفلترة بنجاح.'
+            'File history retrieved successfully.'
         );
     }
     public function search(Request $request, StudentManagementService $service)
@@ -113,7 +114,7 @@ class StudentController extends Controller
 
         return $this->successResponse(
             StudentFilterResource::collection($students)->response()->getData(true),
-            'تم جلب نتائج البحث بنجاح.'
+            'File history retrieved successfully.'
         );
     }
     public function show($id, StudentManagementService $service)
@@ -121,7 +122,7 @@ class StudentController extends Controller
         try {
             $student = $service->getStudentPersonalProfile($id);
 
-            return $this->successResponse(new StudentProfileResource($student), 'تم جلب بيانات الطالب بنجاح.');
+            return $this->successResponse(new StudentProfileResource($student), 'File history retrieved successfully.');
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 404);
         }
@@ -131,7 +132,7 @@ class StudentController extends Controller
         try {
             $enrollment = $service->getStudentFullProfile($enrollmentId);
 
-            return $this->successResponse(new StudentProfileWithEnrollmentResource($enrollment), 'تم جلب بيانات الطالب بنجاح.');
+            return $this->successResponse(new StudentProfileWithEnrollmentResource($enrollment), 'File history retrieved successfully.');
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 404);
         }
@@ -141,9 +142,9 @@ class StudentController extends Controller
         try {
             $updatedStudent = $studentService->updateStudentPersonalData($student, $request->validated());
 
-            return $this->successResponse(new StudentProfileWithEnrollmentResource($updatedStudent), 'تم تحديث بيانات الطالب بنجاح.', 201);
+            return $this->successResponse(new StudentProfileWithEnrollmentResource($updatedStudent), 'File history retrieved successfully.', 201);
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('المستخدم غير موجود', 404);
+            return $this->errorResponse('Student not found', 404);
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 404);
         }
@@ -169,10 +170,10 @@ class StudentController extends Controller
         try {
             $updatedGuardian = $studentService->updateGuardianPersonalData($guardianId, $request->validated());
 
-            return $this->successResponse(new BaseUserProfileResource($updatedGuardian), 'تم تحديث بيانات ولي الأمر بنجاح.', 201);
+            return $this->successResponse(new BaseUserProfileResource($updatedGuardian), 'Guardian profile updated Successfully', 201);
 
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('المستخدم غير موجود', 404);
+            return $this->errorResponse('Guardian not found', 404);
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 404);
         }
@@ -182,9 +183,9 @@ class StudentController extends Controller
         try {
             $service->deleteStudent($id);
 
-            return $this->successResponse(null, 'تم شطب الطالب من النظام بنجاح.');
+            return $this->successResponse(null,'Student deleted successfully', 200);
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('تسجيل الطالب  غير موجود', 404);
+            return $this->errorResponse('Enrollment record not found', 404);
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 404);
         }
@@ -194,7 +195,7 @@ class StudentController extends Controller
         try {
             $newStatus = $service->toggleAccountStatus($id);
 
-            return $this->successResponse(['account_status' => $newStatus], 'تم تغيير حالة القيد بنجاح.');
+            return $this->successResponse(['account_status' => $newStatus], 'Account status toggled successfully.', 200);
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 404);
         }
@@ -206,12 +207,12 @@ class StudentController extends Controller
 
             return $this->successResponse(
                 new StudentProfileWithEnrollmentResource($restoredEnrollment),
-                'تم استرجاع قيد الطالب وتفعيل حسابه بنجاح.',
+                'Enrollment record restored Successfuly',
                 200
             );
 
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل القيد المطلوب غير موجود.', 404);
+            return $this->errorResponse('Enrollment record not found', 404);
         } catch (Throwable $e) {
             return $this->errorResponse($e->getMessage(), 422);
         }

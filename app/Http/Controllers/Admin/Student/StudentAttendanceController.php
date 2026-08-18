@@ -30,12 +30,12 @@ class StudentAttendanceController extends Controller
             
             return $this->successResponse(
                 null, 
-                'تم تسجيل الغياب والحضور وإرسال الإشعارات بنجاح.', 
+                'Student attendance records created successfully.', 
                 201
             );
         } catch (Throwable $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء تسجيل الحضور.', 
+                'Error:Server', 
                 500, 
                 ['exception_message' => $e->getMessage()]
             );
@@ -53,13 +53,13 @@ class StudentAttendanceController extends Controller
 
             return $this->successResponse(
                 $responseData,
-                'تم جلب سجل حضور الطالب وتفاصيل العدادات بنجاح.'
+                'Student attendance record and summary retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل حضور الطالب غير موجود.', 404);
+            return $this->errorResponse('Student attendance record not found.', 404);
         } catch (Throwable $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء جلب سجل حضور الطالب.',
+                'Error:Server',
                 500,
                 ['exception_message' => $e->getMessage()]
             );
@@ -78,9 +78,9 @@ class StudentAttendanceController extends Controller
                 ]);
 
                 $result = $this->service->filterStudentsAttendance($request->all());
-                return $this->successResponse($result, 'تم جلب سجلات حضور الطلاب وتفاصيل التفقد بنجاح.');
+                return $this->successResponse($result, 'Student attendance records and summaries retrieved successfully.');
             } catch (\Throwable $e) {
-                return $this->errorResponse('حدث خطأ أثناء تصفية سجلات حضور الطلاب.', 500, ['error' => $e->getMessage()]);
+                return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
             }
         }
   
@@ -99,12 +99,12 @@ class StudentAttendanceController extends Controller
             'attendance_summary' => $result['attendance_summary']
         ];
 
-        return $this->successResponse($responseData, 'تم تعديل سجل حضور الطالب وإعادة تصفية العدادات بنجاح.', 200);
+        return $this->successResponse($responseData, 'Student attendance record updated successfully.', 200);
 
     } catch (ModelNotFoundException $e) {
-        return $this->errorResponse('سجل حضور الطالب غير موجود.', 404);
+        return $this->errorResponse('Student attendance record not found.', 404);
     } catch (\Throwable $e) {
-        return $this->errorResponse('حدث خطأ أثناء تعديل سجل حضور الطالب.', 500, ['error' => $e->getMessage()]);
+        return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
     }
 }
 
@@ -114,12 +114,12 @@ class StudentAttendanceController extends Controller
     {
         try {
             $this->service->deleteSingleAttendance($id);
-            return $this->successResponse(null, 'تم حذف سجل حضور الطالب وإعادة تصفية العدادات بنجاح.');
+            return $this->successResponse(null, 'Student attendance record deleted successfully.');
         }catch(ModelNotFoundException $e) {
-            return $this->errorResponse('سجل حضور الطالب غير موجود.', 404);
+            return $this->errorResponse('Student attendance record not found.', 404);
         } 
         catch (\Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف سجل حضور الطالب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function getStudentHistory(Request $request, int $enrollmentId)
@@ -129,9 +129,9 @@ class StudentAttendanceController extends Controller
         
         $data = $this->service->getStudentAttendanceHistory($enrollmentId, $filters);
 
-        return $this->successResponse($data, 'تم جلب سجل حضور الطالب بنجاح.');
+        return $this->successResponse($data, 'Student attendance history retrieved successfully.');
     } catch (Throwable $e) {
-        return $this->errorResponse('حدث خطأ أثناء جلب سجل حضور الطالب.', 500, ['error' => $e->getMessage()]);
+        return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
     }
 }
 }

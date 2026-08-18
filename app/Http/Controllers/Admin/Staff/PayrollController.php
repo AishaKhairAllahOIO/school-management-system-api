@@ -40,11 +40,11 @@ class PayrollController extends Controller
                 $request->expected_units ?? 30
             );
 
-            return $this->successResponse($previewData, 'تمت معاينة الراتب واحتساب الخصميات بنجاح.');
+        return $this->successResponse($previewData, 'Salary preview and deductions calculated successfully.');
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 422);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء معاينة الراتب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -58,13 +58,13 @@ class PayrollController extends Controller
             
             return $this->successResponse(
                 new PayrollResource($payroll->load(['staff.user', 'contract'])),
-                'تم حفظ واعتماد الراتب وإرسال الإشعار للموظف بنجاح.',
+                'Payroll committed and notification sent to staff successfully.',
                 201
             );
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 422);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء اعتماد وصرف الراتب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -83,10 +83,10 @@ class PayrollController extends Controller
             
             return $this->successResponse(
                 PayrollResource::collection($payrolls),
-                "تم جلب رواتب شهر {$request->month} بنجاح."
+                "Payrolls for month {$request->month} retrieved successfully."
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب الرواتب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -99,10 +99,10 @@ class PayrollController extends Controller
             $payrolls = $this->service->getStaffPayrolls($staffId);
             return $this->successResponse(
                 PayrollResource::collection($payrolls),
-                'تم جلب سجل رواتب الموظف بنجاح.'
+               'Staff payroll history retrieved successfully.'
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب رواتب الموظف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -113,11 +113,11 @@ class PayrollController extends Controller
     {
         try {
             $payroll = $this->service->getPayrollById($id);
-            return $this->successResponse(new PayrollResource($payroll), 'تم جلب تفاصيل الراتب بنجاح.');
+            return $this->successResponse(new PayrollResource($payroll), 'Payroll details retrieved successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل الراتب غير موجود.', 404);
+            return $this->errorResponse('Payroll record not found.', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب سجل الراتب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -128,11 +128,11 @@ class PayrollController extends Controller
     {
         try {
             $payroll = $this->service->updatePayroll($id, $request->validated());
-            return $this->successResponse(new PayrollResource($payroll), 'تم تعديل سجل الراتب بنجاح.');
+            return $this->successResponse(new PayrollResource($payroll), 'Payroll record updated successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل الراتب غير موجود.', 404);
+            return $this->errorResponse('Payroll record not found.', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل سجل الراتب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -143,11 +143,11 @@ class PayrollController extends Controller
     {
         try {
             $this->service->deletePayroll($id);
-            return $this->successResponse(null, 'تم حذف إيصال الراتب بنجاح.');
+            return $this->successResponse(null, 'Payroll receipt deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل الراتب غير موجود.', 404);
+            return $this->errorResponse('Payroll record not found.', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف سجل الراتب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

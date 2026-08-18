@@ -44,9 +44,9 @@ class StaffController extends Controller
     {
         try {
             $workload = $this->workloadService->createWorkload($request->validated());
-            return $this->successResponse(new TeacherWorkloadResource($workload), 'تم تعيين نصاب المعلم بنجاح.', 201);
+            return $this->successResponse(new TeacherWorkloadResource($workload), 'Teacher workload assigned successfully.', 201);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعيين النصاب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -54,9 +54,9 @@ class StaffController extends Controller
     {
         try {
             $workloads = $this->workloadService->getTeacherWorkloads($staff);
-            return $this->successResponse(TeacherWorkloadResource::collection($workloads), 'تم جلب سجلات النصاب بنجاح.');
+            return $this->successResponse(TeacherWorkloadResource::collection($workloads), 'Teacher workloads retrieved successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب النصاب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -65,9 +65,9 @@ class StaffController extends Controller
     {
         try {
             $updatedWorkload = $this->workloadService->updateWorkload($workload, $request->validated());
-            return $this->successResponse(new TeacherWorkloadResource($updatedWorkload), 'تم تحديث النصاب بنجاح.');
+            return $this->successResponse(new TeacherWorkloadResource($updatedWorkload), 'Teacher workload updated successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تحديث النصاب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -76,18 +76,18 @@ class StaffController extends Controller
     {
         try {
             $this->workloadService->deleteWorkload($workload);
-            return $this->successResponse(null, 'تم حذف النصاب بنجاح.');
+            return $this->successResponse(null, 'Teacher workload deleted successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف النصاب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
      public function assignClassrooms(StoreTeacherAssignmentRequest $request): JsonResponse
     {
         try {
             $assignments = $this->workloadService->assignTeacher($request->validated());
-            return $this->successResponse(TeacherAssignmentResource::collection($assignments), 'تم التكليف وتحديث نصاب المعلم آلياً بنجاح.', 201);
+            return $this->successResponse(TeacherAssignmentResource::collection($assignments), 'Teacher assignment created successfully.', 201);
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 422);
+            return $this->errorResponse('Error:Server', 422, ['error' => $e->getMessage()]);
         }
     }
 
@@ -100,9 +100,9 @@ class StaffController extends Controller
             // }
 
             $assignments = $this->workloadService->getTeacherAssignments($staff);
-            return $this->successResponse(TeacherAssignmentResource::collection($assignments), 'تم جلب تفاصيل تكليف المعلم بنجاح.');
+            return $this->successResponse(TeacherAssignmentResource::collection($assignments), 'Teacher assignments retrieved successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب التكليفات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -112,11 +112,11 @@ class StaffController extends Controller
         try {
             $assignment = TeacherAssignment::findOrFail($assignmentId);
             $updatedAssignment = $this->workloadService->updateAssignment($assignment, $request->validated());
-            return $this->successResponse(new TeacherAssignmentResource($updatedAssignment), 'تم تحديث التكليف بنجاح.');
+            return $this->successResponse(new TeacherAssignmentResource($updatedAssignment), 'Teacher assignment updated successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل التكليف غير موجود في النظام.', 404);
+            return $this->errorResponse('Teacher assignment record not found.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تحديث التكليف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -129,11 +129,11 @@ class StaffController extends Controller
             // السيرفس الآن يعتمد على الداتابيز لحساب ما يجب استرجاعه من حصص
             $this->workloadService->deleteAssignment($assignment);
             
-            return $this->successResponse(null, 'تم حذف التكليف واسترجاع الحصص للنصاب بنجاح.');
+            return $this->successResponse(null, 'Teacher assignment deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل التكليف غير موجود في النظام.', 404);
+            return $this->errorResponse('Teacher assignment record not found.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف التكليف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -141,18 +141,18 @@ class StaffController extends Controller
     {
         try {
             $staff = $this->registerService->registerSingleStaff($request->validated());
-            return $this->successResponse(new StaffProfileResource($staff), 'تم تسجيل الموظف بنجاح.', 201);
+            return $this->successResponse(new StaffProfileResource($staff), 'Teacher registered successfully.', 201);
         }  catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء التسجيل.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function importExcel(ImportExalSheetStudentRequest $request,string $role): JsonResponse
     {
         try {
             $batch = $this->registerService->initiateStaffExcelImport($request->file('excel_file'), $role ,$request->user()->id);
-            return $this->successResponse(['batch_id' => $batch->id], 'تم استلام الملف بنجاح، جاري معالجة بيانات الموظفين في الخلفية.', 202);
+            return $this->successResponse(['batch_id' => $batch->id], 'Teacher excel file uploaded successfully.', 202);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء رفع الملف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
         public function getImportStatus($batch)
@@ -160,7 +160,7 @@ class StaffController extends Controller
        $batch = ImportBatch::find($batch); 
 
      if(!$batch) {
-            return $this->errorResponse('لا يوجد ملف كهذا', 404); // يُفضل كود 404 وليس 422
+            return $this->errorResponse('Teacher excel file not found.', 404);
         }        
         return $this->successResponse([
             'batch_id'        => $batch->id,
@@ -171,7 +171,7 @@ class StaffController extends Controller
             'successful_rows' => $batch->successful_rows,
             'failed_rows'     => $batch->failed_rows,
             'has_errors'      => ($batch->failed_rows > 0|| $batch->status === 'failed'),
-        ], 'تم جلب حالة الحزمة بنجاح.');
+        ], 'Teacher import status fetched successfully.');
     }
 public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
     {
@@ -181,6 +181,8 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
         catch(Exception $e)
         {
             return $this->successResponse(null,'No error to show',200);
+        }catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500);
         }
     }
     // ==========================================
@@ -190,9 +192,9 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
     {
         try {
             $counts = $this->managementService->getStaffRoleCounts();
-            return $this->successResponse($counts, 'تم جلب إحصائيات الموظفين بنجاح.');
+            return $this->successResponse($counts, 'Staff role statistics retrieved successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب الإحصائيات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -202,18 +204,18 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             $perPage = $request->query('per_page', 15);
             $staff = $this->managementService->getStaffByRole($role, $perPage);
             // استخدمنا Resource Collection إذا كانت النتائج Paginated
-            return $this->successResponse($staff, "تم جلب موظفي قسم الـ {$role} بنجاح.");
+            return $this->successResponse($staff, "Teacher records for role {$role} fetched successfully.");
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب الموظفين.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function index(): JsonResponse
     {
         try {
             $staff = $this->managementService->getAllStaff();
-            return $this->successResponse(StaffProfileResource::collection($staff)->response()->getData(true), 'تم جلب بيانات الموظفين بنجاح.');
+            return $this->successResponse(StaffProfileResource::collection($staff)->response()->getData(true), 'Teacher profiles fetched successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب قائمة الموظفين.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -221,13 +223,13 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
     {
         try {
             $staffData = $this->managementService->getStaffById($staff);
-            return $this->successResponse(new StaffProfileResource($staffData), 'تم جلب تفاصيل الموظف بنجاح.');
+            return $this->successResponse(new StaffProfileResource($staffData), 'Teacher details fetched successfully.');
         }catch(ModelNotFoundException $e) 
         {
-            return $this->errorResponse('الموظف غير موحود',404);
+            return $this->errorResponse('Teacher not found',404);
         }
         catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء عرض بيانات الموظف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
  
@@ -236,11 +238,11 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
     {
         try {
             $updated = $this->managementService->updatePersonalData($staff, $request->validated());
-            return $this->successResponse(new StaffProfileResource($updated), 'تم تحديث البيانات الشخصية للموظف بنجاح.');
+            return $this->successResponse(new StaffProfileResource($updated), 'Teacher personal data updated successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('المستخدم غير مموجود ', 404);
+            return $this->errorResponse('Teacher not found', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تحديث البيانات الشخصية.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -263,13 +265,13 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
         try {
             $fullName = $request->query('name');
             if (empty($fullName)) {
-                return $this->errorResponse('يرجى تحديد اسم للبحث عنه.', 422);
+                return $this->errorResponse('Please specify a name to search for.', 422);
             }
             $perPage = $request->query('per_page', 15);
             $results = $this->managementService->searchStaffByRoleAndName($role,$fullName, $perPage);
-            return $this->successResponse(StaffProfileResource::collection($results), 'تم جلب نتائج البحث بنجاح.');
+            return $this->successResponse(StaffProfileResource::collection($results), 'Search results fetched successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء إجراء عملية البحث.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -280,9 +282,9 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             $perPage = $request->query('per_page', 15);
 
             $staff = $this->managementService->getAllStaffAlphabetically($direction, $perPage);
-            return $this->successResponse(StaffProfileResource::collection($staff)->response()->getData(true), 'تم جلب الموظفين مرتبين أبجدياً بنجاح.');
+            return $this->successResponse(StaffProfileResource::collection($staff)->response()->getData(true), 'Teachers fetched alphabetically successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء ترتيب الموظفين أبجدياً.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     
@@ -295,11 +297,11 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
 
             $staffData = $this->managementService->getStaffProfile($staffRecord->id);
             
-            return $this->successResponse(new StaffProfileResource($staffData), 'تم جلب ملفك الشخصي بنجاح.');
+            return $this->successResponse(new StaffProfileResource($staffData), 'Personal profile fetched successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('حسابك الحالي غير مسجل كموظف في النظام.', 404);
+            return $this->errorResponse('Your current account is not registered as a staff member in the system.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب الملف الشخصي.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -307,12 +309,12 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
     {
         try {
             $statusText = $this->managementService->toggleAccountStatus($staff);
-            return $this->successResponse(null, "تم تغيير حالة حساب الموظف بنجاح إلى: {$statusText}.");
+            return $this->successResponse(null, "Staff account status toggled successfully to: {$statusText}.");
         }catch (ModelNotFoundException $e) {
-            return $this->errorResponse('المستخدم غير مموجود ', 404);
+            return $this->errorResponse('Staff member not found.', 404);
         } 
         catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تبديل حالة الحساب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -320,11 +322,11 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
     {
         try {
             $this->managementService->deleteStaff($staff);
-            return $this->successResponse(null, 'تم نقل بيانات الموظف إلى سلة المهملات بنجاح.');
+            return $this->successResponse(null, 'Staff member deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('المستخدم غير مموجود ', 404);
+            return $this->errorResponse('Staff member not found.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء محاولة حذف الموظف.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function restore(int $staff, StaffManagementService $staffService): JsonResponse
@@ -334,12 +336,12 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
 
             return $this->successResponse(
                 new StaffProfileResource($restoredStaff),
-                'تم استرجاع الموظف وتفعيل حسابه بنجاح.',
+                'Staff member restored and account activated successfully.',
                 200
             );
 
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سجل الموظف المطلوب غير موجود.', 404);
+            return $this->errorResponse('Staff member record not found.', 404);
         } catch (\Throwable $e) {
             return $this->errorResponse($e->getMessage(), 422);
         }
@@ -362,10 +364,10 @@ public function exportErrors(ImportBatch $batch, StaffRegisterService $service)
             $staff = $service->filterStaff($filters);
 
             // 3. إرجاع النتيجة
-            return $this->successResponse($staff, 'تم جلب وتصفية بيانات الموظفين بنجاح.');
+            return $this->successResponse($staff, 'Staff data filtered successfully.');
 
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب بيانات الموظفين.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

@@ -41,7 +41,7 @@ class CounselorAppointmentController extends Controller
         } catch (Exception $e) {
 
             return $this->errorResponse(
-                $e->getMessage(),
+               'Error:Server',
                 500
             );
         }

@@ -28,7 +28,7 @@ class CounselorAvailabilityController extends Controller
             return $this->successResponse(null, 'Available times saved successfully.', 201);
         } catch (Exception $e) {
             return $this->errorResponse(
-                $e->getMessage(),
+               'Error:Server',
                 500
             );
         }
@@ -46,7 +46,7 @@ class CounselorAvailabilityController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                $e->getMessage(),
+                'Error:Server',
                 500
             );
         }
@@ -65,7 +65,7 @@ class CounselorAvailabilityController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                $e->getMessage(),
+                'Error:Server',
                 500
             );
         }

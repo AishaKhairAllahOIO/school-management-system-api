@@ -135,12 +135,21 @@ class StaffAttendanceService
     /**
      * 4. جلب تفاصيل غياب موظف
      */
-    public function getAttendanceById(int $id): StaffAttendance
+    public function getAttendanceById(int $id)
     {
-        return StaffAttendance::with([
+        $attenReco=StaffAttendance::where('id', $id)->first();
+        $allabsent=StaffAttendance::where('staff_id', $attenReco->staff_id)->count();
+        $unexcusedAbsent=StaffAttendance::where('id', $id)->where('absence_type','unexcused')->count();
+
+        $records= StaffAttendance::with([
             'periodAttendances.scheduleEntry.classRoom',
             'periodAttendances.scheduleEntry.gradeSubject'
         ])->findOrFail($id); 
+        return [
+            'AllAbsent'=>$allabsent,
+            'unexcutedAbsent'=>$unexcusedAbsent,
+            'record'=>$records,
+        ];
     }
 
     /**
@@ -185,4 +194,28 @@ class StaffAttendanceService
             TeacherPeriodAttendance::insert($insertData);
         }
     }
+    public function getStaffAttendance(
+    int $staffId,
+    ?string $fromDate = null,
+    ?string $toDate = null
+) {
+    $query = StaffAttendance::with([
+        'periodAttendances.scheduleEntry.classRoom',
+        'periodAttendances.scheduleEntry.gradeSubject',
+        'leave'
+    ])
+    ->where('staff_id', $staffId);
+
+    if ($fromDate) {
+        $query->whereDate('attendance_date', '>=', $fromDate);
+    }
+
+    if ($toDate) {
+        $query->whereDate('attendance_date', '<=', $toDate);
+    }
+
+    return $query
+        ->orderByDesc('attendance_date')
+        ->get();
+}
 }

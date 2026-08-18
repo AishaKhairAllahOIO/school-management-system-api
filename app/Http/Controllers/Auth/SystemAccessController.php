@@ -25,7 +25,7 @@ class SystemAccessController extends Controller
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
-    return $this->errorResponse('An error occurred during login.', 500, ['exception_message' => $e->getMessage()]);
+    return $this->errorResponse('Error:Server', 500, ['exception_message' => $e->getMessage()]);
 }
     }
     public function loginMobile(SystemAccessForgetPasswordRequest $request, SystemAccessService $service)
@@ -36,7 +36,7 @@ class SystemAccessController extends Controller
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
         } catch (Exception $e) {
-    return $this->errorResponse('An error occurred during login.', 500, ['exception_message' => $e->getMessage()]);
+    return $this->errorResponse('Error:Server', 500, ['exception_message' => $e->getMessage()]);
 }
 }
 
@@ -53,7 +53,7 @@ class SystemAccessController extends Controller
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
          } 
          catch (Exception $e) {
-            return $this->errorResponse('OTP verification failed.', 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
     public function vertifyOtpMobile(SystemAccessVerifyRequest $request,SystemAccessService $service)
@@ -69,7 +69,7 @@ class SystemAccessController extends Controller
             return $this->errorResponse($e->getMessage(), 422,$e->errors());
          } 
          catch (Exception $e) {
-            return $this->errorResponse('OTP verification failed.', 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 

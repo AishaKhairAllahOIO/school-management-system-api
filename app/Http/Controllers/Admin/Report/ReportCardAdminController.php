@@ -28,22 +28,22 @@ class ReportCardAdminController extends Controller
     /**
      * 1. ⚙️ زر إطلاق عملية توليد الجلاءات في الخلفية
      */
-   public function generate(GenerateReportCardRequest $request): JsonResponse
-{
-    try {
-        $semesterId = $request->validated('semester_id');
-        $maxAllowed = $request->validated('max_allowed_non_failing_failures', 2);
+    public function generate(GenerateReportCardRequest $request): JsonResponse
+    {
+        try {
+            $semesterId = $request->validated('semester_id');
+            $maxAllowed = $request->validated('max_allowed_non_failing_failures', 2);
 
-        GenerateReportCardsJob::dispatch($semesterId, $maxAllowed);
+            GenerateReportCardsJob::dispatch($semesterId, $maxAllowed);
 
-        return $this->successResponse(
-            null,
-            'تم إطلاق عملية توليد الجلاءات في الخلفية بنجاح.'
-        );
-    } catch (Throwable $e) {
-        return $this->errorResponse('حدث خطأ أثناء إطلاق عملية توليد الجلاءات.', 500, ['error' => $e->getMessage()]);
+            return $this->successResponse(
+                null,
+                'Report card generation process dispatched in the background successfully.'
+            );
+        } catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+        }
     }
-}
 
     /**
      * 2. 📋 استعراض الجلاءات المولدة للمراجعة من قبل الإدارة قبل نشرها للأهالي
@@ -71,10 +71,10 @@ class ReportCardAdminController extends Controller
 
             return $this->successResponse(
                 ReportCardResource::collection($reportCards)->response()->getData(true),
-                'تم جلب قائمة الجلاءات بنجاح.'
+                'Report cards retrieved successfully.'
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب قائمة الجلاءات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     // دالة عرض جلاء معين :
@@ -117,14 +117,13 @@ class ReportCardAdminController extends Controller
                 }
             }
 
-            $actionText = $isPublished ? 'نشر' : 'إلغاء نشر';
-
+            $actionText = $isPublished ? 'published' : 'unpublished';
             return $this->successResponse(
                 ['updated_count' => $updatedCount],
-                "تمت عملية {$actionText} ({$updatedCount}) جلاء بنجاح."
+                "Successfully {$actionText} ({$updatedCount}) report cards."
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء تغيير حالة نشر الجلاءات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -133,58 +132,58 @@ class ReportCardAdminController extends Controller
      * لا تستقبل أي مدخلات من الـ Request، بل تكتشف كل شيء برمجياً.
      */
     public function promote(): JsonResponse
-{
-    try {
-        // 1. اكتشاف العام الحالي النشط تلقائياً
-        $currentYear = AcademicYear::where('is_current', true)->first();
-        
-        if (!$currentYear) {
-            return $this->errorResponse('لا يوجد عام دراسي نشط حالياً.');
+    {
+        try {
+            // 1. اكتشاف العام الحالي النشط تلقائياً
+            $currentYear = AcademicYear::where('is_current', true)->first();
+
+            if (!$currentYear) {
+                return $this->errorResponse('No active academic year found.', 400);
+            }
+
+            // 2. 💡 التعديل الذهبي: جلب أول عام دراسي يبدأ بعد بداية العام الحالي
+            $nextYear = AcademicYear::where('start_date', '>', $currentYear->start_date)
+                ->orderBy('start_date', 'asc')
+                ->first();
+
+            if (!$nextYear) {
+                return $this->errorResponse('No upcoming academic year defined. Please create it from settings first.', 400);
+            }
+
+            // 3. تنفيذ الترفيع السحري عبر الـ Service
+            $result = $this->promotionService->promoteStudents($currentYear->id, $nextYear->id);
+
+            return $this->successResponse(
+                $result,
+                'Students promoted to the next academic year successfully and new enrollments generated.'
+            );
+        } catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
-
-        // 2. 💡 التعديل الذهبي: جلب أول عام دراسي يبدأ بعد بداية العام الحالي
-        $nextYear = AcademicYear::where('start_date', '>', $currentYear->start_date)
-                        ->orderBy('start_date', 'asc')
-                        ->first();
-
-        if (!$nextYear) {
-            return $this->errorResponse('لا يوجد عام دراسي قادم محدد بعد العام الحالي. يرجى إنشاؤه من الإعدادات أولاً.', 400);
-        }
-
-        // 3. تنفيذ الترفيع السحري عبر الـ Service
-        $result = $this->promotionService->promoteStudents($currentYear->id, $nextYear->id);
-
-        return $this->successResponse(
-            $result, 
-            'تم ترفيع الطلاب للعام القادم بنجاح وتوليد قيودهم الجديدة.'
-        );
-    } catch (Throwable $e) {
-        return $this->errorResponse('حدث خطأ فادح أثناء عملية ترفيع الطلاب.', 500, ['error' => $e->getMessage()]);
     }
-}
-public function show($id): JsonResponse
+    public function show($id): JsonResponse
     {
         try {
             // جلب الجلاء مع كل العلاقات المرتبطة به لتجنب مشكلة N+1
-           $reportCard = ReportCard::with([
-            'details.gradeSubject.subject', 
-            'enrollment.student.user', 
-            'enrollment.gradeLevel',
-            'enrollment.classRoom.supervisor.user' // جلب الشعبة مع موجهها واسم المستخدم الخاص به
-        ])->find($id);
+            $reportCard = ReportCard::with([
+                'details.gradeSubject.subject',
+                'enrollment.student.user',
+                'enrollment.gradeLevel',
+                'enrollment.classRoom.supervisor.user' // جلب الشعبة مع موجهها واسم المستخدم الخاص به
+            ])->find($id);
 
             // التحقق من وجود الجلاء
             if (!$reportCard) {
-                return $this->errorResponse('الجلاء المطلوب غير موجود.', 404);
+                return $this->errorResponse('Report card not found.', 404);
             }
 
             // إرجاع الجلاء باستخدام الـ Resource المخصص
             return $this->successResponse(
                 new ReportCardResource($reportCard),
-                'تم جلب تفاصيل الجلاء بنجاح.'
+                'Report card details retrieved successfully.'
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب تفاصيل الجلاء.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function getTopStudentsForAdmin(ReportCardGenerationService $topStudentsService): JsonResponse
@@ -194,17 +193,17 @@ public function show($id): JsonResponse
             $gradeLevelId = request('grade_level_id'); //اختياري: لتصفية صف معين
 
             if (!$semesterId) {
-                return $this->errorResponse('معرف الفصل الدراسي (semester_id) مطلوب.', 422);
+                return $this->errorResponse('Academic semester ID is required.', 422);
             }
 
             $topStudents = $topStudentsService->getTopStudentsByGrade($semesterId, $gradeLevelId, 10);
 
             return $this->successResponse(
                 ReportCardResource::collection($topStudents),
-                'تم جلب قائمة الطلاب العشرة الأوائل بنجاح.'
+                'Top students retrieved successfully.'
             );
         } catch (Throwable $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب قائمة الأوائل.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

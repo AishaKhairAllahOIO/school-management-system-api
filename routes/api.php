@@ -475,10 +475,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function () {
+     Route::get('/filter', [StudentAttendanceController::class, 'index']);
+
+    Route::get('/{enrollmentId}', [StudentAttendanceController::class, 'getStudentHistory']);
+
     Route::post('/bulk', [StudentAttendanceController::class, 'storeBulk']);
     Route::get('/getRecord/{id}', [StudentAttendanceController::class, 'get']);
 
-    Route::get('/filter', [StudentAttendanceController::class, 'index']);
+
 
     Route::post('/record/{id}', [StudentAttendanceController::class, 'update']);
 

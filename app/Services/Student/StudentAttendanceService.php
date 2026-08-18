@@ -306,4 +306,53 @@ public function filterStudentsAttendance(array $filters)
             return true;
         });
     }
+    public function getStudentAttendanceHistory(int $enrollmentId, array $filters = []): array
+    {
+        // 1. التحقق من وجود القيد الأكاديمي للطالب مع جلب بيانات المستخدم
+        $enrollment = Enrollment::with('student.user')->findOrFail($enrollmentId);
+
+        // 2. تحديد الفصل الدراسي (المُمرر أو الفصل الحالي النشط)
+        $semesterId = $filters['semester_id'] ?? AcademicSetting::first()?->current_semester_id;
+
+        // 3. جلب الملخص الإحصائي للغياب عبر الدالة المساعدة الموجودة في الكلاس
+        $summary = $this->getAttendanceSummary($enrollmentId, $semesterId);
+
+        // 4. بناء استعلام سجلات الغياب المباشرة للطالب
+        $query = StudentAttendance::where('enrollment_id', $enrollmentId);
+
+        if ($semesterId) {
+            $query->where('semester_id', $semesterId);
+        }
+
+        // فلترة حسَب نطاق زمني (اختياري)
+        if (!empty($filters['from_date'])) {
+            $query->whereDate('attendance_date', '>=', $filters['from_date']);
+        }
+
+        if (!empty($filters['to_date'])) {
+            $query->whereDate('attendance_date', '<=', $filters['to_date']);
+        }
+
+        // فلترة حسب نوع الغياب (excused / unexcused) (اختياري)
+        if (!empty($filters['absence_type'])) {
+            $query->where('absence_type', $filters['absence_type']);
+        }
+
+        // 5. جلب السجلات مرتبة أحدثاً فأقدم مع الصفحات (Pagination)
+        $records = $query->orderBy('attendance_date', 'desc')
+            ->paginate($filters['per_page'] ?? 15);
+
+        $user = $enrollment->student?->user;
+
+        // 6. تشكيل الاستجابة الشاملة
+        return [
+            'student_info' => [
+                'enrollment_id' => $enrollment->id,
+                'student_id'    => $enrollment->student_id,
+                'full_name'     => $user ? trim($user->first_name . ' ' . $user->father_name . ' ' . $user->last_name) : 'غير متوفر',
+            ],
+            'attendance_summary' => $summary, // يشمل allowed_absence_days, total_unexcused_absent, remaining_absence_days
+            'attendance_records' => $records, // سجلات الغياب مع Pagination
+        ];
+    }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Requests\Admin\Leave;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
 
 class UpdateStaffLeaveTypeRequest extends FormRequest
 {
@@ -23,7 +25,7 @@ class UpdateStaffLeaveTypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'                       => ['sometimes', 'string', 'max:100', 'unique:staff_leave_types,name,' . $this->route('leave_type')],
+            'name'                       => ['sometimes', 'string', 'max:100',Rule::unique('staff_leave_types', 'name')->ignore($this->route('id'))],
             'payment_type'               => ['sometimes', 'string', 'in:paid,unpaid'],
             'max_days_per_academic_year' => ['sometimes', 'integer', 'min:0'],
         ];

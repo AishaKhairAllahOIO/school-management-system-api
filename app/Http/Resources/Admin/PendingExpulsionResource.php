@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Admin;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class PendingExpulsionResource extends JsonResource
@@ -30,14 +31,9 @@ class PendingExpulsionResource extends JsonResource
 
                 'phoneNumber' => $user?->phone_number,
 
-                'photoUrl' => $user?->photo_url
-                    ? url('/api/documents/photos/' .
-                        ltrim(
-                            preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url),
-                            '/'
-                        )
-                    )
-                    : null,
+                 'photoUrl' => FileUrl::endpoint(
+                $user->photo_url
+            ),
             ],
 
 

@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Auth;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AcademicProfileResource extends JsonResource
@@ -24,9 +25,9 @@ class AcademicProfileResource extends JsonResource
             'gender' => $this->gender,
             'nationality' => $this->nationality,
             'address' => $this->address,
-            'photo' => $this->photo_url
-    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $this->photo_url), '/'))
-    : null,
+             'photoUrl' => FileUrl::endpoint(
+                $this->photo_url
+            ),
             'email' => $this->email,
             'phone_number' => $this->phone_number,
             'is_active' => $this->account_status !== 'disabled',

@@ -28,9 +28,8 @@ class StudentFilterResource extends JsonResource
 
             'fullName' => $user?->first_name . ' ' . $user?->father_name . ' ' . $user?->last_name,
             'phoneNumber' => $user?->phone_number,
-            'photoUrl' => FileUrl::make(
-                $user->photo_url,
-                config('filesystems.default')
+            'photoUrl' => FileUrl::endpoint(
+                $user->photo_url
             ),
 
 

@@ -24,10 +24,9 @@ class CounselorStudentResource extends JsonResource
                 'father_name' => $this->user->father_name,
                 'gender' => $this->user->gender,
                 'birth_date' => $this->user->birth_date,
-                'photoUrl' => FileUrl::make(
-    $this->user->photo_url,
-    config('filesystems.default')
-),
+                'photoUrl' => FileUrl::endpoint(
+                    $this->user->photo_url
+                ),
             ],
 
 

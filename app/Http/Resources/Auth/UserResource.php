@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Auth;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
@@ -22,16 +23,9 @@ class UserResource extends JsonResource
             'nationality' => $this->nationality,
             'gender' => $this->gender,
 
-            'photo_url' => $this->photo_url
-                ? url('/api/documents/photos/' . ltrim(
-                    preg_replace(
-                        '/^.*?(users\/|defaults\/)/',
-                        '$1',
-                        trim($this->photo_url)
-                    ),
-                    '/'
-                ))
-                : null,
+             'photoUrl' => FileUrl::endpoint(
+                $this->photo_url
+            ),
 
             'account_status' => $this->account_status,
             'record_status' => $this->record_status,

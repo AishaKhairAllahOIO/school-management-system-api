@@ -31,9 +31,8 @@ class StudentProfileWithEnrollmentResource extends JsonResource
                 'nationality' => $studentUser->nationality,
                 'address' => $studentUser->address,
                 'phoneNumber' => $studentUser->phone_number,
-                'photoUrl' => FileUrl::make(
-                    $studentUser->photo_url,
-                    config('filesystems.default')
+                'photoUrl' => FileUrl::endpoint(
+                    $studentUser->photo_url
                 ),
             ],
 
@@ -50,9 +49,8 @@ class StudentProfileWithEnrollmentResource extends JsonResource
                 'nationality' => $guardianUser->nationality,
                 'address' => $guardianUser->address,
                 'phoneNumber' => $guardianUser->phone_number,
-                'photoUrl' => FileUrl::make(
-                    $guardianUser->photo_url,
-                    config('filesystems.default')
+                'photoUrl' => FileUrl::endpoint(
+                    $guardianUser->photo_url
                 ),
             ] : null,
 

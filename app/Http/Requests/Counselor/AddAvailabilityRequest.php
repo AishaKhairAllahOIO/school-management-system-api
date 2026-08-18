@@ -19,6 +19,12 @@ class AddAvailabilityRequest extends FormRequest
     {
         return [
 
+            'day' => [
+                'required',
+                'string',
+                Rule::enum(SchoolDay::class)
+            ],
+
             'start_time' => [
                 'required',
                 'date_format:H:i'

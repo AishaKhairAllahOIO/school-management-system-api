@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Counselor;
 
 use App\ApiResource;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Counselor\AddAvailabilityRequest;
 use App\Http\Requests\Counselor\StoreAvailabilityRequest;
 use App\Http\Requests\Counselor\UpdateAvailabilityRequest;
 use App\Services\Counselor\CounselorAvailabilityService;
@@ -86,7 +87,7 @@ class CounselorAvailabilityController extends Controller
         }
     }
 
-    public function addDay(StoreAvailabilityRequest $request)
+    public function addDay(AddAvailabilityRequest $request)
 {
     try {
 

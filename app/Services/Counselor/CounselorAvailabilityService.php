@@ -13,7 +13,6 @@ class CounselorAvailabilityService
     {
         return DB::transaction(function () use ($counselorId, $schedule) {
 
-            // تحقق من عدم وجود حجوزات مستقبلية قبل مسح الجدول
             $hasFutureAppointments = CounselorAppointment::where('counselor_id', $counselorId)
                 ->where('appointment_date', '>=', now()->toDateString())
                 ->whereIn('booking_status', ['pending', 'accepted'])

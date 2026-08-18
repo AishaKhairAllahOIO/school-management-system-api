@@ -122,4 +122,16 @@ class StudentAttendanceController extends Controller
             return $this->errorResponse('حدث خطأ أثناء حذف سجل حضور الطالب.', 500, ['error' => $e->getMessage()]);
         }
     }
+    public function getStudentHistory(Request $request, int $enrollmentId)
+{
+    try {
+        $filters = $request->only(['semester_id', 'from_date', 'to_date', 'absence_type', 'per_page']);
+        
+        $data = $this->service->getStudentAttendanceHistory($enrollmentId, $filters);
+
+        return $this->successResponse($data, 'تم جلب سجل حضور الطالب بنجاح.');
+    } catch (Throwable $e) {
+        return $this->errorResponse('حدث خطأ أثناء جلب سجل حضور الطالب.', 500, ['error' => $e->getMessage()]);
+    }
+}
 }

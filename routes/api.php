@@ -294,18 +294,18 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
     Route::get('/classrooms/{id}', [GradeAndClassroomController::class, 'showClassroom']);
 
     // --- دوال الحذف (DELETE) ---
-    Route::delete('/years/{id}', [AcademicSettingsController::class, 'destroyYear']);
-    Route::delete('/terms/{id}', [AcademicSettingsController::class, 'destroyTerm']);
-    Route::delete('/stages/{id}', [AcademicSettingsController::class, 'destroyStage']);
+    Route::delete('/years/{id}', [AcademicSettingsController::class, 'destroyYear'])->middleware('role:super_admin');
+    Route::delete('/terms/{id}', [AcademicSettingsController::class, 'destroyTerm'])->middleware('role:super_admin');
+    Route::delete('/stages/{id}', [AcademicSettingsController::class, 'destroyStage'])->middleware('role:super_admin');
 
-    Route::delete('/grades/{id}', [GradeAndClassroomController::class, 'destroyGrade']);
-    Route::delete('/configurations/{id}', [GradeAndClassroomController::class, 'destroyConfiguration']);
-    Route::delete('/classrooms/{id}', [GradeAndClassroomController::class, 'destroyClassroom']);
+    Route::delete('/grades/{id}', [GradeAndClassroomController::class, 'destroyGrade'])->middleware('role:super_admin');
+    Route::delete('/configurations/{id}', [GradeAndClassroomController::class, 'destroyConfiguration'])->middleware('role:super_admin');
+    Route::delete('/classrooms/{id}', [GradeAndClassroomController::class, 'destroyClassroom'])->middleware('role:super_admin');
 
     Route::get('/years/{id}', [AcademicSettingsController::class, 'showYear']);
     Route::get('/terms/{id}', [AcademicSettingsController::class, 'showTerm']);
     Route::get('/stages/{id}', [AcademicSettingsController::class, 'showStage']);
-    Route::delete('/', [AcademicSettingsController::class, 'destroy']);
+    Route::delete('/', [AcademicSettingsController::class, 'destroy'])->middleware('role:super_admin');
 
     Route::get('/academic/statistics', [AcademicSettingsController::class, 'statistics']);
     Route::get('/academic-stages/with-grades', [AcademicSettingsController::class, 'indexWithGrades']);
@@ -313,32 +313,32 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () {
-    Route::middleware('role:super_admin')->group(function () {
-        Route::post('/subject/store', [SubjectController::class, 'store']);
+    
+        Route::post('/subject/store', [SubjectController::class, 'store'])->middleware('role:super_admin');
         Route::get('/subjects/show', [SubjectController::class, 'index']);
-        Route::delete('/subject/delete/{id}', [SubjectController::class, 'destroy']);
-        Route::post('/subjects/update/{id}', [SubjectController::class, 'update']);
+        Route::delete('/subject/delete/{id}', [SubjectController::class, 'destroy'])->middleware('role:super_admin');
+        Route::post('/subjects/update/{id}', [SubjectController::class, 'update'])->middleware('role:super_admin');
 
         Route::get('grade/subjects/show', [GradeSubjectController::class, 'index']);
-        Route::delete('grade/subject/delete/{id}', [GradeSubjectController::class, 'destroy']);
-        Route::post('grade/subject/store', [GradeSubjectController::class, 'store']);
+        Route::delete('grade/subject/delete/{id}', [GradeSubjectController::class, 'destroy'])->middleware('role:super_admin');
+        Route::post('grade/subject/store', [GradeSubjectController::class, 'store'])->middleware('role:super_admin');
         Route::get('grade/subjects/show/{id}', [GradeSubjectController::class, 'show']);
-        Route::post('grade/subjects/update/{id}', [GradeSubjectController::class, 'update']);
+        Route::post('grade/subjects/update/{id}', [GradeSubjectController::class, 'update'])->middleware('role:super_admin');
 
         Route::get('assessment/subjects/show', [AssessmentComponentController::class, 'index']);
         Route::get('assessment/subject/show/{id}', [AssessmentComponentController::class, 'show']);
-        Route::post('assessment/subject/store', [AssessmentComponentController::class, 'store']);
-        Route::post('assessment/subject/update/{id}', [AssessmentComponentController::class, 'update']);
-        Route::delete('assessment/subject/delete/{id}', [AssessmentComponentController::class, 'destroy']);
+        Route::post('assessment/subject/store', [AssessmentComponentController::class, 'store'])->middleware('role:super_admin');
+        Route::post('assessment/subject/update/{id}', [AssessmentComponentController::class, 'update'])->middleware('role:super_admin');
+        Route::delete('assessment/subject/delete/{id}', [AssessmentComponentController::class, 'destroy'])->middleware('role:super_admin');
         Route::get('assessment/subjects/grouped', [AssessmentComponentController::class, 'groupedBySubject']);
-    });
+    
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/', [SchoolSettingsController::class, 'show']);
     Route::get('/basic', [SchoolSettingsController::class, 'index']);
-    Route::post('/', [SchoolSettingsController::class, 'update']);
+    Route::post('/', [SchoolSettingsController::class, 'update'])->middleware('role:super_admin');
     Route::get('/images', [SchoolSettingsController::class, 'indexImages']);
     Route::get('/images/{image}', [SchoolSettingsController::class, 'showImage']);
 
@@ -346,29 +346,29 @@ Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(funct
     Route::post('/images', [SchoolSettingsController::class, 'storeImages']);
     Route::post('/images/{image}', [SchoolSettingsController::class, 'updateImage']);
     Route::delete('/images/{image}', [SchoolSettingsController::class, 'destroyImage']);
-    Route::delete('/', [SchoolSettingsController::class, 'destroy']);
+    Route::delete('/', [SchoolSettingsController::class, 'destroy'])->middleware('role:super_admin');
 });
 
 Route::prefix('admin/finance/settings')->middleware('auth:sanctum')->group(function () {
 
     // سياسات التقسيط
     Route::get('/policies', [FinancialSettingsController::class, 'getPolicies']);
-    Route::post('/policies', [FinancialSettingsController::class, 'storePolicy']);
+    Route::post('/policies', [FinancialSettingsController::class, 'storePolicy'])->middleware('role:super_admin|secretary');
 
     // خطط الرسوم الموحدة
     Route::get('/fee-plans', [FinancialSettingsController::class, 'getFeePlans']);
-    Route::post('/fee-plans', [FinancialSettingsController::class, 'storeFeePlan']);
-    Route::post('/policies/{id}', [FinancialSettingsController::class, 'updatePolicy']);
-    Route::delete('/policies/{id}', [FinancialSettingsController::class, 'destroyPolicy']);
+    Route::post('/fee-plans', [FinancialSettingsController::class, 'storeFeePlan'])->middleware('role:super_admin|secretary');
+    Route::post('/policies/{id}', [FinancialSettingsController::class, 'updatePolicy'])->middleware('role:super_admin|secretary');
+    Route::delete('/policies/{id}', [FinancialSettingsController::class, 'destroyPolicy'])->middleware('role:super_admin|secretary');
 
     // تعديل وحذف خطط الرسوم الموحدة
-    Route::post('/fee-plans/{id}', [FinancialSettingsController::class, 'updateFeePlan']);
-    Route::delete('/fee-plans/{id}', [FinancialSettingsController::class, 'destroyFeePlan']);
-    Route::post('/policy-items/{id}', [FinancialSettingsController::class, 'updatePolicyItem']);
-    Route::delete('/policy-items/{id}', [FinancialSettingsController::class, 'destroyPolicyItem']);
+    Route::post('/fee-plans/{id}', [FinancialSettingsController::class, 'updateFeePlan'])->middleware('role:super_admin|secretary');
+    Route::delete('/fee-plans/{id}', [FinancialSettingsController::class, 'destroyFeePlan'])->middleware('role:super_admin|secretary');
+    Route::post('/policy-items/{id}', [FinancialSettingsController::class, 'updatePolicyItem'])->middleware('role:super_admin|secretary');
+    Route::delete('/policy-items/{id}', [FinancialSettingsController::class, 'destroyPolicyItem'])->middleware('role:super_admin|secretary');
 
-    Route::post('/extra-services/{id}', [FinancialSettingsController::class, 'updateExtraService']);
-    Route::delete('/extra-services/{id}', [FinancialSettingsController::class, 'destroyExtraService']);
+    Route::post('/extra-services/{id}', [FinancialSettingsController::class, 'updateExtraService'])->middleware('role:super_admin|secretary');
+    Route::delete('/extra-services/{id}', [FinancialSettingsController::class, 'destroyExtraService'])->middleware('role:super_admin|secretary');
     Route::get('/policies/{id}', [FinancialSettingsController::class, 'showPolicy']);
     Route::get('/fee-plans/{id}', [FinancialSettingsController::class, 'showFeePlan']);
     Route::get('/policy-items/{id}', [FinancialSettingsController::class, 'showPolicyItem']);
@@ -387,12 +387,12 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     // 3️⃣ مسارات الصندوق والدفع (Payments)
     Route::get('/payments', [PaymentController::class, 'index']);
     Route::get('/payments/{id}', [PaymentController::class, 'show']);
-    Route::post('/payments', [PaymentController::class, 'store']);
+    Route::post('/payments', [PaymentController::class, 'store'])->middleware('role:super_admin|secretary');
 
-    Route::post('/finalize', [FinancialContractController::class, 'finalize']);
-    Route::post('/{accountId}', [FinancialContractController::class, 'update']);
-    Route::post('/payments/{id}', [PaymentController::class, 'update']);
-    Route::delete('/payments/{id}', [PaymentController::class, 'destroy']);
+    Route::post('/finalize', [FinancialContractController::class, 'finalize'])->middleware('role:super_admin|secretary');
+    Route::post('/{accountId}', [FinancialContractController::class, 'update'])->middleware('role:super_admin|secretary');
+    Route::post('/payments/{id}', [PaymentController::class, 'update'])->middleware('role:super_admin|secretary');
+    Route::delete('/payments/{id}', [PaymentController::class, 'destroy'])->middleware('role:super_admin|secretary');
 });
 
 Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(function () {
@@ -416,23 +416,23 @@ Route::middleware('auth:sanctum')->prefix('admin/students')->group(function () {
     Route::get('/search', [StudentController::class, 'search']);
     Route::get('/{id}', [StudentController::class, 'show']);
     Route::get('/{enrollmentId}/full-profile', [StudentController::class, 'showFullProfile']);
-    Route::post('/{student}/personal', [StudentController::class, 'updatePersonal']);
-    Route::post('/enrollments/{enrollment}', [StudentController::class, 'updateEnrollment']);
-    Route::post('/guardians/{guardian}/personal', [StudentController::class, 'updateGuardian']);
-    Route::delete('/{id}', [StudentController::class, 'destroy']);
-    Route::post('/{enrollmentId}/toggle-account-status', [StudentController::class, 'toggleAccountStatus']);
-    Route::post('/{enrollment}/student/restore', [StudentController::class, 'restore']);
+    Route::post('/{student}/personal', [StudentController::class, 'updatePersonal'])->middleware('role:super_admin|secretary');
+    Route::post('/enrollments/{enrollment}', [StudentController::class, 'updateEnrollment'])->middleware('role:super_admin|secretary');
+    Route::post('/guardians/{guardian}/personal', [StudentController::class, 'updateGuardian'])->middleware('role:super_admin|secretary');
+    Route::delete('/{id}', [StudentController::class, 'destroy'])->middleware('role:super_admin|secretary');
+    Route::post('/{enrollmentId}/toggle-account-status', [StudentController::class, 'toggleAccountStatus'])->middleware('role:super_admin|secretary');
+    Route::post('/{enrollment}/student/restore', [StudentController::class, 'restore'])->middleware('role:super_admin|secretary');
 
 
 });
 
 Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
 
-    Route::post('/register', [StaffController::class, 'store']);
+    Route::post('/register', [StaffController::class, 'store'])->middleware('role:super_admin|secretary');
 
-    Route::post('/import/{role}', [StaffController::class, 'importExcel']);
-    Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors']);
-    Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus']);
+    Route::post('/import/{role}', [StaffController::class, 'importExcel'])->middleware('role:super_admin|secretary');
+    Route::get('/import-batches/{batch}/errors/export', [StaffController::class, 'exportErrors'])->middleware('role:super_admin|secretary');
+    Route::get('/import-batches/{batch}/status', [StaffController::class, 'getImportStatus'])->middleware('role:super_admin|secretary');
 
     Route::get('/role/{role}/search', [StaffController::class, 'search']);
     Route::get('/alphabetical', [StaffController::class, 'alphabetical']);
@@ -440,37 +440,37 @@ Route::middleware('auth:sanctum')->prefix('admin/staff')->group(function () {
     Route::get('/showAllStaff', [StaffController::class, 'index']);
     Route::get('/showStaff/{staffId}', [StaffController::class, 'show']);
 
-    Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal']);
+    Route::post('/{staff}/personal', [StaffController::class, 'updatePersonal'])->middleware('role:super_admin|secretary');
 
     Route::get('/counts/roles', [StaffController::class, 'roleCounts']);
     Route::get('/role/{role}', [StaffController::class, 'getByRole']);
 
     Route::get('/profile', [StaffController::class, 'myProfile']);
 
-    Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus']);
-    Route::delete('/{staff}', [StaffController::class, 'destroy']);
+    Route::post('/{staff}/toggle-status', [StaffController::class, 'toggleStatus'])->middleware('role:super_admin|secretary');
+    Route::delete('/{staff}', [StaffController::class, 'destroy'])->middleware('role:super_admin|secretary');
 
-    Route::post('/{staff}/workloads', [StaffController::class, 'setWorkload']);
+    Route::post('/{staff}/workloads', [StaffController::class, 'setWorkload'])->middleware('role:super_admin');
     Route::get('/{staff}/workloads', [StaffController::class, 'getWorkloads']);
-    Route::post('/{staff}/workloads/{workload}', [StaffController::class, 'updateWorkload']);
-    Route::delete('/{staff}/workloads/{workload}', [StaffController::class, 'destroyWorkload']);
+    Route::post('/{staff}/workloads/{workload}', [StaffController::class, 'updateWorkload'])->middleware('role:super_admin');
+    Route::delete('/{staff}/workloads/{workload}', [StaffController::class, 'destroyWorkload'])->middleware('role:super_admin');
 
-    Route::post('/{staff}/assignments', [StaffController::class, 'assignClassrooms']);
+    Route::post('/{staff}/assignments', [StaffController::class, 'assignClassrooms'])->middleware('role:super_admin');
     Route::get('/{staff}/assignments', [StaffController::class, 'getAssignments']);
-    Route::post('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment']);
-    Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment']);
-    Route::post('/{staff}/restore', [StaffController::class, 'restore']);
+    Route::post('/{staff}/assignments/{assignment}', [StaffController::class, 'updateAssignment'])->middleware('role:super_admin');
+    Route::delete('/{staff}/assignments/{assignment}', [StaffController::class, 'destroyAssignment'])->middleware('role:super_admin');
+    Route::post('/{staff}/restore', [StaffController::class, 'restore'])->middleware('role:super_admin|secretary');
     Route::get('/filter', [StaffController::class, 'filter']);
 });
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('attendance-settings')->controller(StudentAttendanceSettingController::class)->group(function () {
 
         Route::get('/', 'index');
         Route::get('/semester/{semester_id}', 'getBySemester');
-        Route::post('/', 'store');
-        Route::post('/{id}', 'update');
-        Route::delete('/{id}', 'destroy');
+        Route::post('/', 'store')->middleware('role:super_admin');
+        Route::post('/{id}', 'update')->middleware('role:super_admin');
+        Route::delete('/{id}', 'destroy')->middleware('role:super_admin');
 
     });
 });
@@ -487,43 +487,43 @@ Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function 
 Route::middleware('auth:sanctum')->prefix('admin/leave')->group(function () {
     Route::get('/leaves', [StaffLeaveTypeController::class, 'index']);
     Route::get('/{id}', [StaffLeaveTypeController::class, 'show']);
-    Route::post('/', [StaffLeaveTypeController::class, 'store']);
-    Route::post('/{id}', [StaffLeaveTypeController::class, 'update']);
-    Route::delete('/{id}', [StaffLeaveTypeController::class, 'destroy']);
+    Route::post('/', [StaffLeaveTypeController::class, 'store'])->middleware('role:super_admin|secretary');
+    Route::post('/{id}', [StaffLeaveTypeController::class, 'update'])->middleware('role:super_admin|secretary');
+    Route::delete('/{id}', [StaffLeaveTypeController::class, 'destroy'])->middleware('role:super_admin|secretary');
     // Route::get('staff/leave/{}')
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff-leaves')->group(function () {
-    Route::post('/', [StaffLeaveController::class, 'store']);
+    Route::post('/', [StaffLeaveController::class, 'store'])->middleware('role:super_admin|secretary');
      Route::get('/allRecords', [StaffLeaveController::class, 'getAllRecords']);
     Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']);
     Route::get('/{leaveId}/staff', [StaffLeaveController::class, 'getStaffLeaveById']); // 👈 دالة العرض الجديدة
-    Route::post('/{id}', [StaffLeaveController::class, 'update']);     // تعديل سجل إجازة
-    Route::delete('/{id}', [StaffLeaveController::class, 'destroy']);
+    Route::post('/{id}', [StaffLeaveController::class, 'update'])->middleware('role:super_admin|secretary');     // تعديل سجل إجازة
+    Route::delete('/{id}', [StaffLeaveController::class, 'destroy'])->middleware('role:super_admin|secretary');
     // جلب جميع الإجازات لموظف معين
 });
 
 Route::middleware(['auth:sanctum'])->prefix('admin/staff-attendances')->group(function () {
-    Route::post('/', [StaffAttendanceController::class, 'store']);         // إنشاء سجل حضور
+    Route::post('/', [StaffAttendanceController::class, 'store'])->middleware('role:super_admin|secretary');         // إنشاء سجل حضور
     Route::get('/{id}', [StaffAttendanceController::class, 'show']);       // 👈 دالة العرض الجديدة
-    Route::post('/{id}', [StaffAttendanceController::class, 'update']);     // تعديل سجل
-    Route::delete('/{id}', [StaffAttendanceController::class, 'destroy']);  // حذف سجل
+    Route::post('/{id}', [StaffAttendanceController::class, 'update'])->middleware('role:super_admin|secretary');     // تعديل سجل
+    Route::delete('/{id}', [StaffAttendanceController::class, 'destroy'])->middleware('role:super_admin|secretary');  // حذف سجل
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff/contract')->group(function () {
     Route::get('/', [StaffFinancialContractController::class, 'index']);
     Route::get('/{id}', [StaffFinancialContractController::class, 'show']);
-    Route::post('/', [StaffFinancialContractController::class, 'store']);
-    Route::post('/{id}', [StaffFinancialContractController::class, 'update']);
-    Route::delete('/{id}', [StaffFinancialContractController::class, 'destroy']);
+    Route::post('/', [StaffFinancialContractController::class, 'store'])->middleware('role:super_admin|secretary');
+    Route::post('/{id}', [StaffFinancialContractController::class, 'update'])->middleware('role:super_admin|secretary');
+    Route::delete('/{id}', [StaffFinancialContractController::class, 'destroy'])->middleware('role:super_admin|secretary');
 });
 Route::middleware(['auth:sanctum'])->prefix('staff/payroll')->group(function () {
 
-    Route::post('/preview', [PayrollController::class, 'preview']); // المعاينة
-    Route::post('/commit', [PayrollController::class, 'store']); // الاعتماد
+    Route::post('/preview', [PayrollController::class, 'preview'])->middleware('role:super_admin|secretary'); // المعاينة
+    Route::post('/commit', [PayrollController::class, 'store'])->middleware('role:super_admin|secretary'); // الاعتماد
     Route::get('/month', [PayrollController::class, 'indexByMonth']); // رواتب شهر معين
     Route::get('/staff/{staffId}', [PayrollController::class, 'getStaffPayrolls']); // رواتب موظف
     Route::get('/{id}', [PayrollController::class, 'show']); // عرض إيصال
-    Route::post('/{id}', [PayrollController::class, 'update']); // تعديل ملاحظات/تاريخ
-    Route::delete('/{id}', [PayrollController::class, 'destroy']); // إلغاء إيصال
+    Route::post('/{id}', [PayrollController::class, 'update'])->middleware('role:super_admin|secretary'); // تعديل ملاحظات/تاريخ
+    Route::delete('/{id}', [PayrollController::class, 'destroy'])->middleware('role:super_admin|secretary'); // إلغاء إيصال
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/reports/attendance')->group(function () {
     Route::get('/students', [AttendanceReportController::class, 'getStudentAttendanceReport']);

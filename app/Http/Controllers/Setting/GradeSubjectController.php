@@ -35,7 +35,7 @@ class GradeSubjectController extends Controller
                 200
             );
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while fetching grade subjects.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -57,7 +57,7 @@ class GradeSubjectController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while fetching the grade subject.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -78,7 +78,7 @@ class GradeSubjectController extends Controller
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while creating the grade subject.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -99,7 +99,7 @@ class GradeSubjectController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('The requested grade subject does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while updating the grade subject.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -114,7 +114,7 @@ class GradeSubjectController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('The requested grade subject does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while deleting the grade subject.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

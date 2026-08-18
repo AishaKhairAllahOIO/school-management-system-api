@@ -16,8 +16,7 @@ class UserAnnouncementController extends Controller
     use ApiResource;
     public function __construct(
         private readonly AnnouncementService $service
-    ) {
-    }
+    ) {}
 
     public function store(AnnouncementRequest $request)
     {
@@ -47,7 +46,7 @@ class UserAnnouncementController extends Controller
         $user = $request->user();
 
         if ($user->hasRole('guardian') || $user->hasRole('student')) {
-            return $this->errorResponse('هذا الحساب ليس حساب موظف.', 403);
+            return $this->errorResponse('This account is not a staff account.', 403);
         }
 
         $announcements = $this->service->forStaff($user);
@@ -92,7 +91,7 @@ class UserAnnouncementController extends Controller
         }
 
         $announcements = $this->service->forGuardian($user, $studentId);
-$announcements->through(fn($announcement) => new AnnouncementResource($announcement));
+        $announcements->through(fn($announcement) => new AnnouncementResource($announcement));
         return $this->paginatedResponse(
             $announcements,
             'Announcements for guardian retrieved successfully.',
@@ -142,6 +141,4 @@ $announcements->through(fn($announcement) => new AnnouncementResource($announcem
         $this->service->markAllAsRead($request->user(), $request->student_id);
         return $this->successResponse(null, 'The unread announcements count has been reset.', 200);
     }
-
-
 }

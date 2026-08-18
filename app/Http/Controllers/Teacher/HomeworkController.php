@@ -85,7 +85,7 @@ class HomeworkController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse("An error occurred while fetching the homework list.", 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -104,7 +104,7 @@ class HomeworkController extends Controller
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse("An error occurred while creating the homework.", 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -129,7 +129,7 @@ class HomeworkController extends Controller
         } catch (AuthorizationException | AccessDeniedHttpException $e) {
             return $this->errorResponse("You are not authorized to view this homework.", 403);
         } catch (Exception $e) {
-            return $this->errorResponse("An error occurred while fetching the homework details.", 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 

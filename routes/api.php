@@ -383,6 +383,7 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     // 2️⃣ مسارات الأقساط (Installments)
     Route::get('/installments', [FinancialContractController::class, 'installmentsIndex']);
     Route::get('/installments/{id}', [FinancialContractController::class, 'showInstallment']);
+    Route::get('/student/{studentId}/installments',[FinancialContractController::class,'getStudentInstallments']);
 
     // 3️⃣ مسارات الصندوق والدفع (Payments)
     Route::get('/payments', [PaymentController::class, 'index']);

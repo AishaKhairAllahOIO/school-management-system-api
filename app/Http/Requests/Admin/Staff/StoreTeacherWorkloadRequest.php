@@ -29,10 +29,18 @@ class StoreTeacherWorkloadRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
+   public function messages(): array
     {
         return [
-            'required_monthly_periods.min' => 'accepted value must be at least 1.',
+            'academic_year_id.required'         => 'The academic year ID is required.',
+            'academic_year_id.exists'           => 'The selected academic year does not exist in the system.',
+
+            'teacher_id.required'               => 'The teacher ID is required.',
+            'teacher_id.exists'                 => 'The selected teacher staff member does not exist.',
+
+            'required_monthly_periods.required' => 'The required monthly periods count is required.',
+            'required_monthly_periods.integer'  => 'The required monthly periods must be an integer.',
+            'required_monthly_periods.min'      => 'The accepted value must be at least 1.',
         ];
     }
 }

@@ -36,47 +36,46 @@ class AcademicSettingsController extends Controller
      public function getYears(AcademicSettingsService $service) {
         return $this->successResponse(
             AcademicYearResource::collection($service->getAllYears()),
-            'تم جلب الأعوام الدراسية بنجاح.'
+            'Academic years retrieved successfully.'
         );
     }
 
     public function getTerms(AcademicSettingsService $service) {
         return $this->successResponse(
             SemesterResource::collection($service->getAllTerms()),
-            'تم جلب الفصول الدراسية بنجاح.'
+            'Academic terms retrieved successfully.'
         );
     }
 
     public function getStages(AcademicSettingsService $service) {
         return $this->successResponse(
             AcademicStageResource::collection($service->getAllStages()),
-            'تم جلب المراحل الدراسية بنجاح.'
+            'Academic stages retrieved successfully.'
         );
     }
       public function showYear(int $id, AcademicSettingsService $service) {
         try{
         return $this->successResponse(
             new AcademicYearResource($service->getYearById($id)),
-            'تم جلب بيانات العام الدراسي بنجاح.'
+            'Academic year retrieved successfully.'
         );
         }catch(ModelNotFoundException $e)
         {
-         return $this->errorResponse('العام الدراسي المطلوب غير موجود.', 404);
+         return $this->errorResponse('Academic year not found', 404);
         }
-        {
-         }
+      
     }
 
     public function showTerm(int $id, AcademicSettingsService $service) {
         try{
         return $this->successResponse(
             new SemesterResource($service->getTermById($id)),
-            'تم جلب بيانات الفصل الدراسي بنجاح.'
+            'Academic term retrieved successfully.'
         );
         }
         catch(ModelNotFoundException $e)
         {
-         return $this->errorResponse('الفصل الدراسي المطلوب غير موجود.', 404);
+         return $this->errorResponse('Academic term not found', 404);
         }
     }
 
@@ -84,11 +83,11 @@ class AcademicSettingsController extends Controller
         try{
         return $this->successResponse(
             new AcademicStageResource($service->getStageById($id)),
-            'تم جلب بيانات المرحلة الدراسية بنجاح.'
+            'Academic stage retrieved successfully.'
         );
         }catch(ModelNotFoundException $e)
         {
-         return $this->errorResponse('المرحلة الدراسية المطلوب غير موجود.', 404);
+         return $this->errorResponse('Academic stage not found', 404);
         }
     }
 
@@ -114,7 +113,7 @@ class AcademicSettingsController extends Controller
             'Academic year created successfully.'
         );
         }catch (ValidationException $e) {
-            return $this->errorResponse('Failed to create academic year.', 422, ['errors' => $e->errors()]);
+            return $this->errorResponse('Error:Server', 500, ['errors' => $e->errors()]);
         }
     }
 
@@ -168,39 +167,39 @@ class AcademicSettingsController extends Controller
         public function destroy(AcademicSettingsService $service) {
         try {
             $service->deleteSettings();
-            return $this->successResponse(null, 'تم حذف الإعدادات الأكاديمية بنجاح.');
+            return $this->successResponse(null, 'Academic settings deleted successfully.');
         } catch (Exception $e) {
-           return $this->errorResponse('حدث خطأ أثناء حذف الإعدادات الأكاديمية.', 409, ['error' => $e->getMessage()]);
+           return $this->errorResponse('Can not delete Academic setting which is under using', 409, ['error' => $e->getMessage()]);
         }
     }
         public function destroyYear(int $id, AcademicSettingsService $service) {
         try {
             $service->deleteYear($id);
-            return $this->successResponse(null, 'تم حذف العام الدراسي بنجاح.');
+            return $this->successResponse(null, 'Academic year deleted successfully.');
         }catch(ModelNotFoundException $e) {
-            return $this->errorResponse('العام الدراسي غير موجود.', 404);
+            return $this->errorResponse('Academic year not found', 404);
         }catch (\Exception $e) {
-            return $this->errorResponse('حدث خطأ غير متوقع.', 409, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Can not delete Academic year which is under using', 409, ['error' => $e->getMessage()]);
         }
     }
         public function destroyStage(int $id, AcademicSettingsService $service) {
         try {
             $service->deleteStage($id);
-            return $this->successResponse(null, 'تم حذف المرحلة الدراسية بنجاح.');
+            return $this->successResponse(null, 'Academic stage deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('المرحلة الدراسية غير موجودة.', 404);
+            return $this->errorResponse('Academic stage not found', 404);
         }  catch (\Exception $e) {
-            return $this->errorResponse('حدث خطأ غير متوقع.', 409, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Can not delete Stag which is under using ', 409, ['error' => $e->getMessage()]);
         }
     }
         public function destroyTerm(int $id, AcademicSettingsService $service) {
         try {
             $service->deleteTerm($id);
-            return $this->successResponse(null, 'تم حذف الفصل الدراسي بنجاح.');
+            return $this->successResponse(null, 'Academic term deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الفصل الدراسي غير موجود.', 404);
+            return $this->errorResponse('Academic term not found', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('حدث خطأ غير متوقع.', 409, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Can not delete Term which is under using', 409, ['error' => $e->getMessage()]);
         }
     }
 
@@ -230,12 +229,12 @@ class AcademicSettingsController extends Controller
 
             return $this->successResponse(
                 $groupedData,
-                'تم جلب المراحل والصفوف الأكاديمية بنجاح.'
+                'Academic stages and grades fetched successfully.'
             );
 
         } catch (Throwable $e) {
             return $this->errorResponse(
-                'حدث خطأ أثناء جلب البيانات: ' . $e->getMessage(),
+               'Error:Server' . $e->getMessage(),
                 500
             );
         }

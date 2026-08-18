@@ -75,7 +75,7 @@ class ScheduleController extends Controller
 
             return $this->successResponse(null, 'Old schedule deleted. New schedule generation queued successfully.', 202);
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to regenerate schedule: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error:Server' . $e->getMessage(), 500);
         }
     }
 
@@ -108,7 +108,7 @@ class ScheduleController extends Controller
         } catch (Exception $e) {
 
             return $this->errorResponse(
-                $e->getMessage(),
+                'Error:Server',
                 500
             );
 
@@ -196,7 +196,7 @@ class ScheduleController extends Controller
             $code = $e->getCode();
             $code = ($code >= 400 && $code < 600) ? $code : 500;
 
-            return $this->errorResponse($e->getMessage(), $code);
+            return $this->errorResponse('Error:Server', $code);
         }
     }
 
@@ -285,7 +285,7 @@ class ScheduleController extends Controller
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to add entry: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error:Server'. $e->getMessage(), 500);
         }
     }
 }

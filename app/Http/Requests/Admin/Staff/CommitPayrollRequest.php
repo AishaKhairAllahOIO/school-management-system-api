@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin\Staff;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Override;
 
 class CommitPayrollRequest extends FormRequest
 {
@@ -29,4 +30,26 @@ class CommitPayrollRequest extends FormRequest
             'payment_date'   => ['nullable', 'date'],
         ];
     }
+    public function messages()
+    {
+        return [
+            'staff_id.required' => 'The staff ID is required.',
+            'staff_id.integer'  => 'The staff ID must be an integer.',
+            'staff_id.exists'   => 'The selected staff member does not exist in the system.',
+
+            'year.required'     => 'The year is required.',
+            'year.integer'      => 'The year must be a valid integer.',
+            'year.min'          => 'The year cannot be earlier than 2020.',
+            'year.max'          => 'The year cannot exceed 2099.',
+
+            'month.required'    => 'The month is required.',
+            'month.integer'     => 'The month must be a valid integer.',
+            'month.min'         => 'The month must be between 1 and 12.',
+            'month.max'         => 'The month must be between 1 and 12.',
+
+            'payment_date.date' => 'The payment date must be a valid date format.',
+        ];
+    } 
+
+   
 }

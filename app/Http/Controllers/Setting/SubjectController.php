@@ -28,7 +28,7 @@ class SubjectController extends Controller
 
             return $this->successResponse($subjects, $message, 200);
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while fetching subjects.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -40,7 +40,7 @@ class SubjectController extends Controller
 
             return $this->successResponse($subject, 'Subject created successfully.', 201);
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while creating the subject.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -56,7 +56,7 @@ class SubjectController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('The requested subject does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while updating the subject.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -72,7 +72,7 @@ class SubjectController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('The requested subject does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while deleting the subject.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

@@ -10,7 +10,7 @@ use App\Http\Resources\Web\SchoolLawResource;
 use App\Models\SchoolLaw;
 use App\Services\Web\SchoolLawService;
 use Illuminate\Http\JsonResponse;
-use Exception;
+use Throwable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class SchoolLawController extends Controller
@@ -31,15 +31,11 @@ class SchoolLawController extends Controller
 
             return $this->successResponse(
                 SchoolLawResource::collection($laws),
-                'تم جلب القوانين المدرسية بنجاح.',
+                'School laws retrieved successfully.',
                 200
             );
-        } catch (Exception $e) {
-            return $this->errorResponse(
-                'حدث خطأ أثناء جلب القوانين المدرسية.',
-                500,
-                ['error' => $e->getMessage()]
-            );
+        } catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -50,15 +46,11 @@ class SchoolLawController extends Controller
 
             return $this->successResponse(
                 new SchoolLawResource($law),
-                'تمت إضافة القانون بنجاح.',
+                'School law created successfully.',
                 201
             );
-        } catch (Exception $e) {
-            return $this->errorResponse(
-                'حدث خطأ أثناء إضافة القانون.',
-                500,
-                ['error' => $e->getMessage()]
-            );
+        } catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -68,40 +60,31 @@ class SchoolLawController extends Controller
             $law = SchoolLaw::findOrFail($id);
             return $this->successResponse(
                 new SchoolLawResource($law),
-                'تم جلب القانون بنجاح.',
+                'School law details retrieved successfully.',
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('القانون المطلوب غير موجود.', 404);
-        } catch (Exception $e) {
-            return $this->errorResponse(
-                'حدث خطأ أثناء عرض القانون.',
-                500,
-                ['error' => $e->getMessage()]
-            );
+            return $this->errorResponse('School law not found.', 404);
+        } catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
     public function update(UpdateSchoolLawRequest $request, $id): JsonResponse
     {
         try {
-
             $law = SchoolLaw::findOrFail($id);
             $updatedLaw = $this->schoolLawService->updateLaw($law, $request->validated());
 
             return $this->successResponse(
                 new SchoolLawResource($updatedLaw),
-                'تم تحديث القانون بنجاح.',
+                'School law updated successfully.',
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('القانون المطلوب غير موجود.', 404);
-        } catch (Exception $e) {
-            return $this->errorResponse(
-                'حدث خطأ أثناء تحديث القانون.',
-                500,
-                ['error' => $e->getMessage()]
-            );
+            return $this->errorResponse('School law not found.', 404);
+        } catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -113,17 +96,13 @@ class SchoolLawController extends Controller
 
             return $this->successResponse(
                 null,
-                'تم حذف القانون بنجاح.',
+                'School law deleted successfully.',
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('القانون المطلوب غير موجود.', 404);
-        } catch (Exception $e) {
-            return $this->errorResponse(
-                'حدث خطأ أثناء حذف القانون.',
-                500,
-                ['error' => $e->getMessage()]
-            );
+            return $this->errorResponse('School law not found.', 404);
+        } catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 }

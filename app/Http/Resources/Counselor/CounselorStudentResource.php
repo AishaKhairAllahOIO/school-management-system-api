@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Counselor;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CounselorStudentResource extends JsonResource
@@ -23,9 +24,10 @@ class CounselorStudentResource extends JsonResource
                 'father_name' => $this->user->father_name,
                 'gender' => $this->user->gender,
                 'birth_date' => $this->user->birth_date,
-                'photoUrl' => $this->user->photo_url
-                    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $this->user->photo_url), '/'))
-                    : null,
+                'photoUrl' => FileUrl::make(
+    $this->user->photo_url,
+    config('filesystems.default')
+),
             ],
 
 

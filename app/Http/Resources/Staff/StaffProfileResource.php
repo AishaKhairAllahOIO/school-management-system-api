@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Staff;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class StaffProfileResource extends JsonResource
@@ -28,16 +29,10 @@ class StaffProfileResource extends JsonResource
             'birthPlace' => $user->birth_place,
             'address' => $user->address,
             'nationality' => $user->nationality,
-            'photoUrl' => $user->photo_url
-                ? url('/api/documents/photos/' . ltrim(
-                    preg_replace(
-                        '/^.*?(users\/|defaults\/)/',
-                        '$1',
-                        trim($user->photo_url)
-                    ),
-                    '/'
-                ))
-                : null,
+            'photoUrl' => FileUrl::make(
+                $user->photo_url,
+                config('filesystems.default')
+            ),
 
             'accountStatus' => $user->account_status,
 

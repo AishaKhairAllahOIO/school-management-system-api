@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Student;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class StudentProfileResource extends JsonResource
@@ -27,16 +28,10 @@ class StudentProfileResource extends JsonResource
                 'nationality' => $studentUser->nationality,
                 'phoneNumber' => $studentUser->phone_number,
 
-                'photoUrl' => $studentUser->photo_url
-                    ? url('/api/documents/photos/' . ltrim(
-                        preg_replace(
-                            '/^.*?(users\/|defaults\/)/',
-                            '$1',
-                            trim($studentUser->photo_url)
-                        ),
-                        '/'
-                    ))
-                    : null,
+                'photoUrl' => FileUrl::make(
+                    $studentUser->photo_url,
+                    config('filesystems.default')
+                ),
 
                 'accountStatus' => $studentUser->account_status,
                 'recordStatus' => $studentUser->record_status,
@@ -55,16 +50,10 @@ class StudentProfileResource extends JsonResource
                 'nationality' => $guardianUser->nationality,
                 'phoneNumber' => $guardianUser->phone_number,
 
-                'photoUrl' => $guardianUser->photo_url
-                    ? url('/api/documents/photos/' . ltrim(
-                        preg_replace(
-                            '/^.*?(users\/|defaults\/)/',
-                            '$1',
-                            trim($guardianUser->photo_url)
-                        ),
-                        '/'
-                    ))
-                    : null,
+                'photoUrl' => FileUrl::make(
+                    $guardianUser->photo_url,
+                    config('filesystems.default')
+                ),
 
                 'accountStatus' => $guardianUser->account_status,
                 'recordStatus' => $guardianUser->record_status,

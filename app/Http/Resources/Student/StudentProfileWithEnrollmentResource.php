@@ -4,6 +4,7 @@ namespace App\Http\Resources\Student;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class StudentProfileWithEnrollmentResource extends JsonResource
@@ -30,16 +31,10 @@ class StudentProfileWithEnrollmentResource extends JsonResource
                 'nationality' => $studentUser->nationality,
                 'address' => $studentUser->address,
                 'phoneNumber' => $studentUser->phone_number,
-                'photoUrl' => $studentUser->photo_url
-                    ? url('/api/documents/photos/' . ltrim(
-                        preg_replace(
-                            '/^.*?(users\/|defaults\/)/',
-                            '$1',
-                            trim($studentUser->photo_url)
-                        ),
-                        '/'
-                    ))
-                    : null,
+                'photoUrl' => FileUrl::make(
+                    $studentUser->photo_url,
+                    config('filesystems.default')
+                ),
             ],
 
             'guardian' => $guardianUser ? [
@@ -55,16 +50,10 @@ class StudentProfileWithEnrollmentResource extends JsonResource
                 'nationality' => $guardianUser->nationality,
                 'address' => $guardianUser->address,
                 'phoneNumber' => $guardianUser->phone_number,
-                 'photoUrl' => $guardianUser->photo_url
-                    ? url('/api/documents/photos/' . ltrim(
-                        preg_replace(
-                            '/^.*?(users\/|defaults\/)/',
-                            '$1',
-                            trim($guardianUser->photo_url)
-                        ),
-                        '/'
-                    ))
-                    : null,
+                'photoUrl' => FileUrl::make(
+                    $guardianUser->photo_url,
+                    config('filesystems.default')
+                ),
             ] : null,
 
             'enrollment' => [

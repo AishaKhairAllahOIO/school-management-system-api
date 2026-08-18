@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Student;
 
 use Illuminate\Http\Request;
+use App\Support\FileUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class TopStudentResource extends JsonResource
@@ -17,16 +18,10 @@ class TopStudentResource extends JsonResource
                 'fullName' => trim(preg_replace('/\s+/', ' ', "{$this->enrollment->student->user->first_name} {$this->enrollment->student->user->father_name} {$this->enrollment->student->user->last_name}")),
 
 
-                'photoUrl' => $this->enrollment->student->user->photo_url
-                    ? url('/api/documents/photos/' . ltrim(
-                        preg_replace(
-                            '/^.*?(users\/|defaults\/)/',
-                            '$1',
-                            trim($this->enrollment->student->user->photo_url)
-                        ),
-                        '/'
-                    ))
-                    : null,
+                'photoUrl' => FileUrl::make(
+                    $this->enrollment->student->user->photo_url,
+                    config('filesystems.default')
+                ),
             ],
 
             'class' => [

@@ -11,16 +11,16 @@ use App\Models\GradeSubject;
 class TeacherWorkloadService
 {
 
-public function createWorkload(array $data)
+    public function createWorkload(array $data)
     {
-return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($data) {
             $exists = TeacherWorkload::where('teacher_id', $data['teacher_id'])
                 ->where('academic_year_id', $data['academic_year_id'])
                 ->exists();
 
             if ($exists) {
                 http_response_code(422);
-                throw new Exception('يوجد بالفعل نصاب محدد لهذا المعلم في هذه السنة الدراسية.',422);
+                throw new Exception('يوجد بالفعل نصاب محدد لهذا المعلم في هذه السنة الدراسية.', 422);
             }
 
             $data['assigned_monthly_periods'] = 0;
@@ -36,14 +36,14 @@ return DB::transaction(function () use ($data) {
             ->get();
     }
 
- public function updateWorkload(int $id, array $data)
+    public function updateWorkload(int $id, array $data)
     {
-        $workload=TeacherWorkload::find($id);
+        $workload = TeacherWorkload::find($id);
         $workload->fill($data);
 
         if ($workload->isDirty(['teacher_id', 'academic_year_id'])) {
             if ($workload->assigned_monthly_periods > 0) {
-                throw new Exception("لا يمكن تغيير المعلم أو السنة الدراسية لهذا النصاب لوجود تكليفات فعلية مرتبطة به. يرجى تعديل التكليفات أولاً.",422);
+                throw new Exception("لا يمكن تغيير المعلم أو السنة الدراسية لهذا النصاب لوجود تكليفات فعلية مرتبطة به. يرجى تعديل التكليفات أولاً.", 422);
             }
         }
 
@@ -53,9 +53,9 @@ return DB::transaction(function () use ($data) {
         return $workload->fresh();
     }
 
-public function deleteWorkload(int $id)
+    public function deleteWorkload(int $id)
     {
-        $workload=TeacherWorkload::find($id);
+        $workload = TeacherWorkload::find($id);
         $workload->delete();
     }
 
@@ -67,11 +67,11 @@ public function deleteWorkload(int $id)
 
             $workload = TeacherWorkload::where([
                 'academic_year_id' => $data['academic_year_id'],
-                'teacher_id'       => $data['teacher_id'],
+                'teacher_id' => $data['teacher_id'],
             ])->first();
 
 
-         $conflictingClassrooms = TeacherAssignment::where('semester_id', $data['semester_id'])
+            $conflictingClassrooms = TeacherAssignment::where('semester_id', $data['semester_id'])
                 ->where('grade_subject_id', $data['grade_subject_id'])
                 ->whereIn('class_room_id', $data['class_room_ids'])
                 ->pluck('class_room_id')
@@ -88,11 +88,11 @@ public function deleteWorkload(int $id)
                 $assignmentsToInsert[] = [
                     'academic_year_id' => $data['academic_year_id'],
                     'semester_id' => $data['semester_id'],
-                    'teacher_id'       => $data['teacher_id'],
+                    'teacher_id' => $data['teacher_id'],
                     'grade_subject_id' => $data['grade_subject_id'],
-                    'class_room_id'     => $classroomId,
-                    'created_at'       => $now,
-                    'updated_at'       => $now,
+                    'class_room_id' => $classroomId,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
             }
 
@@ -107,8 +107,8 @@ public function deleteWorkload(int $id)
             $workload->increment('assigned_monthly_periods', $totalAssignedPeriods);
             $workload->fresh();
             return TeacherAssignment::where('teacher_id', $data['teacher_id'])
-                                    ->where('semester_id', $data['semester_id'])
-                                    ->get();
+                ->where('semester_id', $data['semester_id'])
+                ->get();
         });
     }
 
@@ -119,7 +119,7 @@ public function deleteWorkload(int $id)
             ->get();
     }
 
-       public function updateAssignment(TeacherAssignment $assignment, array $data)
+    public function updateAssignment(TeacherAssignment $assignment, array $data)
     {
         return DB::transaction(function () use ($assignment, $data) {
 
@@ -129,7 +129,7 @@ public function deleteWorkload(int $id)
 
                 $oldWorkload = TeacherWorkload::where([
                     'academic_year_id' => $assignment->getOriginal('academic_year_id'),
-                    'teacher_id'       => $assignment->getOriginal('teacher_id'),
+                    'teacher_id' => $assignment->getOriginal('teacher_id'),
                 ])->first();
 
                 $oldSubject = GradeSubject::find($assignment->getOriginal('grade_subject_id'));
@@ -141,11 +141,11 @@ public function deleteWorkload(int $id)
 
                 $newWorkload = TeacherWorkload::where([
                     'academic_year_id' => $assignment->academic_year_id,
-                    'teacher_id'       => $assignment->teacher_id,
+                    'teacher_id' => $assignment->teacher_id,
                 ])->first();
 
                 if (!$newWorkload) {
-                    throw new Exception("لا يمكن إتمام التعديل: المعلم أو السنة المحددة ليس لها نصاب مسجل.",422);
+                    throw new Exception("لا يمكن إتمام التعديل: المعلم أو السنة المحددة ليس لها نصاب مسجل.", 422);
                 }
 
                 $newSubject = GradeSubject::find($assignment->grade_subject_id);
@@ -168,7 +168,7 @@ public function deleteWorkload(int $id)
 
             $workload = TeacherWorkload::where([
                 'academic_year_id' => $assignment->academic_year_id,
-                'teacher_id'       => $assignment->teacher_id,
+                'teacher_id' => $assignment->teacher_id,
             ])->first();
 
             if ($workload) {

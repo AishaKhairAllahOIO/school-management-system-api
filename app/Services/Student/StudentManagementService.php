@@ -25,7 +25,6 @@ class StudentManagementService
             }
         ]);
 
-        // --- الفلاتر الأساسية الثابتة ---
         if (!empty($filters['search'])) {
             $safeSearch = str_replace(['%', '_'], ['\%', '\_'], trim($filters['search']));
             $query->whereHas('student.user', function ($userQuery) use ($safeSearch) {
@@ -143,7 +142,7 @@ class StudentManagementService
 
             if (isset($data['photo_url']) && $data['photo_url'] instanceof UploadedFile) {
                 if ($student->user->photo_url && !str_contains($student->user->photo_url, 'defaults/')) {
-                    $disk = config('filesystems.default');
+                    $disk = config('filesystems.public_disk');
                     if (Storage::disk($disk)->exists($student->user->photo_url)) {
                         Storage::disk($disk)->delete($student->user->photo_url);
                     }
@@ -188,7 +187,7 @@ class StudentManagementService
 
                     $guardianUser->update([
                         'photo_url' => $data['guardian_photo_url']
-                            ->store('users/guardians', config('filesystems.default')),
+                            ->store('users/guardians', config('filesystems.public_disk'))
                     ]);
                 }
 
@@ -317,5 +316,5 @@ class StudentManagementService
             ])->findOrFail($enrollment->id);
         });
     }
-    
+
 }

@@ -6,10 +6,8 @@ use Illuminate\Support\Facades\Storage;
 
 class FileUrl
 {
-    public static function make(
-        ?string $path,
-        ?string $disk = null
-    ): ?string {
+    public static function make(?string $path, ?string $disk = null): ?string
+    {
         if (!$path) {
             return null;
         }
@@ -22,7 +20,7 @@ class FileUrl
         }
 
         // إذا لم يحدد الـ disk، استخدم الـ default
-        $disk ??= config('filesystems.default');
+        $disk ??= config('filesystems.public_disk');
 
         $storage = Storage::disk($disk);
 
@@ -51,11 +49,13 @@ class FileUrl
         }
 
         $path = preg_replace(
-            '/^.*?(users\/|defaults\/|documents\/|guardians\/|staff\/|students\/)/',
+            '/^.*?(users\/|defaults\/|documents\/|guardians\/|staff\/|students\/|imports\/|temp_imports\/)/',
             '$1',
             $path
         );
 
-        return url('/api/documents/photos/' . ltrim($path, '/'));
+        return Storage::disk(config('filesystems.public_disk'))->url(
+            ltrim($path, '/')
+        );
     }
 }

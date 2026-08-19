@@ -37,13 +37,10 @@ class DocumentController extends Controller
 
         $disk = null;
 
-        $privateDisk = config('filesystems.default');
-        $publicDisk = config('filesystems.public_disk');
+        $disk = config('filesystems.public_disk');
 
-        if (Storage::disk($privateDisk)->exists($safePath)) {
-            $disk = $privateDisk;
-        } elseif (Storage::disk($publicDisk)->exists($safePath)) {
-            $disk = $publicDisk;
+        if (!Storage::disk($disk)->exists($safePath)) {
+            return $this->errorResponse('Photo not found.', 404);
         }
 
         if (!$disk) {

@@ -64,13 +64,13 @@ class StudentRegisterService
             $guardianPhotoPath = 'defaults/guardian.png';
             if (isset($data['guardian']['photo_url']) && $data['guardian']['photo_url'] instanceof UploadedFile) {
                 $guardianPhotoPath = $data['guardian']['photo_url']
-                    ->store('users/guardians', config('filesystems.default'));
+                    ->store('users/guardians', config('filesystems.public_disk'));
             }
 
             $studentPhotoPath = 'defaults/student.png';
             if (isset($data['student']['photo_url']) && $data['student']['photo_url'] instanceof UploadedFile) {
                 $studentPhotoPath = $data['student']['photo_url']
-                    ->store('users/students', config('filesystems.default'));
+                    ->store('users/students', config('filesystems.public_disk'));
             }
 
 
@@ -109,7 +109,7 @@ class StudentRegisterService
 
                 if (isset($data['guardian']['photo_url']) && $data['guardian']['photo_url'] instanceof UploadedFile) {
                     if ($guardianUser->photo_url && !str_starts_with($guardianUser->photo_url, 'defaults/')) {
-                        Storage::disk(config('filesystems.default'))
+                        Storage::disk(config('filesystems.public_disk'))
                             ->delete($guardianUser->photo_url);
                     }
                     $guardianUser->update(['photo_url' => $guardianPhotoPath]);
@@ -184,7 +184,7 @@ class StudentRegisterService
     {
         $storedPath = $file->store(
             'temp_imports',
-            config('filesystems.default')
+            config('filesystems.public_disk')
         );
         $batch = ImportBatch::create([
             'batch_title' => $file->getClientOriginalName(),

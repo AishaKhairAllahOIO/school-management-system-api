@@ -22,7 +22,7 @@ class StaffRegisterService
             $photoPath = 'defaults/staff.png';
             if (isset($data['photo_url']) && $data['photo_url'] instanceof UploadedFile) {
                 $photoPath = $data['photo_url']
-                    ->store('users/staff', config('filesystems.default'));
+                    ->store('users/staff', config('filesystems.public_disk'));
             }
             $password = !empty($data['password'])
                 ? bcrypt($data['password'])
@@ -68,7 +68,7 @@ class StaffRegisterService
         $filePath = $file->storeAs(
             'imports/staff',
             'staff_import_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension(),
-            config('filesystems.default')
+            config('filesystems.public_disk')
         );
 
         $batch = ImportBatch::create([

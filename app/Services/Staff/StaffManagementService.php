@@ -99,13 +99,13 @@ class StaffManagementService
 
             if (isset($data['photo_url']) && $data['photo_url'] instanceof \Illuminate\Http\UploadedFile) {
                 if ($user->photo_url && !str_contains($user->photo_url, 'defaults/')) {
-                    $disk = config('filesystems.default');
+                    $disk = config('filesystems.public_disk');
                     if (Storage::disk($disk)->exists($user->photo_url)) {
                         Storage::disk($disk)->delete($user->photo_url);
                     }
                 }
                 $data['photo_url'] = $data['photo_url']
-                    ->store('users/staff', config('filesystems.default'));
+                    ->store('users/staff', config('filesystems.public_disk'));
             }
 
             $userFields = [

@@ -50,8 +50,9 @@ class ClassStudentEvaluationResource extends JsonResource
                         : 'طالب غير معرف',
 
 
-                    'personal_photo' => FileUrl::endpoint(
-                        $user->photo_url
+                    'personal_photo' => FileUrl::make(
+                        $user->photo_url,
+                        config('filesystems.public_disk')
                     ),
                 ];
             }),

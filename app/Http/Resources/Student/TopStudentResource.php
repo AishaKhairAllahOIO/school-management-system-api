@@ -12,10 +12,8 @@ class TopStudentResource extends JsonResource
     {
         $studentId = $this->enrollment->student->id;
 
-        // الطالب الذي طلب ولي الأمر أو الخاص بالـ endpoint
         $requestedStudentId = $request->integer('student_id');
 
-        // الطالب المرتبط بحساب المستخدم الحالي إن كان Student
         $authStudentId = auth()->user()?->student?->id;
 
         return [
@@ -31,16 +29,15 @@ class TopStudentResource extends JsonResource
                     )
                 ),
 
-                'photoUrl' => FileUrl::endpoint(
-                    $this->enrollment->student->user->photo_url
+                'photoUrl' => FileUrl::make(
+                    $this->enrollment->student->user->photo_url,
+                    config('filesystems.public_disk')
                 ),
 
-                // هل هذا هو الابن الذي طلبه ولي الأمر؟
                 'isMyChild' => $requestedStudentId
                     ? $studentId === $requestedStudentId
                     : false,
 
-                // هل هذا هو الطالب صاحب الحساب؟
                 'isMe' => $authStudentId
                     ? $studentId === $authStudentId
                     : false,

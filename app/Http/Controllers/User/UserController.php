@@ -98,7 +98,7 @@ class UserController extends Controller
 
         return FileUrl::make(
             $user->photo_url,
-            config('filesystems.default')
+            config('filesystems.public_disk')
         );
     }
 
@@ -126,9 +126,9 @@ class UserController extends Controller
 
         $photoUrl = FileUrl::make(
             $studentUser->photo_url,
-            config('filesystems.default')
+            config('filesystems.public_disk')
         );
-        
+
         return $this->successResponse([
             'photo_url' => $photoUrl,
         ], 'Child\'s photo URL retrieved successfully.', 200);

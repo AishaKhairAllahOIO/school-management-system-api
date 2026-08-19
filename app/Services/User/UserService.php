@@ -5,6 +5,7 @@ namespace App\Services\User;
 
 use App\ApiResource;
 use App\Models\Semester;
+use App\Support\FileUrl;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UserService
@@ -98,9 +99,11 @@ class UserService
                 'father_name' => $student->user->father_name,
                 'last_name' => $student->user->last_name,
                 'gender' => $student->user->gender,
-                'student_photo_url' => $student->user->photo_url
-                    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $student->user->photo_url), '/'))
-                    : null,
+                'student_photo_url' => FileUrl::make(
+                    $student->user->photo_url,
+                    config('filesystems.public_disk')
+                ),
+
                 'grade_name' => $gradeName,
                 'class_room_name' => $className,
             ];

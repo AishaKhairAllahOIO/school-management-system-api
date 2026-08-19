@@ -61,7 +61,8 @@ class DatabaseSeeder extends Seeder
             PayrollSeeder::class,
             StudentFinancialSeeder::class,
             MasterStudentSystemSeeder::class,
-            InstallmentPolicySeeder::class,
+        //  FeePlanSeeder::class,
+          //  InstallmentPolicySeeder::class,
 
         ]);
     }

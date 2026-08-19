@@ -18,7 +18,7 @@ Schedule::command('school:notify-expulsions')
 
 
 Schedule::command('counselor:generate-tomorrow-appointments')
-    ->dailyAt('18:05');
+    ->dailyAt('00:00');
 
 
 Schedule::command('counselor:complete-expired-appointments')
@@ -26,4 +26,4 @@ Schedule::command('counselor:complete-expired-appointments')
 
 
 Schedule::command('finance:check-installments')
-    ->dailyAt('08:00');
+    ->dailyAt('15:29');

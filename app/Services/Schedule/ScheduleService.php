@@ -168,7 +168,7 @@ class ScheduleService
         if (!$tomorrowDayString)
             return [];
 
-        $entries = ScheduleEntry::with(['gradeSubject.subject', 'classRoom.gradeLevel'])
+        $entries = ScheduleEntry::with(['gradeSubject.subject', 'classRoom.gradeLevel', 'teacher.user'])
             ->where('teacher_id', $teacherId)
             ->where('day', $tomorrowDayString)
             ->get();
@@ -201,6 +201,9 @@ class ScheduleService
                 'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
                 'grade_name' => $entry->gradeSubject->gradeLevel->name,
                 'classroom' => $entry->classRoom->name ?? null,
+                'teacher_name' => $entry->teacher
+                    ? $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name
+                    : null,
                 'start_time' => $times['start_time'],
                 'end_time' => $times['end_time'],
             ];

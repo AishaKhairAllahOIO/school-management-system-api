@@ -165,12 +165,12 @@ class CounselorAppointmentService
                 $appointmentDate = Carbon::parse($appointmentDate)->toDateString();
 
                 $requestedStart = Carbon::createFromFormat(
-                    'H:i:s',
+                    'H:i',
                     $startTime
                 );
 
                 $requestedEnd = Carbon::createFromFormat(
-                    'H:i:s',
+                    'H:i',
                     $endTime
                 );
             } catch (\Throwable $e) {
@@ -352,68 +352,38 @@ class CounselorAppointmentService
         });
     }
 
-    public function approveAppointments(int $counselorId, array $appointmentIds, string $date)
+    public function approveAppointment(int $counselorId, int $appointmentId)
     {
-        return DB::transaction(function () use ($counselorId, $appointmentIds, $date) {
+        return DB::transaction(function () use ($counselorId, $appointmentId) {
 
+            // 1. جلب الموعد والتأكد من أنه معلق ويخص هذا المرشد
+            $appointment = CounselorAppointment::query()
+                ->where('id', $appointmentId)
+                ->where('counselor_id', $counselorId)
+                ->where('booking_status', 'pending')
+                ->lockForUpdate()
+                ->first();
 
-
-            if (empty($appointmentIds)) {
-                throw new Exception(
-                    'You must select at least one appointment.'
-                );
+            if (!$appointment) {
+                throw new Exception('الموعد غير موجود أو أنه ليس في حالة قيد الانتظار.');
             }
 
+            // نستخرج التاريخ واليوم مباشرة من الموعد بدلاً من الاعتماد على مدخلات المستخدم
+            $date = Carbon::parse($appointment->appointment_date)->toDateString();
+            $day = strtolower(Carbon::parse($appointment->appointment_date)->englishDayOfWeek);
 
-            try {
-                $date = Carbon::parse($date)->toDateString();
-            } catch (\Throwable $e) {
-                throw new Exception(
-                    'The selected date is invalid.'
-                );
-            }
-
-            $day = strtolower(
-                Carbon::parse($date)->englishDayOfWeek
-            );
-
+            // 2. التحقق من جدول توفر المرشد في هذا اليوم
             $availability = CounselorAvailability::query()
                 ->where('counselor_id', $counselorId)
                 ->where('day', $day)
                 ->where('is_active', true)
-                ->lockForUpdate()
                 ->first();
 
             if (!$availability) {
-                throw new Exception(
-                    'No active availability schedule exists for this day.'
-                );
+                throw new Exception('لا يوجد جدول توفر نشط لهذا اليوم.');
             }
 
-
-            $pendingAppointments = CounselorAppointment::query()
-                ->where('counselor_id', $counselorId)
-                ->whereDate('appointment_date', $date)
-                ->where('booking_status', 'pending')
-                ->lockForUpdate()
-                ->get();
-
-            if ($pendingAppointments->isEmpty()) {
-                throw new Exception(
-                    'There are no pending appointments for this date.'
-                );
-            }
-
-            $selectedAppointments = $pendingAppointments
-                ->whereIn('id', $appointmentIds)
-                ->values();
-
-            if ($selectedAppointments->count() !== count($appointmentIds)) {
-                throw new Exception(
-                    'Some selected appointments are no longer pending or do not belong to this counselor.'
-                );
-            }
-
+            // 3. حساب عدد المواعيد المقبولة في هذا اليوم للتحقق من الحد الأقصى
             $acceptedCount = CounselorAppointment::query()
                 ->where('counselor_id', $counselorId)
                 ->whereDate('appointment_date', $date)
@@ -423,88 +393,50 @@ class CounselorAppointmentService
 
             $dailyLimit = (int) $availability->daily_sessions_limit;
 
-            $remainingCapacity = $dailyLimit - $acceptedCount;
-
-            if ($remainingCapacity <= 0) {
-                throw new Exception(
-                    'The daily counseling session limit has already been reached.'
-                );
+            if ($acceptedCount >= $dailyLimit) {
+                throw new Exception('تم الوصول إلى الحد الأقصى للجلسات الإرشادية اليومية.');
             }
 
-            if ($selectedAppointments->count() > $remainingCapacity) {
-                throw new Exception(
-                    "You can accept only {$remainingCapacity} more appointments for this day."
-                );
+            // 4. تحديث حالة الموعد إلى مقبول
+            $appointment->update([
+                'booking_status' => 'accepted',
+                'slot_status' => 'booked',
+            ]);
+
+            // 5. إرسال الإشعار للطالب
+            $academicSetting = \App\Models\AcademicSetting::query()->first();
+
+            if (!$academicSetting || !$academicSetting->current_academic_year_id) {
+                throw new Exception('إعدادات السنة الأكاديمية غير مكتملة.');
             }
 
-            foreach ($selectedAppointments as $appointment) {
-                $appointment->update([
-                    'booking_status' => 'accepted',
-                    'slot_status' => 'booked',
-                ]);
-            }
+            $appointment->load(['student.user']);
 
-            $academicSetting = \App\Models\AcademicSetting::query()
-                ->first();
-
-            if (!$academicSetting) {
-                throw new Exception(
-                    'Academic settings were not found.'
-                );
-            }
-
-            $currentAcademicYearId = $academicSetting->current_academic_year_id;
-
-            if (!$currentAcademicYearId) {
-                throw new Exception(
-                    'The current academic year is not configured.'
-                );
-            }
-
-            $processedAppointments = CounselorAppointment::query()
-                ->whereIn(
-                    'id',
-                    $selectedAppointments->pluck('id')
-                )
-                ->with([
-                    'student.user',
-                ])
-                ->get();
-
-            foreach ($processedAppointments as $appointment) {
-
-                if (!$appointment->student) {
-                    continue;
-                }
-
+            if ($appointment->student) {
                 $enrollment = $appointment->student
                     ->enrollments()
-                    ->where('academic_year_id', $currentAcademicYearId)
+                    ->where('academic_year_id', $academicSetting->current_academic_year_id)
                     ->where('enrollment_status', 'enrolled')
                     ->first();
 
-                if (!$enrollment) {
-                    continue;
+                if ($enrollment) {
+                    $this->alertService->createStudentOnlyAlert(
+                        $enrollment,
+                        Alert::TYPE_COUNSELING_RESPONSE,
+                        'قبول طلب موعد',
+                        'قام المرشد النفسي بقبول طلب حجز الموعد الذي قمت به مسبقا.',
+                        [
+                            'status' => 'accepted',
+                            'appointment_id' => $appointment->id,
+                            'appointment_date' => $date,
+                            'start_time' => $appointment->start_time,
+                            'end_time' => $appointment->end_time,
+                        ]
+                    );
                 }
-
-                $this->alertService->createStudentOnlyAlert(
-                    $enrollment,
-                    Alert::TYPE_COUNSELING_RESPONSE,
-                    'قبول طلب موعد',
-                    'قام المرشد النفسي بقبول طلب حجز الموعد الذي قمت به مسبقا.',
-                    [
-                        'status' => 'accepted',
-                        'appointment_id' => $appointment->id,
-                        'appointment_date' => $appointment
-                            ->appointment_date
-                            ->toDateString(),
-                        'start_time' => $appointment->start_time,
-                        'end_time' => $appointment->end_time,
-                    ]
-                );
             }
 
-            return $processedAppointments;
+            return $appointment;
         });
     }
     public function getPendingCounselorAppointments(int $counselorId, ?string $date = null)
@@ -781,6 +713,24 @@ class CounselorAppointmentService
             ->get();
     }
 
+
+    public function getAcceptedCounselorAppointments(int $counselorId, ?string $date = null)
+    {
+        // إذا لم يتم تمرير تاريخ، نجلب مواعيد الغد كافتراضي (نفس منطقك السابق)
+        $date = $date
+            ? Carbon::parse($date)->toDateString()
+            : Carbon::tomorrow()->toDateString();
+
+        return CounselorAppointment::query()
+            ->where('counselor_id', $counselorId)
+            ->whereDate('appointment_date', $date)
+            ->where('booking_status', 'accepted')
+            ->with([
+                'student.user',
+            ])
+            ->orderBy('start_time')
+            ->get();
+    }
 
 
 

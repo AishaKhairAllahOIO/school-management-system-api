@@ -26,4 +26,4 @@ Schedule::command('counselor:complete-expired-appointments')
 
 
 Schedule::command('finance:check-installments')
-    ->dailyAt('08:00');
+    ->dailyAt('15:29');

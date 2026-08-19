@@ -233,10 +233,11 @@ Route::prefix('auth')->group(function () {
 
             Route::prefix('/appointments')->controller(CounselorAppointmentController::class)->group(function (){
                 Route::get('/pending','pending');
-                Route::post('/approve','approve');
+                Route::post('/approve/{appointmentId}','approve');
                 Route::delete('/cancel/{appointmentId}','cancel');
                 Route::get('/show/students/sessions','students');
                 Route::get('/get/student/session/{studentId}','sessions');
+                Route::get('/get/accepted/session','accepted');
             });
 
             Route::prefix('/session')->controller(CounselingSessionController::class)->group(function () {

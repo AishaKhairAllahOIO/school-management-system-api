@@ -25,8 +25,7 @@ class UserResource extends JsonResource
 
             'photoUrl' => FileUrl::make(
                 $this->photo_url,
-                     config('filesystems.public_disk')
-
+                config('filesystems.public_disk')
             ),
 
             'account_status' => $this->account_status,

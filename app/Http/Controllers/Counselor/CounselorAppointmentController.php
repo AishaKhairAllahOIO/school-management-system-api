@@ -41,34 +41,33 @@ class CounselorAppointmentController extends Controller
         } catch (Exception $e) {
 
             return $this->errorResponse(
-               'Error:Server',
+                'Error:Server',
                 500
             );
         }
     }
-    public function approve(ApproveCounselorAppointmentsRequest $request)
+    public function approve(Request $request, int $appointmentId)
     {
         try {
-
             $counselorId = $request->user()->id;
 
-            $appointments = $this->service->approveAppointments(
+            $appointment = $this->service->approveAppointment(
                 $counselorId,
-                $request->validated('appointment_ids'),
-                $request->validated('date')
+                $appointmentId
             );
 
             return $this->successResponse(
-                CounselorAppointmentManagementResource::collection($appointments),
-                'Counseling appointments processed successfully.',
+                new CounselorAppointmentManagementResource($appointment),
+                'Counseling appointment approved successfully.',
                 200
             );
 
         } catch (Exception $e) {
+            $statusCode = str_contains($e->getMessage(), 'غير موجود') ? 404 : 422;
 
             return $this->errorResponse(
                 $e->getMessage(),
-                422
+                $statusCode
             );
         }
     }
@@ -175,31 +174,55 @@ class CounselorAppointmentController extends Controller
     }
 
     public function tomorrowSchedule(Request $request)
-{
-    try {
+    {
+        try {
 
-        $appointments =
-            $this->service->getTomorrowSchedule(
-                $request->user()->id
+            $appointments =
+                $this->service->getTomorrowSchedule(
+                    $request->user()->id
+                );
+
+
+            return $this->successResponse(
+                CounselorAppointmentManagementResource::collection($appointments),
+                'Tomorrow counseling schedule retrieved successfully.',
+                200
             );
 
 
-        return $this->successResponse(
-            CounselorAppointmentManagementResource::collection($appointments),
-            'Tomorrow counseling schedule retrieved successfully.',
-            200
-        );
+        } catch (Exception $e) {
 
 
-    } catch (Exception $e) {
+            return $this->errorResponse(
+                $e->getMessage(),
+                500
+            );
 
-
-        return $this->errorResponse(
-            $e->getMessage(),
-            500
-        );
-
+        }
     }
-}
+
+    public function accepted(GetCounselorAppointmentsRequest $request)
+    {
+        try {
+            $counselorId = $request->user()->id;
+
+            $appointments = $this->service->getAcceptedCounselorAppointments(
+                $counselorId,
+                $request->validated('date')
+            );
+
+            return $this->successResponse(
+                CounselorAppointmentManagementResource::collection($appointments),
+                'Accepted counseling appointments retrieved successfully.',
+                200
+            );
+
+        } catch (Exception $e) {
+            return $this->errorResponse(
+                'Error:Server',
+                500
+            );
+        }
+    }
 
 }

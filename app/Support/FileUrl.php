@@ -14,17 +14,14 @@ class FileUrl
 
         $path = trim($path);
 
-        // إذا كانت القيمة رابطاً كاملاً، نعيدها كما هي
         if (filter_var($path, FILTER_VALIDATE_URL)) {
             return $path;
         }
 
-        // إذا لم يحدد الـ disk، استخدم الـ default
         $disk ??= config('filesystems.public_disk');
 
         $storage = Storage::disk($disk);
 
-        // Railway / Tigris / S3
         if ($disk === 's3') {
             return $storage->temporaryUrl(
                 $path,
@@ -32,7 +29,6 @@ class FileUrl
             );
         }
 
-        // Local public disk
         return $storage->url($path);
     }
 

@@ -313,7 +313,7 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () {
-    
+
         Route::post('/subject/store', [SubjectController::class, 'store'])->middleware('role:super_admin');
         Route::get('/subjects/show', [SubjectController::class, 'index']);
         Route::delete('/subject/delete/{id}', [SubjectController::class, 'destroy'])->middleware('role:super_admin');
@@ -331,7 +331,7 @@ Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () 
         Route::post('assessment/subject/update/{id}', [AssessmentComponentController::class, 'update'])->middleware('role:super_admin');
         Route::delete('assessment/subject/delete/{id}', [AssessmentComponentController::class, 'destroy'])->middleware('role:super_admin');
         Route::get('assessment/subjects/grouped', [AssessmentComponentController::class, 'groupedBySubject']);
-    
+
 });
 
 Route::prefix('admin/settings/general')->middleware('auth:sanctum')->group(function () {
@@ -512,7 +512,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/staff-attendances')->group(fu
     Route::get('/{id}', [StaffAttendanceController::class, 'show']);       // 👈 دالة العرض الجديدة
     Route::post('/{id}', [StaffAttendanceController::class, 'update'])->middleware('role:super_admin|secretary');     // تعديل سجل
     Route::delete('/{id}', [StaffAttendanceController::class, 'destroy'])->middleware('role:super_admin|secretary');
-    Route::get('/staff/{staffId}', [StaffAttendanceController::class, 'getAllRecords']); // جلب جميع سجلات الحضور لموظف معين 
+    Route::get('/staff/{staffId}', [StaffAttendanceController::class, 'getAllRecords']); // جلب جميع سجلات الحضور لموظف معين
  });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff/contract')->group(function () {
     Route::get('/', [StaffFinancialContractController::class, 'index']);
@@ -542,12 +542,12 @@ Route::middleware(['auth:sanctum'])->prefix('admin/reports/finance')->group(func
 
 
 Route::middleware(['auth:sanctum'])->prefix('admin/report-cards')->group(function () {
-    Route::post('/generate', [ReportCardAdminController::class, 'generate']);  
+    Route::post('/generate', [ReportCardAdminController::class, 'generate']);
     Route::get('/top-students', [ReportCardAdminController::class, 'getTopStudentsForAdmin']);
-    Route::get('/', [ReportCardAdminController::class, 'index']);    
+    Route::get('/', [ReportCardAdminController::class, 'index']);
     Route::get('/{id}', [ReportCardAdminController::class, 'show']);        // زر ترفيع الطلاب للعام الجديد
     Route::post('/publish', [ReportCardAdminController::class, 'togglePublish']);   // زر نشر / إلغاء النشر للأهالي
-    Route::post('/promote', [ReportCardAdminController::class, 'promote']); 
+    Route::post('/promote', [ReportCardAdminController::class, 'promote']);
     Route::post('/toggle-publish', [ReportCardAdminController::class, 'togglePublish']);
     });
 
@@ -574,7 +574,7 @@ Route::prefix('user')->group(function () {
         Route::get('/child-activities', [ActivityController::class, 'guardianViewActivities']);
         Route::get('/activity-unread-count', [ActivityController::class, 'getUnreadCount']);
         Route::post('/activity-mark-all-read', [ActivityController::class, 'markAllAsRead']);
-        Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
+        Route::get('/personal-image-url', [UserController::class, 'getPhotoUrl']);
         Route::get('/guardian/student/{studentId}/photo', [UserController::class, 'childPersonalPhotoUrl']);
         Route::get('/child-alerts/{id}', [UserAlertController::class, 'childAlerts']);
         Route::get('/payment-alerts/{id}', [UserAlertController::class, 'childPaymentAlerts']);
@@ -671,4 +671,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
   Route::middleware(['auth:sanctum'])->get('/student/report-cards/{semesterId}/', [GuardianReportController::class, 'showMyReportCard']);
   Route::get('/parent/report-cards/top-students', [GuardianReportController::class, 'getTopStudentsForChild']);
   });
-Route::get('/website',[ContentController::class,'getPublicStats']);  
+Route::get('/website',[ContentController::class,'getPublicStats']);

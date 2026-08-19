@@ -4,8 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Staff;
 use App\Models\StaffLeave;
-use App\Models\StaffLeaveType;
-use App\Models\AcademicYear;
+use App\Models\StaffAttendance;
 use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 
@@ -13,64 +12,70 @@ class StaffLeaveSeeder extends Seeder
 {
     public function run(): void
     {
+        $staff = Staff::first();
+        if (!$staff) return;
 
+        $academicYearId = 1; // افترضنا أن 1 هو العام الحالي
 
-        $startDate1 = Carbon::now()->startOfMonth()->addDays(5);
-        $startDate2 = Carbon::now()->startOfMonth()->addDays(10);
-        $startDate3 = Carbon::now()->startOfMonth()->addDays(20);
-        $startDate4 = Carbon::now()->startOfMonth()->addDays(13);
-        $endDate1 = $startDate1->copy()->addDay();
-        $endDate2 = $startDate2->copy()->addDay();
-        $endDate3 = $startDate3->copy()->addDay();
-        $endDate4 = $startDate4->copy()->addDay();
+        // تحديد فترات لا تتداخل أبداً (تصحيح التواريخ)
+        $leaves = [
+            [
+                'type'  => 2,
+                'start' => Carbon::now()->startOfMonth()->addDays(1), // يوم 2
+                'end'   => Carbon::now()->startOfMonth()->addDays(2), // يوم 3 (المدة 2 أيام)
+            ],
+            [
+                'type'  => 1,
+                'start' => Carbon::now()->startOfMonth()->addDays(5), // يوم 6
+                'end'   => Carbon::now()->startOfMonth()->addDays(5), // يوم 6 (المدة 1 يوم)
+            ],
+            [
+                'type'  => 3,
+                'start' => Carbon::now()->startOfMonth()->addDays(10), // يوم 11
+                'end'   => Carbon::now()->startOfMonth()->addDays(14), // يوم 15 (المدة 5 أيام)
+            ],
+            [
+                'type'  => 4,
+                'start' => Carbon::now()->startOfMonth()->addDays(20), // يوم 21
+                'end'   => Carbon::now()->startOfMonth()->addDays(25), // يوم 26 (المدة 6 أيام لتجنب التداخل)
+            ],
+        ];
 
-        StaffLeave::updateOrCreate(
-            [
-                'staff_id' => 1,
-                'academic_year_id' => 1,
-                'start_date' => $startDate1->toDateString(),
-            ],
-            [
-                'leave_type_id' => 2 ,
-                'end_date' => $endDate1->toDateString(),
-                'days_count' => 2,
-            ]
-        );
-        StaffLeave::updateOrCreate(
-            [
-                'staff_id' => 1,
-                'academic_year_id' => 1,
-                'start_date' => $startDate2->toDateString(),
-            ],
-            [
-                'leave_type_id' => 1,
-                'end_date' => $endDate2->toDateString(),
-                'days_count' => 1,
-            ]
-        );
-        StaffLeave::updateOrCreate(
-            [
-                'staff_id' => 1,
-                'academic_year_id' => 1,
-                'start_date' => $startDate3->toDateString(),
-            ],
-            [
-                'leave_type_id' => 3,
-                'end_date' => $endDate3->toDateString(),
-                'days_count' => 5,
-            ]
-        );
-        StaffLeave::updateOrCreate(
-            [
-                'staff_id' => 1,
-                'academic_year_id' => 1,
-                'start_date' => $startDate4->toDateString(),
-            ],
-            [
-                'leave_type_id' => 4,
-                'end_date' => $endDate4->toDateString(),
-                'days_count' => 15,
-            ]
-        );
+        foreach ($leaves as $leaveData) {
+            $startDate = $leaveData['start'];
+            $endDate   = $leaveData['end'];
+            $daysCount = $startDate->diffInDays($endDate) + 1; // حساب دقيق برمجياً
+
+            // 1. زراعة الإجازة
+            $leave = StaffLeave::updateOrCreate(
+                [
+                    'staff_id'   => $staff->id,
+                    'start_date' => $startDate->toDateString(),
+                ],
+                [
+                    'academic_year_id' => $academicYearId,
+                    'leave_type_id'    => $leaveData['type'],
+                    'end_date'         => $endDate->toDateString(),
+                    'days_count'       => $daysCount,
+                ]
+            );
+
+            // 2. محاكاة السيرفيس: زراعة أيام الإجازة في جدول الحضور فوراً
+            $currentDate = $startDate->copy();
+            while ($currentDate->lte($endDate)) {
+                StaffAttendance::updateOrCreate(
+                    [
+                        'staff_id'        => $staff->id,
+                        'attendance_date' => $currentDate->toDateString(),
+                    ],
+                    [
+                        'status'         => 'on_leave',
+                        'absence_type'   => null,
+                        'staff_leave_id' => $leave->id,
+                    ]
+                );
+                $currentDate->addDay();
+            }
+        }
     }
 }

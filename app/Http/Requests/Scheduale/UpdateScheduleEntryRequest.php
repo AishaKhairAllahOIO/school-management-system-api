@@ -30,4 +30,11 @@ class UpdateScheduleEntryRequest extends FormRequest
             $this->errorResponse('Validation errors occurred', 422, $validator->errors())
         );
     }
+    public function messages(): array
+    {
+        return [
+            'teacher_id.exists'      => 'The selected teacher does not exist in the system.',
+            'grade_subject_id.exists' => 'The selected grade subject does not exist.',
+        ];
+    }
 }

@@ -21,4 +21,11 @@ class GetCounselorAppointmentsRequest extends FormRequest
             ],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'date.date'           => 'The date must be a valid date.',
+            'date.after_or_equal' => 'The date must be today or a future date.',
+        ];
+    }
 }

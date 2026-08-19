@@ -36,4 +36,15 @@ $routeParam = $this->route('grade') ;
         ];
 
     }
+    public function messages(): array
+    {
+        return [
+            'academicStageId.required' => 'The academic stage ID field is required when present.',
+            'academicStageId.exists'   => 'The selected academic stage does not exist.',
+            
+            'name.unique'              => 'This grade level name has already been taken.',
+            
+            'isGraduationGrade.boolean'=> 'The graduation grade flag must be true or false.',
+        ];
+    }
 }

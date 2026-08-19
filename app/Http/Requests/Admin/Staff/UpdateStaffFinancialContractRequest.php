@@ -29,4 +29,18 @@ class UpdateStaffFinancialContractRequest extends FormRequest
             'salary_amount'    => ['sometimes',  'numeric', 'min:0'],
         ];
     }
+  public function messages(): array
+    {
+        return [
+            'staff_id.integer'         => 'The staff ID must be an integer.',
+            'staff_id.exists'           => 'The selected staff does not exist.',
+            'academic_year_id.integer' => 'The academic year ID must be an integer.',
+            'academic_year_id.exists'   => 'The selected academic year does not exist.',
+            'salary_type.string'       => 'The salary type must be a string.',
+            'salary_type.in'           => 'The selected salary type is invalid.',
+            'salary_amount.numeric'    => 'The salary amount must be a number.',
+            'salary_amount.min'        => 'The salary amount must be at least 0.',
+        ];
+    }
+    
 }

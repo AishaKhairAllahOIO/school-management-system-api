@@ -21,4 +21,20 @@ class PaymentTransactionRequest extends FormRequest
             'digitalReference'  => ['nullable', 'string', 'max:100'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'studentId.required'     => 'The student ID field is required.',
+            'studentId.exists'       => 'The selected student does not exist in the system.',
+            'paidAmount.required'    => 'The paid amount field is required.',
+            'paidAmount.numeric'     => 'The paid amount must be a number.',
+            'paidAmount.min'         => 'The paid amount must be at least 1.',
+            'paymentMethod.required' => 'The payment method field is required.',
+            'paymentMethod.in'       => 'The selected payment method is invalid.',
+            'paperReceiptNo.string'  => 'The paper receipt number must be a string.',
+            'paperReceiptNo.max'     => 'The paper receipt number must not exceed 50 characters.',
+            'digitalReference.string'=> 'The digital reference must be a string.',
+            'digitalReference.max'   => 'The digital reference must not exceed 100 characters.',
+        ];
+    }
 }

@@ -38,7 +38,7 @@ class ProcessStudentsImportJob implements ShouldQueue
 
         try {
             if (!Storage::disk('local')->exists($batch->file_path)) {
-                throw new \Exception("ملف الإكسل غير موجود في المسار المحدد: " . $fullPath);
+                throw new \Exception("The Excel file does not exist at the specified path: " . $fullPath);
             }
 
             (new FastExcel)->import($fullPath, function ($row) use ($studentService, $batch, &$processedCount, &$successCount, &$failedCount) {
@@ -49,15 +49,14 @@ class ProcessStudentsImportJob implements ShouldQueue
                     $gradeLevelName   = trim($row['grade_level_name'] ?? '');
                     $classroomName    = trim($row['class_room_name'] ?? '');
 
-                    // 👈 التعديل تم هنا (إزالة orWhere('name') الذي كان يسبب خطأ قاعدة البيانات)
                     $academicYear = AcademicYear::where('year_name', $academicYearName)->first();
                     if (!$academicYear) {
-                        throw new \Exception("العام الدراسي '{$academicYearName}' غير موجود.");
+                        throw new \Exception("The academic year '{$academicYearName}' does not exist.");
                     }
 
                     $grade = GradeLevel::where('name', $gradeLevelName)->first();
                     if (!$grade) {
-                        throw new \Exception("الصف الدراسي '{$gradeLevelName}' غير موجود.");
+                        throw new \Exception("The grade level '{$gradeLevelName}' does not exist.");
                     }
 
                     $classroomId = null;
@@ -68,7 +67,7 @@ class ProcessStudentsImportJob implements ShouldQueue
                             ->first();
                             
                         if (!$classroom) {
-                            throw new \Exception("الشعبة '{$classroomName}' غير موجودة لهذا الصف.");
+                            throw new \Exception("The classroom '{$classroomName}' does not exist for this grade level.");
                         }
                         $classroomId = $classroom->id;
                     }
@@ -105,7 +104,6 @@ class ProcessStudentsImportJob implements ShouldQueue
                         ]
                     ];
 
-                    // إرسال البيانات للـ Service المُحسّن الذي يعتمد على firstOrCreate
                     $studentService->registerStudentWithGuardian($formattedData);
                     $successCount++;
                     
@@ -148,7 +146,7 @@ class ProcessStudentsImportJob implements ShouldQueue
                     'import_batch_id' => $batch->id,
                     'row_number'      => 0,
                     'row_data'        => json_encode(['error' => 'System Error / FastExcel Crash'], JSON_UNESCAPED_UNICODE),
-                    'error_message'   => substr("انهيار أثناء فتح الملف: " . $e->getMessage(), 0, 250),
+                    'error_message'   => substr("System Error while opening file: " . $e->getMessage(), 0, 250),
                 ]);
             } catch (\Throwable $innerE) {
                 Log::error("Failed to save ImportError: " . $innerE->getMessage());

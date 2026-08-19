@@ -27,4 +27,13 @@ class SystemAccessVerifyPasswordRequest extends FormRequest
             'otp'=>'required|otp|size:6'
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'The email field is required.',
+            'email.email'    => 'Please enter a valid email address.',
+            'otp.required'   => 'The OTP code field is required.',
+            'otp.size'       => 'The OTP code must be exactly 6 characters.',
+        ];
+    }
 }

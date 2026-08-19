@@ -39,7 +39,7 @@ class ProcessStaffImportJob implements ShouldQueue
 
         try {
             if (!Storage::disk('local')->exists($batch->file_path)) {
-                throw new \Exception("ملف الإكسل غير موجود.");
+                throw new \Exception("Exel file nou found");
             }
 
             (new FastExcel)->import($fullPath, function ($row) use ($staffService, $batch, $requiresPassword, &$processedCount, &$successCount, &$failedCount) {
@@ -48,7 +48,7 @@ class ProcessStaffImportJob implements ShouldQueue
                 try {
                     // 🔥 التحقق من إلزامية كلمة السر لأمين السر والموجه ومدير النظام
                     if ($requiresPassword && empty($row['password'])) {
-                        throw new \Exception("كلمة المرور إجبارية في ملف الإكسل للدور الوظيفي: {$this->role}");
+                        throw new \Exception("The password is required in the Excel file for the role: {$this->role}");
                     }
 
                     $formattedData = [
@@ -63,11 +63,11 @@ class ProcessStaffImportJob implements ShouldQueue
                         'nationality'      => strtolower($row['nationality'] ?? 'syrian'),
                         'phone_number'     => (string) ($row['phone_number'] ?? ''),
                         'email'            => !empty($row['email']) ? trim($row['email']) : null,
-                        
+
                         // 🔥 فرض الرول القادم حصرياً من الـ URL وتجاهل أي عمود role داخل الملف
                         'role'             => $this->role,
                         'password'         => $row['password'] ?? null,
-                    
+
                         'degree'           => !empty($row['degree']) ? strtolower($row['degree']) : null,
                         'specialization'   => $row['specialization'] ?? null,
                         'university'       => $row['university'] ?? null,
@@ -79,8 +79,7 @@ class ProcessStaffImportJob implements ShouldQueue
 
                     $staffService->registerSingleStaff($formattedData);
                     $successCount++;
-                    
-                } catch (\Throwable $e) { 
+                } catch (\Throwable $e) {
                     $failedCount++;
                     $friendlyErrorMessage = $this->translateError($e);
                     $safeErrorMessage = mb_substr($friendlyErrorMessage, 0, 250, 'UTF-8');
@@ -113,7 +112,6 @@ class ProcessStaffImportJob implements ShouldQueue
             if (Storage::disk('local')->exists($batch->file_path)) {
                 Storage::disk('local')->delete($batch->file_path);
             }
-
         } catch (\Throwable $e) {
             Log::error("Staff Import Job Failed: " . $e->getMessage());
             $batch->update(['status' => 'failed']);
@@ -124,24 +122,25 @@ class ProcessStaffImportJob implements ShouldQueue
     {
         $message = $e->getMessage();
 
-        if (str_contains($message, 'كلمة المرور إجبارية')) {
+        // 💡 تم تحديث الشرط ليطابق الرسالة الإنجليزية الجديدة
+        if (str_contains($message, 'The password is required in the Excel file')) {
             return $message;
         }
 
         if ($e instanceof QueryException && $e->getCode() == 23000) {
             if (str_contains($message, 'users_phone_number_unique')) {
-                return 'رقم الهاتف مسجل مسبقاً لموظف آخر، يرجى تغييره.';
+                return 'The phone number is already taken by another staff member, please change it.';
             }
             if (str_contains($message, 'users_email_unique')) {
-                return 'البريد الإلكتروني مسجل مسبقاً لموظف آخر.';
+                return 'The email address is already taken by another staff member.';
             }
-            return 'يوجد بيانات مكررة أو متعارضة في هذا السطر.';
+            return 'Duplicate or conflicting data exists in this row.';
         }
 
         if (str_contains($message, 'Failed to parse time string')) {
-            return 'تنسيق التاريخ غير صحيح، يرجى كتابته بصيغة صحيحة مثل: YYYY-MM-DD';
+            return 'Invalid date format, please write it in a correct format such as: YYYY-MM-DD';
         }
 
-        return 'خطأ في البيانات: ' . mb_substr($message, 0, 100, 'UTF-8');
+        return 'Data error: ' . mb_substr($message, 0, 100, 'UTF-8');
     }
 }

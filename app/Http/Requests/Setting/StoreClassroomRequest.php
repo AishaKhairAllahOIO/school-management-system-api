@@ -29,4 +29,19 @@ class StoreClassroomRequest extends FormRequest
             'capacity' => ['required', 'integer', 'min:5', 'max:100'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'academicYearId.required' => 'The academic year ID field is required.',
+            'academicYearId.exists'   => 'The selected academic year does not exist.',
+            
+            'grade_level_id.required' => 'The grade level ID field is required.',
+            'grade_level_id.exists'   => 'The selected grade level does not exist.',
+            
+            'capacity.required'       => 'The classroom capacity field is required.',
+            'capacity.integer'        => 'The classroom capacity must be an integer.',
+            'capacity.min'            => 'The classroom capacity must be at least 5 students.',
+            'capacity.max'            => 'The classroom capacity must not exceed 100 students.',
+        ];
+    }
 }

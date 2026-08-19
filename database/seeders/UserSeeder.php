@@ -431,5 +431,5 @@ class UserSeeder extends Seeder
         );
 
         $user19->assignRole('teacher');
-    }
+ }
 }

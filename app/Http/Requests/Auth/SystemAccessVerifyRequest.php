@@ -28,4 +28,16 @@ class SystemAccessVerifyRequest extends FormRequest
           'remember_me'=> 'nullable|boolean',
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'email.required'       => 'The email field is required.',
+            'email.email'          => 'Please enter a valid email address.',
+            'otp.required'         => 'The OTP code field is required.',
+            'otp.string'           => 'The OTP code must be a string.',
+            'otp.size'             => 'The OTP code must be exactly 6 characters.',
+            'remember_me.boolean'  => 'The remember me field must be true or false.',
+        ];
+    }
+   
 }

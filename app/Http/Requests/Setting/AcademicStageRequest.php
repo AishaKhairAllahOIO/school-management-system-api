@@ -21,4 +21,11 @@ class AcademicStageRequest extends BaseRequest
             'type' => ['required', new Enum(AcademicStageType::class), 'unique:academic_stages,type,'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'type.required' => 'The academic stage type field is required.',
+            'type.unique'   => 'This academic stage type has already been taken.',
+        ];
+    }
 }

@@ -26,4 +26,12 @@ class GuardianViewActivitiesRequest extends FormRequest
             'student_id' => ['required', 'integer', 'exists:students,id'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'student_id.required' => 'The student ID field is required.',
+            'student_id.integer'  => 'The student ID must be an integer.',
+            'student_id.exists'   => 'The selected student does not exist in the system.',
+        ];
+    }
 }

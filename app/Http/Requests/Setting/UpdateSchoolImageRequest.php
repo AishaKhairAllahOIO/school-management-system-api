@@ -21,4 +21,14 @@ class UpdateSchoolImageRequest extends FormRequest
             'name' => ['sometimes', 'string', 'max:100'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'url.image'   => 'The uploaded file must be an image.',
+            'url.mimes'   => 'The image must be a file of type: jpeg, png, jpg, webp.',
+            
+            'name.string' => 'The school image name must be a string.',
+            'name.max'    => 'The school image name must not exceed 100 characters.',
+        ];
+    }
 }

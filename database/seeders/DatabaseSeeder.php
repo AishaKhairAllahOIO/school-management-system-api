@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
             ActivitySeeder::class,
             StudentSeeder::class,
             EnrollmentSeeder::class,
-            FinancialTestSeeder::class,
+           // FinancialTestSeeder::class,
             ScheduleTimeSlotSeeder::class,
             StaffSeeder::class,
             AlertSeeder::class,
@@ -60,9 +60,10 @@ class DatabaseSeeder extends Seeder
             StaffAttendanceSeeder::class,
             PayrollSeeder::class,
             StudentFinancialSeeder::class,
-            MasterStudentSystemSeeder::class,
-        //  FeePlanSeeder::class,
-          //  InstallmentPolicySeeder::class,
+           // MasterStudentSystemSeeder::class,
+            FeePlanSeeder::class,
+            InstallmentPolicySeeder::class,
+            FinancialScenarioSeeder::class,
 
         ]);
     }

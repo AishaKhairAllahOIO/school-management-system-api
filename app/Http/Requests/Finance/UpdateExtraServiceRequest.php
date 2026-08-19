@@ -28,4 +28,17 @@ class UpdateExtraServiceRequest extends FormRequest
             'amount' => ['sometimes', 'required', 'numeric', 'min:0'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'type.required' => 'The extra service type field is required when present.',
+            'type.in'       => 'The selected extra service type is invalid.',
+            'name.required' => 'The extra service name field is required when present.',
+            'name.string'   => 'The extra service name must be a string.',
+            'name.max'      => 'The extra service name must not exceed 100 characters.',
+            'amount.required'=> 'The extra service amount field is required when present.',
+            'amount.numeric'=> 'The extra service amount must be a number.',
+            'amount.min'    => 'The extra service amount must be at least 0.',
+        ];
+    }
 }

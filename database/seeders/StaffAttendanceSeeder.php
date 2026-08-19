@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Staff;
 use App\Models\StaffAttendance;
-use App\Models\StaffLeave;
 use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 
@@ -12,36 +11,31 @@ class StaffAttendanceSeeder extends Seeder
 {
     public function run(): void
     {
-        $staffList = Staff::take(2)->get();
-        if ($staffList->isEmpty()) return;
+        // جلب موظف مختلف (مثلاً الموظف الثاني) لكي لا نتدخل في أيام إجازات الموظف الأول
+        $staff = Staff::skip(1)->first();
+        if (!$staff) return;
 
-        $today = Carbon::now()->toDateString();
+        // يوم للغياب الكلي (بدون عذر)
+        $absentDate = Carbon::now()->startOfMonth()->addDays(7)->toDateString();
         
+        // يوم للغياب الجزئي (بعذر)
+        $partialDate = Carbon::now()->startOfMonth()->addDays(8)->toDateString();
+
+        // 1. تسجيل غياب كلي
         StaffAttendance::updateOrCreate(
-            ['staff_id' => $staffList[1]->id, 'attendance_date' => $today],
             [
-                'status' => 'absent',
-                'absence_type' => 'unexcused',
+                'staff_id'        => $staff->id,
+                'attendance_date' => $absentDate,
+            ],
+            [
+                'status'         => 'absent',
+                'absence_type'   => 'unexcused',
+                'staff_leave_id' => null,
             ]
         );
-          
 
-        $leave = StaffLeave::where('staff_id', $staffList[0]->id)->first();
-        if ($leave) {
-            $currentDate = Carbon::parse($leave->start_date);
-            $endDate = Carbon::parse($leave->end_date);
-
-            while ($currentDate->lte($endDate)) {
-                StaffAttendance::updateOrCreate(
-                    ['staff_id' => $leave->staff_id, 'attendance_date' => $currentDate->toDateString()],
-                    [
-                        'status' => 'on_leave',
-                        'absence_type' => null,
-                        'staff_leave_id' => $leave->id,
-                    ]
-                );
-                $currentDate->addDay();
-            }
-        }
+        // 2. تسجيل غياب جزئي
+   
+        // ملاحظة: لم نقم بكتابة "حاضر" (present) لأن عدم وجود السجل يعني أن الموظف حاضر!
     }
 }

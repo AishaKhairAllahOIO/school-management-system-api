@@ -2,33 +2,47 @@
 
 namespace Database\Seeders;
 
-use App\Models\Payroll;
 use App\Models\StaffFinancialContract;
+use App\Services\Staff\PayrollService;
 use Illuminate\Database\Seeder;
 use Carbon\Carbon;
+use Exception;
 
 class PayrollSeeder extends Seeder
 {
+    protected PayrollService $payrollService;
+
+    public function __construct(PayrollService $payrollService)
+    {
+        $this->payrollService = $payrollService;
+    }
+
     public function run(): void
     {
         $contracts = StaffFinancialContract::all();
-        $lastMonth = Carbon::now()->subMonth(); 
+        
+        // 💡 التعديل الجوهري هنا: نحسب راتب (الشهر الحالي) لأن غياباتنا مزروعة فيه
+        $targetMonth = Carbon::now(); 
+
+        if ($contracts->isEmpty()) {
+            $this->command->warn('لا يوجد عقود مالية للموظفين لإنشاء رواتب لها.');
+            return;
+        }
 
         foreach ($contracts as $contract) {
-            $netSalary = $contract->salary_type === 'fixed_monthly' ? $contract->salary_amount : 1500; 
+            try {
+                $this->payrollService->commitSalary([
+                    'staff_id'     => $contract->staff_id,
+                    'year'         => $targetMonth->year,
+                    'month'        => $targetMonth->month, // الآن سيبحث في نفس شهر الغياب!
+                    'payment_date' => $targetMonth->endOfMonth()->toDateString(),
+                ]);
 
-            Payroll::updateOrCreate(
-                [
-                    'staff_id' => $contract->staff_id,
-                    'year' => $lastMonth->year,
-                    'month' => $lastMonth->month,
-                ],
-                [
-                    'contract_id' => $contract->id,
-                    'payment_date' => $lastMonth->endOfMonth()->toDateString(),
-                    'net_salary' => $netSalary,
-                ]
-            );
+                $this->command->info("تم صرف راتب الموظف رقم {$contract->staff_id} بنجاح مع تطبيق الخصميات إن وجدت.");
+
+            } catch (Exception $e) {
+                $this->command->error("خطأ في صرف راتب الموظف رقم {$contract->staff_id}: " . $e->getMessage());
+            }
         }
     }
 }

@@ -15,4 +15,11 @@ class StoreDeviceTokenRequest extends FormRequest
             'fcm_token'    => ['required', 'string', 'max:512'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'fcm_token.required' => 'The FCM token field is required.',
+            'fcm_token.string'   => 'The FCM token must be a string.',
+        ];
+    }
 }

@@ -31,4 +31,23 @@ class UpdateStaffAttendanceRequest extends FormRequest
             'missing_periods.*' => ['integer', 'exists:schedule_entries,id'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'status.string'             => 'The attendance status must be a valid string.',
+            'status.in'                 => 'The attendance status must be one of: present, absent, on_leave, partial_absence.',
+
+            'absence_type.string'       => 'The absence type must be a valid string.',
+            'absence_type.in'           => 'The absence type must be either excused or unexcused.',
+
+            'staff_leave_id.integer'    => 'The staff leave ID must be an integer.',
+            'staff_leave_id.exists'     => 'The selected staff leave record does not exist.',
+
+            'missing_periods.array'     => 'The missing periods must be formatted as an array.',
+            'missing_periods.required_if' => 'Missing periods are required when the status is partial absence.',
+            
+            'missing_periods.*.integer' => 'Each missing period ID must be an integer.',
+            'missing_periods.*.exists'  => 'One or more selected schedule entries do not exist.',
+        ];
+    }
 }

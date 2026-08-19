@@ -30,4 +30,22 @@ class UpadateStaffLeaveRequest extends FormRequest
             'end_date'         => ['sometimes', 'date', 'after_or_equal:start_date'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'staff_id.integer'          => 'The staff ID must be an integer.',
+            'staff_id.exists'           => 'The selected staff member does not exist.',
+
+            'leave_type_id.integer'     => 'The leave type ID must be an integer.',
+            'leave_type_id.exists'      => 'The selected leave type does not exist.',
+
+            'academic_year_id.integer'  => 'The academic year ID must be an integer.',
+            'academic_year_id.exists'   => 'The selected academic year does not exist.',
+
+            'start_date.date'           => 'The start date must be a valid date format.',
+
+            'end_date.date'             => 'The end date must be a valid date format.',
+            'end_date.after_or_equal'   => 'The end date must be a date after or equal to the start date.',
+        ];
+    }
 }

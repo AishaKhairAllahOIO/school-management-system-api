@@ -26,4 +26,11 @@ class UpdatePayrollRequest extends FormRequest
             'payment_date' => ['sometimes', 'required', 'date'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'payment_date.required' => 'The payment date field is required when provided.',
+            'payment_date.date'     => 'The payment date must be a valid date format.',
+        ];
+    }
 }

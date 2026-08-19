@@ -201,6 +201,19 @@ class StaffSeeder extends Seeder
                 'hire_date' => '2023-09-01',
             ]
         );
+           Staff::updateOrCreate(
+            [
+                'user_id' => 7,
+            ],
+            [
+                'degree' => 'bachelor',
+                'specialization' => 'لغة عربية',
+                'university' => 'جامعة دمشق',
+                'graduation_year' => 2021,
+                'experience_years' => 4,
+                'hire_date' => '2023-09-01',
+            ]
+        );
       
 
 

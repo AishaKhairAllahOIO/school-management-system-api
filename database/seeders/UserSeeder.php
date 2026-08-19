@@ -151,7 +151,7 @@ class UserSeeder extends Seeder
                 'birth_place' => 'دمشق',
                 'address' => 'ميدان',
                 'nationality' => 'syrian',
-                'gender' => 'famale',
+                'gender' => 'female', // تم التصحيح هنا
                 'photo_url' => 'staff/admin_3.jpg',
                 'email' => 'shadooalkhateeb1234@gmail.com',
                 'account_status' => 'enabled',
@@ -172,7 +172,7 @@ class UserSeeder extends Seeder
                 'birth_place' => 'دمشق',
                 'address' => 'أبو رمانة',
                 'nationality' => 'syrian',
-                'gender' => 'famale',
+                'gender' => 'female', // تم التصحيح هنا أيضاً
                 'photo_url' => 'staff/secretary_1.jpg',
                 'email' => 'aishakhairallah2025@gmail.com',
                 'account_status' => 'enabled',
@@ -216,7 +216,7 @@ class UserSeeder extends Seeder
                 'password' => $defaultPassword,
                 'nationality' => 'jordanian',
                 'gender' => 'male',
-                'photo_url' => 'staff\adviser_1.jpg',
+                'photo_url' => 'staff/adviser_1.jpg',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]
@@ -237,7 +237,7 @@ class UserSeeder extends Seeder
                 'password' => $defaultPassword,
                 'nationality' => 'other',
                 'gender' => 'female',
-                'photo_url' => 'staff\secretary_2.jpg',
+                'photo_url' => 'staff/secretary_2.jpg',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]
@@ -302,12 +302,10 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
                 'gender' => 'female',
                 'email' => 'mouhamedalshalabi@gmail.com',
-                'photo_url' => 'staff/counselor_1.jpg
-            ',
+                'photo_url' => 'staff/counselor_1.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user14->assignRole('counselor');
 
         $user15 = User::updateOrCreate(
@@ -327,12 +325,10 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
                 'gender' => 'female',
                 'email' => 'mouhaedalshalab@gmail.com',
-                'photo_url' => 'staff/teacher_3.jpg
-            ',
+                'photo_url' => 'staff/teacher_3.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user15->assignRole('teacher');
 
         $user16 = User::updateOrCreate(
@@ -352,13 +348,12 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
                 'gender' => 'female',
                 'email' => 'mouhamealshaabi@gmail.com',
-                'photo_url' => 'staff/teacher_4.jpg
-            ',
+                'photo_url' => 'staff/teacher_4.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user16->assignRole('teacher');
+
         $user17 = User::updateOrCreate(
             [
                 'phone_number' => '0911254786',
@@ -376,13 +371,12 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
                 'gender' => 'female',
                 'email' => 'mouhamedalsabi@gmail.com',
-                'photo_url' => 'staff/teacher_5.jpg
-            ',
+                'photo_url' => 'staff/teacher_5.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user17->assignRole('teacher');
+
         $user18 = User::updateOrCreate(
             [
                 'phone_number' => '0911354789',
@@ -400,13 +394,12 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
                 'gender' => 'male',
                 'email' => 'ahmadahmadahmad@gmail.com',
-                'photo_url' => 'staff/teacher_6.jpg
-            ',
+                'photo_url' => 'staff/teacher_6.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user18->assignRole('teacher');
+
         $user19 = User::updateOrCreate(
             [
                 'phone_number' => '0911304789',
@@ -424,12 +417,10 @@ class UserSeeder extends Seeder
                 'record_status' => 'active',
                 'gender' => 'male',
                 'email' => 'ahmadahmahmad@gmail.com',
-                'photo_url' => 'staff/teacher_7.jpg
-            ',
+                'photo_url' => 'staff/teacher_7.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user19->assignRole('teacher');
     }
 }

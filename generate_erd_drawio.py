@@ -5,7 +5,7 @@ Generate a draw.io ERD from a Laravel project.
 
 Run from the Laravel project root:
 
-    python generate_erd_drawio.py
+    py generate_erd_drawio.py
 
 Reads:
     app/Models/**/*.php
@@ -23,6 +23,7 @@ from __future__ import annotations
 import html
 import re
 import uuid
+
 from pathlib import Path
 from collections import OrderedDict, defaultdict
 
@@ -40,16 +41,55 @@ OUT = ROOT / "school-management-erd.drawio"
 
 
 # ============================================================
+# Layout Configuration
+# ============================================================
+
+# Horizontal margin around the whole ERD
+MARGIN_X = 80
+
+# Vertical margin
+MARGIN_Y = 70
+
+# Width of each table
+TABLE_W = 320
+
+# Horizontal distance between tables
+GAP_X = 80
+
+# Vertical distance between tables
+GAP_Y = 70
+
+# Distance between groups
+GROUP_GAP_Y = 110
+
+# Group title/header height
+GROUP_HEADER = 44
+
+# Number of tables in one row
+MAX_PER_ROW = 4
+
+
+# ============================================================
 # Utilities
 # ============================================================
 
 def clean_php(s: str) -> str:
     """
-    Remove PHP comments so regex parsing is cleaner.
+    Remove PHP comments.
     """
 
-    s = re.sub(r"/\*.*?\*/", "", s, flags=re.S)
-    s = re.sub(r"//.*", "", s)
+    s = re.sub(
+        r"/\*.*?\*/",
+        "",
+        s,
+        flags=re.S
+    )
+
+    s = re.sub(
+        r"//.*",
+        "",
+        s
+    )
 
     return s
 
@@ -72,23 +112,27 @@ def snake(name: str) -> str:
     ).lower()
 
 
-def model_class(text: str, fallback: str) -> str:
-    """
-    Extract Laravel model class name.
-    """
+def model_class(
+    text: str,
+    fallback: str
+) -> str:
 
     m = re.search(
         r"\bclass\s+([A-Za-z_][A-Za-z0-9_]*)",
         text
     )
 
-    return m.group(1) if m else fallback
+    return (
+        m.group(1)
+        if m
+        else fallback
+    )
 
 
-def table_from_model(class_name: str, text: str) -> str:
-    """
-    Resolve database table name from Laravel model.
-    """
+def table_from_model(
+    class_name: str,
+    text: str
+) -> str:
 
     m = re.search(
         r"protected\s+\$table\s*=\s*['\"]([^'\"]+)['\"]",
@@ -100,6 +144,7 @@ def table_from_model(class_name: str, text: str) -> str:
 
     irregular = {
         "User": "users",
+        "Person": "people",
     }
 
     if class_name in irregular:
@@ -110,7 +155,7 @@ def table_from_model(class_name: str, text: str) -> str:
 
 def esc(s: str) -> str:
     """
-    Escape XML / HTML content.
+    Escape XML / HTML.
     """
 
     return html.escape(
@@ -121,7 +166,7 @@ def esc(s: str) -> str:
 
 def gid() -> str:
     """
-    Generate draw.io cell ID.
+    Generate a draw.io ID.
     """
 
     return uuid.uuid4().hex[:12]
@@ -132,12 +177,15 @@ def gid() -> str:
 # ============================================================
 
 def parse_models():
+
     models = OrderedDict()
 
     if not MODELS_DIR.exists():
         return models
 
-    for p in sorted(MODELS_DIR.rglob("*.php")):
+    for p in sorted(
+        MODELS_DIR.rglob("*.php")
+    ):
 
         raw = p.read_text(
             encoding="utf-8",
@@ -159,24 +207,31 @@ def parse_models():
         relations = []
 
         patterns = [
+
+            ("belongsToMany", "N:N"),
+            ("morphToMany", "N:N"),
+            ("morphedByMany", "N:N"),
+
+            ("hasManyThrough", "1:N"),
+            ("hasOneThrough", "1:1"),
+
             ("hasMany", "1:N"),
             ("hasOne", "1:1"),
             ("belongsTo", "N:1"),
-            ("belongsToMany", "N:N"),
+
             ("morphMany", "1:N"),
             ("morphOne", "1:1"),
             ("morphTo", "N:1"),
-            ("morphToMany", "N:N"),
-            ("morphedByMany", "N:N"),
-            ("hasManyThrough", "1:N"),
-            ("hasOneThrough", "1:1"),
         ]
 
         for method, cardinality in patterns:
 
             rx = re.compile(
-                rf"function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^)]*\).*?"
-                rf"return\s+\$this\s*->\s*{method}\s*\(\s*"
+                rf"function\s+"
+                rf"([A-Za-z_][A-Za-z0-9_]*)"
+                rf"\s*\([^)]*\).*?"
+                rf"return\s+\$this\s*->\s*"
+                rf"{method}\s*\(\s*"
                 rf"([A-Za-z_][A-Za-z0-9_\\]*)::class",
                 re.S,
             )
@@ -185,23 +240,35 @@ def parse_models():
 
                 rel_name = rm.group(1)
 
-                target = rm.group(2).split("\\")[-1]
-
-                relations.append(
-                    (
-                        rel_name,
-                        target,
-                        method,
-                        cardinality
-                    )
+                target = (
+                    rm.group(2)
+                    .split("\\")[-1]
                 )
 
+                relation = (
+                    rel_name,
+                    target,
+                    method,
+                    cardinality
+                )
+
+                if relation not in relations:
+                    relations.append(relation)
+
         models[cls] = {
+
             "class": cls,
+
             "table": table,
-            "path": str(p.relative_to(ROOT)),
+
+            "path": str(
+                p.relative_to(ROOT)
+            ),
+
             "relations": relations,
+
             "columns": OrderedDict(),
+
             "group": "Other",
         }
 
@@ -221,7 +288,9 @@ def parse_migrations():
     if not MIGRATIONS_DIR.exists():
         return tables, fks
 
-    for p in sorted(MIGRATIONS_DIR.rglob("*.php")):
+    for p in sorted(
+        MIGRATIONS_DIR.rglob("*.php")
+    ):
 
         text = clean_php(
             p.read_text(
@@ -262,8 +331,12 @@ def parse_migrations():
             if table not in tables:
 
                 tables[table] = {
+
                     "columns": OrderedDict(),
-                    "path": str(p.relative_to(ROOT))
+
+                    "path": str(
+                        p.relative_to(ROOT)
+                    ),
                 }
 
             parse_table_block(
@@ -305,8 +378,12 @@ def parse_migrations():
             if table not in tables:
 
                 tables[table] = {
+
                     "columns": OrderedDict(),
-                    "path": str(p.relative_to(ROOT))
+
+                    "path": str(
+                        p.relative_to(ROOT)
+                    ),
                 }
 
             parse_table_block(
@@ -317,7 +394,7 @@ def parse_migrations():
             )
 
     # --------------------------------------------------------
-    # Remove duplicate foreign keys
+    # Remove duplicate FKs
     # --------------------------------------------------------
 
     unique = []
@@ -351,13 +428,14 @@ def parse_table_block(
     cols = tables[table]["columns"]
 
     # --------------------------------------------------------
-    # Special column definitions
+    # Special definitions
     # --------------------------------------------------------
 
     special = [
 
         (
-            r"\$table->id\s*\(\s*['\"]?([^'\")]*)['\"]?\s*\)",
+            r"\$table->id\s*\(\s*"
+            r"['\"]?([^'\")}]*)['\"]?\s*\)",
             "BIGINT",
             "PK"
         ),
@@ -398,7 +476,10 @@ def parse_table_block(
             block
         ):
 
-            name = m.group(1) or "id"
+            name = (
+                m.group(1).strip()
+                or "id"
+            )
 
             cols.setdefault(
                 name,
@@ -406,7 +487,7 @@ def parse_table_block(
             )
 
     # --------------------------------------------------------
-    # Laravel column methods
+    # Laravel methods
     # --------------------------------------------------------
 
     methods = {
@@ -453,7 +534,6 @@ def parse_table_block(
         "enum": "ENUM",
 
         "ipAddress": "IP",
-
         "macAddress": "MAC",
 
         "year": "YEAR",
@@ -463,7 +543,8 @@ def parse_table_block(
 
         rx = re.compile(
             rf"\$table->{method}\s*"
-            rf"\(\s*['\"]([^'\"]+)['\"]([^)]*)\)"
+            rf"\(\s*['\"]([^'\"]+)['\"]"
+            rf"([^)]*)\)"
         )
 
         for m in rx.finditer(block):
@@ -478,8 +559,7 @@ def parse_table_block(
                 "string",
                 "decimal",
                 "float",
-                "double",
-                "enum"
+                "double"
             ):
 
                 nums = re.findall(
@@ -534,7 +614,7 @@ def parse_table_block(
         )
 
     # --------------------------------------------------------
-    # foreignId()
+    # foreignId
     # --------------------------------------------------------
 
     for m in re.finditer(
@@ -583,16 +663,14 @@ def parse_table_block(
             else "id"
         )
 
-        if ref_table:
-
-            fks.append(
-                (
-                    table,
-                    col,
-                    ref_table,
-                    ref_col
-                )
+        fks.append(
+            (
+                table,
+                col,
+                ref_table,
+                ref_col
             )
+        )
 
     # --------------------------------------------------------
     # foreign()
@@ -695,7 +773,7 @@ def parse_table_block(
 
 
 # ============================================================
-# Model / Table helpers
+# Helpers
 # ============================================================
 
 def model_for_table(
@@ -706,141 +784,138 @@ def model_for_table(
     for cls, info in models.items():
 
         if info["table"] == table:
-
             return cls
 
     return None
 
 
 # ============================================================
-# Module grouping
+# Group Configuration
 # ============================================================
+
+GROUP_MAP = {
+
+    # Auth
+    "users": "Auth & People",
+    "roles": "Auth & People",
+    "permissions": "Auth & People",
+    "model_has_roles": "Auth & People",
+    "model_has_permissions": "Auth & People",
+    "role_has_permissions": "Auth & People",
+
+    # Academic
+    "students": "Students & Academic",
+    "guardians": "Students & Academic",
+    "enrollments": "Students & Academic",
+
+    "academic_years": "Students & Academic",
+    "academic_stages": "Students & Academic",
+
+    "grade_levels": "Students & Academic",
+    "grades": "Students & Academic",
+
+    "class_rooms": "Students & Academic",
+    "classes": "Students & Academic",
+
+    "subjects": "Students & Academic",
+    "grade_subjects": "Students & Academic",
+
+    "semesters": "Students & Academic",
+
+    "student_profiles": "Students & Academic",
+    "academic_profiles": "Students & Academic",
+
+    # Assessment
+    "assessment_components": "Assessment & Learning",
+    "student_marks": "Assessment & Learning",
+
+    "practice_quizzes": "Assessment & Learning",
+    "questions": "Assessment & Learning",
+    "options": "Assessment & Learning",
+
+    "student_quiz_attempts": "Assessment & Learning",
+    "student_quiz_attempt_answers": "Assessment & Learning",
+
+    "study_materials": "Assessment & Learning",
+    "homeworks": "Assessment & Learning",
+
+    "assignments": "Assessment & Learning",
+
+    # Scheduling
+    "schedules": "Scheduling",
+    "schedule_entries": "Scheduling",
+    "schedule_time_slots": "Scheduling",
+
+    "time_slots": "Scheduling",
+    "schedule_slots": "Scheduling",
+
+    "days": "Scheduling",
+    "working_days": "Scheduling",
+
+    "counselor_availabilities": "Scheduling",
+    "counselor_available_slots": "Scheduling",
+
+    # Staff
+    "teachers": "Staff & HR",
+    "teacher_assignments": "Staff & HR",
+    "teacher_workloads": "Staff & HR",
+
+    "teacher_evaluations": "Staff & HR",
+    "teacher_period_attendances": "Staff & HR",
+
+    "staff": "Staff & HR",
+    "staff_attendances": "Staff & HR",
+
+    "staff_leaves": "Staff & HR",
+    "staff_leave_types": "Staff & HR",
+
+    "counselors": "Staff & HR",
+
+    # Finance
+    "staff_financial_contracts": "Finance",
+    "payrolls": "Finance",
+
+    "financial_accounts": "Finance",
+
+    "fee_plans": "Finance",
+    "fee_plan_extra_services": "Finance",
+    "extra_services": "Finance",
+
+    "installment_policies": "Finance",
+    "installment_policy_items": "Finance",
+
+    "scheduled_installments": "Finance",
+    "payment_transactions": "Finance",
+
+    # Communication
+    "complaints": "Communication",
+    "complaint_categories": "Communication",
+    "complaint_types": "Communication",
+
+    "announcements": "Communication",
+    "activities": "Communication",
+    "alerts": "Communication",
+
+    "counseling_sessions": "Communication",
+    "appointments": "Communication",
+
+    # Content
+    "contents": "Content",
+}
+
 
 def infer_groups(models):
 
-    group_map = {
-
-        # ----------------------------------------------------
-        # Auth
-        # ----------------------------------------------------
-
-        "users": "Auth & People",
-        "roles": "Auth & People",
-        "permissions": "Auth & People",
-        "model_has_roles": "Auth & People",
-        "model_has_permissions": "Auth & People",
-
-        # ----------------------------------------------------
-        # Students / Academic
-        # ----------------------------------------------------
-
-        "students": "Students & Academic",
-        "guardians": "Students & Academic",
-        "enrollments": "Students & Academic",
-
-        "academic_years": "Students & Academic",
-        "academic_stages": "Students & Academic",
-
-        "grade_levels": "Students & Academic",
-        "class_rooms": "Students & Academic",
-
-        "subjects": "Students & Academic",
-        "grade_subjects": "Students & Academic",
-
-        "semesters": "Students & Academic",
-
-        # ----------------------------------------------------
-        # Assessment
-        # ----------------------------------------------------
-
-        "assessment_components": "Assessment & Learning",
-        "student_marks": "Assessment & Learning",
-
-        "practice_quizzes": "Assessment & Learning",
-        "questions": "Assessment & Learning",
-        "options": "Assessment & Learning",
-
-        "student_quiz_attempts": "Assessment & Learning",
-        "student_quiz_attempt_answers": "Assessment & Learning",
-
-        "study_materials": "Assessment & Learning",
-        "homeworks": "Assessment & Learning",
-
-        # ----------------------------------------------------
-        # Scheduling
-        # ----------------------------------------------------
-
-        "schedules": "Scheduling",
-        "schedule_entries": "Scheduling",
-        "schedule_time_slots": "Scheduling",
-
-        "time_slots": "Scheduling",
-        "days": "Scheduling",
-
-        # ----------------------------------------------------
-        # Staff / HR
-        # ----------------------------------------------------
-
-        "teacher_assignments": "Staff & HR",
-        "teacher_workloads": "Staff & HR",
-
-        "teacher_evaluations": "Staff & HR",
-        "teacher_period_attendances": "Staff & HR",
-
-        "staff": "Staff & HR",
-        "staff_attendances": "Staff & HR",
-
-        "staff_leaves": "Staff & HR",
-        "staff_leave_types": "Staff & HR",
-
-        # ----------------------------------------------------
-        # Finance
-        # ----------------------------------------------------
-
-        "staff_financial_contracts": "Finance",
-        "payrolls": "Finance",
-
-        "financial_accounts": "Finance",
-        "fee_plans": "Finance",
-
-        "fee_plan_extra_services": "Finance",
-        "extra_services": "Finance",
-
-        "installment_policies": "Finance",
-        "installment_policy_items": "Finance",
-
-        "scheduled_installments": "Finance",
-        "payment_transactions": "Finance",
-
-        # ----------------------------------------------------
-        # Communication
-        # ----------------------------------------------------
-
-        "complaints": "Communication",
-        "complaint_categories": "Communication",
-        "complaint_types": "Communication",
-
-        "announcements": "Communication",
-        "activities": "Communication",
-        "alerts": "Communication",
-
-        # ----------------------------------------------------
-        # Content
-        # ----------------------------------------------------
-
-        "contents": "Content",
-    }
-
     for cls, info in models.items():
 
-        info["group"] = group_map.get(
+        info["group"] = GROUP_MAP.get(
             info["table"],
             "Other"
         )
 
 
 # ============================================================
-# Draw.io Table Cell
+# Table Cell
 # ============================================================
 
 def table_cell(
@@ -848,76 +923,114 @@ def table_cell(
     columns,
     x,
     y,
-    w=360
+    w=TABLE_W,
+    cell_id=None
 ):
+    """
+    Current table rendering.
+
+    NOTE:
+    The visual styling will be refined separately.
+    This function currently keeps the existing table
+    appearance while the main focus is fixing the layout.
+    """
 
     rows = []
 
-    # --------------------------------------------------------
-    # Columns
-    # --------------------------------------------------------
+    key_w = 50
+
+    name_w = w - key_w
 
     for name, (typ, flag) in columns.items():
 
-        key = (
-            "PK"
-            if "PK" in flag
-            else (
-                "FK"
-                if "FK" in flag
-                else ""
+        if "PK" in flag:
+            key = "PK"
+
+        elif "FK" in flag:
+            key = "FK"
+
+        else:
+            key = ""
+
+        if "PK" in flag:
+
+            field_name = (
+                f"<U><B>{esc(name)}</B></U>"
             )
-        )
 
-        rows.append(
-            f"<TR>"
+        elif "FK" in flag:
 
-            f"<TD "
-            f"ALIGN='LEFT' "
-            f"VALIGN='MIDDLE' "
-            f"WIDTH='215'>"
-            f"<B>{esc(name)}</B>"
-            f"</TD>"
+            field_name = (
+                f"<B>{esc(name)}</B>"
+            )
 
-            f"<TD "
-            f"ALIGN='LEFT' "
-            f"VALIGN='MIDDLE' "
-            f"WIDTH='120'>"
-            f"{esc(typ)}"
-            f"</TD>"
+        else:
+
+            field_name = esc(name)
+
+        key_cell = (
 
             f"<TD "
             f"ALIGN='CENTER' "
             f"VALIGN='MIDDLE' "
-            f"WIDTH='45'>"
-            f"<B>{key}</B>"
-            f"</TD>"
+            f"WIDTH='{key_w}'>"
 
-            f"</TR>"
+            f"<FONT "
+            f"COLOR='#f5f5f5' "
+            f"SIZE='12'>"
+
+            f"<B>{esc(key)}</B>"
+
+            f"</FONT>"
+
+            f"</TD>"
         )
 
-    # --------------------------------------------------------
-    # Empty table
-    # --------------------------------------------------------
+        name_cell = (
+
+            f"<TD "
+            f"ALIGN='LEFT' "
+            f"VALIGN='MIDDLE' "
+            f"WIDTH='{name_w}'>"
+
+            f"<FONT "
+            f"COLOR='#f5f5f5' "
+            f"SIZE='12'>"
+
+            f"{field_name}"
+
+            f"</FONT>"
+
+            f"</TD>"
+        )
+
+        rows.append(
+            "<TR>"
+            + key_cell
+            + name_cell
+            + "</TR>"
+        )
 
     if not rows:
 
         rows.append(
+
             "<TR>"
-            "<TD "
-            "COLSPAN='3' "
-            "ALIGN='LEFT'>"
-            "No migration columns parsed"
+
+            f"<TD WIDTH='{key_w}'></TD>"
+
+            f"<TD WIDTH='{name_w}'>"
+
+            f"<FONT COLOR='#9ca3af'>"
+
+            "No columns"
+
+            "</FONT>"
+
             "</TD>"
+
             "</TR>"
         )
-
-    # --------------------------------------------------------
-    # HTML table
-    #
-    # Important:
-    # No colored title background.
-    # --------------------------------------------------------
 
     label = (
 
@@ -926,81 +1039,55 @@ def table_cell(
         "CELLBORDER='1' "
         "CELLSPACING='0' "
         "CELLPADDING='7' "
-        "STYLE='font-family:Arial;font-size:12px;'>"
-
-        # ----------------------------------------------------
-        # Title
-        # ----------------------------------------------------
+        "STYLE='"
+        "font-family:Arial;"
+        "font-size:12px;"
+        "background-color:#1b1d1f;"
+        "'>"
 
         "<TR>"
 
         "<TD "
-        "COLSPAN='3' "
-        "ALIGN='LEFT' "
+        "COLSPAN='2' "
+        "ALIGN='CENTER' "
         "VALIGN='MIDDLE' "
-        "HEIGHT='34'>"
+        "HEIGHT='38'>"
+
+        f"<FONT "
+        f"COLOR='#ffffff' "
+        f"SIZE='14'>"
 
         f"<B>{esc(title)}</B>"
 
+        "</FONT>"
+
         "</TD>"
 
         "</TR>"
-
-        # ----------------------------------------------------
-        # Column headers
-        # ----------------------------------------------------
-
-        "<TR>"
-
-        "<TD ALIGN='LEFT'>"
-        "<B>Column</B>"
-        "</TD>"
-
-        "<TD ALIGN='LEFT'>"
-        "<B>Type</B>"
-        "</TD>"
-
-        "<TD ALIGN='CENTER'>"
-        "<B>Key</B>"
-        "</TD>"
-
-        "</TR>"
-
-        # ----------------------------------------------------
-        # Rows
-        # ----------------------------------------------------
 
         + "".join(rows)
 
         + "</TABLE>"
     )
 
-    # --------------------------------------------------------
-    # Dynamic height
-    # --------------------------------------------------------
+    title_height = 38
 
-    row_height = 28
-
-    header_height = 72
+    row_height = 34
 
     h = max(
-        110,
-        header_height +
+        80,
+        title_height +
         len(rows) * row_height
     )
 
-    # --------------------------------------------------------
-    # Draw.io rectangle
-    #
-    # rounded=0 => sharp corners
-    # overflow=hidden => content stays inside
-    # --------------------------------------------------------
+    if cell_id is None:
+        cell_id = gid()
 
     return (
 
         f'<mxCell '
 
-        f'id="{gid()}" '
+        f'id="{cell_id}" '
 
         f'value="{esc(label)}" '
 
@@ -1014,9 +1101,9 @@ def table_cell(
 
         f'rounded=0;'
 
-        f'fillColor=#ffffff;'
+        f'fillColor=#1b1d1f;'
 
-        f'strokeColor=#475569;'
+        f'strokeColor=#f1f1f1;'
 
         f'strokeWidth=1;'
 
@@ -1024,11 +1111,11 @@ def table_cell(
 
         f'verticalAlign=top;'
 
-        f'spacing=6;'
+        f'spacing=0;'
 
         f'fontSize=12;'
 
-        f'fontColor=#1e293b;'
+        f'fontColor=#ffffff;'
 
         f'overflow=hidden;'
 
@@ -1072,9 +1159,11 @@ def build_drawio(
 
     for cls, info in models.items():
 
-        if info["table"] not in all_tables:
+        table = info["table"]
 
-            all_tables[info["table"]] = {
+        if table not in all_tables:
+
+            all_tables[table] = {
 
                 "columns": info["columns"],
 
@@ -1082,7 +1171,7 @@ def build_drawio(
             }
 
     # --------------------------------------------------------
-    # Group tables
+    # Assign groups
     # --------------------------------------------------------
 
     grouped = defaultdict(list)
@@ -1094,19 +1183,24 @@ def build_drawio(
             table
         )
 
-        group = (
-            models[cls]["group"]
-            if cls
-            else "Other"
-        )
+        if cls:
+
+            group = models[cls]["group"]
+
+        else:
+
+            group = GROUP_MAP.get(
+                table,
+                "Other"
+            )
 
         grouped[group].append(table)
 
     # --------------------------------------------------------
-    # Group ordering
+    # Group order
     # --------------------------------------------------------
 
-    order = [
+    group_order = [
 
         "Auth & People",
 
@@ -1128,51 +1222,93 @@ def build_drawio(
     ]
 
     # ========================================================
-    # Layout
+    # Dynamic canvas width
     # ========================================================
 
-    margin_x = 70
+    max_group_tables = 0
 
-    table_w = 360
+    for group in group_order:
 
-    gap_x = 60
+        count = len(
+            grouped.get(
+                group,
+                []
+            )
+        )
 
-    gap_y = 90
+        max_group_tables = max(
+            max_group_tables,
+            count
+        )
 
-    group_header = 42
+    actual_columns = min(
+        MAX_PER_ROW,
+        max(
+            1,
+            max_group_tables
+        )
+    )
 
-    # Three tables per row.
-    max_per_row = 3
+    canvas_width = (
 
-    positions = {}
+        MARGIN_X * 2
 
-    table_ids = {}
+        + actual_columns * TABLE_W
+
+        + (actual_columns - 1) * GAP_X
+
+        + 120
+    )
+
+    # --------------------------------------------------------
+    # Minimum comfortable width
+    # --------------------------------------------------------
+
+    canvas_width = max(
+        canvas_width,
+        1500
+    )
+
+    # ========================================================
+    # Layout state
+    # ========================================================
 
     cells = []
 
-    next_y = 70
+    table_ids = {}
+
+    next_y = MARGIN_Y
+
+    total_height = MARGIN_Y
 
     # ========================================================
-    # Generate Groups
+    # Build groups
     # ========================================================
 
-    for group in order:
+    for group in group_order:
 
         items = sorted(
-            grouped.get(group, [])
+            grouped.get(
+                group,
+                []
+            )
         )
 
         if not items:
             continue
 
+        # ----------------------------------------------------
+        # Split into rows
+        # ----------------------------------------------------
+
         rows = [
 
-            items[i:i + max_per_row]
+            items[i:i + MAX_PER_ROW]
 
             for i in range(
                 0,
                 len(items),
-                max_per_row
+                MAX_PER_ROW
             )
         ]
 
@@ -1184,17 +1320,24 @@ def build_drawio(
 
         for row in rows:
 
-            max_h = 120
+            max_h = 100
 
             for table in row:
 
+                column_count = len(
+                    all_tables[table]["columns"]
+                )
+
+                table_h = (
+
+                    38
+
+                    + column_count * 34
+                )
+
                 max_h = max(
                     max_h,
-
-                    72 +
-                    len(
-                        all_tables[table]["columns"]
-                    ) * 28
+                    table_h
                 )
 
             row_heights.append(
@@ -1205,29 +1348,28 @@ def build_drawio(
         # Group height
         # ----------------------------------------------------
 
-        group_h = (
+        group_height = (
 
-            group_header
+            GROUP_HEADER
 
             + sum(row_heights)
 
-            + (len(rows) - 1) * 25
+            + (len(rows) - 1) * GAP_Y
 
-            + 30
+            + 45
         )
 
         # ----------------------------------------------------
-        # Group Swimlane
-        #
-        # Very light background.
-        # Tables remain white.
+        # Group cell
         # ----------------------------------------------------
+
+        group_id = gid()
 
         cells.append(
 
             f'<mxCell '
 
-            f'id="{gid()}" '
+            f'id="{group_id}" '
 
             f'value="{esc(group)}" '
 
@@ -1239,17 +1381,17 @@ def build_drawio(
 
             f'rounded=0;'
 
-            f'startSize={group_header};'
+            f'startSize={GROUP_HEADER};'
 
-            f'fillColor=#f8fafc;'
+            f'fillColor=#141618;'
 
-            f'strokeColor=#cbd5e1;'
+            f'strokeColor=#3f4448;'
 
             f'fontStyle=1;'
 
             f'fontSize=14;'
 
-            f'fontColor=#334155;'
+            f'fontColor=#e5e7eb;'
 
             f'" '
 
@@ -1261,11 +1403,11 @@ def build_drawio(
 
             f'x="40" '
 
-            f'y="{next_y - 20}" '
+            f'y="{next_y}" '
 
-            f'width="1680" '
+            f'width="{canvas_width - 80}" '
 
-            f'height="{group_h}" '
+            f'height="{group_height}" '
 
             f'as="geometry"/>'
 
@@ -1276,28 +1418,32 @@ def build_drawio(
         # Tables inside group
         # ----------------------------------------------------
 
-        y = next_y + group_header
+        current_y = (
+            next_y
+            + GROUP_HEADER
+            + 20
+        )
 
-        for ri, row in enumerate(rows):
+        for row_index, row in enumerate(rows):
 
-            for ci, table in enumerate(row):
+            row_y = current_y
+
+            for column_index, table in enumerate(row):
 
                 x = (
 
-                    margin_x
+                    MARGIN_X
 
-                    + ci *
-                    (table_w + gap_x)
+                    + column_index
+                    * (
+                        TABLE_W
+                        + GAP_X
+                    )
                 )
 
-                positions[table] = (
-                    x,
-                    y
-                )
+                table_id = gid()
 
-                tid = gid()
-
-                table_ids[table] = tid
+                table_ids[table] = table_id
 
                 cls = model_for_table(
                     models,
@@ -1307,7 +1453,7 @@ def build_drawio(
                 if cls:
 
                     title = (
-                        f"{cls}  ·  {table}"
+                        f"{cls} · {table}"
                     )
 
                 else:
@@ -1315,35 +1461,61 @@ def build_drawio(
                     title = table
 
                 cells.append(
+
                     table_cell(
+
                         title,
-                        all_tables[table]["columns"],
+
+                        all_tables[table][
+                            "columns"
+                        ],
+
                         x,
-                        y,
-                        table_w
+
+                        row_y,
+
+                        TABLE_W,
+
+                        table_id
                     )
                 )
 
-            y += (
-                row_heights[ri]
-                + 25
+            current_y += (
+                row_heights[row_index]
+                + GAP_Y
             )
 
         next_y += (
-            group_h
-            + gap_y
+            group_height
+            + GROUP_GAP_Y
         )
 
+        total_height = next_y
+
     # ========================================================
-    # Foreign Key Edges
+    # Dynamic canvas height
     # ========================================================
 
-    for src, src_col, dst, dst_col in fks:
+    canvas_height = max(
+        total_height + MARGIN_Y,
+        1200
+    )
 
-        if (
-            src not in table_ids
-            or dst not in table_ids
-        ):
+    # ========================================================
+    # Foreign Key relationships
+    # ========================================================
+
+    for (
+        src,
+        src_col,
+        dst,
+        dst_col
+    ) in fks:
+
+        if src not in table_ids:
+            continue
+
+        if dst not in table_ids:
             continue
 
         cells.append(
@@ -1372,7 +1544,9 @@ def build_drawio(
 
             f'fontSize=9;'
 
-            f'fontColor=#64748b;'
+            f'fontColor=#7d858d;'
+
+            f'strokeColor=#69727b;'
 
             f'" '
 
@@ -1394,7 +1568,7 @@ def build_drawio(
         )
 
     # ========================================================
-    # Model Relationships
+    # Model relationships
     # ========================================================
 
     table_by_class = {
@@ -1406,10 +1580,12 @@ def build_drawio(
 
     fk_pairs = {
 
-        (a, c)
+        (src, dst)
 
-        for a, _, c, _ in fks
+        for src, _, dst, _ in fks
     }
+
+    relation_pairs = set()
 
     for cls, info in models.items():
 
@@ -1426,20 +1602,39 @@ def build_drawio(
                 target_cls
             )
 
-            if (
-                not dst
-                or src not in table_ids
-                or dst not in table_ids
-            ):
+            if not dst:
                 continue
 
-            # Do not duplicate a relationship
-            # already represented by an FK.
+            if src not in table_ids:
+                continue
+
+            if dst not in table_ids:
+                continue
+
+            # ------------------------------------------------
+            # Skip FK already represented
+            # ------------------------------------------------
+
             if (
                 src,
                 dst
             ) in fk_pairs:
+
                 continue
+
+            relation_key = (
+                src,
+                dst,
+                rel_name,
+                method
+            )
+
+            if relation_key in relation_pairs:
+                continue
+
+            relation_pairs.add(
+                relation_key
+            )
 
             cells.append(
 
@@ -1457,6 +1652,10 @@ def build_drawio(
 
                 f'dashed=1;'
 
+                f'orthogonalLoop=1;'
+
+                f'jettySize=auto;'
+
                 f'html=1;'
 
                 f'endArrow=none;'
@@ -1465,7 +1664,9 @@ def build_drawio(
 
                 f'fontSize=8;'
 
-                f'fontColor=#64748b;'
+                f'fontColor=#687079;'
+
+                f'strokeColor=#596169;'
 
                 f'" '
 
@@ -1487,14 +1688,14 @@ def build_drawio(
             )
 
     # ========================================================
-    # Draw.io XML
+    # Final XML
     # ========================================================
 
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 
 <mxfile
     host="app.diagrams.net"
-    modified="2026-08-15T00:00:00.000Z"
+    modified="2026-08-19T00:00:00.000Z"
     agent="Laravel-to-drawio-ERD"
     version="24.7.17"
     type="device">
@@ -1504,8 +1705,8 @@ def build_drawio(
         name="School Management ERD">
 
         <mxGraphModel
-            dx="1800"
-            dy="1200"
+            dx="{canvas_width}"
+            dy="{canvas_height}"
             grid="1"
             gridSize="10"
             guides="1"
@@ -1515,10 +1716,11 @@ def build_drawio(
             fold="1"
             page="1"
             pageScale="1"
-            pageWidth="1600"
-            pageHeight="1200"
+            pageWidth="{canvas_width}"
+            pageHeight="{canvas_height}"
             math="0"
-            shadow="0">
+            shadow="0"
+            background="#0f1113">
 
             <root>
 
@@ -1546,39 +1748,42 @@ def build_drawio(
 
 def main():
 
-    if (
-        not MODELS_DIR.exists()
-        or not MIGRATIONS_DIR.exists()
-    ):
+    if not MODELS_DIR.exists():
 
         raise SystemExit(
+            "Models directory not found: "
+            f"{MODELS_DIR}"
+        )
 
-            "Run this script from the root "
-            "of your Laravel project "
-            "(the folder containing app/ "
-            "and database/)."
+    if not MIGRATIONS_DIR.exists():
+
+        raise SystemExit(
+            "Migrations directory not found: "
+            f"{MIGRATIONS_DIR}"
         )
 
     # --------------------------------------------------------
-    # Read Models
+    # Models
     # --------------------------------------------------------
 
     models = parse_models()
 
     # --------------------------------------------------------
-    # Read Migrations
+    # Migrations
     # --------------------------------------------------------
 
     tables, fks = parse_migrations()
 
     # --------------------------------------------------------
-    # Assign groups
+    # Groups
     # --------------------------------------------------------
 
-    infer_groups(models)
+    infer_groups(
+        models
+    )
 
     # --------------------------------------------------------
-    # Generate XML
+    # Build XML
     # --------------------------------------------------------
 
     xml = build_drawio(
@@ -1588,7 +1793,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Write output
+    # Write
     # --------------------------------------------------------
 
     OUT.write_text(
@@ -1597,7 +1802,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Console output
+    # Console
     # --------------------------------------------------------
 
     print()
@@ -1627,6 +1832,10 @@ def main():
     )
 
     print(
+        f"Canvas width : {build_canvas_width(tables, models)}"
+    )
+
+    print(
         f"Output       : {OUT}"
     )
 
@@ -1643,6 +1852,71 @@ def main():
 
     print()
 
+
+# ============================================================
+# Canvas helper for console only
+# ============================================================
+
+def build_canvas_width(
+    tables,
+    models
+):
+    """
+    Calculate the same dynamic width used by the ERD.
+    """
+
+    grouped = defaultdict(int)
+
+    for table in tables:
+
+        cls = model_for_table(
+            models,
+            table
+        )
+
+        if cls:
+
+            group = models[cls]["group"]
+
+        else:
+
+            group = GROUP_MAP.get(
+                table,
+                "Other"
+            )
+
+        grouped[group] += 1
+
+    max_group_tables = max(
+        grouped.values(),
+        default=1
+    )
+
+    actual_columns = min(
+        MAX_PER_ROW,
+        max_group_tables
+    )
+
+    width = (
+
+        MARGIN_X * 2
+
+        + actual_columns * TABLE_W
+
+        + (actual_columns - 1) * GAP_X
+
+        + 120
+    )
+
+    return max(
+        width,
+        1500
+    )
+
+
+# ============================================================
+# Entry Point
+# ============================================================
 
 if __name__ == "__main__":
     main()

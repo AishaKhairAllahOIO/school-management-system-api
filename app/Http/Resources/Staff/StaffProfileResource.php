@@ -29,8 +29,9 @@ class StaffProfileResource extends JsonResource
             'birthPlace' => $user->birth_place,
             'address' => $user->address,
             'nationality' => $user->nationality,
-            'photoUrl' => FileUrl::endpoint(
-                $user->photo_url
+            'photoUrl' => FileUrl::make(
+                $user->photo_url,
+                config('filesystems.public_disk')
             ),
 
             'accountStatus' => $user->account_status,

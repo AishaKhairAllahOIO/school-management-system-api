@@ -48,14 +48,12 @@ class CounselorAvailabilityService
             return CounselorAvailability::insert($data);
         });
     }
-
     public function getSchedule(int $counselorId)
     {
         return CounselorAvailability::where('counselor_id', $counselorId)
             ->orderBy('day')
             ->get();
     }
-
     public function updateDay(int $counselorId, string $day, array $data)
     {
         return DB::transaction(function () use ($counselorId, $day, $data) {
@@ -114,94 +112,82 @@ class CounselorAvailabilityService
     {
         return DB::transaction(function () use ($counselorId, $day) {
 
-            $availability = CounselorAvailability::where('counselor_id', $counselorId)
+            $day = strtolower($day);
+
+            $availability = CounselorAvailability::query()
+                ->where('counselor_id', $counselorId)
                 ->where('day', $day)
+                ->lockForUpdate()
                 ->first();
 
             if (!$availability) {
                 throw new Exception(
-                    'لا يوجد جدول توافر لهذا اليوم.'
+                    'No availability schedule exists for this day.'
                 );
             }
 
+            $nextDate = $this->getNextDateForDay($day);
 
-            // البحث عن الحجوزات القادمة في هذا اليوم
-            $hasActiveAppointments = CounselorAppointment::where('counselor_id', $counselorId)
+            $hasActiveAppointments = CounselorAppointment::query()
+                ->where('counselor_id', $counselorId)
+                ->whereDate('appointment_date', $nextDate)
                 ->whereIn('booking_status', [
                     'pending',
-                    'accepted'
+                    'accepted',
                 ])
-                ->where('appointment_date', '>=', now()->toDateString())
-                ->where(function ($query) use ($day) {
-
-                    $days = [
-                        'sunday' => 0,
-                        'monday' => 1,
-                        'tuesday' => 2,
-                        'wednesday' => 3,
-                        'thursday' => 4,
-                        'friday' => 5,
-                        'saturday' => 6,
-                    ];
-
-
-                    if (!isset($days[$day])) {
-                        return;
-                    }
-
-
-                    $query->whereRaw(
-                        'DAYOFWEEK(appointment_date) = ?',
-                        [
-                            $days[$day] + 1
-                        ]
-                    );
-
-                })
                 ->exists();
 
-
             if ($hasActiveAppointments) {
-
                 throw new Exception(
-                    'لا يمكن حذف هذا اليوم لأنه يحتوي على حجوزات طلاب نشطة.'
+                    'This day cannot be deleted because it has active student appointments.'
                 );
-
             }
 
+            CounselorAppointment::query()
+                ->where('counselor_id', $counselorId)
+                ->whereDate('appointment_date', $nextDate)
+                ->where('booking_status', 'available')
+                ->where('slot_status', 'available')
+                ->delete();
 
-            return $availability->delete();
+            $availability->delete();
 
+            return true;
         });
     }
-
     public function addDay(int $counselorId, array $data)
     {
         return DB::transaction(function () use ($counselorId, $data) {
 
-            $exists = CounselorAvailability::where('counselor_id', $counselorId)
-                ->where('day', $data['day'])
+            $day = strtolower($data['day']);
+            $exists = CounselorAvailability::query()
+                ->where('counselor_id', $counselorId)
+                ->where('day', $day)
                 ->exists();
 
             if ($exists) {
                 throw new Exception(
-                    'يوجد جدول توافر لهذا اليوم مسبقاً.'
+                    'An availability schedule already exists for this day.'
                 );
             }
 
 
-            return CounselorAvailability::create([
+            $availability = CounselorAvailability::create([
                 'counselor_id' => $counselorId,
-                'day' => $data['day'],
+                'day' => $day,
                 'start_time' => $data['start_time'],
                 'end_time' => $data['end_time'],
                 'session_duration' => $data['session_duration'],
                 'daily_sessions_limit' => $data['daily_sessions_limit'],
             ]);
 
+            $nextDate = $this->getNextDateForDay($day);
+
+            $this->appointmentService->generateForDate($nextDate);
+
+            return $availability->fresh();
         });
     }
-
     private function getNextDateForDay(string $day): Carbon
     {
         $days = [

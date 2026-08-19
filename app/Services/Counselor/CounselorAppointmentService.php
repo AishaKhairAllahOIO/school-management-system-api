@@ -37,7 +37,12 @@ class CounselorAppointmentService
                 ->where('is_active', true)
                 ->get();
 
+            if ($availabilities->isEmpty()) {
+                return 0;
+            }
+
             $insertData = [];
+            $now = now();
 
             foreach ($availabilities as $availability) {
 
@@ -62,35 +67,74 @@ class CounselorAppointmentService
                         ->addMinutes($duration)
                         ->lte($end)
                 ) {
-
-                    $slotStart = $start->format('H:i:s');
-
-                    $slotEnd = $start
-                        ->copy()
-                        ->addMinutes($duration)
-                        ->format('H:i:s');
-
                     $insertData[] = [
                         'counselor_id' => $availability->counselor_id,
                         'student_id' => null,
                         'appointment_date' => $date->toDateString(),
-                        'start_time' => $slotStart,
-                        'end_time' => $slotEnd,
+                        'start_time' => $start->format('H:i:s'),
+                        'end_time' => $start
+                            ->copy()
+                            ->addMinutes($duration)
+                            ->format('H:i:s'),
                         'booking_status' => 'available',
                         'slot_status' => 'available',
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'created_at' => $now,
+                        'updated_at' => $now,
                     ];
 
                     $start->addMinutes($duration);
                 }
             }
 
-            if (!empty($insertData)) {
-                CounselorAppointment::insertOrIgnore($insertData);
+            if (empty($insertData)) {
+                return 0;
             }
 
-            return count($insertData);
+            $counselorIds = collect($insertData)
+                ->pluck('counselor_id')
+                ->unique()
+                ->values();
+
+            $existingSlots = CounselorAppointment::query()
+                ->whereDate('appointment_date', $date->toDateString())
+                ->whereIn('counselor_id', $counselorIds)
+                ->get([
+                    'counselor_id',
+                    'appointment_date',
+                    'start_time',
+                ])
+                ->map(function ($appointment) {
+                    return implode('|', [
+                        $appointment->counselor_id,
+                        $appointment->appointment_date->toDateString(),
+                        $appointment->start_time,
+                    ]);
+                })
+                ->flip();
+
+
+            $newSlots = collect($insertData)
+                ->filter(function (array $slot) use ($existingSlots) {
+
+                    $key = implode('|', [
+                        $slot['counselor_id'],
+                        $slot['appointment_date'],
+                        $slot['start_time'],
+                    ]);
+
+                    return !$existingSlots->has($key);
+                })
+                ->values()
+                ->all();
+
+            if (empty($newSlots)) {
+                return 0;
+            }
+
+            CounselorAppointment::insertOrIgnore($newSlots);
+
+
+            return count($newSlots);
         });
     }
 
@@ -116,54 +160,133 @@ class CounselorAppointmentService
     {
         return DB::transaction(function () use ($studentId, $appointmentDate, $startTime, $endTime) {
 
-            $studentAlreadyBooked = CounselorAppointment::where('student_id', $studentId)
-                ->whereDate('appointment_date', $appointmentDate)
-                ->where('start_time', $startTime)
-                ->whereIn('booking_status', ['pending', 'accepted'])
-                ->exists();
 
-            if ($studentAlreadyBooked) {
-                throw new Exception('لديك بالفعل موعد في هذا الوقت.');
+            try {
+                $appointmentDate = Carbon::parse($appointmentDate)->toDateString();
+
+                $requestedStart = Carbon::createFromFormat(
+                    'H:i:s',
+                    $startTime
+                );
+
+                $requestedEnd = Carbon::createFromFormat(
+                    'H:i:s',
+                    $endTime
+                );
+            } catch (\Throwable $e) {
+                throw new Exception(
+                    'The appointment date or time is invalid.'
+                );
             }
 
-            $appointments = CounselorAppointment::whereDate('appointment_date', $appointmentDate)
-                ->where('start_time', $startTime)
-                ->where('end_time', $endTime)
+            if ($requestedStart->gte($requestedEnd)) {
+                throw new Exception(
+                    'The appointment start time must be before the end time.'
+                );
+            }
+
+            $tomorrow = Carbon::tomorrow()->toDateString();
+
+            if ($appointmentDate !== $tomorrow) {
+                throw new Exception(
+                    'Appointments can only be booked for tomorrow.'
+                );
+            }
+
+
+            $appointmentStart = Carbon::parse(
+                $appointmentDate . ' ' . $requestedStart->format('H:i:s')
+            );
+
+            if ($appointmentStart->lte(now())) {
+                throw new Exception(
+                    'You cannot book an appointment that has already started or passed.'
+                );
+            }
+
+
+            $studentHasOverlappingAppointment = CounselorAppointment::query()
+                ->where('student_id', $studentId)
+                ->whereDate('appointment_date', $appointmentDate)
+                ->whereIn('booking_status', [
+                    'pending',
+                    'accepted',
+                ])
+                ->where('start_time', '<', $requestedEnd->format('H:i:s'))
+                ->where('end_time', '>', $requestedStart->format('H:i:s'))
+                ->exists();
+
+            if ($studentHasOverlappingAppointment) {
+                throw new Exception(
+                    'You already have another appointment that overlaps with this time.'
+                );
+            }
+
+
+            $appointments = CounselorAppointment::query()
+                ->whereDate('appointment_date', $appointmentDate)
+                ->where('start_time', $requestedStart->format('H:i:s'))
+                ->where('end_time', $requestedEnd->format('H:i:s'))
                 ->where('booking_status', 'available')
+                ->where('slot_status', 'available')
                 ->lockForUpdate()
                 ->get();
 
             if ($appointments->isEmpty()) {
-                throw new Exception('هذا الموعد لم يعد متاحاً.');
+                throw new Exception(
+                    'This appointment slot is no longer available.'
+                );
             }
 
-            $selectedAppointment = null;
-            $lowestLoad = PHP_INT_MAX;
-            $day = strtolower(Carbon::parse($appointmentDate)->englishDayOfWeek);
+            $day = strtolower(
+                Carbon::parse($appointmentDate)->englishDayOfWeek
+            );
 
-            // جلب التوافر لكل المرشدين مسبقاً توفيراً للاستعلامات
-            $counselorIds = $appointments->pluck('counselor_id')->toArray();
-            $availabilities = CounselorAvailability::whereIn('counselor_id', $counselorIds)
-                ->where('day', $day)->where('is_active', true)->get()->keyBy('counselor_id');
+            $counselorIds = $appointments
+                ->pluck('counselor_id')
+                ->unique()
+                ->values();
 
-            // جلب عدد الجلسات المقبولة مسبقاً دفعة واحدة
-            $acceptedCounts = CounselorAppointment::selectRaw('counselor_id, count(*) as count')
+            $availabilities = CounselorAvailability::query()
+                ->whereIn('counselor_id', $counselorIds)
+                ->where('day', $day)
+                ->where('is_active', true)
+                ->get()
+                ->keyBy('counselor_id');
+
+
+
+            $acceptedCounts = CounselorAppointment::query()
+                ->selectRaw('counselor_id, COUNT(*) as count')
                 ->whereIn('counselor_id', $counselorIds)
                 ->whereDate('appointment_date', $appointmentDate)
                 ->where('booking_status', 'accepted')
                 ->groupBy('counselor_id')
                 ->pluck('count', 'counselor_id');
 
+            $selectedAppointment = null;
+            $lowestLoad = PHP_INT_MAX;
+
             foreach ($appointments as $appointment) {
-                $availability = $availabilities->get($appointment->counselor_id);
 
-                if (!$availability)
+                $availability = $availabilities->get(
+                    $appointment->counselor_id
+                );
+
+                if (!$availability) {
                     continue;
+                }
 
-                $acceptedCount = $acceptedCounts->get($appointment->counselor_id, 0);
+                $acceptedCount = (int) $acceptedCounts->get(
+                    $appointment->counselor_id,
+                    0
+                );
 
-                if ($acceptedCount >= $availability->daily_sessions_limit)
+                $dailyLimit = (int) $availability->daily_sessions_limit;
+
+                if ($acceptedCount >= $dailyLimit) {
                     continue;
+                }
 
                 if ($acceptedCount < $lowestLoad) {
                     $lowestLoad = $acceptedCount;
@@ -172,8 +295,11 @@ class CounselorAppointmentService
             }
 
             if (!$selectedAppointment) {
-                throw new Exception('لا يوجد مرشد متاح لهذا الموعد حالياً.');
+                throw new Exception(
+                    'No counselor is currently available for this appointment slot.'
+                );
             }
+
 
             $selectedAppointment->update([
                 'student_id' => $studentId,
@@ -181,20 +307,43 @@ class CounselorAppointmentService
                 'slot_status' => 'booked',
             ]);
 
-            $selectedAppointment->load(['student.user', 'counselor.user']);
+            $selectedAppointment->load([
+                'student.user',
+                'counselor.user',
+            ]);
 
-            // تحسين: الاستغناء عن findOrFail لأننا عملنا load بالفعل
-            $studentName = $selectedAppointment->student->user->first_name . ' ' . $selectedAppointment->student->user->last_name;
+            if (!$selectedAppointment->student) {
+                throw new Exception(
+                    'The student could not be loaded for this appointment.'
+                );
+            }
+
+            if (!$selectedAppointment->student->user) {
+                throw new Exception(
+                    'The student user account could not be loaded.'
+                );
+            }
+
+            $studentName = trim(
+                $selectedAppointment->student->user->first_name
+                . ' '
+                . $selectedAppointment->student->user->last_name
+            );
 
             if ($selectedAppointment->counselor) {
                 $this->alertService->createStaffAlert(
                     $selectedAppointment->counselor,
                     Alert::TYPE_COUNSELING_REQUEST,
-                    'طلب جلسة إرشاد جديدة',
-                    'تم إرسال طلب جديد لحجز جلسة إرشاد. يرجى مراجعة طلبات المواعيد.',
+                    'New counseling appointment request',
+                    'A new counseling appointment request has been submitted. Please review the appointment requests.',
                     [
                         'student_name' => $studentName,
-                        'appointment_date' => $selectedAppointment->appointment_date->toDateString(),
+                        'appointment_date' => $selectedAppointment
+                            ->appointment_date
+                            ->toDateString(),
+                        'start_time' => $selectedAppointment->start_time,
+                        'end_time' => $selectedAppointment->end_time,
+                        'appointment_id' => $selectedAppointment->id,
                     ]
                 );
             }

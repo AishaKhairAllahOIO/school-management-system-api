@@ -151,7 +151,7 @@ class UserSeeder extends Seeder
                 'birth_place' => 'دمشق',
                 'address' => 'ميدان',
                 'nationality' => 'syrian',
-                'gender' => 'female', // تم التصحيح هنا
+                'gender' => 'female', 
                 'photo_url' => 'users/staff/admin_3.jpg',
                 'email' => 'shadooalkhateeb1234@gmail.com',
                 'account_status' => 'enabled',

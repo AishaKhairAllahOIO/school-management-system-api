@@ -3,36 +3,30 @@
 namespace App\Services\Auth;
 
 use App\ApiResource;
-use App\Models\AcademicYear;
 use App\Models\User;
-use App\Services\User\UserService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
 
 class OtpService
 {
     use ApiResource;
-    private string $apiKey ;
-    private string $apiUrl ;
-    private string $appleReviewPhone ;
-    private string $appleStaticOtp ;
 
-    private UserService $user_service;
+    private string $apiKey;
+    private string $apiUrl;
+    private string $appleReviewPhone;
+    private string $appleStaticOtp;
 
-    public function __construct(UserService $user_service)
+    // تم إزالة UserService لأنه غير مستخدم
+
+    public function __construct()
     {
-        $this->user_service = $user_service;
-
         $this->apiKey = config('services.traccar.api_key');
         $this->apiUrl = config('services.traccar.api_url');
         $this->appleReviewPhone = config('services.traccar.apple_review_phone');
         $this->appleStaticOtp = config('services.traccar.apple_static_otp');
-
     }
 
     public function login(string $phone_number): array|string
@@ -41,55 +35,50 @@ class OtpService
 
         if (!$user) {
             Log::channel('single')->warning('[LOGIN] Attempt failed. User not found.', ['phone_number' => $phone_number]);
-            throw new HttpResponseException($this->errorResponse('The phone number is not registered.', 422));
+            throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
         }
 
         if ($user->record_status !== 'active') {
             throw ValidationException::withMessages([
-                'record_status' => 'Your account is inactive. Please contact the administration.'
+                'record_status' => 'This account is no longer active.'
             ]);
         }
 
-    if ($user->account_status == 'disabled') {
-        throw ValidationException::withMessages([
-'account_status' => 'Your account has been disabled. Please contact the administration.'        ]);
-    }
-
-
-        // التعامل مع رقم مراجعة آبل الاستثنائي
-        if ($phone_number === $this->appleReviewPhone) {
-            // إذا كان رقم آبل، قم بتوليد أو إرجاع OTP ثابت (مثلاً 1234) دون إرسال SMS فعلي
-            // مثال:
-            // return $this->generateStaticOtpForApple($phone_number);
+        if ($user->account_status == 'disabled') {
+            throw ValidationException::withMessages([
+                'account_status' => 'This account is disabled. Please contact administration.'
+            ]);
         }
 
-        // للمستخدمين العاديين (الطبيعيين)، قم بتوليد وإرسال الـ OTP عبر Traccar SMS Gateway
-        return $this->generateOtp($phone_number);
+        // تمرير كائن المستخدم مباشرة لتجنب استعلام قاعدة البيانات مرة أخرى
+        return $this->generateOtp($user);
     }
-    public function generateOtp(string $phone_number): array
+
+    // تم تغيير المعامل ليقبل كائن User بدلاً من رقم الهاتف لتحسين الأداء
+    public function generateOtp(User $user): array
     {
+        $phone_number = $user->phone_number;
 
-        $user = User::where('phone_number', $phone_number)->first();
-
-        // إذا لم يكن المستخدم مسجلاً من قبل
-        if (!$user) {
-            Log::channel('single')->warning('[LOGIN] Attempt failed. User not found.', ['phone_number' => $phone_number]);
-            throw new HttpResponseException($this->errorResponse('The phone number is not registered.', 422));
-        }
-        // 3. توليد الكود (ثابت لأبل، وعشوائي للبقية)
         if ($phone_number === $this->appleReviewPhone) {
             $otp = $this->appleStaticOtp;
         } else {
             $otp = (string) rand(10000, 99999);
         }
 
-        // 4. تخزين الكود في الـ Cache لمدة 10 دقائق
-        // نستخدم مفتاح فريد يحتوي على رقم الهاتف لضمان عدم التداخل
+        // تخزين الكود في الـ Cache لمدة 20 دقيقة
         Cache::put('otp_' . $phone_number, $otp, now()->addMinutes(20));
 
-        Log::channel('single')->info('[OTP] OTP generated and cached for 20 minutes.', [
+        // إصلاح الخطأ الحرج: استدعاء دالة الإرسال الفعلية
+        $isSent = $this->attemptSendOtp($phone_number, $otp);
+
+        if (!$isSent && $phone_number !== $this->appleReviewPhone) {
+            // مسح الكود من الكاش إذا فشل الإرسال حتى لا يتعلق النظام
+            Cache::forget('otp_' . $phone_number);
+            throw new HttpResponseException($this->errorResponse('Failed to send OTP SMS. Please try again later.', 500));
+        }
+
+        Log::channel('single')->info('[OTP] OTP generated, SMS sending attempted, and cached for 20 minutes.', [
             'phone_number' => $phone_number,
-            'otp'   => $otp,
         ]);
 
         return [
@@ -99,14 +88,13 @@ class OtpService
             'otp_expires_in' => 20 * 60
         ];
     }
+
     public function attemptSendOtp(string $phone_number, string $otp): bool
     {
         try {
-            // تخطي الإرسال الحقيقي لمراجعي أبل
             if ($phone_number === $this->appleReviewPhone) {
                 Log::channel('single')->info('[APPLE REVIEW] attemptSendOtp bypassed (no real SMS).', [
                     'phone_number' => $phone_number,
-                    'otp'   => $otp,
                 ]);
                 return true;
             }
@@ -166,12 +154,13 @@ class OtpService
             return false;
         }
     }
+
     public function verifyOtp(string $phone_number, string $otp): array|string
     {
         if ($phone_number === $this->appleReviewPhone && $otp === $this->appleStaticOtp) {
             $user = User::where('phone_number', $phone_number)->first();
             if (!$user) {
-                throw new HttpResponseException($this->errorResponse('The review account could not be found.', 404));
+                throw new HttpResponseException($this->errorResponse('User not found for Apple review phone number.', 404));
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -183,7 +172,7 @@ class OtpService
                     'phone_number' => $phone_number,
                     'code'  => $otp,
                 ]);
-                throw new HttpResponseException($this->errorResponse('The verification code is incorrect or has expired.', 422));
+                throw new HttpResponseException($this->errorResponse('OTP is invalid or expired', 422));
             }
 
             Cache::forget('otp_' . $phone_number);
@@ -205,7 +194,6 @@ class OtpService
 
     public function logout(): void
     {
-
         if (Auth::guard('sanctum')->check()) {
             Auth::guard('sanctum')->user()->currentAccessToken()->delete();
         }

@@ -50,7 +50,7 @@ class ComplaintService
 
     if ($exists) {
         throw new Exception(
-            'You have already submitted this complaint for this student today.'
+            'You have already submitted this complaint for this student today. Please try again tomorrow.'
         );
     }
 
@@ -94,7 +94,7 @@ class ComplaintService
             ->first();
 
         if (!$student) {
-            throw new Exception('Student does not belong to this guardian.', 403);
+            throw new Exception('You do not have access to this student\'s complaints.', 403);
         }
 
         return Complaint::query()

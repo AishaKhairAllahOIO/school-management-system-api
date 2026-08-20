@@ -60,8 +60,9 @@ class FinancialContractService
                 ->firstOrFail();
 
             if ($account->payment_status !== 'draft') {
-                throw new Exception('لا يمكن إتمام التعاقد. هذا الحساب تم التعاقد عليه مسبقاً.');
-            }
+throw new Exception(
+    'The contract cannot be finalized because this account has already been contracted.'
+);            }
 
             $feePlan = FeePlan::with('extraServices')->findOrFail($data['feePlanId']);
             $policy = InstallmentPolicy::with('items')->findOrFail($data['installmentPolicyId']);
@@ -122,11 +123,14 @@ class FinancialContractService
         return DB::transaction(function () use ($accountId, $data) {
             $account = FinancialAccount::findOrFail($accountId);
             if (!$account)
-                throw new ModelNotFoundException('الحساب غير موجود ');
-
+throw new ModelNotFoundException(
+    'The financial account was not found.'
+);
             if (!in_array($account->payment_status, ['draft', 'unpaid'])) {
-                throw new Exception('لا يمكن تعديل العقد المالي لوجود دفعات مسددة. يجب إجراء (تسوية مالية) بدلاً من التعديل الحر.', 422);
-            }
+throw new Exception(
+    'The financial contract cannot be modified because payments have already been made. Please perform a financial settlement instead.',
+    422
+);         }
 
             ScheduledInstallment::where('financial_account_id', $account->id)->delete();
 

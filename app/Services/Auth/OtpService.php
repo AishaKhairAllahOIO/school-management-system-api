@@ -41,19 +41,18 @@ class OtpService
 
         if (!$user) {
             Log::channel('single')->warning('[LOGIN] Attempt failed. User not found.', ['phone_number' => $phone_number]);
-            throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
+            throw new HttpResponseException($this->errorResponse('The phone number is not registered.', 422));
         }
 
         if ($user->record_status !== 'active') {
             throw ValidationException::withMessages([
-                'record_status' => 'This account is no longer active.' // تم تعديل email إلى phone_number للدقة
+                'record_status' => 'Your account is inactive. Please contact the administration.'
             ]);
         }
 
     if ($user->account_status == 'disabled') {
         throw ValidationException::withMessages([
-            'account_status' => 'This account is disabled. Please contact administration.'
-        ]);
+'account_status' => 'Your account has been disabled. Please contact the administration.'        ]);
     }
 
 
@@ -75,7 +74,7 @@ class OtpService
         // إذا لم يكن المستخدم مسجلاً من قبل
         if (!$user) {
             Log::channel('single')->warning('[LOGIN] Attempt failed. User not found.', ['phone_number' => $phone_number]);
-            throw new HttpResponseException($this->errorResponse('Invalid credentials', 422));
+            throw new HttpResponseException($this->errorResponse('The phone number is not registered.', 422));
         }
         // 3. توليد الكود (ثابت لأبل، وعشوائي للبقية)
         if ($phone_number === $this->appleReviewPhone) {
@@ -172,7 +171,7 @@ class OtpService
         if ($phone_number === $this->appleReviewPhone && $otp === $this->appleStaticOtp) {
             $user = User::where('phone_number', $phone_number)->first();
             if (!$user) {
-                throw new HttpResponseException($this->errorResponse('User not found for Apple review phone number.', 404));
+                throw new HttpResponseException($this->errorResponse('The review account could not be found.', 404));
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -184,7 +183,7 @@ class OtpService
                     'phone_number' => $phone_number,
                     'code'  => $otp,
                 ]);
-                throw new HttpResponseException($this->errorResponse('OTP is invalid or expired', 422));
+                throw new HttpResponseException($this->errorResponse('The verification code is incorrect or has expired.', 422));
             }
 
             Cache::forget('otp_' . $phone_number);

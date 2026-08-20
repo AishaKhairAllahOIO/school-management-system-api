@@ -24,7 +24,7 @@ class SystemAccessService
             'login' => 'otp' . $user->email,
             'password_reset' => 'reset_otp' . $user->email,
             default => throw ValidationException::withMessages([
-                'purpose' => ['The OTP purpose is invalid.'],
+                'purpose' => ['Invalid OTP request type.'],
             ]),
         };
 
@@ -32,7 +32,7 @@ class SystemAccessService
             'login' => 'login_otp_resend_lock' . $user->email,
             'password_reset' => 'otp_resend_lock' . $user->email,
             default => throw ValidationException::withMessages([
-                'purpose' => ['The OTP purpose is invalid.'],
+                'purpose' => ['Invalid OTP request type.'],
             ]),
         };
 
@@ -63,20 +63,20 @@ class SystemAccessService
 
         if (!$access || !Hash::check($data['password'], $access->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid email or password.'],
+                'email' => ['The email or password is incorrect.'],
             ]);
         }
 
         if ($access->record_status !== 'active') {
             throw ValidationException::withMessages([
-                'email' => ['This account is no longer active.'],
+                'email' => ['Your account is inactive. Please contact the administration.'],
             ]);
         }
 
         if ($access->account_status === 'disabled') {
             throw ValidationException::withMessages([
                 'email' => [
-                    'This account is disabled. Please contact administration.',
+                   'Your account has been disabled. Please contact the administration.',
                 ],
             ]);
         }
@@ -103,13 +103,13 @@ class SystemAccessService
 
         if (!$access) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid email.'],
+                'email' => ['The email address is not registered.'],
             ]);
         }
 
         if ($access->record_status !== 'active') {
             throw ValidationException::withMessages([
-                'email' => ['This account is no longer active.'],
+                'email' => ['Your account is inactive. Please contact the administration.'],
             ]);
         }
 
@@ -140,7 +140,7 @@ class SystemAccessService
 
         if (!$access) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid email.'],
+                'email' => ['The email address is not registered.'],
             ]);
         }
 
@@ -153,7 +153,7 @@ class SystemAccessService
             (string) $cacheOtp !== (string) $data['otp']
         ) {
             throw ValidationException::withMessages([
-                'otp' => ['Invalid or expired OTP.'],
+                'otp' => ['The verification code is incorrect or has expired.'],
             ]);
         }
 
@@ -243,7 +243,7 @@ class SystemAccessService
 
         if (!$access) {
             throw ValidationException::withMessages([
-                'email' => ['User not found in the system.'],
+                'email' => ['No account was found with this email address.'],
             ]);
         }
 
@@ -273,7 +273,7 @@ class SystemAccessService
             ) {
                 throw ValidationException::withMessages([
                     'email' => [
-                        'Please wait a minute before requesting another verification code.',
+                       'Please wait 60 seconds before requesting another verification code.',
                     ],
                 ]);
             }
@@ -281,7 +281,7 @@ class SystemAccessService
             if ($access->record_status !== 'active') {
                 throw ValidationException::withMessages([
                     'email' => [
-                        'This account is no longer active.',
+                       'Your account is inactive. Please contact the administration.',
                     ],
                 ]);
             }
@@ -289,7 +289,7 @@ class SystemAccessService
             if ($access->account_status === 'disabled') {
                 throw ValidationException::withMessages([
                     'email' => [
-                        'This account is disabled. Please contact administration.',
+                       'Your account has been disabled. Please contact the administration.',
                     ],
                 ]);
             }
@@ -302,7 +302,7 @@ class SystemAccessService
 
         if ($purpose !== 'password_reset') {
             throw ValidationException::withMessages([
-                'purpose' => ['The OTP purpose is invalid.'],
+                'purpose' => ['Invalid OTP request type.'],
             ]);
         }
 
@@ -313,7 +313,7 @@ class SystemAccessService
         ) {
             throw ValidationException::withMessages([
                 'email' => [
-                    'Please wait a minute before requesting a new OTP.',
+                   'Please wait 60 seconds before requesting a new verification code.',
                 ],
             ]);
         }
@@ -335,7 +335,7 @@ class SystemAccessService
             (string) $cacheOtp !== (string) $data['otp']
         ) {
             throw ValidationException::withMessages([
-                'otp' => ['Invalid or expired OTP.'],
+                'otp' => ['The verification code is incorrect or has expired.'],
             ]);
         }
 
@@ -370,7 +370,7 @@ class SystemAccessService
         ) {
             throw ValidationException::withMessages([
                 'tempToken' => [
-                    'Invalid or expired reset token.',
+                   'The password reset session is invalid or has expired. Please start the password reset process again.',
                 ],
             ]);
         }
@@ -382,7 +382,7 @@ class SystemAccessService
 
         if (!$access) {
             throw ValidationException::withMessages([
-                'email' => ['User not found in the system.'],
+                'email' => ['No account was found with this email address.'],
             ]);
         }
 

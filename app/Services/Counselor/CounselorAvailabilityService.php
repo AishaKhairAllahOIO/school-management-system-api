@@ -80,6 +80,7 @@ class CounselorAvailabilityService
                 ->whereIn('booking_status', [
                     'pending',
                     'accepted',
+                    'completed',
                 ])
                 ->exists();
 

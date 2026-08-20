@@ -35,11 +35,12 @@ class CounselorSeeder extends Seeder
             'counselor_id'=> 9,
             'student_id' => 2,
             'appointment_date' => '2026-08-19',
-            'start_time' => '08:00',
-            'end_time' => '08:30',
+            'start_time' => '09:00',
+            'end_time' => '09:30',
             'booking_status'=> 'completed',
             'slot_status' => 'booked'
         ]);
+        
          CounselorAppointment::updateOrCreate([
             'counselor_id'=> 9,
             'student_id' => 2,

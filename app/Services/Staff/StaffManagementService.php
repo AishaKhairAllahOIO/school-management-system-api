@@ -4,6 +4,7 @@ namespace App\Services\Staff;
 use App\Models\User;
 use App\Models\Staff;
 use App\Models\Student;
+use App\Support\FileUrl;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -11,17 +12,20 @@ use Illuminate\Support\Facades\Storage;
 class StaffManagementService
 {
 
-    private function formatUserPhotoUrls($paginator)
-    {
-        $paginator->getCollection()->transform(function ($item) {
-            if ($item->user && $item->user->photo_url) {
-                $item->user->photo_url = url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $item->user->photo_url), '/'));
-            }
-            return $item;
-        });
+   private function formatUserPhotoUrls($paginator)
+{
+    $paginator->getCollection()->transform(function ($item) {
+        if ($item->user && $item->user->photo_url) {
+            $item->user->photo_url = FileUrl::make(
+                $item->user->photo_url, 
+                config('filesystems.public_disk')
+            );
+        }
+        return $item;
+    });
 
-        return $paginator;
-    }
+    return $paginator;
+}
 
     public function getStaffRoleCounts(): array
     {

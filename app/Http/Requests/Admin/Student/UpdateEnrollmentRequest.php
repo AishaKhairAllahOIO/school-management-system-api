@@ -28,4 +28,11 @@ class UpdateEnrollmentRequest extends FormRequest
            // 'enrollment_status' => 'sometimes|in:suspended,enrolled,completed',
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'class_room_id.exists'   => 'The selected classroom does not exist.',
+            'grade_level_id.exists'  => 'The selected grade level does not exist.',
+        ];
+    }
 }

@@ -22,4 +22,17 @@ class UpdateGradeConfigurationRequest extends FormRequest
 
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'grade_level_id.exists'           => 'The selected grade level does not exist.',
+            
+            'supervisor_id.exists'            => 'The selected supervisor does not exist in the system.',
+            
+            'planned_classrooms_count.required' => 'The planned classrooms count field is required when present.',
+            'planned_classrooms_count.integer'  => 'The planned classrooms count must be an integer.',
+            'planned_classrooms_count.min'      => 'The planned classrooms count must be at least 1.',
+            'planned_classrooms_count.max'      => 'The planned classrooms count must not exceed 50.',
+        ];
+    }
 }

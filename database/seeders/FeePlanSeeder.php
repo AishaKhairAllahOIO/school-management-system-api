@@ -19,7 +19,7 @@ class FeePlanSeeder extends Seeder
         $academicYear = AcademicYear::where('is_current', true)->first();
 
         if (!$academicYear) {
-            $this->command->warn('تنبيه: لا يوجد سنة دراسية نشطة في قاعدة البيانات!');
+           // $this->command->warn('تنبيه: لا يوجد سنة دراسية نشطة في قاعدة البيانات!');
             return;
         }
 
@@ -27,7 +27,7 @@ class FeePlanSeeder extends Seeder
         $gradeLevels = GradeLevel::all();
 
         if ($gradeLevels->isEmpty()) {
-            $this->command->warn('تنبيه: لا توجد صفوف دراسية في قاعدة البيانات! يرجى تشغيل GradeLevelSeeder أولاً.');
+           // $this->command->warn('تنبيه: لا توجد صفوف دراسية في قاعدة البيانات! يرجى تشغيل GradeLevelSeeder أولاً.');
             return;
         }
 
@@ -50,7 +50,7 @@ class FeePlanSeeder extends Seeder
                     'grade_level_id'   => $grade->id,
                 ],
                 [
-                    'name'        => "خطة الرسوم لـ {$grade->name} ({$academicYear->name})",
+                    'name'        => ':خطة الصف '.$grade->level,
                     'base_amount' => $baseAmount,
                 ]
             );
@@ -78,6 +78,6 @@ class FeePlanSeeder extends Seeder
             }
         }
 
-        $this->command->info('تم زراعة الخطط المالية والخدمات الموحدة بنجاح! ✅');
+       // $this->command->info('تم زراعة الخطط المالية والخدمات الموحدة بنجاح! ✅');
     }
 }

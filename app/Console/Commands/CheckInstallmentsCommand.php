@@ -12,12 +12,11 @@ class CheckInstallmentsCommand extends Command
 {
     protected $signature = 'finance:check-installments';
 
-    protected $description = 'فحص الأقساط المالية وإرسال إشعارات التذكير والتأخير آلياً لآباء الطلاب';
-
+    protected $description = 'Check financial installments and automatically send reminder and overdue alerts to parents';
 
     public function handle(AlertService $alertService)
     {
-        $this->info('بدأ فحص الأقساط المالية لليوم: ' . now()->format('Y-m-d'));
+        $this->info('Started checking financial installments for today: ' . now()->format('Y-m-d'));
 
         $today = Carbon::today();
         $targetReminderDate = $today->copy()->addDays(3);
@@ -25,7 +24,7 @@ class CheckInstallmentsCommand extends Command
         $remindersCount = 0;
         $overdueCount = 0;
 
-
+        // 1. تذكير الأقساط القادمة (قبل موعدها بـ 3 أيام)
         $upcomingInstallments = ScheduledInstallment::with('account.student.enrollments')
             ->where('status', 'pending')
             ->whereDate('due_date', $targetReminderDate)
@@ -44,9 +43,9 @@ class CheckInstallmentsCommand extends Command
                 $remindersCount++;
             }
         }
-        $this->info("✅ تم إرسال {$remindersCount} إشعارات تذكير.");
+        $this->info("✅ Successfully sent {$remindersCount} payment reminder notices.");
 
-
+        // 2. فحص الأقساط المتأخرة (التي مر تاريخ استحقاقها ولم تدفع)
         $overdueInstallments = ScheduledInstallment::with('account.student.enrollments')
             ->where('status', 'pending')
             ->whereDate('due_date', '<', $today)
@@ -67,7 +66,7 @@ class CheckInstallmentsCommand extends Command
                 $overdueCount++;
             }
         }
-        $this->info("🚨 تم تحويل {$overdueCount} أقساط إلى متأخرة وإرسال إنذارات لأولياء الأمور.");
+        $this->info("🚨 Converted {$overdueCount} installments to overdue status and sent warnings to parents.");
 
         Log::info("Finance Check Installments Command ran successfully. Reminders: {$remindersCount}, Overdue: {$overdueCount}");
 

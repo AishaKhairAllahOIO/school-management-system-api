@@ -28,4 +28,17 @@ class UpdatePolicyItemRequest extends FormRequest
             'dueDay'   => ['sometimes',  'integer', 'min:1', 'max:31'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'title.string'   => 'The title must be a string.',
+            'title.max'      => 'The title must not exceed 100 characters.',
+            'dueMonth.integer' => 'The due month must be an integer.',
+            'dueMonth.min'   => 'The due month must be at least 1.',
+            'dueMonth.max'   => 'The due month may not be greater than 12.',
+            'dueDay.integer' => 'The due day must be an integer.',
+            'dueDay.min'     => 'The due day must be at least 1.',
+            'dueDay.max'     => 'The due day may not be greater than 31.',
+        ];
+    }
 }

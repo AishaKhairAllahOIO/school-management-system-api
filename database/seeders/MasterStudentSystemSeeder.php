@@ -30,7 +30,7 @@ class MasterStudentSystemSeeder extends Seeder
             ?? AcademicYear::first();
 
         if (!$academicYear) {
-            $this->command->error('❌ خطأ: يرجى تشغيل AcademicYearSeeder أولاً!');
+            //$this->command->error('❌ خطأ: يرجى تشغيل AcademicYearSeeder أولاً!');
             return;
         }
 
@@ -56,7 +56,7 @@ class MasterStudentSystemSeeder extends Seeder
         $lastNames  = ['الخالد', 'العلي', 'السعيد', 'المحمود', 'الخطيب', 'الرفاعي', 'الداوود', 'الحسن', 'النايف', 'الشامي', 'النجار', 'الحوراني'];
         $places     = ['دمشق', 'حلب', 'حمص', 'حماة', 'اللاذقية', 'طرطوس', 'درعا', 'دير الزور'];
 
-        $this->command->info('🚀 جاري توليد بيانات 25 طالباً مع كافة تفاصيلهم المالية والأكاديمية...');
+       // $this->command->info('🚀 جاري توليد بيانات 25 طالباً مع كافة تفاصيلهم المالية والأكاديمية...');
 
         DB::transaction(function () use ($academicYear, $gradeLevel, $classRoom, $feePlan, $policy, $components, $firstNames, $lastNames, $places) {
             

@@ -36,4 +36,13 @@ class SystemAccessForgetPasswordRequest extends FormRequest
             ],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'email.required'  => 'The email field is required.',
+            'email.email'     => 'Please enter a valid email address.',
+            'purpose.string'  => 'The purpose must be a string.',
+            'purpose.in'      => 'The selected purpose is invalid. It must be either login or password_reset.',
+        ];
+    }
 }

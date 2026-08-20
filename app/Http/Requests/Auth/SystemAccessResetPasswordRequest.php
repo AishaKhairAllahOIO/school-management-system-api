@@ -28,4 +28,15 @@ class SystemAccessResetPasswordRequest extends FormRequest
             'tempToken'=>'required',
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'email.required'     => 'The email field is required.',
+            'email.email'        => 'Please enter a valid email address.',
+            'password.required'  => 'The password field is required.',
+            'password.string'    => 'The password must be a string.',
+            'password.confirmed' => 'The password confirmation does not match.',
+            'tempToken.required' => 'The temporary token is required.',
+        ];
+    }
 }

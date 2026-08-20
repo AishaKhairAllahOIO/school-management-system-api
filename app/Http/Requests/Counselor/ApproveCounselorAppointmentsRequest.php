@@ -32,4 +32,19 @@ class ApproveCounselorAppointmentsRequest extends FormRequest
             ],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'date.required'             => 'The date field is required.',
+            'date.date'                 => 'The date must be a valid date.',
+            'date.after_or_equal'       => 'The date must be today or a future date.',
+            
+            'appointment_ids.required'  => 'Please select at least one appointment to approve.',
+            'appointment_ids.array'     => 'The appointment IDs must be an array.',
+            
+            'appointment_ids.*.required'=> 'Each appointment ID is required.',
+            'appointment_ids.*.integer' => 'Each appointment ID must be an integer.',
+            'appointment_ids.*.distinct' => 'Duplicate appointment IDs are not allowed.',
+        ];
+    }
 }

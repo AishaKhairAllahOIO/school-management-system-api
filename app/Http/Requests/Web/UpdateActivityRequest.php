@@ -79,4 +79,31 @@ public function withValidator(Validator $validator): void
             }
         });
     }
+    public function messages(): array
+    {
+        return [
+            'grade_level_id.integer'   => 'The grade level ID must be an integer.',
+            'grade_level_id.exists'    => 'The selected grade level does not exist.',
+            
+            'class_room_ids.array'     => 'Classroom IDs must be provided as an array.',
+            'class_room_ids.*.integer' => 'Each classroom ID must be an integer.',
+            'class_room_ids.*.exists'  => 'One or more selected classrooms do not exist.',
+            
+            'type.string'              => 'The activity type must be a string.',
+            'type.max'                 => 'The activity type must not exceed 255 characters.',
+            
+            'activity_name.string'     => 'The activity name must be a string.',
+            'activity_name.max'        => 'The activity name must not exceed 255 characters.',
+            
+            'activity_date.date'       => 'The activity date must be a valid date.',
+            'activity_date.after'      => 'The activity date must be a date after today.',
+            
+            'start_time.date_format'   => 'The start time must match the format HH:MM.',
+            
+            'end_time.date_format'     => 'The end time must match the format HH:MM.',
+            'end_time.after'           => 'The activity end time must be after the start time.',
+            
+            'description.string'       => 'The description must be a string.',
+        ];
+    }
 }

@@ -27,12 +27,22 @@ class StoreGradeLevelRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
+ public function messages(): array
     {
         return [
-            'grade_levels.*.grade_name.distinct' => 'accepted grade names must be unique within the request.',
+            'academicStageId.required' => 'The academic stage ID field is required.',
+            'academicStageId.exists'   => 'The selected academic stage does not exist.',
+            
+            'name.required'            => 'The grade level name field is required.',
+            'name.unique'              => 'This grade level name has already been taken.',
+            
+            'isGraduationGrade.boolean'=> 'The graduation grade flag must be true or false.',
+            
+            // الرسائل القديمة الموجودة في الكود الخاص بكِ مع تحسينها بالإنجليزية
+            'grade_levels.*.grade_name.distinct' => 'Accepted grade names must be unique within the request.',
             'grade_levels.*.grade_name.unique' => 'Grade name already exists.',
             'grade_levels.*.classrooms.*.capacity.min' => 'Classroom capacity must be at least 1.',
         ];
     }
+    
 }

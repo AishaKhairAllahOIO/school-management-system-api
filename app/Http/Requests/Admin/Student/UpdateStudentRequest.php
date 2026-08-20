@@ -51,11 +51,28 @@ class UpdateStudentRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
+ public function messages(): array
     {
         return [
-            'user.phone_number.unique' => 'The phone number is already in use.',
-            'guardian_id.exists'       => 'The guardian ID does not exist.',
+            'user.first_name.string'   => 'The first name must be a string.',
+            'user.first_name.max'      => 'The first name must not exceed 50 characters.',
+            'user.last_name.string'    => 'The last name must be a string.',
+            'user.last_name.max'       => 'The last name must not exceed 50 characters.',
+            'user.father_name.string'  => 'The father name must be a string.',
+            'user.father_name.max'     => 'The father name must not exceed 50 characters.',
+            'user.mother_name.string'  => 'The mother name must be a string.',
+            'user.mother_name.max'     => 'The mother name must not exceed 50 characters.',
+            'user.birth_date.date'     => 'The birth date must be a valid date.',
+            'user.birth_place.string'  => 'The birth place must be a string.',
+            'user.birth_place.max'     => 'The birth place must not exceed 100 characters.',
+            'user.address.string'      => 'The address must be a string.',
+            'user.address.max'         => 'The address must not exceed 255 characters.',
+            'user.gender.in'           => 'The selected gender is invalid.',
+            'user.nationality.string'  => 'The nationality must be a string.',
+            'user.nationality.max'     => 'The nationality must not exceed 50 characters.',
+            'user.phone_number.string' => 'The phone number must be a string.',
+            'user.phone_number.unique' => 'The phone number has already been taken.',
         ];
     }
+    
 }

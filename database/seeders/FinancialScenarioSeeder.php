@@ -33,7 +33,7 @@ class FinancialScenarioSeeder extends Seeder
             $students = Student::whereDoesntHave('financialAccount')->take(3)->get();
 
             if ($students->count() < 3) {
-                $this->command->warn('تنبيه: لا يوجد 3 طلاب بدون حساب مالي في النظام لتطبيق السيناريو عليهم.');
+              //  $this->command->warn('تنبيه: لا يوجد 3 طلاب بدون حساب مالي في النظام لتطبيق السيناريو عليهم.');
                 return;
             }
 
@@ -105,36 +105,36 @@ class FinancialScenarioSeeder extends Seeder
                     // تحديث محفظة الطالب
                     $account->update([
                         'remaining_balance' => $account->total_required_amount - $paidAmount,
-                        'payment_status'    => 'partially_paid',
+                        'payment_status'    => 'fully_paid',
                     ]);
                 }
 
                 // الطالب 2: سيدفع كامل المبلغ المترتب عليه (Fully Paid)
-                if ($index === 2) {
-                    $paidAmount = $grandTotal; // دفع كل شيء
+                // if ($index === 2) {
+                //     $paidAmount = $grandTotal; // دفع كل شيء
 
-                    PaymentTransaction::create([
-                        'financial_account_id' => $account->id,
-                        'paid_amount'          => $paidAmount,
-                        'payment_method'       => 'bank_transfer',
-                        'digital_reference'    => 'TRX-' . rand(1000, 9999),
-                        'collected_by_user_id' => $accountant?->id ?? 1,
-                    ]);
+                    // PaymentTransaction::create([
+                    //     'financial_account_id' => $account->id,
+                    //     'paid_amount'          => $paidAmount,
+                    //     'payment_method'       => 'bank_transfer',
+                    //     'digital_reference'    => 'TRX-' . rand(1000, 9999),
+                    //     'collected_by_user_id' => $accountant?->id ?? 1,
+                    // ]);
 
                     // تحديث جميع الأقساط لتكون مدفوعة
-                    foreach ($installments as $installment) {
-                        $installment->update([
-                            'amount_paid' => $installment->amount_due,
-                            'status'      => 'paid',
-                        ]);
-                    }
+                    // foreach ($installments as $installment) {
+                    //     $installment->update([
+                    //         'amount_paid' => $installment->amount_due,
+                    //         'status'      => 'paid',
+                    //     ]);
+                    // }
 
                     // تحديث محفظة الطالب وتصفير الديون
-                    $account->update([
-                        'remaining_balance' => 0,
-                        'payment_status'    => 'fully_paid',
-                    ]);
-                }
+                    // $account->update([
+                    //     'remaining_balance' => 0,
+                    //     'payment_status'    => 'fully_paid',
+                    // ]);
+              //  }
             }
         });
     }

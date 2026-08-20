@@ -178,7 +178,9 @@ Route::prefix('auth')->group(function () {
 
         Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
             Route::get('/show-profile', [UserController::class, 'teacherProfile']);
-            Route::post('/teacher-alerts', [UserAlertController::class, 'teacherCreateAlerts']);
+            Route::get('/teacher-alerts/{homworkId}/show', [HomeworkController::class, 'showAlert']);
+            Route::post('/teacher-alerts/create/{homworkId}', [HomeworkController::class, 'storeAlert']);
+            Route::post('/teacher-alerts/{homworkId}/update', [HomeworkController::class, 'updateAlert']);
             Route::get('/subjects-tree', [TeacherDropdownController::class, 'subjectsTree']);
             Route::get('/classrooms/{classRoomId}/students', [TeacherDropdownController::class, 'classroomStudents']);
             Route::post('/create/homeworks', [HomeworkController::class, 'store']);

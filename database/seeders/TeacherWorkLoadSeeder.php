@@ -3,52 +3,24 @@
 namespace Database\Seeders;
 
 use App\Models\TeacherWorkload;
+use App\Models\Staff;
 use Illuminate\Database\Seeder;
 
 class TeacherWorkLoadSeeder extends Seeder
 {
     public function run(): void
     {
-        // الأستاذ رقم 1
-        TeacherWorkload::updateOrCreate(
-            ['academic_year_id' => 1, 'teacher_id' => 1],
-            ['assigned_monthly_periods' => 28, 'required_monthly_periods' => 30]
-        );
+        // مصفوفة تحتوي على user_id لجميع المعلمين (14 معلم) بناءً على UserSeeder
+        $teacherUserIds = [3, 13, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27];
 
-        // الأستاذ رقم 8
-        TeacherWorkload::updateOrCreate(
-            ['academic_year_id' => 1, 'teacher_id' => 8],
-            ['assigned_monthly_periods' => 28, 'required_monthly_periods' => 30]
-        );
+        // جلب staff_id الفعلي المطابق لكل معلم من جدول الموظفين لضمان التناسق
+        $teacherStaffIds = Staff::whereIn('user_id', $teacherUserIds)->pluck('id')->toArray();
 
-        // الأستاذ رقم 10
-        TeacherWorkload::updateOrCreate(
-            ['academic_year_id' => 1, 'teacher_id' => 10],
-            ['assigned_monthly_periods' => 28, 'required_monthly_periods' => 30]
-        );
-
-        // الأستاذ رقم 11
-        TeacherWorkload::updateOrCreate(
-            ['academic_year_id' => 1, 'teacher_id' => 11],
-            ['assigned_monthly_periods' => 28, 'required_monthly_periods' => 30]
-        );
-
-        // الأستاذ رقم 12
-        TeacherWorkload::updateOrCreate(
-            ['academic_year_id' => 1, 'teacher_id' => 12],
-            ['assigned_monthly_periods' => 28, 'required_monthly_periods' => 30]
-        );
-
-        // الأستاذ رقم 13
-        TeacherWorkload::updateOrCreate(
-            ['academic_year_id' => 1, 'teacher_id' => 13],
-            ['assigned_monthly_periods' => 28, 'required_monthly_periods' => 30]
-        );
-
-        // الأستاذ رقم 14
-        TeacherWorkload::updateOrCreate(
-            ['academic_year_id' => 1, 'teacher_id' => 14],
-            ['assigned_monthly_periods' => 28, 'required_monthly_periods' => 30]
-        );
+        foreach ($teacherStaffIds as $staffId) {
+            TeacherWorkload::updateOrCreate(
+                ['academic_year_id' => 1, 'teacher_id' => $staffId],
+                ['assigned_monthly_periods' => 28, 'required_monthly_periods' => 30]
+            );
+        }
     }
 }

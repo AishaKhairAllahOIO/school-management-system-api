@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Teacher;
 
 use App\ApiResource;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Teacher\StoreHomeworkAlertRequest;
 use App\Http\Requests\Teacher\StoreHomeworkRequest;
+use App\Http\Requests\Teacher\UpdateHomeworkAlertRequest;
 use App\Http\Requests\Teacher\UpdateHomeworkRequest;
 use App\Http\Resources\Teacher\HomeworkResource;
+use App\Http\Resources\User\HomeworkAlertResource;
 use App\Models\Homework;
 use App\Services\Teacher\HomeworkService;
+use App\Services\User\AlertService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -24,7 +28,7 @@ class HomeworkController extends Controller
     use AuthorizesRequests;
     use ApiResource;
 
-    public function __construct(protected HomeworkService $homeworkService) {}
+    public function __construct(protected HomeworkService $homeworkService, protected AlertService $alertService) {}
 
 
     private function getAuthStaff(Request $request)
@@ -134,26 +138,53 @@ class HomeworkController extends Controller
     }
 
 
-    public function update(UpdateHomeworkRequest $request, $id): JsonResponse
-    {
-        try {
-            $homework = Homework::findOrFail($id);
-            $updatedHomework = $this->homeworkService->updateHomework($homework, $request->validated());
+   public function update(UpdateHomeworkRequest $request, $id): JsonResponse
+{
+    try {
 
-            return $this->successResponse(
-                new HomeworkResource($updatedHomework),
-                'Homework updated successfully and notifications sent to students and guardians.',
-                200
-            );
-        } catch (ModelNotFoundException $e) {
-            return $this->errorResponse("Homework not found.", 404);
-        } catch (AuthorizationException | AccessDeniedHttpException $e) {
-            return $this->errorResponse("You are not authorized to update this homework.", 403);
-        } catch (Exception $e) {
-            return $this->errorResponse("An error occurred while updating the homework.", 500, ['error' => $e->getMessage()]);
-        }
+        $homework = Homework::findOrFail($id);
+
+        $this->authorize('update', $homework);
+
+
+        $updatedHomework = $this->homeworkService->updateHomework(
+            $homework,
+            $request->validated()
+        );
+
+
+        return $this->successResponse(
+            new HomeworkResource($updatedHomework),
+            'Homework updated successfully and notifications sent to students and guardians.',
+            200
+        );
+
+
+    } catch (ModelNotFoundException $e) {
+
+        return $this->errorResponse(
+            "Homework not found.",
+            404
+        );
+
+
+    } catch (AuthorizationException | AccessDeniedHttpException $e) {
+
+        return $this->errorResponse(
+            "You are not authorized to update this homework.",
+            403
+        );
+
+
+    } catch (Exception $e) {
+
+        return $this->errorResponse(
+            "An error occurred while updating the homework.",
+            500,
+            ['error' => $e->getMessage()]
+        );
     }
-
+}
     public function destroy(Request $request, $id): JsonResponse
     {
         try {
@@ -262,4 +293,161 @@ class HomeworkController extends Controller
             return $this->errorResponse("An error occurred while marking homework as read.", 500, ['error' => $e->getMessage()]);
         }
     }
+
+
+  public function showAlert(int $homeworkId): JsonResponse
+{
+    try {
+
+        $homework = Homework::findOrFail($homeworkId);
+
+        $this->authorize('view', $homework);
+
+        $details = $this->alertService->getHomeworkAlertDetails(
+            $homeworkId
+        );
+
+        return $this->successResponse(
+            new HomeworkAlertResource($details),
+            'Homework alert details retrieved successfully.'
+        );
+
+    } catch (ModelNotFoundException $e) {
+
+        return $this->errorResponse(
+            'Homework not found.',
+            404
+        );
+
+    } catch (
+        AuthorizationException |
+        AccessDeniedHttpException $e
+    ) {
+
+        return $this->errorResponse(
+            'You are not authorized to view this homework alert.',
+            403
+        );
+
+    } catch (Exception $e) {
+
+        return $this->errorResponse(
+            $e->getMessage(),
+            404
+        );
+    }
+}
+  public function updateAlert(
+    UpdateHomeworkAlertRequest $request,
+    int $homeworkId
+): JsonResponse {
+    try {
+
+        $homework = Homework::findOrFail($homeworkId);
+
+        $this->authorize('update', $homework);
+
+        $this->alertService->updateHomeworkAlert(
+            $homeworkId,
+            $request->validated(),
+            $request->user()
+        );
+
+        return $this->successResponse(
+            null,
+            'Homework alert updated successfully.'
+        );
+
+    } catch (ModelNotFoundException $e) {
+
+        return $this->errorResponse(
+            'Homework not found.',
+            404
+        );
+
+    } catch (
+        AuthorizationException |
+        AccessDeniedHttpException $e
+    ) {
+
+        return $this->errorResponse(
+            'You are not authorized to update this homework alert.',
+            403
+        );
+
+    } catch (InvalidArgumentException $e) {
+
+        return $this->errorResponse(
+            $e->getMessage(),
+            422
+        );
+
+    } catch (Exception $e) {
+
+        return $this->errorResponse(
+            'Failed to update homework alert.',
+            500,
+            ['error' => $e->getMessage()]
+        );
+    }
+}
+
+
+    public function storeAlert(
+    StoreHomeworkAlertRequest $request,
+    int $homeworkId
+): JsonResponse {
+    try {
+
+        $homework = Homework::findOrFail($homeworkId);
+
+        $this->authorize('update', $homework);
+
+        $alerts = $this->alertService->createHomeworkAlerts(
+            $homeworkId,
+            $request->validated('enrollment_ids'),
+            $request->validated('title'),
+            $request->validated('description'),
+            $request->user()
+        );
+
+        return $this->successResponse(
+            $alerts,
+            'Homework alerts created successfully.',
+            201
+        );
+
+    } catch (ModelNotFoundException $e) {
+
+        return $this->errorResponse(
+            'Homework not found.',
+            404
+        );
+
+    } catch (
+        AuthorizationException |
+        AccessDeniedHttpException $e
+    ) {
+
+        return $this->errorResponse(
+            'You are not authorized to manage this homework alert.',
+            403
+        );
+
+    } catch (InvalidArgumentException $e) {
+
+        return $this->errorResponse(
+            $e->getMessage(),
+            422
+        );
+
+    } catch (Exception $e) {
+
+        return $this->errorResponse(
+            'Failed to create homework alert.',
+            500,
+            ['error' => $e->getMessage()]
+        );
+    }
+}
 }

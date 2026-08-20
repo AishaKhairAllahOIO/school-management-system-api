@@ -3,10 +3,12 @@
 namespace App\Services\Teacher;
 
 use App\Jobs\SendPushNotification;
+use App\Models\Alert;
 use App\Models\Enrollment;
 use App\Models\Homework;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\User\AlertService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -14,27 +16,34 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class HomeworkService
 {
-    public function createHomework(User $teacherUser, array $data): Homework
-    {
-        return DB::transaction(function () use ($teacherUser, $data) {
+  public function createHomework(User $teacherUser, array $data): Homework
+{
+    return DB::transaction(function () use ($teacherUser, $data) {
 
-            $homework = Homework::create([
-                'teacher_id' => $teacherUser->staff->id,
-                'grade_subject_id' => $data['grade_subject_id'],
-                'title' => $data['title'],
-                'description' => $data['description'] ?? null,
-                'due_date' => $data['due_date'],
-            ]);
+        $homework = Homework::create([
+            'teacher_id' => $teacherUser->staff->id,
+            'grade_subject_id' => $data['grade_subject_id'],
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+            'due_date' => $data['due_date'],
+        ]);
 
-            $homework->classRooms()->attach($data['class_room_ids']);
+        $homework->classRooms()->attach($data['class_room_ids']);
 
-            $homework->load(['gradeSubject.subject', 'classRooms']);
+        $homework->load([
+            'gradeSubject.subject',
+            'classRooms'
+        ]);
 
-            $this->dispatchNotificationToStudentsAndGuardians($homework, $data['class_room_ids']);
+        $this->dispatchNotificationToStudentsAndGuardians(
+            $homework,
+            $data['class_room_ids'],
+            false
+        );
 
-            return $homework;
-        });
-    }
+        return $homework;
+    });
+}
     public function updateHomework(Homework $homework, array $data): Homework
     {
         return DB::transaction(function () use ($homework, $data) {
@@ -194,8 +203,6 @@ class HomeworkService
 
         return Homework::query()->where('id', '<', 0);
     }
-
- 
     private function resolveReaderUser(User $user, ?int $studentId): ?User
     {
         if ($user->hasRole('student') && $user->student) {
@@ -209,24 +216,22 @@ class HomeworkService
 
         return null;
     }
+    public function unreadCount(User $user, ?int $studentId = null): int
+    {
+        if ($user->hasRole('guardian') && $user->guardian && !$studentId) {
+            return $user->guardian->students->reduce(function ($carry, Student $child) use ($user) {
+                return $carry + $this->unreadCount($user, $child->id);
+            }, 0);
+        }
 
- public function unreadCount(User $user, ?int $studentId = null): int
-{
-    if ($user->hasRole('guardian') && $user->guardian && !$studentId) {
-        return $user->guardian->students->reduce(function ($carry, Student $child) use ($user) {
-            return $carry + $this->unreadCount($user, $child->id);
-        }, 0);
+        $readerUser = $this->resolveReaderUser($user, $studentId);
+
+        return $this->getBaseQueryForUser($user, $studentId)
+            ->whereDoesntHave('readers', function ($q) use ($readerUser) {
+                $q->where('user_id', $readerUser?->id);
+            })
+            ->count();
     }
-
-    $readerUser = $this->resolveReaderUser($user, $studentId);
-
-    return $this->getBaseQueryForUser($user, $studentId)
-        ->whereDoesntHave('readers', function ($q) use ($readerUser) {
-            $q->where('user_id', $readerUser?->id);
-        })
-        ->count();
-}
-
     public function markAllAsRead(User $user, ?int $studentId = null): void
     {
         if ($user->hasRole('guardian') && $user->guardian && !$studentId) {

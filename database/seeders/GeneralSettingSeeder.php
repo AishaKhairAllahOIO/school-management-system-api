@@ -14,7 +14,7 @@ class GeneralSettingSeeder extends Seeder
     public function run(): void
     {
         School::updateOrCreate(
-            ['id' => 1], // لضمان وجود سجل واحد فقط للمدرسة
+            ['id' => 1], 
             [
                 'school_name'           => 'Global Academy',
                 'short_name'            => 'GA',
@@ -29,7 +29,7 @@ class GeneralSettingSeeder extends Seeder
                 'latitude'              => 40.7128,
                 'longitude'             => -74.0060,
                 'logo_url'              => 'school_logos\EZp5iO5ZgScMldgw2PpInCaicNtKtD5eVYN3hBxf.jpg',
-                
+
 
             ]
         );

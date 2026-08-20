@@ -34,7 +34,6 @@ class GuardianReportController extends Controller
     {
         $user = Auth::user();
 
-        // التأكد أن المستخدم الحالي هو طالب ولديه سجل في جدول students
         if (!$user->student) {
             return $this->errorResponse('The current user account is not a registered student.', 403);
         }
@@ -87,7 +86,8 @@ class GuardianReportController extends Controller
 
         return $this->successResponse(
            StudentTopStudentResource ::collection($topStudents),
-           'Class top students retrieved successfully.'
+           'Class top students retrieved successfully.',
+           200
         );
     }
 
@@ -122,7 +122,8 @@ class GuardianReportController extends Controller
 
         return $this->successResponse(
             StudentTopStudentResource::collection($topStudents),
-           'Student class top students retrieved successfully.'
+           'Student class top students retrieved successfully.',
+           200
         );
     }
 

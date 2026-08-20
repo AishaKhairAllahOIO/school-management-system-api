@@ -18,7 +18,7 @@ class HomeworkPolicy
         }
 
         if ($user->hasRole('teacher')) {
-            return $this->checkTeacherHomeworkAccess($user, $gradeSubjectId, $classRoomIds);
+            return true;
         }
 
         return false;

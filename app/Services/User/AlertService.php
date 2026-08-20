@@ -858,6 +858,7 @@ class AlertService
 
             'title' => $alerts->first()->title,
 
+            'id' => $alerts->first()->id,
 
             'description' => $alerts->first()->description,
 
@@ -914,7 +915,7 @@ class AlertService
                     ->delete();
             }
 
-   
+
             if (!empty($data['add_enrollment_ids'])) {
 
                 $requestedEnrollmentIds = array_values(
@@ -990,39 +991,40 @@ class AlertService
             }
         });
     }
- public function createHomeworkAlerts(
-    int $homeworkId,
-    array $enrollmentIds,
-    string $title,
-    string $description,
-    User $user
-): Collection {
+    public function createHomeworkAlerts(
+        int $homeworkId,
+        array $enrollmentIds,
+        string $title,
+        string $description,
+        User $user
+    ): Collection {
 
-    $homework = Homework::with([
-        'gradeSubject.subject'
-    ])->findOrFail($homeworkId);
-
-
-    $meta = [
-        'homework_id' => $homework->id,
-        'grade_subject_id' => $homework->grade_subject_id,
-        'subject' => $homework->gradeSubject?->subject?->subject_name ?? 'مادة دراسية',
-        'date' => now()->toDateString(),
-    ];
+        $homework = Homework::with([
+            'gradeSubject.subject'
+        ])->findOrFail($homeworkId);
 
 
-    return $this->createBatchStudentAlerts(
-        collect($enrollmentIds)
-            ->unique()
-            ->values()
-            ->toArray(),
+        $meta = [
+            'homework_id' => $homework->id,
+            'grade_subject_id' => $homework->grade_subject_id,
+            'subject' => $homework->gradeSubject?->subject?->subject_name ?? 'مادة دراسية',
+            'date' => now()->toDateString(),
+        ];
 
-        Alert::TYPE_HOMEWORK,
 
-        $meta,
+        return $this->createBatchStudentAlerts(
+            collect($enrollmentIds)
+                ->unique()
+                ->values()
+                ->toArray(),
 
-        $title,
+            Alert::TYPE_HOMEWORK,
 
-        $description
-    );
-}}
+            $meta,
+
+            $title,
+
+            $description
+        );
+    }
+}

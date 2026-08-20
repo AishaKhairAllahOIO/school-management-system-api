@@ -54,12 +54,12 @@ class GuardianReportController extends Controller
             ->first();
 
         if (!$reportCard) {
-            return $this->errorResponse('Report card is not available or has not been published yet by the school administration.', 404);
+            return $this->errorResponse('لم يتم نشر الجلاء بعد ', 404);
         }
 
         return $this->successResponse(
             new ReportCardResource($reportCard),
-            'Report card retrieved successfully.'
+            'تم جلب الجلاء بنجاح'
         );
     }
 
@@ -86,7 +86,7 @@ class GuardianReportController extends Controller
 
         return $this->successResponse(
            StudentTopStudentResource ::collection($topStudents),
-           'Class top students retrieved successfully.',
+           'تم جلب العشرة الاوائل لهذا الصف',
            200
         );
     }
@@ -122,7 +122,7 @@ class GuardianReportController extends Controller
 
         return $this->successResponse(
             StudentTopStudentResource::collection($topStudents),
-           'Student class top students retrieved successfully.',
+           'تم جلب العشرة الاوائل لهذا الصف',
            200
         );
     }

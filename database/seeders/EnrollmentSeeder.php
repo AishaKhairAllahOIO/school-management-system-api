@@ -22,7 +22,7 @@ class EnrollmentSeeder extends Seeder
             [
                 'grade_level_id' => 1,
                 'class_room_id' => 1,
-                'enrollment_status' => 'enrolled',
+                'enrollment_status' => 'suspended',
                 'enrollment_date' => now(),
             ]
         );
@@ -50,7 +50,7 @@ class EnrollmentSeeder extends Seeder
             [
                 'grade_level_id' => 1,
                 'class_room_id' => 1,
-                'enrollment_status' => 'enrolled',
+                'enrollment_status' => 'suspended',
                 'enrollment_date' => now(),
             ]
         );

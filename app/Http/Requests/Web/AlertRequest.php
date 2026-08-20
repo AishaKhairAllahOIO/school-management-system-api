@@ -74,6 +74,8 @@ class AlertRequest extends FormRequest
             Alert::TYPE_HOMEWORK => [
                 'meta.subject' => ['required', 'string'],
                 'meta.date' => ['nullable', 'date'],
+                'meta.homework_id' => ['nullable','exists:homeworks,id'],
+                'meta.grade_subject_id' =>['nullable','exists:grade_subjects,id'],
             ],
             Alert::TYPE_PAYED => [
                 'meta.amount' => ['nullable', 'numeric'],

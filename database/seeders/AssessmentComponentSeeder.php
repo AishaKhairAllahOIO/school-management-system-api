@@ -20,7 +20,7 @@ class AssessmentComponentSeeder extends Seeder
         AssessmentComponent::query()->delete();
 
         foreach ($gradeSubjects as $gs) {
-            $max = $gs->max_mark; // العلامة العظمى للمادة (مثلاً 600 أو 400 أو 200 أو 100)
+            $max = $gs->max_mark; 
 
             $components = [
                 ['type' => 'oral',          'name' => 'الشفوي',            'max_mark' => $max * 0.05, 'weight' => 5.00],   // 5%

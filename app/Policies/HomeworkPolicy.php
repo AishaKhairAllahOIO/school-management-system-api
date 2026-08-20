@@ -23,20 +23,11 @@ class HomeworkPolicy
 
         return false;
     }
-    public function update(User $user, Homework $homework, int $gradeSubjectId, array $classRoomIds): bool
-    {
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if ($user->hasRole('teacher')) {
-            $isOwner = (int) $homework->teacher_id === (int) $user->staff->id;
-
-            return $isOwner && $this->checkTeacherHomeworkAccess($user, $gradeSubjectId, $classRoomIds);
-        }
-
-        return false;
-    }
+  public function update(User $user, Homework $homework): bool
+{
+    return $homework->teacher_id === $user->staff?->id
+        || $user->hasRole('super_admin');
+}
     public function delete(User $user, Homework $homework): bool
     {
         if ($user->hasRole('super_admin')) {

@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $defaultPassword = Hash::make(env('DEFAULT_USER_PASSWORD', 'password'));
+        $defaultPassword = Hash::make(env('DEFAULT_USER_PASSWORD', '123456789'));
 
         $user1 = User::updateOrCreate(
             ['phone_number' => '0996930692'],
@@ -151,7 +151,7 @@ class UserSeeder extends Seeder
                 'birth_place' => 'دمشق',
                 'address' => 'ميدان',
                 'nationality' => 'syrian',
-                'gender' => 'female', 
+                'gender' => 'female',
                 'photo_url' => 'users/staff/admin_3.jpg',
                 'email' => 'shadooalkhateeb1234@gmail.com',
                 'account_status' => 'enabled',
@@ -237,12 +237,12 @@ class UserSeeder extends Seeder
                 'password' => $defaultPassword,
                 'nationality' => 'other',
                 'gender' => 'female',
-                'photo_url' => 'users/staff/secretary_2.jpg',
+                'photo_url' => 'users/staff/adviser_2.jpg',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]
         );
-        $user11->assignRole('secretary');
+        $user11->assignRole('adviser');
 
         $user12 = User::updateOrCreate(
             ['phone_number' => '0993790629'],
@@ -422,5 +422,179 @@ class UserSeeder extends Seeder
             ]
         );
         $user19->assignRole('teacher');
+
+        $user20 = User::updateOrCreate(
+            ['phone_number' => '0994416054'],
+            [
+                'first_name' => 'مضر',
+                'last_name' => 'الشيباني',
+                'father_name' => 'كمال',
+                'mother_name' => 'سنا',
+                'birth_date' => '1996-03-30',
+                'birth_place' => 'دمشق',
+                'address' => 'ميدان',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/admin_4.jpg',
+                'email' => 'modaralshibani@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user20->assignRole('super_admin');
+
+        $user21 = User::updateOrCreate(
+            ['phone_number' => '0994416055'],
+            [
+                'first_name' => 'خالد',
+                'last_name' => 'أحمد',
+                'father_name' => 'محمد',
+                'mother_name' => 'سناء',
+                'birth_date' => '1988-01-10',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/teacher_8.jpg',
+                'email' => 'teacher.physics@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user21->assignRole('teacher');
+
+
+        $user22 = User::updateOrCreate(
+            ['phone_number' => '0994416056'],
+            [
+                'first_name' => 'ريم',
+                'last_name' => 'محمد',
+                'father_name' => 'علي',
+                'mother_name' => 'هدى',
+                'birth_date' => '1990-02-15',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'female',
+                'photo_url' => 'users/staff/teacher_9.jpg',
+                'email' => 'teacher.english@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user22->assignRole('teacher');
+
+
+        $user23 = User::updateOrCreate(
+            ['phone_number' => '0994416057'],
+            [
+                'first_name' => 'سامر',
+                'last_name' => 'حسن',
+                'father_name' => 'أحمد',
+                'mother_name' => 'ليلى',
+                'birth_date' => '1985-05-20',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/teacher_10.jpg',
+                'email' => 'teacher.history@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user23->assignRole('teacher');
+
+
+        $user24 = User::updateOrCreate(
+            ['phone_number' => '0994416058'],
+            [
+                'first_name' => 'نور',
+                'last_name' => 'خليل',
+                'father_name' => 'محمود',
+                'mother_name' => 'سعاد',
+                'birth_date' => '1991-03-10',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'female',
+                'photo_url' => 'users/staff/teacher_11.jpg',
+                'email' => 'teacher.geography@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user24->assignRole('teacher');
+
+
+        $user25 = User::updateOrCreate(
+            ['phone_number' => '0994416059'],
+            [
+                'first_name' => 'عبدالله',
+                'last_name' => 'يوسف',
+                'father_name' => 'حسن',
+                'mother_name' => 'منى',
+                'birth_date' => '1987-06-12',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/teacher_12.jpg',
+                'email' => 'teacher.religion@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user25->assignRole('teacher');
+
+
+        $user26 = User::updateOrCreate(
+            ['phone_number' => '0994416060'],
+            [
+                'first_name' => 'ياسر',
+                'last_name' => 'علي',
+                'father_name' => 'خالد',
+                'mother_name' => 'منى',
+                'birth_date' => '1990-07-18',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/teacher_13.jpg',
+                'email' => 'teacher.computer@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user26->assignRole('teacher');
+
+
+        $user27 = User::updateOrCreate(
+            ['phone_number' => '0994416061'],
+            [
+                'first_name' => 'ليان',
+                'last_name' => 'سليم',
+                'father_name' => 'كمال',
+                'mother_name' => 'رنا',
+                'birth_date' => '1992-08-22',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'female',
+                'photo_url' => 'users/staff/teacher_14.jpg',
+                'email' => 'teacher.music@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user27->assignRole('teacher');
     }
 }

@@ -60,8 +60,7 @@ class DatabaseSeeder extends Seeder
             StaffAttendanceSeeder::class,
             PayrollSeeder::class,
             StudentFinancialSeeder::class,
-            MasterStudentSystemSeeder::class,
-        //  FeePlanSeeder::class,
+          //  FeePlanSeeder::class,
           //  InstallmentPolicySeeder::class,
 
         ]);

@@ -192,4 +192,10 @@ throw new Exception(
 
         return $account->fresh('scheduledInstallments');
     }
+         public function getInstallmentsByStudentId(int $studentId)
+    {
+        $account = FinancialAccount::where('student_id', $studentId)->firstOrFail();
+
+        return ScheduledInstallment::where('financial_account_id', $account->id)->get();
+    }
 }

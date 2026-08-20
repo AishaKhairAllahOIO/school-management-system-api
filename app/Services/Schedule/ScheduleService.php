@@ -34,7 +34,6 @@ class ScheduleService
             throw new Exception("A schedule already exists for this term. Please use regenerate instead.");
         }
     }
-
     public function deleteExistingSchedule(int $academicYearId, int $semesterId): void
     {
         DB::transaction(function () use ($academicYearId, $semesterId) {
@@ -48,7 +47,6 @@ class ScheduleService
             }
         });
     }
-
     public function getAdminSchedule(int $academicYearId, int $semesterId): array
     {
 
@@ -138,7 +136,6 @@ class ScheduleService
 
         return $this->formatEntriesWithTimes($entries);
     }
-
     public function getStudentTomorrowSchedule(int $classroomId): array
     {
         $tomorrowDayString = $this->getSyrianTomorrowDayString();
@@ -152,7 +149,6 @@ class ScheduleService
 
         return $this->formatEntriesWithTimes($entries);
     }
-
     public function getTeacherWeeklySchedule(int $teacherId): array
     {
         $entries = ScheduleEntry::with(['gradeSubject.subject', 'classRoom.gradeLevel'])
@@ -161,21 +157,19 @@ class ScheduleService
 
         return $this->formatEntriesWithTimes($entries);
     }
-
     public function getTeacherTomorrowSchedule(int $teacherId): array
     {
         $tomorrowDayString = $this->getSyrianTomorrowDayString();
         if (!$tomorrowDayString)
             return [];
 
-        $entries = ScheduleEntry::with(['gradeSubject.subject', 'classRoom.gradeLevel'])
+        $entries = ScheduleEntry::with(['gradeSubject.subject', 'classRoom.gradeLevel', 'teacher.user'])
             ->where('teacher_id', $teacherId)
             ->where('day', $tomorrowDayString)
             ->get();
 
         return $this->formatEntriesWithTimes($entries);
     }
-
     private function getSyrianTomorrowDayString(): ?string
     {
         $tomorrow = Carbon::tomorrow();
@@ -186,7 +180,6 @@ class ScheduleService
 
         return strtolower($tomorrow->englishDayOfWeek);
     }
-
     private function formatEntriesWithTimes($entries): array
     {
         $settings = AcademicSetting::firstOrFail()->schedule_settings;
@@ -201,6 +194,9 @@ class ScheduleService
                 'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
                 'grade_name' => $entry->gradeSubject->gradeLevel->name,
                 'classroom' => $entry->classRoom->name ?? null,
+                'teacher_name' => $entry->teacher
+                    ? $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name
+                    : null,
                 'start_time' => $times['start_time'],
                 'end_time' => $times['end_time'],
             ];
@@ -214,8 +210,6 @@ class ScheduleService
 
         return $formatted;
     }
-
-
     public function getAllTeachersSchedule(int $academicYearId, int $semesterId): array
     {
         $schedule = Schedule::with([
@@ -267,7 +261,6 @@ class ScheduleService
 
         return $teachersTree;
     }
-
     public function updateEntry(int $entryId, array $data): ScheduleEntry
     {
         $entry = ScheduleEntry::find($entryId);
@@ -282,7 +275,6 @@ class ScheduleService
 
         return $entry;
     }
-
     public function addEntry(array $data): ScheduleEntry
     {
         $setting = AcademicSetting::firstOrFail();
@@ -355,4 +347,6 @@ class ScheduleService
             $setting->save();
         }
     }
+
+
 }

@@ -78,7 +78,7 @@ class UserAlertController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -96,7 +96,7 @@ class UserAlertController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -114,7 +114,7 @@ class UserAlertController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -132,7 +132,7 @@ class UserAlertController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -151,7 +151,7 @@ class UserAlertController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while retrieving alerts.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -168,7 +168,7 @@ class UserAlertController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('The requested alert was not found.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while deleting the alert.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -183,7 +183,7 @@ class UserAlertController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while creating alerts.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -201,7 +201,7 @@ class UserAlertController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while creating alerts.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -228,7 +228,7 @@ class UserAlertController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while creating alerts.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -246,7 +246,7 @@ class UserAlertController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while creating alerts.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -264,7 +264,7 @@ class UserAlertController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while creating alerts.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -286,7 +286,7 @@ class UserAlertController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while updating alerts.',
+               'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );
@@ -306,7 +306,7 @@ class UserAlertController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'An error occurred while retrieving counters.',
+                'Error:Server',
                 500,
                 ['error' => $e->getMessage()]
             );

@@ -39,4 +39,16 @@ class UpdateCounselingSessionRequest extends FormRequest
             ],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'attendance_status.required' => 'The attendance status field is required.',
+            'attendance_status.in'       => 'The selected attendance status is invalid (must be present or absent).',
+            
+            'assessment.in'              => 'The selected assessment type is invalid.',
+            'assessment.required_if'     => 'The assessment field is required when the student is present.',
+            
+            'notes.string'               => 'The notes must be a string.',
+        ];
+    }
 }

@@ -34,7 +34,7 @@ class SchoolSettingsController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse($e->getMessage(), 404);
         } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while fetching settings.', 500, ['exception_message' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['exception_message' => $e->getMessage()]);
         }
     }
 
@@ -52,7 +52,7 @@ class SchoolSettingsController extends Controller
         } catch (ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422, $e->errors());
         } catch (Exception $e) {
-            return $this->errorResponse('Failed to update settings.', 500, ['exception_message' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['exception_message' => $e->getMessage()]);
         }
     }
     public function indexImages(SchoolSettingsService $service)
@@ -78,7 +78,7 @@ class SchoolSettingsController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('The requested school image does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('An unexpected error occurred.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function storeImages(AddSchoolImageRequest $request, SchoolSettingsService $service)
@@ -94,7 +94,7 @@ class SchoolSettingsController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('School settings not found.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('An unexpected error occurred.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function updateImage(UpdateSchoolImageRequest $request, int $image, SchoolSettingsService $service)
@@ -120,7 +120,7 @@ class SchoolSettingsController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('The requested school image does not exist.', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('An unexpected error occurred.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function destroy(SchoolSettingsService $service)
@@ -129,7 +129,7 @@ class SchoolSettingsController extends Controller
             $service->deleteSettings();
             return $this->successResponse(null, 'School settings deleted successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse('An unexpected error occurred.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
     public function index(SchoolSettingsService $service)

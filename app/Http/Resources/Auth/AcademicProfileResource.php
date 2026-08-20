@@ -25,8 +25,10 @@ class AcademicProfileResource extends JsonResource
             'gender' => $this->gender,
             'nationality' => $this->nationality,
             'address' => $this->address,
-             'photoUrl' => FileUrl::endpoint(
-                $this->photo_url
+            'photoUrl' => FileUrl::make(
+                $this->photo_url,
+                     config('filesystems.public_disk')
+
             ),
             'email' => $this->email,
             'phone_number' => $this->phone_number,

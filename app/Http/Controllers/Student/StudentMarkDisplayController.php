@@ -26,7 +26,9 @@ class StudentMarkDisplayController extends Controller
             $studentId = $request->input('student_id');
             $marks = $this->markDisplayService->getMarks($request->user(), $studentId ? (int) $studentId : null);
 
-            return $this->successResponse($marks, 'Marks retrieved successfully.', 200);
+
+
+            return $this->paginatedResponse($marks, 'Marks retrieved successfully.', 200);
         } catch (Exception $e) {
             $code = $this->getExceptionCode($e);
             return $this->errorResponse($e->getMessage(), $code);

@@ -47,20 +47,20 @@ class CheckStudentAbsenceLimit
             $enrollmentId = $record->enrollment_id;
 
             if ($total == $warningLimit) {
-                $this->alertService->createBatchStudentAlerts(
+             $this->alertService->createBatchStudentAlerts(
                     [$enrollmentId],
                     Alert::TYPE_WARNING,
                     ['absence_count' => $total],
-                    'تحذير: اقتراب تجاوز حد الغياب',
-                    'بقي للطالب يومان فقط ويتجاوز حد الغياب المسموح.'
+                    'Warning: Approaching Absence Limit',
+                    'The student has only 2 days left before exceeding the allowed absence limit.'
                 );
             } elseif ($total == $allowed + 1) {
-             $this->alertService->createBatchStudentAlerts(
+           $this->alertService->createBatchStudentAlerts(
                     [$enrollmentId],
                     Alert::TYPE_EXPULSION,
                     ['absence_count' => $total, 'law_id' => 1],
-                    'تنبيه خطير: تجاوز حد الغياب المسموح',
-                    "لقد تجاوز الطالب الحد المسموح للغياب غير المبرر (إجمالي الغياب: {$total} أيام)."
+                    'Critical Alert: Allowed Absence Limit Exceeded',
+                    "The student has exceeded the allowed unexcused absence limit (Total absences: {$total} days)."
                 );
             }
         }

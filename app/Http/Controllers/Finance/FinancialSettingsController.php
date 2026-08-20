@@ -31,7 +31,7 @@ class FinancialSettingsController extends Controller
     {
         return $this->successResponse(
             InstallmentPolicyResource::collection($this->service->getPolicies()),
-            'تم جلب سياسات التقسيط بنجاح.'
+            'Insallment policies retrieved successfully.'
         );
     }
 
@@ -41,10 +41,10 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new InstallmentPolicyResource($this->service->getPolicyById($id)),
-                'تم جلب بيانات سياسة التقسيط بنجاح.'
+                'Installment policy retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سياسة التقسيط غير موجودة.', 404);
+            return $this->errorResponse('Installment Policy not found', 404);
         }
     }
 
@@ -53,11 +53,11 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new InstallmentPolicyResource($this->service->createPolicy($request->validated())),
-                'تم إنشاء سياسة التقسيط بنجاح.',
+                'Installment policy created successfully.',
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء الإنشاء.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -66,13 +66,13 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new InstallmentPolicyResource($this->service->updatePolicy($id, $request->validated())),
-                'تم تعديل سياسة التقسيط بنجاح.'
+                'Installment policy updated successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سياسة التقسيط غير موجودة.', 404);
+            return $this->errorResponse('Installment Policy not found', 404);
         } catch (Exception $e) {
             $statusCode = $e->getCode() == 409 ? 409 : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 
@@ -80,12 +80,12 @@ class FinancialSettingsController extends Controller
     {
         try {
             $this->service->deletePolicy($id);
-            return $this->successResponse(null, 'تم حذف سياسة التقسيط بنجاح.');
+            return $this->successResponse(null, 'Installment policy deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('سياسة التقسيط غير موجودة.', 404);
+            return $this->errorResponse('Installment Policy not found', 404);
         } catch (Exception $e) {
             $statusCode = $e->getCode() == 409 ? 409 : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 
@@ -94,12 +94,12 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new InstallmentPolicyItemResource($this->service->updatePolicyItem($id, $request->validated())),
-                'تم تعديل تفاصيل الدفعة بنجاح.'
+                'Installment policy item updated successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الدفعة غير موجودة.', 404);
+            return $this->errorResponse('Installment Policy Item not found', 404);
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -107,9 +107,9 @@ class FinancialSettingsController extends Controller
     {
         try {
             $this->service->deletePolicyItem($id);
-            return $this->successResponse(null, 'تم الحذف.');
+            return $this->successResponse(null, 'Installment policy item deleted successfully.');
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 422); 
+            return $this->errorResponse('Error:Server', 500); 
         }
     }
 
@@ -121,7 +121,7 @@ class FinancialSettingsController extends Controller
     {
         return $this->successResponse(
             FeePlanResource::collection($this->service->getFeePlans()),
-            'تم جلب خطط الرسوم المالية بنجاح.'
+            'Installment fee plans retrieved successfully.'
         );
     }
 
@@ -131,10 +131,10 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new FeePlanResource($this->service->getFeePlanById($id)),
-                'تم جلب بيانات الخطة بنجاح.'
+                'Installment fee plan retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('خطة الرسوم غير موجودة.', 404);
+            return $this->errorResponse('Installment fee plan not found', 404);
         }
     }
 
@@ -143,11 +143,11 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new FeePlanResource($this->service->createFeePlan($request->validated())),
-                'تم إنشاء خطة الرسوم بنجاح.',
+                'Installment fee plan created successfully.',
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء الإنشاء.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -156,13 +156,13 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new FeePlanResource($this->service->updateFeePlan($id, $request->validated())),
-                'تم تعديل خطة الرسوم بنجاح.'
+                'Installment fee plan updated successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('خطة الرسوم غير موجودة.', 404);
+            return $this->errorResponse('Installment fee plan not found', 404);
         } catch (Exception $e) {
             $statusCode = $e->getCode() == 409 ? 409 : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 
@@ -170,12 +170,12 @@ class FinancialSettingsController extends Controller
     {
         try {
             $this->service->deleteFeePlan($id);
-            return $this->successResponse(null, 'تم حذف خطة الرسوم بنجاح.');
+            return $this->successResponse(null, 'Installment fee plan deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('خطة الرسوم غير موجودة.', 404);
+            return $this->errorResponse('Installment fee plan not found', 404);
         } catch (Exception $e) {
             $statusCode = $e->getCode() == 409 ? 409 : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
     public function showPolicyItem(int $id): JsonResponse
@@ -183,10 +183,10 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new InstallmentPolicyItemResource($this->service->getInstallmentPolicyItem($id)),
-                'تم جلب بيانات الدفعة بنجاح.'
+                'Installment policy item retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الدفعة غير موجودة.', 404);
+            return $this->errorResponse('Installment policy item not found', 404);
         }
     }
         public function showExtraService(int $id): JsonResponse
@@ -194,10 +194,10 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new FeePlanExtraServiceResource($this->service->getExtraService($id)),
-                'تم جلب بيانات الخدمة الإضافية بنجاح.'
+                'Installment extra service retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الخدمة الإضافية غير موجودة.', 404);
+            return $this->errorResponse('Installment extra service not found', 404);
         }
     }
 
@@ -206,13 +206,13 @@ class FinancialSettingsController extends Controller
         try {
             return $this->successResponse(
                 new FeePlanExtraServiceResource($this->service->updateExtraService($id, $request->validated())),
-                'تم تعديل الخدمة الإضافية بنجاح.'
+                'Installment extra service updated successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الخدمة الإضافية غير موجودة.', 404);
+            return $this->errorResponse('Installment extra service not found', 404);
         } catch (Exception $e) {
             $statusCode = $e->getCode() == 409 ? 409 : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 
@@ -220,12 +220,12 @@ class FinancialSettingsController extends Controller
     {
         try {
             $this->service->deleteExtraService($id);
-            return $this->successResponse(null, 'تم حذف الخدمة الإضافية بنجاح.');
+            return $this->successResponse(null, 'Installment extra service deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('الخدمة الإضافية غير موجودة.', 404);
+            return $this->errorResponse('Installment extra service not found', 404);
         } catch (Exception $e) {
             $statusCode = $e->getCode() == 409 ? 409 : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 }

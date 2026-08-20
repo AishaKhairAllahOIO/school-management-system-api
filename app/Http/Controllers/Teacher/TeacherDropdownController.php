@@ -25,7 +25,7 @@ class TeacherDropdownController extends Controller
             $tree = $this->dropdownService->getSubjectsTree($request->user());
             return $this->successResponse($tree, 'تم جلب شجرة المواد والصفوف والشعب بنجاح.');
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب القوائم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -48,7 +48,7 @@ class TeacherDropdownController extends Controller
         } catch (AccessDeniedHttpException $e) {
             return $this->errorResponse($e->getMessage(), 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب الطلاب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

@@ -6,6 +6,7 @@ use App\Jobs\SendPushNotification;
 use App\Models\Alert;
 use App\Models\CounselorAppointment;
 use App\Models\Enrollment;
+use App\Models\Homework;
 use App\Models\SchoolLaw;
 use App\Models\Staff;
 use App\Models\Student;
@@ -15,6 +16,7 @@ use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -157,14 +159,20 @@ class AlertService
             $meta
         );
     }
-    public function createStudentHomework(Enrollment $enrollment, array $meta = []): Alert
-    {
+    public function createStudentHomework(
+        Enrollment $enrollment,
+        array $meta = [],
+        ?string $title = null,
+        ?string $description = null
+    ): Alert {
         return $this->createStudentAlert(
             $enrollment,
             Alert::TYPE_HOMEWORK,
-            'تنبيه واجب',
-            'لم يكتب الطالب الواجب المنزلي.',
-            array_merge(['date' => now()->toDateString()], $meta)
+            $title ?? 'تنبيه واجب',
+            $description ?? 'لم يكتب الطالب الواجب المنزلي.',
+            array_merge([
+                'date' => now()->toDateString(),
+            ], $meta)
         );
     }
     public function createCounselingResponse(Enrollment $enrollment, string $status, array $meta = []): Alert
@@ -398,22 +406,69 @@ class AlertService
     }
     public function createBatchStudentAlerts(array $enrollmentIds, string $type, array $meta = [], ?string $title = null, ?string $description = null): Collection
     {
-        $enrollments = Enrollment::with(['student.user', 'student.guardian.user'])->whereIn('id', $enrollmentIds)->get();
+        $enrollments = Enrollment::with([
+            'student.user',
+            'student.guardian.user'
+        ])
+            ->whereIn('id', $enrollmentIds)
+            ->get();
+
         $alerts = collect();
 
         foreach ($enrollments as $enrollment) {
+
             $alert = match ($type) {
-                Alert::TYPE_ABSENCE => $this->createStudentAbsence($enrollment, $meta),
-                Alert::TYPE_LATE => $this->createStudentLate($enrollment, $meta),
-                Alert::TYPE_BEHAVIOR => $this->createStudentBehavior($enrollment, $meta),
-                Alert::TYPE_PAYMENT => $this->createStudentPayment($enrollment, $meta),
-                Alert::TYPE_PAYED => $this->createStudentPayed($enrollment, $meta),
-                Alert::TYPE_ESCAPE => $this->createStudentEscape($enrollment, $meta),
-                Alert::TYPE_HOMEWORK => $this->createStudentHomework($enrollment, $meta),
-                Alert::TYPE_WARNING => $this->createStudentWarning($enrollment, $meta, $title, $description),
-                Alert::TYPE_EXPULSION => $this->createStudentExpulsion($enrollment, $meta),
-                default => $this->createStudentAlert($enrollment, $type, $title ?? '', $description ?? '', $meta),
+
+                Alert::TYPE_ABSENCE =>
+                $this->createStudentAbsence($enrollment, $meta),
+
+                Alert::TYPE_LATE =>
+                $this->createStudentLate($enrollment, $meta),
+
+                Alert::TYPE_BEHAVIOR =>
+                $this->createStudentBehavior($enrollment, $meta),
+
+                Alert::TYPE_PAYMENT =>
+                $this->createStudentPayment($enrollment, $meta),
+
+                Alert::TYPE_PAYED =>
+                $this->createStudentPayed($enrollment, $meta),
+
+                Alert::TYPE_ESCAPE =>
+                $this->createStudentEscape($enrollment, $meta),
+
+                Alert::TYPE_HOMEWORK =>
+                $this->createStudentHomework(
+                    $enrollment,
+                    $meta,
+                    $title,
+                    $description
+                ),
+
+                Alert::TYPE_WARNING =>
+                $this->createStudentWarning(
+                    $enrollment,
+                    $meta,
+                    $title,
+                    $description
+                ),
+
+                Alert::TYPE_EXPULSION =>
+                $this->createStudentExpulsion(
+                    $enrollment,
+                    $meta
+                ),
+
+                default =>
+                $this->createStudentAlert(
+                    $enrollment,
+                    $type,
+                    $title ?? '',
+                    $description ?? '',
+                    $meta
+                ),
             };
+
             $alerts->push($alert);
         }
 
@@ -489,11 +544,11 @@ class AlertService
     }
     public function createPublishReportCardAlart(Enrollment $enrollment, array $meta = []): Alert
     {
-         return $this->createStudentAlert(
+        return $this->createStudentAlert(
             $enrollment,
-            Alert::TYPE_LATE,
+            Alert::TYPE_REPORT_CARD,
             'تنبيه اصدار الجلاء',
-             'تم نشر جلاء الطلاب , يمكنك الاستعلام عنه الان',
+            'تم نشر جلاء الطلاب , يمكنك الاستعلام عنه الان',
             $meta
         );
     }
@@ -597,6 +652,7 @@ class AlertService
 
         $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
         $systemTypes = [Alert::TYPE_SYSTEM_NOTICE];
+        $reportCard = [Alert::TYPE_REPORT_CARD];
 
         return [
             'alerts' => (clone $baseQuery)->whereNotIn('type', array_merge($financialTypes, $systemTypes))->count(),
@@ -604,6 +660,8 @@ class AlertService
             'payment_alerts' => (clone $baseQuery)->whereIn('type', $financialTypes)->count(),
 
             'system_alerts' => (clone $baseQuery)->whereIn('type', $systemTypes)->count(),
+
+            'report_card' => (clone $baseQuery)->whereIn('type', $reportCard)->count(),
         ];
     }
     public function markAllReadForUser(User $user, string $category = 'all', ?int $studentId = null): array
@@ -615,11 +673,14 @@ class AlertService
 
         $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
         $systemTypes = [Alert::TYPE_SYSTEM_NOTICE];
+        $reportCard = [Alert::TYPE_REPORT_CARD];
 
         if ($category === 'financial') {
             $baseQuery->whereIn('type', $financialTypes);
         } elseif ($category === 'system') {
             $baseQuery->whereIn('type', $systemTypes);
+        } elseif ($category === 'card') {
+            $baseQuery->whereIn('type', $reportCard);
         } elseif ($category === 'general') {
             $baseQuery->whereNotIn('type', array_merge($financialTypes, $systemTypes));
         }
@@ -752,5 +813,211 @@ class AlertService
         }
 
         return $deletedCount;
+    }
+
+    public function getHomeworkAlertDetails(int $homeworkId): object
+    {
+        $homework = Homework::with([
+            'gradeSubject.subject',
+        ])->findOrFail($homeworkId);
+
+
+        $alerts = Alert::query()
+            ->where('type', Alert::TYPE_HOMEWORK)
+            ->where('notifiable_type', Enrollment::class)
+            ->where('meta->homework_id', $homeworkId)->with([
+                    'notifiable.student.user',
+                    'notifiable.classRoom',
+                ])
+            ->get()
+            ->unique('notifiable_id')
+            ->values();
+
+
+
+        if ($alerts->isEmpty()) {
+
+            throw new Exception(
+                'لم يتم العثور على تنبيهات مرتبطة بهذه الوظيفة.'
+            );
+
+        }
+
+
+        return (object) [
+
+            'homework_id' => $homework->id,
+
+
+            'homework_title' => $homework->title,
+
+
+            'subject' =>
+                $homework->gradeSubject?->subject?->subject_name
+                ?? 'مادة دراسية',
+
+
+            'title' => $alerts->first()->title,
+
+            'id' => $alerts->first()->id,
+
+            'description' => $alerts->first()->description,
+
+
+            'alerts' => $alerts,
+
+        ];
+    }
+    public function updateHomeworkAlert(int $homeworkId, array $data, User $user): void
+    {
+        DB::transaction(function () use ($homeworkId, $data, $user) {
+
+            $homework = Homework::with([
+                'gradeSubject.subject',
+                'classRooms:id'
+            ])->findOrFail($homeworkId);
+
+            $allowedClassRoomIds = $homework->classRooms
+                ->pluck('id')
+                ->toArray();
+
+            $baseQuery = Alert::query()
+                ->where('type', Alert::TYPE_HOMEWORK)
+                ->where('notifiable_type', Enrollment::class)
+                ->where('meta->homework_id', $homeworkId);
+
+            if (
+                isset($data['title']) ||
+                isset($data['description'])
+            ) {
+                $updateData = [];
+
+                if (isset($data['title'])) {
+                    $updateData['title'] = $data['title'];
+                }
+
+                if (isset($data['description'])) {
+                    $updateData['description'] = $data['description'];
+                }
+
+                (clone $baseQuery)->update($updateData);
+            }
+
+            if (!empty($data['remove_enrollment_ids'])) {
+
+                (clone $baseQuery)
+                    ->whereIn(
+                        'notifiable_id',
+                        $data['remove_enrollment_ids']
+                    )
+                    ->delete();
+            }
+
+
+            if (!empty($data['add_enrollment_ids'])) {
+
+                $requestedEnrollmentIds = array_values(
+                    array_unique(
+                        $data['add_enrollment_ids']
+                    )
+                );
+
+                $validEnrollmentIds = Enrollment::query()
+                    ->whereIn('id', $requestedEnrollmentIds)
+                    ->whereIn('class_room_id', $allowedClassRoomIds)
+                    ->pluck('id')
+                    ->toArray();
+
+                $invalidEnrollmentIds = array_diff(
+                    $requestedEnrollmentIds,
+                    $validEnrollmentIds
+                );
+
+                if (!empty($invalidEnrollmentIds)) {
+                    throw new InvalidArgumentException(
+                        'One or more students do not belong to the homework classrooms.',
+                        422
+                    );
+                }
+
+                $existingEnrollmentIds = (clone $baseQuery)
+                    ->whereIn(
+                        'notifiable_id',
+                        $validEnrollmentIds
+                    )
+                    ->pluck('notifiable_id')
+                    ->toArray();
+
+                $newEnrollmentIds = array_values(
+                    array_diff(
+                        $validEnrollmentIds,
+                        $existingEnrollmentIds
+                    )
+                );
+
+                if (!empty($newEnrollmentIds)) {
+
+                    $title =
+                        $data['title']
+                        ?? (clone $baseQuery)->value('title')
+                        ?? 'تنبيه واجب';
+
+                    $description =
+                        $data['description']
+                        ?? (clone $baseQuery)->value('description')
+                        ?? 'لم يكتب الطالب الواجب المنزلي.';
+
+                    $subjectName =
+                        $homework->gradeSubject?->subject?->subject_name
+                        ?? 'مادة دراسية';
+
+                    $meta = [
+                        'homework_id' => $homework->id,
+                        'grade_subject_id' => $homework->grade_subject_id,
+                        'subject' => $subjectName,
+                        'date' => now()->toDateString(),
+                    ];
+
+                    $this->createBatchStudentAlerts(
+                        $newEnrollmentIds,
+                        Alert::TYPE_HOMEWORK,
+                        $meta,
+                        $title,
+                        $description
+                    );
+                }
+            }
+        });
+    }
+    public function createHomeworkAlerts(int $homeworkId, array $enrollmentIds, string $title, string $description, User $user): Collection
+    {
+
+        $homework = Homework::with([
+            'gradeSubject.subject'
+        ])->findOrFail($homeworkId);
+
+
+        $meta = [
+            'homework_id' => $homework->id,
+            'grade_subject_id' => $homework->grade_subject_id,
+            'subject' => $homework->gradeSubject?->subject?->subject_name ?? 'مادة دراسية',
+            'date' => now()->toDateString(),
+        ];
+
+
+        return $this->createBatchStudentAlerts(
+            collect($enrollmentIds)
+                ->unique()
+                ->values()
+                ->toArray(),
+
+            Alert::TYPE_HOMEWORK,
+
+            $meta,
+
+            $title,
+
+            $description
+        );
     }
 }

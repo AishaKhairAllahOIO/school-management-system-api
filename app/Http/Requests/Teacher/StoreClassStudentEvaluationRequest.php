@@ -37,4 +37,20 @@ class StoreClassStudentEvaluationRequest extends FormRequest
             'notes'            => ['nullable', 'string', 'max:500'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'grade_subject_id.required' => 'The grade subject ID field is required.',
+            'grade_subject_id.integer'  => 'The grade subject ID must be an integer.',
+            'grade_subject_id.exists'   => 'The selected grade subject does not exist.',
+            'enrollment_id.required'    => 'The enrollment ID field is required.',
+            'enrollment_id.integer'     => 'The enrollment ID must be an integer.',
+            'enrollment_id.exists'      => 'The selected student enrollment does not exist.',
+            'rating.required'           => 'The rating field is required.',
+            'rating.string'             => 'The rating must be a string.',
+            'rating.in'                 => 'The selected rating is invalid (must be excellent, very_good, good, average, or weak).',
+            'notes.string'              => 'The notes must be a string.',
+            'notes.max'                 => 'The notes must not exceed 500 characters.',
+        ];
+    }
 }

@@ -6,27 +6,22 @@ use Illuminate\Support\Facades\Storage;
 
 class FileUrl
 {
-    public static function make(
-        ?string $path,
-        ?string $disk = null
-    ): ?string {
+    public static function make(?string $path, ?string $disk = null): ?string
+    {
         if (!$path) {
             return null;
         }
 
         $path = trim($path);
 
-        // إذا كانت القيمة رابطاً كاملاً، نعيدها كما هي
         if (filter_var($path, FILTER_VALIDATE_URL)) {
             return $path;
         }
 
-        // إذا لم يحدد الـ disk، استخدم الـ default
-        $disk ??= config('filesystems.default');
+        $disk ??= config('filesystems.public_disk');
 
         $storage = Storage::disk($disk);
 
-        // Railway / Tigris / S3
         if ($disk === 's3') {
             return $storage->temporaryUrl(
                 $path,
@@ -34,7 +29,6 @@ class FileUrl
             );
         }
 
-        // Local public disk
         return $storage->url($path);
     }
 
@@ -51,11 +45,13 @@ class FileUrl
         }
 
         $path = preg_replace(
-            '/^.*?(users\/|defaults\/|documents\/|guardians\/|staff\/|students\/)/',
+            '/^.*?(users\/|defaults\/|documents\/|guardians\/|staff\/|students\/|imports\/|temp_imports\/)/',
             '$1',
             $path
         );
 
-        return url('/api/documents/photos/' . ltrim($path, '/'));
+        return Storage::disk(config('filesystems.public_disk'))->url(
+            ltrim($path, '/')
+        );
     }
 }

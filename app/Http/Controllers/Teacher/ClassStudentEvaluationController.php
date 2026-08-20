@@ -32,11 +32,10 @@ class ClassStudentEvaluationController extends Controller
     {
         $user = $request->user();
         if (!$user->staff) {
-            throw new InvalidArgumentException('حسابك ليس له ملف موظف (Staff Profile) مرتبط لإدارة التقييمات المدرسية.', 403);
+            throw new InvalidArgumentException('Your account has no linked staff profile to manage school evaluations.', 403);
         }
         return $user->staff;
     }
-
 
     public function index(Request $request): JsonResponse
     {
@@ -46,15 +45,16 @@ class ClassStudentEvaluationController extends Controller
             $evaluations->through(fn($evaluation) => new ClassStudentEvaluationResource($evaluation));
             return $this->paginatedResponse(
                 $evaluations,
-                'تم جلب قائمة التقييمات الدراسية بنجاح.',
+                'Student evaluations list retrieved successfully.',
                 200
             );
         } catch (InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode());
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب قائمة التقييمات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
+
     public function store(StoreClassStudentEvaluationRequest $request): JsonResponse
     {
         try {
@@ -65,13 +65,14 @@ class ClassStudentEvaluationController extends Controller
 
             return $this->successResponse(
                 new ClassStudentEvaluationResource($evaluation),
-                'تم حفظ تقييم الطالب وإرسال الإشعار بنجاح.',
+                'Student evaluation saved and notification sent successfully.',
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حفظ التقييم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
+
     public function show($id): JsonResponse
     {
         try {
@@ -82,17 +83,18 @@ class ClassStudentEvaluationController extends Controller
 
             return $this->successResponse(
                 new ClassStudentEvaluationResource($evaluation),
-                'تم جلب تفاصيل التقييم بنجاح.',
+                'Student evaluation details retrieved successfully.',
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('التقييم المطلوب غير موجود.', 404);
+            return $this->errorResponse('Student evaluation not found.', 404);
         } catch (AuthorizationException | AccessDeniedHttpException $e) {
-            return $this->errorResponse('غير مصرح لك بعرض تفاصيل هذا التقييم.', 403);
+            return $this->errorResponse('You are not authorized to view this evaluation details.', 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب تفاصيل التقييم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
+
     public function update(UpdateClassStudentEvaluationRequest $request, $id): JsonResponse
     {
         try {
@@ -101,17 +103,18 @@ class ClassStudentEvaluationController extends Controller
 
             return $this->successResponse(
                 new ClassStudentEvaluationResource($updatedEvaluation),
-                'تم تعديل تقييم الطالب وإرسال تنبيه بالتحديث بنجاح.',
+                'Student evaluation updated and update alert sent successfully.',
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('التقييم المطلوب غير موجود.', 404);
+            return $this->errorResponse('Student evaluation not found.', 404);
         } catch (AuthorizationException | AccessDeniedHttpException $e) {
-            return $this->errorResponse('غير مصرح لك بتعديل هذا التقييم.', 403);
+            return $this->errorResponse('You are not authorized to update this evaluation.', 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل التقييم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
+
     public function destroy(Request $request, $id): JsonResponse
     {
         try {
@@ -119,15 +122,16 @@ class ClassStudentEvaluationController extends Controller
             $this->authorize('delete', $evaluation);
             $this->evaluationService->deleteEvaluation($evaluation);
 
-            return $this->successResponse(null, 'تم حذف التقييم الدراسي بنجاح.', 200);
+            return $this->successResponse(null, 'Student evaluation deleted successfully.', 200);
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('التقييم المطلوب غير موجود.', 404);
+            return $this->errorResponse('Student evaluation not found.', 404);
         } catch (AuthorizationException | AccessDeniedHttpException $e) {
-            return $this->errorResponse('غير مصرح لك بحذف هذا التقييم.', 403);
+            return $this->errorResponse('You are not authorized to delete this evaluation.', 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف التقييم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
+
     public function studentIndex(Request $request): JsonResponse
     {
         try {
@@ -135,15 +139,16 @@ class ClassStudentEvaluationController extends Controller
             $evaluations->through(fn($evaluation) => new ClassStudentEvaluationResource($evaluation));
             return $this->paginatedResponse(
                 $evaluations,
-                'تم جلب قائمة تقييماتك الدراسية بنجاح.',
+                'Your academic evaluations list retrieved successfully.',
                 200
             );
         } catch (NotFoundHttpException $e) {
             return $this->errorResponse($e->getMessage(), 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب تقييمات الطالب.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
+
     public function guardianChildIndex(Request $request, int $id): JsonResponse
     {
         try {
@@ -151,7 +156,7 @@ class ClassStudentEvaluationController extends Controller
             $evaluations->through(fn($evaluation) => new ClassStudentEvaluationResource($evaluation));
             return $this->paginatedResponse(
                 $evaluations,
-                'تم جلب قائمة تقييمات الابن المحدد بنجاح.',
+                'Selected child evaluations list retrieved successfully.',
                 200
             );
         } catch (AccessDeniedHttpException $e) {
@@ -159,31 +164,33 @@ class ClassStudentEvaluationController extends Controller
         } catch (NotFoundHttpException $e) {
             return $this->errorResponse($e->getMessage(), 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب تقييمات الابن.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
+
     public function unreadCount(Request $request): JsonResponse
     {
         try {
             $count = $this->evaluationService->unreadCount($request->user(), $request->input('student_id'));
 
-            return $this->successResponse(['unread_count' => $count], 'تم جلب عدد التقييمات غير المقروءة بنجاح.');
+            return $this->successResponse(['unread_count' => $count], 'Unread evaluations count retrieved successfully.');
         } catch (AccessDeniedHttpException $e) {
             return $this->errorResponse($e->getMessage(), 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب العداد.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
+
     public function markAllAsRead(Request $request): JsonResponse
     {
         try {
             $this->evaluationService->markAllAsRead($request->user(), $request->input('student_id'));
 
-            return $this->successResponse(null, 'تم تحديد كافة التقييمات كمقروءة بنجاح.');
+            return $this->successResponse(null, 'All evaluations marked as read successfully.');
         } catch (AccessDeniedHttpException $e) {
             return $this->errorResponse($e->getMessage(), 403);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تحديث حالة القراءة.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 }

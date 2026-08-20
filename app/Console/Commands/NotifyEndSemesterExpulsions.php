@@ -49,13 +49,13 @@ class NotifyEndSemesterExpulsions extends Command
 
         $adminIds = $admins->pluck('id')->toArray();
 
-        $alertService->createStaffAlerts([
-            'staff_ids'   => $adminIds,
-            'type'        => Alert::TYPE_SYSTEM_NOTICE,
-            'title'       => 'إجراء مطلوب: مراجعة قرارات الفصل',
-            'description' => "انتهى الفصل الدراسي. يوجد {$expulsionCount} طالب(ة) استحقوا قرار الفصل بسبب الغياب أو المخالفات. يرجى الدخول لمراجعة القائمة واعتماد التعطيل.",
-            'meta'        => ['action' => 'review_expulsions']
-        ]);
+      $alertService->createStaffAlerts([
+        'staff_ids'   => $adminIds,
+        'type'        => Alert::TYPE_SYSTEM_NOTICE,
+        'title'       => 'Action Required: Review Expulsion Decisions',
+        'description' => "The semester has ended. There are {$expulsionCount} student(s) who qualified for expulsion due to absences or violations. Please log in to review the list and approve the deactivation.",
+        'meta'        => ['action' => 'review_expulsions']
+    ]);
 
         $this->info('Notification sent successfully to the dashboard.');
     }

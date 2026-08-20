@@ -65,4 +65,26 @@ class AnnouncementRequest extends FormRequest
             }
         });
     }
+    public function messages(): array
+    {
+        return [
+            'audience.required'         => 'The audience field is required.',
+            'audience.in'               => 'The selected audience is invalid.',
+            
+            'title.required'            => 'The announcement title field is required.',
+            'title.string'              => 'The announcement title must be a string.',
+            'title.max'                 => 'The announcement title must not exceed 255 characters.',
+            
+            'description.string'        => 'The description must be a string.',
+            'description.max'           => 'The description must not exceed 2000 characters.',
+            
+            'grade_level_id.required_if'=> 'The grade level is required when the audience is set to student.',
+            'grade_level_id.integer'    => 'The grade level ID must be an integer.',
+            'grade_level_id.exists'     => 'The selected grade level does not exist.',
+            
+            'class_room_ids.array'      => 'Classroom IDs must be provided as an array.',
+            'class_room_ids.*.integer'  => 'Each classroom ID must be an integer.',
+            'class_room_ids.*.exists'   => 'One or more selected classrooms do not exist.',
+        ];
+    }
 }

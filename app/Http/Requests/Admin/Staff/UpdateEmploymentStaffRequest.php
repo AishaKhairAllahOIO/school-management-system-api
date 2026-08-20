@@ -23,4 +23,22 @@ class UpdateEmploymentStaffRequest extends BaseRequest
 
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'degree.in'                 => 'The selected degree is invalid.',
+            'specialization.string'     => 'The specialization must be a valid string.',
+            'specialization.max'        => 'The specialization must not exceed 100 characters.',
+            'university.string'         => 'The university must be a valid string.',
+            'university.max'            => 'The university must not exceed 255 characters.',
+            'graduation_year.integer'   => 'The graduation year must be an integer.',
+            'graduation_year.min'       => 'The graduation year cannot be earlier than 1950.',
+            'graduation_year.max'       => 'The graduation year is invalid.',
+            'hire_date.date'            => 'The hire date must be a valid date format.',
+            'experience_years.integer'  => 'The experience years must be an integer.',
+            'experience_years.min'      => 'The experience years cannot be less than 0.',
+            'experience_years.max'      => 'The experience years cannot exceed 50.',
+            'service_type.string'       => 'The service type must be a valid string.',
+        ];
+    }
 }

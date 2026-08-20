@@ -15,23 +15,23 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $defaultPassword = Hash::make(env('DEFAULT_USER_PASSWORD', 'password'));
+        $defaultPassword = Hash::make(env('DEFAULT_USER_PASSWORD', '123456789'));
 
         $user1 = User::updateOrCreate(
-            ['phone_number' => '0968661500'],
+            ['phone_number' => '0996930692'],
             [
-                'first_name' => 'نور',
+                'first_name' => 'احمد',
                 'last_name' => 'العلي الصالح',
-                'father_name' => 'أحمد',
+                'father_name' => 'حسن',
                 'mother_name' => 'أمل ',
                 'birth_date' => '1990-01-01',
                 'birth_place' => 'دمشق',
                 'address' => 'معضمية الشام , دمشق',
                 'nationality' => 'syrian',
-                'gender' => 'female',
+                'gender' => 'male',
                 'record_status' => 'active',
                 'account_status' => 'enabled',
-                'photo_url' => 'defaults/default.jpg',
+                'photo_url' => 'users/guardians/guardian.jpg',
                 'password' => $defaultPassword,
             ]
         );
@@ -51,7 +51,7 @@ class UserSeeder extends Seeder
                 'gender' => 'female',
                 'record_status' => 'active',
                 'account_status' => 'enabled',
-                'photo_url' => 'defaults/student_female.jpg',
+                'photo_url' => 'users/students/student_1.jpg',
                 'password' => $defaultPassword,
             ]
         );
@@ -60,19 +60,19 @@ class UserSeeder extends Seeder
         $user3 = User::updateOrCreate(
             ['phone_number' => '0960657750'],
             [
-                'email' => 'aishakhairallah@gmail.com',
+                'email' => 'nnnnahhmad@gmail.com',
                 'first_name' => 'عائشة',
                 'last_name' => 'خيرالله',
                 'father_name' => 'عماد الدين',
                 'mother_name' => 'سوزان',
                 'birth_date' => '1990-01-01',
                 'birth_place' => 'حلب',
-                'address' => 'القلعة, حلب',
+                'address' => 'القلعة حلب',
                 'nationality' => 'syrian',
                 'gender' => 'female',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
-                'photo_url' => 'defaults/teacher.jpg',
+                'photo_url' => 'users/staff/teacher_1.jpg',
                 'password' => $defaultPassword,
             ]
         );
@@ -93,27 +93,27 @@ class UserSeeder extends Seeder
                 'address' => 'كفرسوسة, دمشق',
                 'nationality' => 'syrian',
                 'gender' => 'male',
-                'photo_url' => 'defaults/admin.jpg',
+                'photo_url' => 'users/staff/admin_1.jpg',
                 'password' => $defaultPassword,
             ]
         );
         $user4->assignRole('super_admin');
 
         $user5 = User::updateOrCreate(
-            ['phone_number' => '0983964422'],
+            ['phone_number' => '0967774111'],
             [
                 'first_name' => 'يزن',
                 'last_name' => 'سطيف',
-                'father_name' => 'Salem',
-                'mother_name' => 'Lisa Johnson',
+                'father_name' => 'سالم',
+                'mother_name' => 'لمى',
                 'birth_date' => '1985-12-10',
-                'birth_place' => 'Villageburg',
-                'address' => '789 Pine Rd, Villageburg',
+                'birth_place' => 'دمشق',
+                'address' => 'شارع خالد ابن الوليد',
                 'nationality' => 'syrian',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'male',
-                'photo_url' => 'defaults/student_male.jpg',
+                'photo_url' => 'users/students/student_2.jpg',
                 'password' => $defaultPassword,
             ]
         );
@@ -122,16 +122,16 @@ class UserSeeder extends Seeder
         $user6 = User::updateOrCreate(
             ['phone_number' => '0980612500'],
             [
-                'first_name' => 'Alice',
-                'last_name' => 'Williams',
-                'father_name' => 'David',
-                'mother_name' => 'Susan Williams',
+                'first_name' => 'عبد الرحمن',
+                'last_name' => 'محمد',
+                'father_name' => 'بلال',
+                'mother_name' => 'هالة',
                 'birth_date' => '1995-08-22',
-                'birth_place' => 'Hamletville',
-                'address' => '321 Elm St, Hamletville',
+                'birth_place' => 'دمشق',
+                'address' => 'قدسيا',
                 'nationality' => 'syrian',
-                'gender' => 'female',
-                'photo_url' => 'defaults/counselor.jpg',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/admin_2.jpg',
                 'password' => $defaultPassword,
                 'email' => 'aishakhairallah3@gmail.com',
                 'account_status' => 'enabled',
@@ -143,16 +143,16 @@ class UserSeeder extends Seeder
         $user7 = User::updateOrCreate(
             ['phone_number' => '0994416081'],
             [
-                'first_name' => 'Charlie',
-                'last_name' => 'Brown',
-                'father_name' => 'Charles Brown Sr.',
-                'mother_name' => 'Sally Brown',
+                'first_name' => 'شهد',
+                'last_name' => 'الخطيب',
+                'father_name' => 'طلال',
+                'mother_name' => 'سنا',
                 'birth_date' => '1988-03-30',
-                'birth_place' => 'Metropolis',
-                'address' => '654 Maple Ave, Metropolis',
+                'birth_place' => 'دمشق',
+                'address' => 'ميدان',
                 'nationality' => 'syrian',
-                'gender' => 'male',
-                'photo_url' => 'defaults/adviser.jpg',
+                'gender' => 'female',
+                'photo_url' => 'users/staff/admin_3.jpg',
                 'email' => 'shadooalkhateeb1234@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
@@ -164,16 +164,16 @@ class UserSeeder extends Seeder
         $user8 = User::updateOrCreate(
             ['phone_number' => '0983846541'],
             [
-                'first_name' => 'aisha',
-                'last_name' => 'kher',
-                'father_name' => 'Charles Brown Sr.',
-                'mother_name' => 'Sally Brown',
+                'first_name' => 'عابدة',
+                'last_name' => 'خير الله',
+                'father_name' => 'معاذ',
+                'mother_name' => 'سارة',
                 'birth_date' => '1988-03-30',
-                'birth_place' => 'Metropolis',
-                'address' => '654 Maple Ave, Metropolis',
+                'birth_place' => 'دمشق',
+                'address' => 'أبو رمانة',
                 'nationality' => 'syrian',
-                'gender' => 'male',
-                'photo_url' => 'defaults/secretary.jpg',
+                'gender' => 'female', // تم التصحيح هنا أيضاً
+                'photo_url' => 'users/staff/secretary_1.jpg',
                 'email' => 'aishakhairallah2025@gmail.com',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
@@ -185,16 +185,16 @@ class UserSeeder extends Seeder
         $user9 = User::updateOrCreate(
             ['phone_number' => '0994416082'],
             [
-                'first_name' => 'Diana',
-                'last_name' => 'Prince',
-                'father_name' => 'Hippolyta Prince',
-                'mother_name' => 'Queen Hippolyta',
+                'first_name' => 'امين',
+                'last_name' => 'المحاسني',
+                'father_name' => 'جميل',
+                'mother_name' => 'شيرين',
                 'birth_date' => '1990-06-04',
-                'birth_place' => 'Themyscira',
-                'address' => '987 Amazon St, Themyscira',
+                'birth_place' => 'ريف دمشق',
+                'address' => 'جمرايا',
                 'nationality' => 'syrian',
-                'gender' => 'female',
-                'photo_url' => 'https://example.com/photo6.jpg',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/service_1.jpg',
                 'password' => $defaultPassword,
                 'account_status' => 'enabled',
                 'record_status' => 'active',
@@ -205,18 +205,18 @@ class UserSeeder extends Seeder
         $user10 = User::updateOrCreate(
             ['phone_number' => '0994416083'],
             [
-                'first_name' => 'Ethan',
-                'last_name' => 'Hunt',
-                'father_name' => 'Ethan Hunt Sr.',
-                'mother_name' => 'Julia Hunt',
+                'first_name' => 'عيسى',
+                'last_name' => 'سلمان',
+                'father_name' => 'فؤاد',
+                'mother_name' => 'حياة',
                 'birth_date' => '1985-11-19',
-                'birth_place' => 'Spy City',
-                'address' => '123 Mission St, Spy City',
+                'birth_place' => 'ريف دمشق',
+                'address' => 'جمرايا',
                 'email' => 'aishakhairallah262005@gmail.com',
                 'password' => $defaultPassword,
                 'nationality' => 'jordanian',
                 'gender' => 'male',
-                'photo_url' => 'https://example.com/photo7.jpg',
+                'photo_url' => 'users/staff/adviser_1.jpg',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]
@@ -226,39 +226,39 @@ class UserSeeder extends Seeder
         $user11 = User::updateOrCreate(
             ['phone_number' => '0994416084'],
             [
-                'first_name' => 'Fiona',
-                'last_name' => 'Gallagher',
-                'father_name' => 'Frank Gallagher',
-                'mother_name' => 'Monica Gallagher',
+                'first_name' => 'فداء',
+                'last_name' => 'لؤي',
+                'father_name' => 'كريم',
+                'mother_name' => 'طيبة',
                 'birth_date' => '1992-02-14',
-                'birth_place' => 'Shameless Town',
-                'address' => '456 Chaos Ave, Shameless Town',
+                'birth_place' => 'دمشق',
+                'address' => 'كفرسوسة',
                 'email' => 'fidaaahmadd@gmail.com',
                 'password' => $defaultPassword,
                 'nationality' => 'other',
                 'gender' => 'female',
-                'photo_url' => 'https://example.com/photo8.jpg',
+                'photo_url' => 'users/staff/adviser_2.jpg',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
             ]
         );
-        $user11->assignRole('secretary');
+        $user11->assignRole('adviser');
 
         $user12 = User::updateOrCreate(
             ['phone_number' => '0993790629'],
             [
-                'first_name' => 'Samer',
-                'last_name' => 'Al_ali',
-                'father_name' => 'Salem',
-                'mother_name' => 'Lisa Johnson',
+                'first_name' => 'ثائر',
+                'last_name' => 'العلي',
+                'father_name' => 'عمر',
+                'mother_name' => 'سالي',
                 'birth_date' => '1985-12-10',
-                'birth_place' => 'Villageburg',
-                'address' => '789 Pine Rd, Villageburg',
+                'birth_place' => 'دمشق',
+                'address' => 'ميدان',
                 'nationality' => 'syrian',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'male',
-                'photo_url' => 'defaults/student_male.jpg',
+                'photo_url' => 'users/students/student_2.jpg',
                 'password' => $defaultPassword,
             ]
         );
@@ -267,19 +267,19 @@ class UserSeeder extends Seeder
         $user13 = User::updateOrCreate(
             ['phone_number' => '0935026786'],
             [
-                'first_name' => 'Majeda',
-                'last_name' => 'Al_Shalabi',
-                'father_name' => 'Mohammed',
-                'mother_name' => 'Nour',
+                'first_name' => 'ماجدة',
+                'last_name' => 'الشلبي',
+                'father_name' => 'محمد',
+                'mother_name' => 'نور',
                 'birth_date' => '1985-12-10',
-                'birth_place' => 'Villageburg',
-                'address' => '789 Pine Rd, Villageburg',
+                'birth_place' => 'دمشق',
+                'address' => 'قدسيا',
                 'nationality' => 'syrian',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'female',
                 'email' => 'alshalabimajeda@gmail.com',
-                'photo_url' => 'defaults/teacher.jpg',
+                'photo_url' => 'users/staff/teacher_2.jpg',
                 'password' => $defaultPassword,
             ]
         );
@@ -290,54 +290,45 @@ class UserSeeder extends Seeder
                 'phone_number' => '0992006689',
             ],
             [
-                'first_name' => 'Mariam',
-                'last_name' => 'Al_khalid',
-                'father_name' => 'Salem',
-                'mother_name' => 'Lisa Johnson',
+                'first_name' => 'مريم',
+                'last_name' => 'الخالد',
+                'father_name' => 'سالم',
+                'mother_name' => 'نهى',
                 'birth_date' => '1985-12-10',
-                'birth_place' => 'Villageburg',
-                'address' => '789 Pine Rd, Villageburg',
+                'birth_place' => 'دمشق',
+                'address' => 'باب مصلى',
                 'nationality' => 'syrian',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'female',
                 'email' => 'mouhamedalshalabi@gmail.com',
-                'photo_url' => 'defaults/counselor.jpg
-            ',
+                'photo_url' => 'users/staff/counselor_1.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user14->assignRole('counselor');
-
-
-
-
-
 
         $user15 = User::updateOrCreate(
             [
                 'phone_number' => '0984227325',
             ],
             [
-                'first_name' => 'Amal',
-                'last_name' => 'Alsaleh',
-                'father_name' => 'Salem',
-                'mother_name' => 'Lisa Johnson',
+                'first_name' => 'امل',
+                'last_name' => 'الصالح',
+                'father_name' => 'احمد',
+                'mother_name' => 'فاطمة',
                 'birth_date' => '1985-12-10',
-                'birth_place' => 'Villageburg',
-                'address' => '789 Pine Rd, Villageburg',
+                'birth_place' => 'دمشق',
+                'address' => 'ميدان',
                 'nationality' => 'syrian',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'female',
                 'email' => 'mouhaedalshalab@gmail.com',
-                'photo_url' => 'defaults/teacher.jpg
-            ',
+                'photo_url' => 'users/staff/teacher_3.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user15->assignRole('teacher');
 
         $user16 = User::updateOrCreate(
@@ -345,96 +336,265 @@ class UserSeeder extends Seeder
                 'phone_number' => '0951287463',
             ],
             [
-                'first_name' => 'Sally',
-                'last_name' => 'Eslim',
-                'father_name' => 'Salem',
-                'mother_name' => 'Lisa Johnson',
+                'first_name' => 'سالي',
+                'last_name' => 'اسليم',
+                'father_name' => 'محمد',
+                'mother_name' => 'رنيم',
                 'birth_date' => '1985-12-10',
-                'birth_place' => 'Villageburg',
-                'address' => '789 Pine Rd, Villageburg',
+                'birth_place' => 'دمشق',
+                'address' => 'ميدان',
                 'nationality' => 'syrian',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'female',
                 'email' => 'mouhamealshaabi@gmail.com',
-                'photo_url' => 'defaults/counselor.jpg
-            ',
+                'photo_url' => 'users/staff/teacher_4.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user16->assignRole('teacher');
+
         $user17 = User::updateOrCreate(
             [
                 'phone_number' => '0911254786',
             ],
             [
-                'first_name' => 'Mariam',
-                'last_name' => 'Al_khalid',
-                'father_name' => 'Salem',
-                'mother_name' => 'Lisa Johnson',
+                'first_name' => 'دعاء',
+                'last_name' => 'القاسم',
+                'father_name' => 'حبيب',
+                'mother_name' => 'جنى',
                 'birth_date' => '1985-12-10',
-                'birth_place' => 'Villageburg',
-                'address' => '789 Pine Rd, Villageburg',
+                'birth_place' => 'دمشق',
+                'address' => 'ركن الدين',
                 'nationality' => 'syrian',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'female',
                 'email' => 'mouhamedalsabi@gmail.com',
-                'photo_url' => 'defaults/counselor.jpg
-            ',
+                'photo_url' => 'users/staff/teacher_5.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user17->assignRole('teacher');
+
         $user18 = User::updateOrCreate(
             [
                 'phone_number' => '0911354789',
             ],
             [
-                'first_name' => 'Ahmad',
-                'last_name' => 'Al_khalid',
-                'father_name' => 'Salem',
-                'mother_name' => 'Lisa Johnson',
+                'first_name' => 'معاذ',
+                'last_name' => 'حمزة',
+                'father_name' => 'عمر',
+                'mother_name' => 'هدى',
                 'birth_date' => '1985-12-10',
-                'birth_place' => 'Villageburg',
-                'address' => '789 Pine Rd, Villageburg',
+                'birth_place' => 'ريف دمشق',
+                'address' => 'دوما',
                 'nationality' => 'syrian',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'male',
                 'email' => 'ahmadahmadahmad@gmail.com',
-                'photo_url' => 'defaults/teacher.jpg
-            ',
+                'photo_url' => 'users/staff/teacher_6.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user18->assignRole('teacher');
+
         $user19 = User::updateOrCreate(
             [
                 'phone_number' => '0911304789',
             ],
             [
-                'first_name' => 'hmad',
-                'last_name' => 'Al_khalid',
-                'father_name' => 'Salem',
-                'mother_name' => 'Lisa Johnson',
+                'first_name' => 'حمد',
+                'last_name' => 'كامل',
+                'father_name' => 'حاتم',
+                'mother_name' => 'رغد',
                 'birth_date' => '1985-12-10',
-                'birth_place' => 'Villageburg',
-                'address' => '789 Pine Rd, Villageburg',
+                'birth_place' => 'ريف دمشق',
+                'address' => 'دوما',
                 'nationality' => 'syrian',
                 'account_status' => 'enabled',
                 'record_status' => 'active',
                 'gender' => 'male',
                 'email' => 'ahmadahmahmad@gmail.com',
-                'photo_url' => 'defaults/teacher.jpg
-            ',
+                'photo_url' => 'users/staff/teacher_7.jpg',
                 'password' => $defaultPassword,
             ]
         );
-
         $user19->assignRole('teacher');
+
+        $user20 = User::updateOrCreate(
+            ['phone_number' => '0994416054'],
+            [
+                'first_name' => 'مضر',
+                'last_name' => 'الشيباني',
+                'father_name' => 'كمال',
+                'mother_name' => 'سنا',
+                'birth_date' => '1996-03-30',
+                'birth_place' => 'دمشق',
+                'address' => 'ميدان',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/admin_4.jpg',
+                'email' => 'modaralshibani@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user20->assignRole('super_admin');
+
+        $user21 = User::updateOrCreate(
+            ['phone_number' => '0994416055'],
+            [
+                'first_name' => 'خالد',
+                'last_name' => 'أحمد',
+                'father_name' => 'محمد',
+                'mother_name' => 'سناء',
+                'birth_date' => '1988-01-10',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/teacher_8.jpg',
+                'email' => 'teacher.physics@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user21->assignRole('teacher');
+
+
+        $user22 = User::updateOrCreate(
+            ['phone_number' => '0994416056'],
+            [
+                'first_name' => 'ريم',
+                'last_name' => 'محمد',
+                'father_name' => 'علي',
+                'mother_name' => 'هدى',
+                'birth_date' => '1990-02-15',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'female',
+                'photo_url' => 'users/staff/teacher_9.jpg',
+                'email' => 'teacher.english@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user22->assignRole('teacher');
+
+
+        $user23 = User::updateOrCreate(
+            ['phone_number' => '0994416057'],
+            [
+                'first_name' => 'سامر',
+                'last_name' => 'حسن',
+                'father_name' => 'أحمد',
+                'mother_name' => 'ليلى',
+                'birth_date' => '1985-05-20',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/teacher_10.jpg',
+                'email' => 'teacher.history@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user23->assignRole('teacher');
+
+
+        $user24 = User::updateOrCreate(
+            ['phone_number' => '0994416058'],
+            [
+                'first_name' => 'نور',
+                'last_name' => 'خليل',
+                'father_name' => 'محمود',
+                'mother_name' => 'سعاد',
+                'birth_date' => '1991-03-10',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'female',
+                'photo_url' => 'users/staff/teacher_11.jpg',
+                'email' => 'teacher.geography@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user24->assignRole('teacher');
+
+
+        $user25 = User::updateOrCreate(
+            ['phone_number' => '0994416059'],
+            [
+                'first_name' => 'عبدالله',
+                'last_name' => 'يوسف',
+                'father_name' => 'حسن',
+                'mother_name' => 'منى',
+                'birth_date' => '1987-06-12',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/teacher_12.jpg',
+                'email' => 'teacher.religion@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user25->assignRole('teacher');
+
+
+        $user26 = User::updateOrCreate(
+            ['phone_number' => '0994416060'],
+            [
+                'first_name' => 'ياسر',
+                'last_name' => 'علي',
+                'father_name' => 'خالد',
+                'mother_name' => 'منى',
+                'birth_date' => '1990-07-18',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'male',
+                'photo_url' => 'users/staff/teacher_13.jpg',
+                'email' => 'teacher.computer@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user26->assignRole('teacher');
+
+
+        $user27 = User::updateOrCreate(
+            ['phone_number' => '0994416061'],
+            [
+                'first_name' => 'ليان',
+                'last_name' => 'سليم',
+                'father_name' => 'كمال',
+                'mother_name' => 'رنا',
+                'birth_date' => '1992-08-22',
+                'birth_place' => 'دمشق',
+                'address' => 'دمشق',
+                'nationality' => 'syrian',
+                'gender' => 'female',
+                'photo_url' => 'users/staff/teacher_14.jpg',
+                'email' => 'teacher.music@gmail.com',
+                'account_status' => 'enabled',
+                'record_status' => 'active',
+                'password' => $defaultPassword,
+            ]
+        );
+        $user27->assignRole('teacher');
     }
 }

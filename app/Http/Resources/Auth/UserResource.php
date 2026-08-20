@@ -23,8 +23,9 @@ class UserResource extends JsonResource
             'nationality' => $this->nationality,
             'gender' => $this->gender,
 
-             'photoUrl' => FileUrl::endpoint(
-                $this->photo_url
+            'photoUrl' => FileUrl::make(
+                $this->photo_url,
+                config('filesystems.public_disk')
             ),
 
             'account_status' => $this->account_status,

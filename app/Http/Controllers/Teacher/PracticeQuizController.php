@@ -188,7 +188,7 @@ class PracticeQuizController extends Controller
             );
 
             return $this->errorResponse(
-                'Failed to retrieve quiz details.',
+                'Error:Server',
                 500
             );
         }
@@ -257,7 +257,7 @@ class PracticeQuizController extends Controller
             );
 
             return $this->errorResponse(
-                'Failed to change quiz status.',
+                'Error:Server',
                 500
             );
         }
@@ -310,7 +310,7 @@ class PracticeQuizController extends Controller
                     : 500;
 
             return $this->errorResponse(
-                $e->getMessage(),
+               'Error:Server',
                 $code
             );
         }

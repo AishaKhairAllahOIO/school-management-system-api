@@ -61,4 +61,29 @@ class StoreAssessmentComponentRequest extends FormRequest
             }
         });
     }
+    public function messages(): array
+    {
+        return [
+            'grade_subject_id.required' => 'The grade subject ID field is required.',
+            'grade_subject_id.integer'  => 'The grade subject ID must be an integer.',
+            'grade_subject_id.exists'   => 'The selected grade subject does not exist.',
+            
+            'type.required'             => 'The component type field is required.',
+            'type.string'               => 'The component type must be a string.',
+            'type.in'                   => 'The selected component type is invalid (must be oral, homework, quiz1, quiz2, exam, or participation).',
+            
+            'name.required'             => 'The component name field is required.',
+            'name.string'               => 'The component name must be a string.',
+            'name.max'                  => 'The component name must not exceed 255 characters.',
+            
+            'max_mark.required'         => 'The maximum mark field is required.',
+            'max_mark.numeric'          => 'The maximum mark must be a number.',
+            'max_mark.min'              => 'The maximum mark must be at least 0.5.',
+            
+            'weight_percentage.required'=> 'The weight percentage field is required.',
+            'weight_percentage.numeric' => 'The weight percentage must be a number.',
+            'weight_percentage.min'     => 'The weight percentage cannot be less than 0%.',
+            'weight_percentage.max'     => 'The weight percentage cannot exceed 100%.',
+        ];
+    }
 }

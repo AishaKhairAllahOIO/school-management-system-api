@@ -56,4 +56,20 @@ class UpdateHomeworkRequest extends FormRequest
             'class_room_ids.*' => ['integer', 'exists:class_rooms,id'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'grade_subject_id.integer' => 'The grade subject ID must be an integer.',
+            'grade_subject_id.exists'  => 'The selected grade subject does not exist.',
+            'title.string'             => 'The homework title must be a string.',
+            'title.max'                => 'The homework title must not exceed 255 characters.',
+            'description.string'       => 'The homework description must be a string.',
+            'due_date.date'            => 'The due date must be a valid date.',
+            'due_date.after_or_equal'  => 'The due date must be today or a future date.',
+            'class_room_ids.array'     => 'The classrooms must be provided as an array.',
+            'class_room_ids.min'       => 'At least one classroom must be selected.',
+            'class_room_ids.*.integer' => 'Each classroom ID must be an integer.',
+            'class_room_ids.*.exists'  => 'One or more selected classrooms do not exist.',
+        ];
+    }
 }

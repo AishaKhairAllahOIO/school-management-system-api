@@ -28,7 +28,7 @@ class StudentCounselorAppointmentController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse(
-                'Failed to retrieve available counseling times.',
+                'Error:Server',
                 500
             );
         }

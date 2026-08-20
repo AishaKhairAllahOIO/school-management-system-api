@@ -26,10 +26,10 @@ class PaymentController extends Controller
 
             return $this->successResponse(
                 PaymentTransactionResource::collection($payments),
-                'تم جلب إيصالات الدفع بنجاح.'
+                'Payments retrieved successfully.'
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب البيانات', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -43,10 +43,10 @@ class PaymentController extends Controller
 
             return $this->successResponse(
                 new PaymentTransactionResource($payment),
-                'تم جلب تفاصيل الإيصال بنجاح.'
+                'Payment transaction retrieved successfully.'
             );
         } catch (Exception $e) {
-            return $this->errorResponse('إيصال الدفع غير موجود.', 404);
+            return $this->errorResponse('Payment transaction not found', 404);
         }
     }
     public function store(PaymentTransactionRequest $request): JsonResponse
@@ -56,7 +56,7 @@ class PaymentController extends Controller
 
             return response()->json([
                 'status'  => true,
-                'message' => 'تم تسجيل الدفعة بنجاح وتحديث الأقساط.',
+                'message' => 'Payment registered successfully and installments updated.',
                 'data'    => [
                     'receipt' => new PaymentTransactionResource($result['transaction']),
                     'account' => new FinancialAccountResource($result['account'])
@@ -65,7 +65,7 @@ class PaymentController extends Controller
 
         } catch (Exception $e) {
             $statusCode = in_array($e->getCode(), [404, 422]) ? $e->getCode() : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
      public function update(UpdatePaymentRequest $request, int $id): JsonResponse
@@ -75,12 +75,12 @@ class PaymentController extends Controller
 
             return $this->successResponse(
                 new PaymentTransactionResource($transaction),
-                'تم تعديل بيانات الإيصال بنجاح.'
+                'Payment transaction updated successfully.'
             );
         } catch (Exception $e) {
             // سيلتقط كود 422 إذا حاول تعديل المبلغ المالي
             $statusCode = $e->getCode() == 422 ? 422 : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 
@@ -94,12 +94,12 @@ class PaymentController extends Controller
 
             return $this->successResponse(
                 null,
-                'تم حذف الإيصال وعكس حركته من الأقساط ورصيد الطالب بنجاح.'
+                'Payment transaction deleted successfully.'
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->errorResponse('الإيصال المحدد غير موجود.', 404);
+            return $this->errorResponse('Payment transaction not found', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف الإيصال: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 }

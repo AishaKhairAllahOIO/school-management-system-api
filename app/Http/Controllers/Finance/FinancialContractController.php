@@ -10,7 +10,10 @@ use App\ApiResource;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\Finance\ScheduledInstallmentResource;
+use App\Models\FinancialAccount;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\ScheduledInstallment;
+use Throwable;
 
 
 class FinancialContractController extends Controller
@@ -28,7 +31,7 @@ class FinancialContractController extends Controller
 
             return $this->successResponse(
                 ScheduledInstallmentResource::collection($installments),
-                'تم جلب جميع الأقساط بنجاح.'
+                'Installments retrieved successfully.'
             );
         } catch (Exception $e) {
             return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
@@ -45,7 +48,7 @@ class FinancialContractController extends Controller
 
             return $this->successResponse(
                 new ScheduledInstallmentResource($installment),
-                'تم جلب تفاصيل القسط بنجاح.'
+                'Insallment retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('القسط المطلوب غير موجود.', 404);
@@ -58,7 +61,7 @@ class FinancialContractController extends Controller
 
             return $this->successResponse(
                 FinancialAccountResource::collection($accounts),
-                'تم جلب جميع الحسابات المالية بنجاح.'
+                'Finance accounts retrieved successfully.'
             );
         } catch (Exception $e) {
             return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
@@ -110,4 +113,22 @@ class FinancialContractController extends Controller
             return $this->errorResponse('Error:Server', 500, $e->getMessage());
         }
     }
+  
+ 
+    public function getStudentInstallments(int $studentId): JsonResponse
+    {
+        try {
+            $installments = $this->service->getInstallmentsByStudentId($studentId);
+
+            return $this->successResponse(
+                $installments,
+                'Student scheduled installments retrieved successfully.'
+            );
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Financial account for this student not found.', 404);
+        } catch (Throwable $e) {
+            return $this->errorResponse('Error:Server', 500);
+        }
+    }
+    
 }

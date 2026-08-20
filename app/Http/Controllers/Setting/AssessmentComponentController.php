@@ -27,7 +27,7 @@ class AssessmentComponentController extends Controller
         try {
             $components = $this->assessmentComponentService->getComponents($request->input('grade_subject_id'));
 
-            $message = $components->isEmpty() ? 'لا يوجد مكونات تقييم مسجلة بعد.' : 'تم جلب مكونات التقييم بنجاح.';
+            $message = $components->isEmpty() ? 'No assessment components registered yet.' : 'Assessment components fetched successfully.';
 
             return $this->successResponse(
                 AssessmentComponentResource::collection($components),
@@ -35,7 +35,7 @@ class AssessmentComponentController extends Controller
                 200
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب مكونات التقييم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -47,11 +47,11 @@ class AssessmentComponentController extends Controller
 
             return $this->successResponse(
                 new AssessmentComponentResource($component),
-                'تم إضافة مكون التقييم بنجاح.',
+                'Assessment Component created successfully.',
                 201
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء إضافة مكون التقييم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -63,13 +63,13 @@ class AssessmentComponentController extends Controller
 
             return $this->successResponse(
                 new AssessmentComponentResource($component),
-                'تم جلب تفاصيل التقييم بنجاح.',
+                'Assessment Component details retrieved successfully.',
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('مكون التقييم المطلوب غير موجود.', 404);
+            return $this->errorResponse('Assessment Component not found', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب تفاصيل التقييم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -82,13 +82,13 @@ class AssessmentComponentController extends Controller
 
             return $this->successResponse(
                 new AssessmentComponentResource($updatedComponent),
-                'تم تعديل مكون التقييم بنجاح.',
+                'Assessment Component updated successfully.',
                 200
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('مكون التقييم المطلوب غير موجود.', 404);
+            return $this->errorResponse('Assessment Component not found', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء تعديل مكون التقييم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -99,11 +99,11 @@ class AssessmentComponentController extends Controller
             $component = AssessmentComponent::findOrFail($id);
             $this->assessmentComponentService->deleteComponent($component);
 
-            return $this->successResponse(null, 'تم حذف مكون التقييم بنجاح.', 200);
+            return $this->successResponse(null, 'Assessment Component deleted successfully.', 200);
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('مكون التقييم المطلوب غير موجود.', 404);
+            return $this->errorResponse('Assessment Component not found', 404);
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء حذف مكون التقييم.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 
@@ -114,11 +114,11 @@ class AssessmentComponentController extends Controller
 
             return $this->successResponse(
                 GroupedAssessmentResource::collection($data),
-                'تم جلب إعدادات المواد مع مكونات التقييم بنجاح.',
+                'Assessment components grouped by subjects retrieved successfully.',
                 200
             );
         } catch (Exception $e) {
-            return $this->errorResponse('حدث خطأ أثناء جلب البيانات.', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
 }

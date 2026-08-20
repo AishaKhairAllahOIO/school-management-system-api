@@ -36,7 +36,7 @@ class SendPushNotification implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        Log::error('فشل إرسال الإشعار اللحظي', [
+        Log::error('Failed to send real-time notification', [
             'user_ids' => $this->userIds,
             'error'    => $exception->getMessage(),
         ]);

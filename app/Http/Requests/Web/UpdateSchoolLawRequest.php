@@ -15,4 +15,13 @@ class UpdateSchoolLawRequest extends FormRequest
             'description' => ['sometimes', 'string'],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'title.string'       => 'The school law title must be a string.',
+            'title.max'          => 'The school law title must not exceed 255 characters.',
+            
+            'description.string' => 'The description must be a string.',
+        ];
+    }
 }

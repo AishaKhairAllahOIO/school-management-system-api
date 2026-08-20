@@ -48,31 +48,47 @@ class StudentMaterialController extends Controller
                 (int) $perPage
             );
 
+
             $responseData = [
                 'items' => collect($materials->items())->map(function ($material) {
+                    $publicDisk = config('filesystems.public_disk');
                     return [
-                        'id'             => $material->id,
-                        'title'          => $material->title,
-                        'description'    => $material->description,
-                        'type'           => $material->type,
-                        'link_url'       => $material->type === 'link' ? $material->link_url : null,
-                        'file_path'      => $material->type === 'file' ? $material->file_path : null,
+                        'id' => $material->id,
+                        'title' => $material->title,
+                        'description' => $material->description,
+                        'type' => $material->type,
+                        ' link_url' => $material->type === 'link'
+                            ? $material->link_url
+                            : null,
+
+                        'file_path' => $material->type === 'file'
+                            ? (
+                                $publicDisk === 's3'
+                                ? Storage::disk($publicDisk)->temporaryUrl(
+                                    $material->file_path,
+                                    now()->addMinutes(30)
+                                )
+                                : Storage::disk($publicDisk)->url(
+                                    $material->file_path
+                                )
+                            )
+                            : null,
                         'file_extension' => $material->type === 'file' ? $material->file_extension : null,
-                        'file_size_kb'   => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
-                        'is_read'        => $material->readers->isNotEmpty(),
-                        'created_at'     => $material->created_at->format('Y-m-d H:i'),
+                        'file_size_kb' => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
+                        'is_read' => $material->readers->isNotEmpty(),
+                        'created_at' => $material->created_at->format('Y-m-d H:i'),
                     ];
                 }),
                 'pagination' => [
-                    'total'        => $materials->total(),
+                    'total' => $materials->total(),
                     'current_page' => $materials->currentPage(),
-                    'last_page'    => $materials->lastPage(),
-                    'per_page'     => $materials->perPage(),
+                    'last_page' => $materials->lastPage(),
+                    'per_page' => $materials->perPage(),
 
                     'first_page_url' => $materials->url(1),
-                    'last_page_url'  => $materials->url($materials->lastPage()),
-                    'next_page_url'  => $materials->nextPageUrl(),
-                    'prev_page_url'  => $materials->previousPageUrl(),
+                    'last_page_url' => $materials->url($materials->lastPage()),
+                    'next_page_url' => $materials->nextPageUrl(),
+                    'prev_page_url' => $materials->previousPageUrl(),
                 ]
             ];
 
@@ -107,14 +123,27 @@ class StudentMaterialController extends Controller
                 return $this->errorResponse('Access Denied. You are not enrolled in the grade this material belongs to.', 403);
             }
 
-            if (!Storage::disk('local')->exists($material->file_path)) {
+            $publicDisk = config('filesystems.public_disk');
+
+            if (!Storage::disk($publicDisk)->exists($material->file_path)) {
                 return $this->errorResponse('File not found on the server.', 404);
             }
 
-            $absolutePath = Storage::disk('local')->path($material->file_path);
+            if ($publicDisk === 's3') {
+                return redirect()->away(
+                    Storage::disk($publicDisk)->temporaryUrl(
+                        $material->file_path,
+                        now()->addMinutes(30)
+                    )
+                );
+            }
 
-            return response()->download($absolutePath, $material->original_name);
+            $absolutePath = Storage::disk($publicDisk)->path($material->file_path);
 
+            return response()->download(
+                $absolutePath,
+                $material->original_name
+            );
         } catch (Exception $e) {
             $code = $this->getExceptionCode($e);
             return $this->errorResponse($e->getMessage(), $code);
@@ -143,20 +172,20 @@ class StudentMaterialController extends Controller
         }
     }
 
- public function show(Request $request, $id)
+    public function show(Request $request, $id)
     {
         try {
             $material = $this->materialService->showOneMaterial((int) $id, $request->user());
 
             $responseData = [
-                'id'             => $material->id,
-                'title'          => $material->title,
-                'description'    => $material->description,
-                'type'           => $material->type,
-                'link_url'       => $material->type === 'link' ? $material->link_url : null,
+                'id' => $material->id,
+                'title' => $material->title,
+                'description' => $material->description,
+                'type' => $material->type,
+                'link_url' => $material->type === 'link' ? $material->link_url : null,
                 'file_extension' => $material->type === 'file' ? $material->file_extension : null,
-                'file_size_kb'   => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
-                'created_at'     => $material->created_at->format('Y-m-d H:i'),
+                'file_size_kb' => $material->type === 'file' ? round($material->file_size / 1024, 2) : null,
+                'created_at' => $material->created_at->format('Y-m-d H:i'),
             ];
 
             return $this->successResponse($responseData, 'Study material details retrieved successfully.', 200);

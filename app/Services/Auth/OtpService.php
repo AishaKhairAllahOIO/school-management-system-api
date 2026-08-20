@@ -99,7 +99,7 @@ class OtpService
                 return true;
             }
 
-            $message = "ت";
+            $message = "كود التحقق الخاص بك هو: $otp. يرجى عدم مشاركته مع أي شخص.";
 
             Log::channel('single')->info('[SMS][OUTBOUND][attemptSendOtp] Preparing to send OTP SMS.', [
                 'to'      => $phone_number,

@@ -100,13 +100,11 @@ class ReportCardGenerationService
                     $failureReasons[] = "الرسوب في مادة مرسبة: {$subjectName}";
                 }
 
-                // 🟡 الحالة ب: الرسوب في مادة غير مرسبة (is_failing_subject == false)
                 if ($subjectStatus === 'failed' && !$gs->is_failing_subject) {
                     $failedNonFailingCount++;
                     $failedNonFailingNames[] = $subjectName;
                 }
 
-                // تجهيز تفاصيل المادة للحفظ (Snapshot)
                 $detailsData[] = [
                     'grade_subject_id' => $gs->id,
                     'evaluations_summary' => json_encode($evaluationsSummary, JSON_UNESCAPED_UNICODE),
@@ -118,29 +116,20 @@ class ReportCardGenerationService
                 ];
             }
 
-            // ==========================================
-            // 🛑 الفلتر الثالث: فحص عدد المواد غير المرسبة التي رسب بها
-            // ==========================================
             if ($failedNonFailingCount > $maxAllowedNonFailingFailures) {
                 $finalResult = 'failed';
                 $namesStr = implode('، ', $failedNonFailingNames);
                 $failureReasons[] = "الرسوب في ({$failedNonFailingCount}) مواد غير مرسبة ({$namesStr})، والحد المسموح به هو ({$maxAllowedNonFailingFailures})";
             }
 
-            // ==========================================
-            // 🛑 الفلتر الرابع: المجموع الكلي الأدنى للنجاح
-            // ==========================================
             if ($totalMarks < $sumOfPassingMarks) {
                 $finalResult = 'failed';
                 $failureReasons[] = "المجموع الكلي ({$totalMarks}) أقل من الحد الأدنى للنجاح ({$sumOfPassingMarks})";
             }
 
-            // تنظيف مصفوفة الأسباب من التكرار
             $failureReasons = array_values(array_unique($failureReasons));
 
-            // ==========================================
-            // 💾 المرحلة الرابعة: حفظ الجلاء (Snapshot)
-            // ==========================================
+
             $reportCard = ReportCard::updateOrCreate(
                 [
                     'enrollment_id' => $enrollment->id,
@@ -157,22 +146,16 @@ class ReportCardGenerationService
                 ]
             );
 
-            // مسح التفاصيل القديمة وحفظ الجديدة
             $reportCard->details()->delete();
             $reportCard->details()->createMany($detailsData);
 
-            // ==========================================
-            // 🎓 المرحلة الخامسة: تطبيق سياسة الترفيع
-            // ==========================================
+
             $this->applyPromotionLogic($enrollment, $finalResult);
 
             return $reportCard;
         });
     }
 
-    /**
-     * منطق الترفيع وتغيير حالة التسجيل
-     */
     protected function applyPromotionLogic(Enrollment $enrollment, string $finalResult)
     {
         if ($finalResult === 'failed') {
@@ -189,9 +172,6 @@ class ReportCardGenerationService
         }
     }
 
-    /**
-     * جلب العشرة الأوائل حسب الصف (Grade Level) أو الشعبة (Class Room)
-     */
     public function getTopStudentsByGrade($semesterId, $gradeLevelId = null, int $limit = 10): Collection
     {
         $query = ReportCard::with([

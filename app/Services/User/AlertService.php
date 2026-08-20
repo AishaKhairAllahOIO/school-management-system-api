@@ -404,13 +404,8 @@ class AlertService
             ->latest()
             ->paginate(20);
     }
-    public function createBatchStudentAlerts(
-        array $enrollmentIds,
-        string $type,
-        array $meta = [],
-        ?string $title = null,
-        ?string $description = null
-    ): Collection {
+    public function createBatchStudentAlerts(array $enrollmentIds, string $type, array $meta = [], ?string $title = null, ?string $description = null): Collection
+    {
         $enrollments = Enrollment::with([
             'student.user',
             'student.guardian.user'
@@ -551,7 +546,7 @@ class AlertService
     {
         return $this->createStudentAlert(
             $enrollment,
-            Alert::TYPE_LATE,
+            Alert::TYPE_REPORT_CARD,
             'تنبيه اصدار الجلاء',
             'تم نشر جلاء الطلاب , يمكنك الاستعلام عنه الان',
             $meta
@@ -657,6 +652,7 @@ class AlertService
 
         $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
         $systemTypes = [Alert::TYPE_SYSTEM_NOTICE];
+        $reportCard = [Alert::TYPE_REPORT_CARD];
 
         return [
             'alerts' => (clone $baseQuery)->whereNotIn('type', array_merge($financialTypes, $systemTypes))->count(),
@@ -664,6 +660,8 @@ class AlertService
             'payment_alerts' => (clone $baseQuery)->whereIn('type', $financialTypes)->count(),
 
             'system_alerts' => (clone $baseQuery)->whereIn('type', $systemTypes)->count(),
+
+            'report_card' => (clone $baseQuery)->whereIn('type', $reportCard)->count(),
         ];
     }
     public function markAllReadForUser(User $user, string $category = 'all', ?int $studentId = null): array
@@ -675,11 +673,14 @@ class AlertService
 
         $financialTypes = [Alert::TYPE_PAYMENT, Alert::TYPE_PAYED, Alert::TYPE_SALARY];
         $systemTypes = [Alert::TYPE_SYSTEM_NOTICE];
+        $reportCard = [Alert::TYPE_REPORT_CARD];
 
         if ($category === 'financial') {
             $baseQuery->whereIn('type', $financialTypes);
         } elseif ($category === 'system') {
             $baseQuery->whereIn('type', $systemTypes);
+        } elseif ($category === 'card') {
+            $baseQuery->whereIn('type', $reportCard);
         } elseif ($category === 'general') {
             $baseQuery->whereNotIn('type', array_merge($financialTypes, $systemTypes));
         }
@@ -867,11 +868,8 @@ class AlertService
 
         ];
     }
-    public function updateHomeworkAlert(
-        int $homeworkId,
-        array $data,
-        User $user
-    ): void {
+    public function updateHomeworkAlert(int $homeworkId, array $data, User $user): void
+    {
         DB::transaction(function () use ($homeworkId, $data, $user) {
 
             $homework = Homework::with([
@@ -991,13 +989,8 @@ class AlertService
             }
         });
     }
-    public function createHomeworkAlerts(
-        int $homeworkId,
-        array $enrollmentIds,
-        string $title,
-        string $description,
-        User $user
-    ): Collection {
+    public function createHomeworkAlerts(int $homeworkId, array $enrollmentIds, string $title, string $description, User $user): Collection
+    {
 
         $homework = Homework::with([
             'gradeSubject.subject'

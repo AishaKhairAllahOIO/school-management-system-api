@@ -136,18 +136,41 @@ class ProcessStudentsImportJob implements ShouldQueue
             |
             */
 
-            $contents = Storage::disk($disk)->get($filePath);
+           $stream = Storage::disk($disk)->readStream($filePath);
 
-            if ($contents === null || $contents === '') {
-                throw new \Exception(
-                    "Excel file is empty or could not be read: {$filePath}"
-                );
-            }
+if ($stream === false) {
+    throw new \Exception(
+        "Excel file could not be read: {$filePath}"
+    );
+}
 
-            file_put_contents(
-                $tempPath,
-                $contents
-            );
+$output = fopen($tempPath, 'wb');
+
+if ($output === false) {
+    if (is_resource($stream)) {
+        fclose($stream);
+    }
+
+    throw new \Exception(
+        "Unable to open temporary file for writing: {$tempPath}"
+    );
+}
+
+try {
+    $bytesCopied = stream_copy_to_stream(
+        $stream,
+        $output
+    );
+} finally {
+    fclose($output);
+    fclose($stream);
+}
+
+if ($bytesCopied === false || $bytesCopied === 0) {
+    throw new \Exception(
+        "Excel file is empty or could not be copied: {$filePath}"
+    );
+}
 
             Log::info('Students Excel import started', [
                 'batch_id' => $batch->id,

@@ -33,7 +33,7 @@ class AlertService
             ->exists();
 
         if ($existingAbsence) {
-            throw new Exception("An absence alert has already been created for this student on {$absenceDate}. You cannot create two absence alerts on the same day.");
+            throw new Exception("An absence alert has already been created for this student on {$absenceDate}. You cannot create two absence alerts on the same day.",409);
         }
 
         $alert = $this->createStudentAlert(

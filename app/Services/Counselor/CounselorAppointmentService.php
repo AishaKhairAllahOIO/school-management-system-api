@@ -2,6 +2,7 @@
 
 namespace App\Services\Counselor;
 
+use App\Jobs\SendPushNotification;
 use App\Models\AcademicSetting;
 use App\Models\Alert;
 use App\Models\CounselorAppointment;
@@ -1008,15 +1009,11 @@ class CounselorAppointmentService
     }
     public function cancelByCounselor(int $appointmentId, int $counselorId): CounselorAppointment
     {
-
         return DB::transaction(function () use ($appointmentId, $counselorId) {
 
             $appointment = CounselorAppointment::query()
                 ->where('id', $appointmentId)
-                ->where(
-                    'counselor_id',
-                    $counselorId
-                )
+                ->where('counselor_id', $counselorId)
                 ->lockForUpdate()
                 ->first();
 
@@ -1026,24 +1023,14 @@ class CounselorAppointmentService
                 );
             }
 
-            if (
-                !in_array(
-                    $appointment->booking_status,
-                    [
-                        'pending',
-                        'accepted',
-                    ]
-                )
-            ) {
+            if (!in_array($appointment->booking_status, ['pending', 'accepted'])) {
                 throw new Exception(
                     'لا يمكن إلغاء هذا الموعد في حالته الحالية.'
                 );
             }
 
             $appointmentStart = Carbon::parse(
-                $appointment
-                    ->appointment_date
-                    ->format('Y-m-d')
+                $appointment->appointment_date->format('Y-m-d')
                 . ' '
                 . $appointment->start_time
             );
@@ -1054,11 +1041,24 @@ class CounselorAppointmentService
                 );
             }
 
+            $student = $appointment->student;
+
             $appointment->update([
                 'student_id' => null,
                 'booking_status' => 'available',
                 'slot_status' => 'available',
             ]);
+
+            if ($student?->user) {
+                SendPushNotification::dispatch(
+                    [$student->user->id],
+                    'Counseling appointment cancelled',
+                    'Your counselor has cancelled your counseling appointment.',
+                    [
+                        'type' => 'counseling_appointment_cancelled',
+                    ]
+                )->afterCommit();
+            }
 
             return $appointment->fresh();
         });

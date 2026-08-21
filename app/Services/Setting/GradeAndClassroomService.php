@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Services\Setting;
-
+use App\Enums\GradeName;
 use App\Models\GradeLevel;
 use App\Models\GradeConfiguration;
 use App\Models\Classroom;
@@ -18,6 +18,7 @@ class GradeAndClassroomService
 
     private function determineLevelFromName(string $name): int
     {
+        $name = $name instanceof GradeName ? $name->value : $name;
 
         if(str_contains($name, 'first')) return 1;
         if(str_contains($name, 'second')) return 2;
@@ -40,7 +41,9 @@ class GradeAndClassroomService
 
     public function createGrade(array $data)
     {
-        $name = $data['name'];
+        $name = $data['name'] instanceof GradeName
+    ? $data['name']->value
+    : $data['name'];
         $level = $this->determineLevelFromName($name);
 
         return GradeLevel::updateOrCreate([
@@ -56,6 +59,10 @@ class GradeAndClassroomService
     public function updateGrade(GradeLevel $grade, array $data)
     {
         $name = $data['name'] ?? $grade->name;
+
+if ($name instanceof GradeName) {
+    $name = $name->value;
+}
         $level = $this->determineLevelFromName($name);
 
         $grade->update([

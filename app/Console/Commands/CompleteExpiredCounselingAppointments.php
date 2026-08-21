@@ -29,11 +29,22 @@ class CompleteExpiredCounselingAppointments extends Command
 
                 foreach ($appointments as $appointment) {
 
+                    // $endDateTime = Carbon::parse(
+                    //     $appointment->appointment_date->format('Y-m-d')
+                    //     . ' '
+                    //     . $appointment->end_time
+                    // );
+
+                    // if (now()->lt($endDateTime)) {
+                    //     continue;
+                    // }
+
                     $endDateTime = Carbon::parse(
                         $appointment->appointment_date->format('Y-m-d')
                         . ' '
-                        . $appointment->end_time
-                    );
+                        . $appointment->start_time
+                    )->addMinutes(2);
+
 
                     if (now()->lt($endDateTime)) {
                         continue;

@@ -25,51 +25,10 @@ class AnnouncementService
         }
 
 
-        $targetUserIds = [];
-
-        if (in_array($announcement->audience, [Announcement::AUDIENCE_STAFF, Announcement::AUDIENCE_BOTH])) {
-            $staffUserIds = User::whereHas('staff')->pluck('id')->toArray();
-            $targetUserIds = array_merge($targetUserIds, $staffUserIds);
-        }
-
-        if (in_array($announcement->audience, [Announcement::AUDIENCE_STUDENT, Announcement::AUDIENCE_BOTH])) {
-            $enrollmentsQuery = Enrollment::whereHas('academicYear', function ($q) {
-                $q->whereDate('start_date', '<=', now())
-                    ->whereDate('end_date', '>=', now());
-            });
-
-            if ($announcement->grade_level_id) {
-                $enrollmentsQuery->where('grade_level_id', $announcement->grade_level_id);
-            }
-
-            if (!empty($classRoomIds)) {
-                $enrollmentsQuery->whereIn('class_room_id', $classRoomIds);
-            }
-
-            $studentIds = $enrollmentsQuery->pluck('student_id');
-
-            $studentAndGuardianIds = User::whereHas('student', function ($q) use ($studentIds) {
-                $q->whereIn('id', $studentIds);
-            })->orWhereHas('guardian', function ($q) use ($studentIds) {
-                $q->whereHas('students', function ($sq) use ($studentIds) {
-                    $sq->whereIn('id', $studentIds);
-                });
-            })->pluck('id')->toArray();
-
-            $targetUserIds = array_merge($targetUserIds, $studentAndGuardianIds);
-        }
-
-        $targetUserIds = array_unique($targetUserIds);
-
-
-        if (!empty($targetUserIds)) {
-            SendPushNotification::dispatch(
-                $targetUserIds,
-                'new announcement has been published.',
-                $announcement->title,
-                ['announcement_id' => (string) $announcement->id, 'type' => 'announcement']
-            );
-        }
+        $this->sendAnnouncementNotification(
+            $announcement,
+            'new announcement has been published.'
+        );
 
         return $announcement;
     }
@@ -92,6 +51,13 @@ class AnnouncementService
         if ($classRoomIds !== null) {
             $announcement->classRooms()->sync($classRoomIds);
         }
+
+        $announcement->readers()->detach();
+
+        $this->sendAnnouncementNotification(
+            $announcement,
+            'announcement has been updated.'
+        );
 
         return $announcement;
     }
@@ -308,5 +274,50 @@ class AnnouncementService
         }
 
         return $query->latest()->paginate(20);
+    }
+
+    private function sendAnnouncementNotification(Announcement $announcement, string $message)
+    {
+        $targetUserIds = [];
+
+        if (in_array($announcement->audience, [Announcement::AUDIENCE_STAFF, Announcement::AUDIENCE_BOTH])) {
+            $staffUserIds = User::whereHas('staff')->pluck('id')->toArray();
+            $targetUserIds = array_merge($targetUserIds, $staffUserIds);
+        }
+
+        if (in_array($announcement->audience, [Announcement::AUDIENCE_STUDENT, Announcement::AUDIENCE_BOTH])) {
+            $enrollmentsQuery = Enrollment::whereHas('academicYear', function ($q) {
+                $q->whereDate('start_date', '<=', now())
+                    ->whereDate('end_date', '>=', now());
+            });
+
+            if ($announcement->grade_level_id) {
+                $enrollmentsQuery->where('grade_level_id', $announcement->grade_level_id);
+            }
+
+            $studentIds = $enrollmentsQuery->pluck('student_id');
+
+            $studentAndGuardianIds = User::whereHas('student', function ($q) use ($studentIds) {
+                $q->whereIn('id', $studentIds);
+            })->orWhereHas('guardian.students', function ($q) use ($studentIds) {
+                $q->whereIn('students.id', $studentIds);
+            })->pluck('id')->toArray();
+
+            $targetUserIds = array_merge($targetUserIds, $studentAndGuardianIds);
+        }
+
+        $targetUserIds = array_unique($targetUserIds);
+
+        if (!empty($targetUserIds)) {
+            SendPushNotification::dispatch(
+                $targetUserIds,
+                $message,
+                $announcement->title,
+                [
+                    'announcement_id' => (string) $announcement->id,
+                    'type' => 'announcement'
+                ]
+            );
+        }
     }
 }

@@ -49,7 +49,7 @@ class HomeworkAlertResource extends JsonResource
                             $user->first_name . ' ' . $user->last_name
                         ),
 
-                        'photoUrl' => FileUrl::make(
+                        'personal_photo' => FileUrl::make(
                             $user->photo_url,
                             config('filesystems.public_disk')
                         ),

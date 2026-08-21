@@ -612,19 +612,10 @@ class CounselorAppointmentService
 
                         'student_name' => $studentName,
 
-                        'appointment_id' =>
-                            $selectedAppointment->id,
-
                         'appointment_date' =>
                             $selectedAppointment
                                 ->appointment_date
                                 ->toDateString(),
-
-                        'start_time' =>
-                            $selectedAppointment->start_time,
-
-                        'end_time' =>
-                            $selectedAppointment->end_time,
 
                     ]
 

@@ -218,46 +218,33 @@ class CounselorAppointmentService
     }
     public function getAvailableTomorrowSlots()
     {
-
-        /*
-         * يجلب أقرب يوم دوام فعلي
-         */
         $date = $this->getNextAvailableWorkingDate();
 
-
+        if (!$date) {
+            return collect([]);
+        }
 
         $day = strtolower(
             $date->englishDayOfWeek
         );
 
-
-
         return CounselorAppointment::query()
-
 
             ->whereDate(
                 'appointment_date',
                 $date->toDateString()
             )
 
-
             ->where(
                 'booking_status',
                 'available'
             )
-
 
             ->where(
                 'slot_status',
                 'available'
             )
 
-
-            /*
-             * حماية إضافية:
-             * لا تعرض Slot إذا لم يعد المرشد
-             * لديه دوام في هذا اليوم
-             */
             ->whereHas(
                 'counselor',
                 function ($query) use ($day) {
@@ -275,29 +262,16 @@ class CounselorAppointmentService
                 }
             )
 
-
-
-            ->orderBy(
-                'start_time'
-            )
-
+            ->orderBy('start_time')
 
             ->get([
-
                 'id',
-
                 'appointment_date',
-
                 'start_time',
-
                 'end_time',
-
                 'booking_status'
-
             ]);
-
     }
-
     public function bookAppointment(int $studentId, string $appointmentDate, string $startTime, string $endTime): CounselorAppointment
     {
 
@@ -562,7 +536,7 @@ class CounselorAppointmentService
 
                 }
 
-                $acceptedCount = (int) 
+                $acceptedCount = (int)
                     $acceptedCounts->get(
                         $appointment->counselor_id,
                         0
@@ -917,11 +891,20 @@ class CounselorAppointmentService
     }
     public function getPendingCounselorAppointments(int $counselorId, ?string $date = null)
     {
+        if ($date) {
 
-        $date = $date
-            ? Carbon::parse($date)->toDateString()
-            : $this->getNextAvailableWorkingDate()
-                ->toDateString();
+            $date = Carbon::parse($date)->toDateString();
+
+        } else {
+
+            $workingDate = $this->getNextAvailableWorkingDate();
+
+            if (!$workingDate) {
+                return collect([]);
+            }
+
+            $date = $workingDate->toDateString();
+        }
 
 
         return CounselorAppointment::query()
@@ -945,7 +928,9 @@ class CounselorAppointmentService
                 'student.user',
             ])
 
-            ->orderBy('start_time')
+            ->orderBy(
+                'start_time'
+            )
 
             ->get();
     }
@@ -1202,11 +1187,20 @@ class CounselorAppointmentService
 
     public function getAcceptedCounselorAppointments(int $counselorId, ?string $date = null)
     {
+        if ($date) {
 
-        $date = $date
-            ? Carbon::parse($date)->toDateString()
-            : $this->getNextAvailableWorkingDate()
-                ->toDateString();
+            $date = Carbon::parse($date)->toDateString();
+
+        } else {
+
+            $workingDate = $this->getNextAvailableWorkingDate();
+
+            if (!$workingDate) {
+                return collect([]);
+            }
+
+            $date = $workingDate->toDateString();
+        }
 
 
         return CounselorAppointment::query()
@@ -1236,13 +1230,15 @@ class CounselorAppointmentService
 
             ->get();
     }
-    private function getNextAvailableWorkingDate(): Carbon
+    private function getNextAvailableWorkingDate(): ?Carbon
     {
         $date = Carbon::tomorrow();
 
         for ($i = 0; $i < 7; $i++) {
 
-            $day = strtolower($date->englishDayOfWeek);
+            $day = strtolower(
+                $date->englishDayOfWeek
+            );
 
             $exists = CounselorAvailability::query()
                 ->where('day', $day)
@@ -1256,10 +1252,7 @@ class CounselorAppointmentService
             $date->addDay();
         }
 
-
-        throw new Exception(
-            'No available working day found.'
-        );
+        return null;
     }
 
 

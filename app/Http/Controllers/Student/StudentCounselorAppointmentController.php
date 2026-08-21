@@ -14,11 +14,14 @@ class StudentCounselorAppointmentController extends Controller
 {
     use ApiResource;
 
-    public function __construct(private CounselorAppointmentService $service) {}
+    public function __construct(private CounselorAppointmentService $service)
+    {
+    }
 
     public function availableSlots()
     {
         try {
+
             $appointments = $this->service->getAvailableTomorrowSlots();
 
             return $this->successResponse(
@@ -26,13 +29,14 @@ class StudentCounselorAppointmentController extends Controller
                 'Available counseling times retrieved successfully.',
                 200
             );
+
         } catch (Exception $e) {
 
-    return $this->errorResponse(
-        $e->getMessage(),
-        500
-    );
-}
+            return $this->errorResponse(
+                $e->getMessage(),
+                500
+            );
+        }
     }
 
     public function store(BookCounselorAppointmentRequest $request)
@@ -73,7 +77,6 @@ class StudentCounselorAppointmentController extends Controller
                 200
             );
         } catch (Exception $e) {
-            // تحسين: إرجاع 403 أو 404 بدلاً من 422 إذا كان الموعد غير موجود أو لا يخص الطالب
             $statusCode = str_contains($e->getMessage(), 'غير موجود') ? 404 : 403;
             return $this->errorResponse(
                 $e->getMessage(),
@@ -82,5 +85,5 @@ class StudentCounselorAppointmentController extends Controller
         }
     }
 
-    
+
 }

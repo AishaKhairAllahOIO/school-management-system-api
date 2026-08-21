@@ -128,7 +128,7 @@ class AttendanceReportService
         ->get()
         ->groupBy(function ($item) {
             // المسار الصحيح: scheduleEntry -> gradeSubject -> subject -> subject_name
-            return $item->scheduleEntry?->gradeSubject?->subject?->subject_name ?? 'مادة غير محددة';
+            return $item->scheduleEntry?->gradeSubject?->subject?->subject_name ?? 'Unspecified Subject';
         })
         ->map(function ($items, $subjectName) {
             return [

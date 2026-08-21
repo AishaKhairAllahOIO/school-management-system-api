@@ -36,7 +36,7 @@ class StudyMaterialService
                 $path = $file->storeAs(
                     "materials/" . date('Y'),
                     $fileName,
-                    config('filesystems.default')
+                    config('filesystems.public_disk')
                 );
                 $materialData['file_path'] = $path;
                 $materialData['original_name'] = $file->getClientOriginalName();
@@ -233,7 +233,7 @@ class StudyMaterialService
 
         if ($material->type === 'file' && $material->file_path) {
             try {
-                Storage::disk(config('filesystems.default'))
+                Storage::disk(config('filesystems.public_disk'))
                     ->delete($material->file_path);
             } catch (Exception $e) {
                 Log::error("Failed to delete file for material ID {$material->id}: " . $e->getMessage());

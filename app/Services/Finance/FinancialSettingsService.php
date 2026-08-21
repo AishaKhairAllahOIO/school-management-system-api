@@ -54,8 +54,10 @@ class FinancialSettingsService
                       \App\Models\FinancialAccount::where('installment_policy_id', $id)->exists();
 
             if ($isUsed) {
-                throw new Exception('لا يمكن تعديل سياسة التقسيط لأنها مستخدمة بالفعل في خطط مالية أو حسابات طلاب.', 409);
-            }
+throw new Exception(
+    'The installment policy cannot be modified because it is already assigned to financial plans or student accounts.',
+    409
+);            }
 
             $policy->update([
                 'name'               => $data['name'],
@@ -87,8 +89,10 @@ class FinancialSettingsService
                   \App\Models\FinancialAccount::where('installment_policy_id', $id)->exists();
 
         if ($isUsed) {
-            throw new Exception('لا يمكن حذف سياسة التقسيط لارتباطها بخطط مالية أو حسابات طلاب.', 409);
-        }
+throw new Exception(
+    'The installment policy cannot be deleted because it is associated with financial plans or student accounts.',
+    409
+);        }
 
         $policy->delete();
     }
@@ -106,8 +110,10 @@ class FinancialSettingsService
     }
     public function deletePolicyItem(int $id): void
     {
-        throw new Exception('لا يمكن حذف دفعة واحدة بشكل مستقل لأن ذلك سيكسر مجموع الـ 100%. لحذف دفعة، يرجى تعديل سياسة التقسيط بالكامل من الواجهة الرئيسية.', 422);
-    }
+throw new Exception(
+    'An installment cannot be deleted individually because the policy must total 100%. To remove an installment, please edit the entire installment policy.',
+    422
+);    }
     public function getFeePlans(): Collection
     {
         return FeePlan::with(['academicYear', 'gradeLevel', 'extraServices'])->get();
@@ -140,8 +146,10 @@ class FinancialSettingsService
 
             $isUsed = FinancialAccount::where('fee_plan_id', $id)->exists();
             if ($isUsed) {
-                 throw new Exception('لا يمكن تعديل الخطة المالية لأن هناك طلاباً متعاقدين عليها بالفعل.', 409);
-            }
+throw new Exception(
+    'The financial plan cannot be modified because it is already assigned to students.',
+    409
+);            }
 
             $feePlan->update([
                 'academic_year_id'      => $data['academicYearId'],
@@ -164,8 +172,10 @@ class FinancialSettingsService
         
         $isUsed = FinancialAccount::where('fee_plan_id', $id)->exists();
         if ($isUsed) {
-            throw new Exception('لا يمكن حذف الخطة المالية لارتباطها بحسابات مالية لطلاب حاليين.', 409);
-        }
+throw new Exception(
+    'The financial plan cannot be deleted because it is associated with active student financial accounts.',
+    409
+);        }
 
         $feePlan->delete();
     }
@@ -175,8 +185,10 @@ class FinancialSettingsService
         
         $isUsed = FinancialAccount::where('fee_plan_id', $service->fee_plan_id)->exists();
         if ($isUsed) {
-            throw new Exception('لا يمكن تعديل الخدمة الإضافية لأن هناك طلاباً متعاقدين على هذه الخطة المالية بالفعل.', 409);
-        }
+throw new Exception(
+    'The additional service cannot be modified because students are already assigned to this financial plan.',
+    409
+);        }
 
         $service->update([
             'type'   => $data['type'] ?? $service->type,
@@ -192,8 +204,10 @@ class FinancialSettingsService
 
         $isUsed = FinancialAccount::where('fee_plan_id', $service->fee_plan_id)->exists();
         if ($isUsed) {
-            throw new Exception('لا يمكن حذف الخدمة الإضافية لأن هناك طلاباً متعاقدين على هذه الخطة المالية بالفعل.', 409);
-        }
+throw new Exception(
+    'The additional service cannot be deleted because students are already assigned to this financial plan.',
+    409
+);        }
 
         $service->delete();
     }

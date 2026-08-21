@@ -42,14 +42,18 @@ class PaymentService
                                        ->first();
 
             if (!$account) {
-                throw new Exception('لا يوجد حساب مالي نشط أو غير مدفوع لهذا الطالب.', 404);
-            }
+throw new Exception(
+    'No active or unpaid financial account was found for this student.',
+    404
+);            }
 
             $paidAmount = (float) $data['paidAmount'];
 
             if ($paidAmount > $account->remaining_balance) {
-                throw new Exception("المبلغ المدفوع ($paidAmount) أكبر من الرصيد المتبقي على الطالب ({$account->remaining_balance}).", 422);
-            }
+throw new Exception(
+    "The payment amount ($paidAmount) exceeds the student's remaining balance ({$account->remaining_balance}).",
+    422
+);            }
 
 
             $pendingInstallments = ScheduledInstallment::where('financial_account_id', $account->id)
@@ -176,8 +180,10 @@ class PaymentService
 
         // 🛡️ حماية سيادية: يمنع منعاً باتاً تعديل المبلغ برمجياً للحفاظ على سلامة الحسابات
         if (isset($data['paidAmount']) && (float)$data['paidAmount'] !== (float)$transaction->paid_amount) {
-            throw new Exception('عذراً، يمنع تعديل المبلغ المالي في الأنظمة المحاسبية بعد الحفظ. إذا كان المبلغ خاطئاً، قم بحذف الإيصال وإصدار واحد جديد.', 422);
-        }
+throw new Exception(
+    'The payment amount cannot be modified after the transaction has been recorded. If the amount is incorrect, delete the receipt and create a new one.',
+    422
+);        }
 
         $transaction->update([
             'payment_method'    => $data['paymentMethod'] ?? $transaction->payment_method,

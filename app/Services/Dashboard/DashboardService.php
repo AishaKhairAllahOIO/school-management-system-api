@@ -158,8 +158,10 @@ class DashboardService
             return ['role' => 'secretary', 'dashboard_data' => $this->getSecretaryDashboard()];
         }
 
-        throw new \Exception('لا تتوفر لوحة تحكم مخصصة للدور الأكاديمي الخاص بحسابك.', 403);
-    }
+throw new \Exception(
+    'No dashboard is available for your account role.',
+    403
+);    }
 
     private function safeRoleCount(string $roleName): int
     {
@@ -225,7 +227,7 @@ class DashboardService
 
             return [
                 'stage_id'       => $stage->id,
-                'stage_name'     => $stage->type ?? 'غير محدد',
+                'stage_name'     => $stage->type ?? 'Not specified',
                 'students_count' => $studentsCount,
             ];
         })->toArray();
@@ -245,7 +247,7 @@ class DashboardService
 
             return [
                 'stage_id'       => $stage->id,
-                'stage_name'     => $stage->name ?? 'غير محدد',
+                'stage_name'     => $stage->name ?? 'Not specified',
                 'students_count' => $studentsCount,
             ];
         })->toArray();

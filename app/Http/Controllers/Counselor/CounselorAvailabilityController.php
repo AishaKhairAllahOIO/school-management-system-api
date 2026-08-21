@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Counselor\AddAvailabilityRequest;
 use App\Http\Requests\Counselor\StoreAvailabilityRequest;
 use App\Http\Requests\Counselor\UpdateAvailabilityRequest;
+use App\Models\GradeLevel;
 use App\Services\Counselor\CounselorAvailabilityService;
 use Exception;
 use Illuminate\Http\Request;
@@ -113,5 +114,24 @@ class CounselorAvailabilityController extends Controller
         }
     }
 
+
+    public function getGradeLevels()
+    {
+        $grades = GradeLevel::query()
+            ->select([
+                'id',
+                'name',
+            ])
+            ->orderBy('id')
+            ->get();
+    
+
+       return $this->successResponse(
+                $grades,
+                'grades shown successfully.',
+                200
+            );
+    }
+ 
 
 }

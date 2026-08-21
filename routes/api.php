@@ -74,6 +74,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 
+Route::get('/test-traccar-config', function () {
+    return [
+        'url' => config('services.traccar.api_url'),
+        'has_key' => !empty(config('services.traccar.api_key')),
+    ];
+});
+
+
 
 
 Route::prefix('auth')->group(function () {
@@ -94,8 +102,8 @@ Route::prefix('auth')->group(function () {
         Route::get('/announcements/unread-count', [UserAnnouncementController::class, 'getUnreadCount']);
         Route::post('/announcements/mark-all-read', [UserAnnouncementController::class, 'markAllAsRead']);
         Route::get('/personal-image-url', [UserController::class, 'myPersonalPhotoUrl']);
-        Route::get('/staff/finance/report/show',[StaffPayrollController::class,'myPayrolls']);
-        Route::get('/staff/leaves/report/show',[StaffLeaveController::class,'getMyLeaves']);
+        Route::get('/staff/finance/report/show', [StaffPayrollController::class, 'myPayrolls']);
+        Route::get('/staff/leaves/report/show', [StaffLeaveController::class, 'getMyLeaves']);
 
         Route::prefix('alerts')->controller(UserAlertController::class)->group(function () {
             Route::get('/show/general/staff', 'getStaffAlerts');
@@ -222,29 +230,31 @@ Route::prefix('auth')->group(function () {
 
         Route::middleware('role:counselor')->prefix('/counselor')->group(function () {
             Route::get('/show-profile', [UserController::class, 'counselorProfile']);
-            Route::get('/tomorrow/schedule/show',[CounselorAppointmentController::class,'tomorrowSchedule']);
+            Route::get('/tomorrow/schedule/show', [CounselorAppointmentController::class, 'tomorrowSchedule']);
+            Route::get('/get/grade/levels', [CounselorAvailabilityController::class, 'getGradeLevels']);
+
 
             Route::prefix('/config')->controller(CounselorAvailabilityController::class)->group(function () {
-                Route::post('/availability','store');
-                Route::get('/availability','index');
-                Route::put('/availability/{day}','update');
-                Route::delete('/availability/{day}','destroy');
-                Route::post('/availability/add/day','addDay');
+                Route::post('/availability', 'store');
+                Route::get('/availability', 'index');
+                Route::put('/availability/{day}', 'update');
+                Route::delete('/availability/{day}', 'destroy');
+                Route::post('/availability/add/day', 'addDay');
 
             });
 
-            Route::prefix('/appointments')->controller(CounselorAppointmentController::class)->group(function (){
-                Route::get('/pending','pending');
-                Route::post('/approve/{appointmentId}','approve');
-                Route::delete('/cancel/{appointmentId}','cancel');
-                Route::get('/show/students/sessions','students');
-                Route::get('/get/student/session/{studentId}','sessions');
-                Route::get('/get/accepted/session','accepted');
+            Route::prefix('/appointments')->controller(CounselorAppointmentController::class)->group(function () {
+                Route::get('/pending', 'pending');
+                Route::post('/approve/{appointmentId}', 'approve');
+                Route::delete('/cancel/{appointmentId}', 'cancel');
+                Route::get('/show/students/sessions', 'students');
+                Route::get('/get/student/session/{studentId}', 'sessions');
+                Route::get('/get/accepted/session', 'accepted');
             });
 
             Route::prefix('/session')->controller(CounselingSessionController::class)->group(function () {
-                    Route::get('pending','pending');
-                    Route::put('update/state/{sessionId}','update');
+                Route::get('pending', 'pending');
+                Route::put('update/state/{sessionId}', 'update');
             });
         });
 
@@ -317,23 +327,23 @@ Route::middleware('auth:sanctum')->prefix('admin/settings')->group(function () {
 
 Route::middleware('auth:sanctum')->prefix('subject/setting')->group(function () {
 
-        Route::post('/subject/store', [SubjectController::class, 'store'])->middleware('role:super_admin');
-        Route::get('/subjects/show', [SubjectController::class, 'index']);
-        Route::delete('/subject/delete/{id}', [SubjectController::class, 'destroy'])->middleware('role:super_admin');
-        Route::post('/subjects/update/{id}', [SubjectController::class, 'update'])->middleware('role:super_admin');
+    Route::post('/subject/store', [SubjectController::class, 'store'])->middleware('role:super_admin');
+    Route::get('/subjects/show', [SubjectController::class, 'index']);
+    Route::delete('/subject/delete/{id}', [SubjectController::class, 'destroy'])->middleware('role:super_admin');
+    Route::post('/subjects/update/{id}', [SubjectController::class, 'update'])->middleware('role:super_admin');
 
-        Route::get('grade/subjects/show', [GradeSubjectController::class, 'index']);
-        Route::delete('grade/subject/delete/{id}', [GradeSubjectController::class, 'destroy'])->middleware('role:super_admin');
-        Route::post('grade/subject/store', [GradeSubjectController::class, 'store'])->middleware('role:super_admin');
-        Route::get('grade/subjects/show/{id}', [GradeSubjectController::class, 'show']);
-        Route::post('grade/subjects/update/{id}', [GradeSubjectController::class, 'update'])->middleware('role:super_admin');
+    Route::get('grade/subjects/show', [GradeSubjectController::class, 'index']);
+    Route::delete('grade/subject/delete/{id}', [GradeSubjectController::class, 'destroy'])->middleware('role:super_admin');
+    Route::post('grade/subject/store', [GradeSubjectController::class, 'store'])->middleware('role:super_admin');
+    Route::get('grade/subjects/show/{id}', [GradeSubjectController::class, 'show']);
+    Route::post('grade/subjects/update/{id}', [GradeSubjectController::class, 'update'])->middleware('role:super_admin');
 
-        Route::get('assessment/subjects/show', [AssessmentComponentController::class, 'index']);
-        Route::get('assessment/subject/show/{id}', [AssessmentComponentController::class, 'show']);
-        Route::post('assessment/subject/store', [AssessmentComponentController::class, 'store'])->middleware('role:super_admin');
-        Route::post('assessment/subject/update/{id}', [AssessmentComponentController::class, 'update'])->middleware('role:super_admin');
-        Route::delete('assessment/subject/delete/{id}', [AssessmentComponentController::class, 'destroy'])->middleware('role:super_admin');
-        Route::get('assessment/subjects/grouped', [AssessmentComponentController::class, 'groupedBySubject']);
+    Route::get('assessment/subjects/show', [AssessmentComponentController::class, 'index']);
+    Route::get('assessment/subject/show/{id}', [AssessmentComponentController::class, 'show']);
+    Route::post('assessment/subject/store', [AssessmentComponentController::class, 'store'])->middleware('role:super_admin');
+    Route::post('assessment/subject/update/{id}', [AssessmentComponentController::class, 'update'])->middleware('role:super_admin');
+    Route::delete('assessment/subject/delete/{id}', [AssessmentComponentController::class, 'destroy'])->middleware('role:super_admin');
+    Route::get('assessment/subjects/grouped', [AssessmentComponentController::class, 'groupedBySubject']);
 
 });
 
@@ -386,7 +396,7 @@ Route::prefix('admin/finance/contracts')->middleware('auth:sanctum')->group(func
     // 2️⃣ مسارات الأقساط (Installments)
     Route::get('/installments', [FinancialContractController::class, 'installmentsIndex']);
     Route::get('/installments/{id}', [FinancialContractController::class, 'showInstallment']);
-    Route::get('/student/{studentId}/installments',[FinancialContractController::class,'getStudentInstallments']);
+    Route::get('/student/{studentId}/installments', [FinancialContractController::class, 'getStudentInstallments']);
 
     // 3️⃣ مسارات الصندوق والدفع (Payments)
     Route::get('/payments', [PaymentController::class, 'index']);
@@ -405,7 +415,7 @@ Route::middleware('auth:sanctum', 'role:super_admin')->prefix('role')->group(fun
     Route::put('/{id}/permissions', [RoleController::class, 'sync']);
 });
 
-Route::middleware('auth:sanctum','role:super_admin|secretary')->prefix('admin/student')->group(function () {
+Route::middleware('auth:sanctum', 'role:super_admin|secretary')->prefix('admin/student')->group(function () {
 
     Route::post('/register', [StudentController::class, 'store']);
     Route::post('/import', [StudentController::class, 'importExcel']);
@@ -479,7 +489,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/attendance')->group(function () {
-     Route::get('/filter', [StudentAttendanceController::class, 'index']);
+    Route::get('/filter', [StudentAttendanceController::class, 'index']);
 
     Route::get('/{enrollmentId}', [StudentAttendanceController::class, 'getStudentHistory']);
 
@@ -502,7 +512,7 @@ Route::middleware('auth:sanctum')->prefix('admin/leave')->group(function () {
 });
 Route::middleware(['auth:sanctum'])->prefix('admin/staff-leaves')->group(function () {
     Route::post('/', [StaffLeaveController::class, 'store'])->middleware('role:super_admin|secretary');
-     Route::get('/allRecords', [StaffLeaveController::class, 'getAllRecords']);
+    Route::get('/allRecords', [StaffLeaveController::class, 'getAllRecords']);
     Route::get('/{id}', [StaffLeaveController::class, 'getStaffLeaves']);
     Route::get('/{leaveId}/staff', [StaffLeaveController::class, 'getStaffLeaveById']); // 👈 دالة العرض الجديدة
     Route::post('/{id}', [StaffLeaveController::class, 'update'])->middleware('role:super_admin|secretary');     // تعديل سجل إجازة
@@ -516,7 +526,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/staff-attendances')->group(fu
     Route::post('/{id}', [StaffAttendanceController::class, 'update'])->middleware('role:super_admin|secretary');     // تعديل سجل
     Route::delete('/{id}', [StaffAttendanceController::class, 'destroy'])->middleware('role:super_admin|secretary');
     Route::get('/staff/{staffId}', [StaffAttendanceController::class, 'getAllRecords']); // جلب جميع سجلات الحضور لموظف معين
- });
+});
 Route::middleware(['auth:sanctum'])->prefix('admin/staff/contract')->group(function () {
     Route::get('/', [StaffFinancialContractController::class, 'index']);
     Route::get('/{id}', [StaffFinancialContractController::class, 'show']);
@@ -552,7 +562,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin/report-cards')->group(functio
     Route::post('/publish', [ReportCardAdminController::class, 'togglePublish']);   // زر نشر / إلغاء النشر للأهالي
     Route::post('/promote', [ReportCardAdminController::class, 'promote']);
     Route::post('/toggle-publish', [ReportCardAdminController::class, 'togglePublish']);
-    });
+});
 
 Route::middleware(['auth:sanctum'])->prefix('dashboard')->group(function () {
 
@@ -638,24 +648,24 @@ Route::prefix('user')->group(function () {
             Route::post('/mark/all/read', 'markAllRead');
         });
 
-        Route::middleware('role:guardian')->group(function (){
-            Route::get('/show/finance/report/{studentId}',[GuardianFinanceController::class,'childFinance']);
-        Route::prefix('/complaint')->controller(ComplaintController::class)->group(function(){
-            Route::get('options','options');
-            Route::post('/create','store');
-            Route::put('update/{complaintId}','update');
-            Route::delete('delete/{complaintId}','destroy');
-            Route::get('show/{studentId}','index');
-        });
+        Route::middleware('role:guardian')->group(function () {
+            Route::get('/show/finance/report/{studentId}', [GuardianFinanceController::class, 'childFinance']);
+            Route::prefix('/complaint')->controller(ComplaintController::class)->group(function () {
+                Route::get('options', 'options');
+                Route::post('/create', 'store');
+                Route::put('update/{complaintId}', 'update');
+                Route::delete('delete/{complaintId}', 'destroy');
+                Route::get('show/{studentId}', 'index');
+            });
 
         });
 
         Route::prefix('/counselor')->controller(StudentCounselorAppointmentController::class)->group(function () {
-                Route::get('/available/slot','availableSlots');
-                Route::post('/counseling/appointments','store');
-                Route::delete('/cancel/{appointmentId}','cancel');
+            Route::get('/available/slot', 'availableSlots');
+            Route::post('/counseling/appointments', 'store');
+            Route::delete('/cancel/{appointmentId}', 'cancel');
         });
-        Route::get('/get/my/appointments',[CounselorAppointmentController::class,'myAppointments']);
+        Route::get('/get/my/appointments', [CounselorAppointmentController::class, 'myAppointments']);
 
     });
 
@@ -669,9 +679,9 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
-  Route::get('/guardian/students/{student_id}/report-cards/{semester_id}',[GuardianReportController::class,'showStudentReportCard']);
+    Route::get('/guardian/students/{student_id}/report-cards/{semester_id}', [GuardianReportController::class, 'showStudentReportCard']);
     Route::get('/student/report-cards/top-students', [GuardianReportController::class, 'getTopStudentsForMyClass']);
-  Route::middleware(['auth:sanctum'])->get('/student/report-cards/{semesterId}/', [GuardianReportController::class, 'showMyReportCard']);
-  Route::get('/parent/report-cards/top-students', [GuardianReportController::class, 'getTopStudentsForChild']);
-  });
-Route::get('/website',[ContentController::class,'getPublicStats']);
+    Route::middleware(['auth:sanctum'])->get('/student/report-cards/{semesterId}/', [GuardianReportController::class, 'showMyReportCard']);
+    Route::get('/parent/report-cards/top-students', [GuardianReportController::class, 'getTopStudentsForChild']);
+});
+Route::get('/website', [ContentController::class, 'getPublicStats']);

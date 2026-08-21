@@ -91,13 +91,6 @@ class ProcessStudentsImportJob implements ShouldQueue
 
                     try {
 
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Academic Data
-                        |--------------------------------------------------------------------------
-                        */
-
                         $academicYearName = trim(
                             $row['academic_year_name'] ?? ''
                         );

@@ -15,13 +15,16 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\ScheduledInstallment;
 use Throwable;
 
+
 class FinancialContractController extends Controller
 {
     use ApiResource;
 
     public function __construct(private FinancialContractService $service) {}
 
-    public function installmentsIndex(): JsonResponse
+
+
+    public function installmentsIndex()
     {
         try {
             $installments = $this->service->getAllInstallments();
@@ -30,7 +33,7 @@ class FinancialContractController extends Controller
                 ScheduledInstallmentResource::collection($installments),
                 'Installments retrieved successfully.'
             );
-        } catch (Throwable $e) {
+        } catch (Exception $e) {
             return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
@@ -45,15 +48,13 @@ class FinancialContractController extends Controller
 
             return $this->successResponse(
                 new ScheduledInstallmentResource($installment),
-                'Installment retrieved successfully.' // 💡 تصحيح إملائي بسيط
+                'Insallment retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            // 💡 تحويل الرسالة إلى الإنجليزية المعيارية
-            return $this->errorResponse('The requested installment was not found.', 404);
+            return $this->errorResponse('القسط المطلوب غير موجود.', 404);
         }
     }
-
-    public function index(): JsonResponse
+    public function index()
     {
         try {
             $accounts = $this->service->getAllAccounts();
@@ -62,7 +63,7 @@ class FinancialContractController extends Controller
                 FinancialAccountResource::collection($accounts),
                 'Finance accounts retrieved successfully.'
             );
-        } catch (Throwable $e) {
+        } catch (Exception $e) {
             return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
@@ -77,11 +78,10 @@ class FinancialContractController extends Controller
 
             return $this->successResponse(
                 new FinancialAccountResource($account),
-                // 💡 تصحيح رسالة النجاح التي كانت مكتوبة بالخطأ
-                'Finance contract retrieved successfully.'
+                'Finance Contract for this Student not found'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Finance contract for this student not found.', 404);
+            return $this->errorResponse('Finance Contract for this Student not found', 404);
         }
     }
 
@@ -92,18 +92,12 @@ class FinancialContractController extends Controller
 
             return $this->successResponse(
                 new FinancialAccountResource($account),
-                'Finance contract finalized successfully.',
-                201
+                'Finance Contract Finalized Successfully'
             );
         } catch (Exception $e) {
-            // 💡 التقاط كود الخطأ الدقيق من السيرفيس (422, 409)
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, $e->getMessage());
         }
     }
-
     public function update(FinancialContractRequest $request, int $id): JsonResponse
     {
         try {
@@ -111,32 +105,30 @@ class FinancialContractController extends Controller
 
             return $this->successResponse(
                 new FinancialAccountResource($account),
-                'Finance contract updated successfully.'
+                'Finance Contract updated Successfully'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Contract not found.', 404);
+            return $this->errorResponse('Contract not found', 404);
         } catch (Exception $e) {
-            // 💡 التقاط كود الخطأ الدقيق من السيرفيس (422, 409)
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500, $e->getMessage());
         }
     }
-
+  
+ 
     public function getStudentInstallments(int $studentId): JsonResponse
     {
         try {
             $installments = $this->service->getInstallmentsByStudentId($studentId);
 
             return $this->successResponse(
-                ScheduledInstallmentResource::collection($installments),
+                $installments,
                 'Student scheduled installments retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Financial account for this student not found.', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
+    
 }

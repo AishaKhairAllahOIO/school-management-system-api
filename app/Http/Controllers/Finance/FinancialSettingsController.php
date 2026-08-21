@@ -16,7 +16,6 @@ use App\ApiResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
-use Throwable;
 
 class FinancialSettingsController extends Controller
 {
@@ -32,10 +31,11 @@ class FinancialSettingsController extends Controller
     {
         return $this->successResponse(
             InstallmentPolicyResource::collection($this->service->getPolicies()),
-            'Installment policies retrieved successfully.'
+            'Insallment policies retrieved successfully.'
         );
     }
 
+    // 👈 إضافة دالة جلب سياسة محددة (Show)
     public function showPolicy(int $id): JsonResponse
     {
         try {
@@ -44,7 +44,7 @@ class FinancialSettingsController extends Controller
                 'Installment policy retrieved successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Installment policy not found', 404);
+            return $this->errorResponse('Installment Policy not found', 404);
         }
     }
 
@@ -57,9 +57,6 @@ class FinancialSettingsController extends Controller
                 201
             );
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
             return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
@@ -72,12 +69,10 @@ class FinancialSettingsController extends Controller
                 'Installment policy updated successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Installment policy not found', 404);
+            return $this->errorResponse('Installment Policy not found', 404);
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            $statusCode = $e->getCode() == 409 ? 409 : 500;
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 
@@ -87,12 +82,10 @@ class FinancialSettingsController extends Controller
             $this->service->deletePolicy($id);
             return $this->successResponse(null, 'Installment policy deleted successfully.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Installment policy not found', 404);
+            return $this->errorResponse('Installment Policy not found', 404);
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            $statusCode = $e->getCode() == 409 ? 409 : 500;
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 
@@ -104,12 +97,9 @@ class FinancialSettingsController extends Controller
                 'Installment policy item updated successfully.'
             );
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Installment policy item not found', 404);
+            return $this->errorResponse('Installment Policy Item not found', 404);
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500);
         }
     }
 
@@ -119,10 +109,7 @@ class FinancialSettingsController extends Controller
             $this->service->deletePolicyItem($id);
             return $this->successResponse(null, 'Installment policy item deleted successfully.');
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Error:Server', 500); 
         }
     }
 
@@ -138,6 +125,7 @@ class FinancialSettingsController extends Controller
         );
     }
 
+    // 👈 إضافة دالة جلب خطة مالية محددة (Show)
     public function showFeePlan(int $id): JsonResponse
     {
         try {
@@ -159,9 +147,6 @@ class FinancialSettingsController extends Controller
                 201
             );
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
             return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }
     }
@@ -176,10 +161,8 @@ class FinancialSettingsController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Installment fee plan not found', 404);
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            $statusCode = $e->getCode() == 409 ? 409 : 500;
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 
@@ -191,13 +174,10 @@ class FinancialSettingsController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Installment fee plan not found', 404);
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            $statusCode = $e->getCode() == 409 ? 409 : 500;
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
-
     public function showPolicyItem(int $id): JsonResponse
     {
         try {
@@ -209,8 +189,7 @@ class FinancialSettingsController extends Controller
             return $this->errorResponse('Installment policy item not found', 404);
         }
     }
-
-    public function showExtraService(int $id): JsonResponse
+        public function showExtraService(int $id): JsonResponse
     {
         try {
             return $this->successResponse(
@@ -232,10 +211,8 @@ class FinancialSettingsController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Installment extra service not found', 404);
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            $statusCode = $e->getCode() == 409 ? 409 : 500;
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 
@@ -247,10 +224,8 @@ class FinancialSettingsController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Installment extra service not found', 404);
         } catch (Exception $e) {
-            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
-            return $this->errorResponse($e->getMessage(), $statusCode);
-        } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
+            $statusCode = $e->getCode() == 409 ? 409 : 500;
+            return $this->errorResponse('Error:Server', $statusCode);
         }
     }
 }

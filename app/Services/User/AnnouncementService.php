@@ -52,6 +52,8 @@ class AnnouncementService
             $announcement->classRooms()->sync($classRoomIds);
         }
 
+        $announcement->readers()->detach();
+
         $this->sendAnnouncementNotification(
             $announcement,
             'announcement has been updated.'

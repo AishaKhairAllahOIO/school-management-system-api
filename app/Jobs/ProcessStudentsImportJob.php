@@ -76,19 +76,9 @@ class ProcessStudentsImportJob implements ShouldQueue
 
             }
 
-            
-
 
             $fullPath = Storage::disk($disk)->path($filePath);
 
-            
-Log::info('IMPORT FILE DEBUG', [
-    'disk' => $disk,
-    'file_path' => $batch->file_path,
-    'full_path' => $fullPath,
-    'exists' => file_exists($fullPath),
-    'size' => filesize($fullPath),
-]);
 
 
             (new FastExcel)->import(

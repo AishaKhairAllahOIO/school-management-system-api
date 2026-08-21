@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Student;
 
+use App\Models\CounselorAvailability;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class BookCounselorAppointmentRequest extends FormRequest
@@ -15,11 +17,41 @@ class BookCounselorAppointmentRequest extends FormRequest
     {
         return [
             'appointment_date' => [
-                'required',
-                'date',
-                'after_or_equal:tomorrow',
-                'before_or_equal:tomorrow',
-            ],
+            'required',
+            'date',
+            function ($attribute, $value, $fail) {
+
+                $date = Carbon::parse($value);
+
+                $day = strtolower(
+                    $date->englishDayOfWeek
+                );
+
+
+                $exists = CounselorAvailability::query()
+                    ->where('day', $day)
+                    ->where('is_active', true)
+                    ->exists();
+
+
+                if (!$exists) {
+
+                    $fail(
+                        'There is no counseling availability on this date.'
+                    );
+                     }
+
+
+                if ($date->isPast()) {
+
+                    $fail(
+                        'You cannot book an appointment in the past.'
+                    );
+
+                }
+
+            },
+        ],
 
             'start_time' => [
                 'required',

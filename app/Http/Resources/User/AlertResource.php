@@ -14,16 +14,17 @@ class AlertResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $user=$request->user();
+        $user = $request->user();
         return [
-            'id'          => $this->id,
-            'type'        => $this->type,
-            'audience'    => $this->audience,
-            'title'       => $this->title,
+            'id' => $this->id,
+            'type' => $this->type,
+            'audience' => $this->audience,
+            'title' => $this->title,
             'description' => $this->description,
-            'meta'        => $this->meta ?? [],
-            'created_at'  => $this->created_at->format('Y-m-d H:i:s'),
-            'is_read'     => $user ? $this->readers->contains($user->id) : false,
+            'meta' => $this->meta ?? [],
+            'created_at' => $this->updated_at->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at->format('Y-m-d-H-i-s'),
+            'is_read' => $user ? $this->readers->contains($user->id) : false,
         ];
     }
 }

@@ -19,7 +19,8 @@ class ActivityResource extends JsonResource
             'start_time'  => $this->start_time,
             'end_time'    => $this->end_time,
             'description' =>$this->description,
-            'created_at' =>$this->created_at->format('Y-m-d-H-i-s'),
+            'created_at' =>$this->updated_at->format('Y-m-d-H-i-s'),
+            'updated_at' =>$this->updated_at->format('Y-m-d-H-i-s'),
 
             'scope'       => $this->classRooms->count() > 0 ? 'specific_classrooms' : 'grade_level',
 

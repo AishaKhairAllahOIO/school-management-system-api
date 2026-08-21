@@ -22,74 +22,170 @@ class ProcessStudentsImportJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-
     public function __construct(
         protected int $batchId
     ) {
     }
 
-
     public function handle(StudentRegisterService $studentService): void
     {
-
         $batch = ImportBatch::find($this->batchId);
 
         if (!$batch) {
             return;
         }
 
-
         $batch->update([
-            'status' => 'processing'
+            'status' => 'processing',
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Storage Disk
+        |--------------------------------------------------------------------------
+        |
+        | Local:
+        | FILESYSTEM_PUBLIC_DISK=public
+        |
+        | Railway / Tigris:
+        | FILESYSTEM_PUBLIC_DISK=s3
+        |
+        */
+        $disk = config('filesystems.public_disk');
 
-        // كل الملفات من public
-$disk = config('filesystems.public_disk');
+        /*
+        |--------------------------------------------------------------------------
+        | File Path
+        |--------------------------------------------------------------------------
+        */
 
-        // تنظيف مسار الملف
         $filePath = str_replace('\\', '/', $batch->file_path);
 
-        // إزالة public/ لو كانت مخزنة بالغلط
+        /*
+        | In case an old record contains "public/" in the path,
+        | remove it.
+        */
         $filePath = preg_replace(
-            '/^public\//',
+            '#^public/#',
             '',
             $filePath
         );
-
 
         $processedCount = 0;
         $successCount = 0;
         $failedCount = 0;
 
-
+        /*
+        |--------------------------------------------------------------------------
+        | Temporary Local File
+        |--------------------------------------------------------------------------
+        |
+        | FastExcel needs a local file path.
+        |
+        | This works for both:
+        |
+        | public/local storage
+        | S3/Tigris storage
+        |
+        */
+        $tempPath = null;
 
         try {
 
+            /*
+            |--------------------------------------------------------------------------
+            | Check Original File
+            |--------------------------------------------------------------------------
+            */
 
             if (!Storage::disk($disk)->exists($filePath)) {
-
                 throw new \Exception(
-                    "Excel file not found: {$filePath}"
+                    "Excel file not found on disk [{$disk}]: {$filePath}"
                 );
-
             }
 
 
-            $fullPath = Storage::disk($disk)->path($filePath);
+            $tempPath = tempnam(
+                sys_get_temp_dir(),
+                'students_import_'
+            );
 
+            if ($tempPath === false) {
+                throw new \Exception(
+                    'Unable to create temporary file for Excel import.'
+                );
+            }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Download File From Storage
+            |--------------------------------------------------------------------------
+            |
+            | IMPORTANT:
+            | Do NOT use:
+            |
+            | Storage::disk($disk)->path()
+            |
+            | because S3/Tigris is object storage and does not provide
+            | a normal local filesystem path.
+            |
+            */
+
+            $stream = Storage::disk($disk)->readStream($filePath);
+
+            if ($stream === false) {
+                throw new \Exception(
+                    "Excel file could not be read: {$filePath}"
+                );
+            }
+
+            $output = fopen($tempPath, 'wb');
+
+            if ($output === false) {
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+
+                throw new \Exception(
+                    "Unable to open temporary file for writing: {$tempPath}"
+                );
+            }
+
+            try {
+                $bytesCopied = stream_copy_to_stream(
+                    $stream,
+                    $output
+                );
+            } finally {
+                fclose($output);
+                fclose($stream);
+            }
+
+            if ($bytesCopied === false || $bytesCopied === 0) {
+                throw new \Exception(
+                    "Excel file is empty or could not be copied: {$filePath}"
+                );
+            }
+
+            Log::info('Students Excel import started', [
+                'batch_id' => $batch->id,
+                'disk' => $disk,
+                'file_path' => $filePath,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Import Excel
+            |--------------------------------------------------------------------------
+            */
 
             (new FastExcel)->import(
-                $fullPath,
+                $tempPath,
                 function ($row) use ($studentService, $batch, &$processedCount, &$successCount, &$failedCount) {
-
 
                     $processedCount++;
 
-
                     try {
-
 
                         /*
                         |--------------------------------------------------------------------------
@@ -101,57 +197,57 @@ $disk = config('filesystems.public_disk');
                             $row['academic_year_name'] ?? ''
                         );
 
-
                         $gradeLevelName = trim(
                             $row['grade_level_name'] ?? ''
                         );
-
 
                         $classroomName = trim(
                             $row['class_room_name'] ?? ''
                         );
 
-
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Academic Year
+                        |--------------------------------------------------------------------------
+                        */
 
                         $academicYear = AcademicYear::where(
                             'year_name',
                             $academicYearName
                         )->first();
 
-
-
                         if (!$academicYear) {
-
                             throw new \Exception(
                                 "Academic year '{$academicYearName}' not found."
                             );
-
                         }
 
-
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Grade Level
+                        |--------------------------------------------------------------------------
+                        */
 
                         $grade = GradeLevel::where(
                             'name',
                             $gradeLevelName
                         )->first();
 
-
-
                         if (!$grade) {
-
                             throw new \Exception(
                                 "Grade level '{$gradeLevelName}' not found."
                             );
-
                         }
 
-
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Classroom
+                        |--------------------------------------------------------------------------
+                        */
 
                         $classroomId = null;
 
-
                         if ($classroomName !== '') {
-
 
                             $classroom = Classroom::where(
                                 'academic_year_id',
@@ -168,26 +264,22 @@ $disk = config('filesystems.public_disk');
                                 )
                                 ->first();
 
-
-
                             if (!$classroom) {
-
                                 throw new \Exception(
                                     "Classroom '{$classroomName}' not found."
                                 );
-
                             }
 
-
                             $classroomId = $classroom->id;
-
                         }
 
-
-
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Formatted Student Data
+                        |--------------------------------------------------------------------------
+                        */
 
                         $formattedData = [
-
 
                             'student' => [
 
@@ -203,41 +295,32 @@ $disk = config('filesystems.public_disk');
                                 'mother_name' =>
                                     $row['student_mother_name'] ?? '',
 
-
                                 'birth_date' =>
                                     $this->parseDate(
                                         $row['student_birth_date'] ?? null
                                     ),
 
-
                                 'birth_place' =>
                                     $row['student_birth_place'] ?? '',
 
-
                                 'address' =>
                                     $row['student_address'] ?? '',
-
 
                                 'gender' =>
                                     strtolower(
                                         $row['student_gender'] ?? 'male'
                                     ),
 
-
                                 'nationality' =>
                                     strtolower(
                                         $row['student_nationality'] ?? 'syrian'
                                     ),
 
-
                                 'phone_number' =>
                                     (string) (
                                         $row['student_phone_number'] ?? ''
                                     ),
-
                             ],
-
-
 
                             'guardian' => [
 
@@ -253,41 +336,32 @@ $disk = config('filesystems.public_disk');
                                 'mother_name' =>
                                     $row['guardian_mother_name'] ?? '',
 
-
                                 'birth_date' =>
                                     $this->parseDate(
                                         $row['guardian_birth_date'] ?? null
                                     ),
 
-
                                 'birth_place' =>
                                     $row['guardian_birth_place'] ?? '',
 
-
                                 'address' =>
                                     $row['guardian_address'] ?? '',
-
 
                                 'gender' =>
                                     strtolower(
                                         $row['guardian_gender'] ?? 'male'
                                     ),
 
-
                                 'nationality' =>
                                     strtolower(
                                         $row['guardian_nationality'] ?? 'syrian'
                                     ),
 
-
                                 'phone_number' =>
                                     (string) (
                                         $row['guardian_phone_number'] ?? ''
                                     ),
-
                             ],
-
-
 
                             'enrollment' => [
 
@@ -299,39 +373,38 @@ $disk = config('filesystems.public_disk');
 
                                 'class_room_id' =>
                                     $classroomId,
-
-                            ]
-
+                            ],
                         ];
 
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Register Student
+                        |--------------------------------------------------------------------------
+                        */
 
-
-
-                        $studentService
-                            ->registerStudentWithGuardian(
-                                $formattedData
-                            );
-
+                        $studentService->registerStudentWithGuardian(
+                            $formattedData
+                        );
 
                         $successCount++;
 
-
-
                     } catch (\Throwable $e) {
 
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Record Row Error
+                        |--------------------------------------------------------------------------
+                        */
 
                         $failedCount++;
-
 
                         ImportError::create([
 
                             'import_batch_id' =>
                                 $batch->id,
 
-
                             'row_number' =>
                                 $processedCount,
-
 
                             'row_data' =>
                                 json_encode(
@@ -339,47 +412,43 @@ $disk = config('filesystems.public_disk');
                                     JSON_UNESCAPED_UNICODE
                                 ),
 
-
                             'error_message' =>
                                 mb_substr(
                                     $e->getMessage(),
                                     0,
                                     250
                                 ),
-
                         ]);
-
                     }
 
-
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Update Progress Every 10 Rows
+                    |--------------------------------------------------------------------------
+                    */
 
                     if ($processedCount % 10 === 0) {
-
 
                         $batch->update([
 
                             'processed_rows' =>
                                 $processedCount,
 
-
                             'successful_rows' =>
                                 $successCount,
 
-
                             'failed_rows' =>
                                 $failedCount,
-
                         ]);
-
                     }
-
-
-
                 }
             );
 
-
-
+            /*
+            |--------------------------------------------------------------------------
+            | Import Completed
+            |--------------------------------------------------------------------------
+            */
 
             $batch->update([
 
@@ -397,48 +466,106 @@ $disk = config('filesystems.public_disk');
 
                 'failed_rows' =>
                     $failedCount,
-
             ]);
 
-
-
-
-            // حذف ملف الاكسل بعد الانتهاء
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Original Excel File
+            |--------------------------------------------------------------------------
+            */
 
             if (Storage::disk($disk)->exists($filePath)) {
 
-                Storage::disk($disk)->delete($filePath);
-
+                Storage::disk($disk)->delete(
+                    $filePath
+                );
             }
 
+            Log::info('Students Excel import completed', [
 
+                'batch_id' =>
+                    $batch->id,
+
+                'disk' =>
+                    $disk,
+
+                'file_path' =>
+                    $filePath,
+
+                'total_rows' =>
+                    $processedCount,
+
+                'successful_rows' =>
+                    $successCount,
+
+                'failed_rows' =>
+                    $failedCount,
+            ]);
 
         } catch (\Throwable $e) {
 
+            /*
+            |--------------------------------------------------------------------------
+            | Job Failed
+            |--------------------------------------------------------------------------
+            */
 
-            Log::error(
-                "Students Import Failed: {$e->getMessage()}"
-            );
+            Log::error('Students Import Failed', [
 
+                'batch_id' =>
+                    $batch->id,
 
+                'disk' =>
+                    $disk,
 
-            $batch->update([
-                'status' => 'failed'
+                'file_path' =>
+                    $filePath,
+
+                'error' =>
+                    $e->getMessage(),
+
+                'trace' =>
+                    $e->getTraceAsString(),
             ]);
 
-        }
+            $batch->update([
+                'status' => 'failed',
+            ]);
 
+            /*
+            | Re-throw the exception so Laravel Queue knows
+            | that the Job actually failed.
+            */
+            throw $e;
+
+        } finally {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Temporary File
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $tempPath !== null &&
+                file_exists($tempPath)
+            ) {
+                @unlink($tempPath);
+            }
+        }
     }
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | Parse Date
+    |--------------------------------------------------------------------------
+    */
 
     private function parseDate($date): ?string
     {
-
         if (!$date) {
             return null;
         }
-
 
         try {
 
@@ -448,9 +575,6 @@ $disk = config('filesystems.public_disk');
         } catch (\Throwable) {
 
             return null;
-
         }
-
     }
-
 }

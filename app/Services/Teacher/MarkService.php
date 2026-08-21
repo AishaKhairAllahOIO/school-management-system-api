@@ -7,6 +7,7 @@ use App\Models\AssessmentComponent;
 use App\Models\Enrollment;
 use App\Models\GradeSubject;
 use App\Models\StudentMark;
+use App\Support\FileUrl;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -56,9 +57,10 @@ class MarkService
                     ];
                 }
 
-                $photoUrl = $user->photo_url
-                    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $user->photo_url), '/'))
-                    : null;
+                $photoUrl = FileUrl::make(
+                    $user->photo_url,
+                    config('filesystems.public_disk')
+                );
 
                 return [
                     'enrollment_id' => $enrollment->id,
@@ -201,23 +203,23 @@ class MarkService
 
     public function getAllMarksForAdmin(int $academicYearId, int $semesterId)
     {
-     $gradeSubjects = GradeSubject::query()
-    ->where('academic_year_id', $academicYearId)
-    ->where('semester_id', $semesterId)
-    ->with([
-        'subject:id,subject_name',
-        'gradeLevel:id,name',
-        'assessmentComponents' => function ($query) {
-            $query->select(
-                'id',
-                'grade_subject_id',
-                'name',
-                'type',
-                'max_mark'
-            );
-        },
-    ])
-    ->get();
+        $gradeSubjects = GradeSubject::query()
+            ->where('academic_year_id', $academicYearId)
+            ->where('semester_id', $semesterId)
+            ->with([
+                'subject:id,subject_name',
+                'gradeLevel:id,name',
+                'assessmentComponents' => function ($query) {
+                    $query->select(
+                        'id',
+                        'grade_subject_id',
+                        'name',
+                        'type',
+                        'max_mark'
+                    );
+                },
+            ])
+            ->get();
 
         $enrollments = Enrollment::query()
             ->where('academic_year_id', $academicYearId)
@@ -364,5 +366,5 @@ class MarkService
             'grades' => $grades,
         ];
     }
-    
+
 }

@@ -15,7 +15,7 @@ class HomeworkResource extends JsonResource
             'title'       => $this->title,
             'description' => $this->description,
             'due_date'    => $this->due_date,
-            'created_at'  => $this->created_at->format('Y-m-d H:i'),
+            'created_at'  => $this->updated_at->format('Y-m-d H:i'),
             'updated_at'  => $this->updated_at->format('Y-m-d H:i'),
 
             'subject_name'     => $this->gradeSubject?->subject?->subject_name,

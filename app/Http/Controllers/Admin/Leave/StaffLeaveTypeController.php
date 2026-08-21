@@ -64,7 +64,7 @@ class StaffLeaveTypeController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Staff leave type not found.', 404);
         } catch (Throwable $e) {
-            return $this->errorResponse('Error:Server', 500,[$e->getMessage()]);
+            return $this->errorResponse('Error:Server', $e->getCode(),[$e->getMessage()]);
         }
     }
 

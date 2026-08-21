@@ -26,7 +26,7 @@ class StaffLeaveTypeService
         $leaveType = StaffLeaveType::findOrFail($id);
         if(DB::table('staff_leaves')->where('leave_type_id', $id)->exists())
 throw new Exception(
-    'This leave type cannot be modified because it is associated with existing staff leave records.'
+    'This leave type cannot be modified because it is associated with existing staff leave records.',409
 );        $leaveType->update($data);
         return $leaveType;
     }

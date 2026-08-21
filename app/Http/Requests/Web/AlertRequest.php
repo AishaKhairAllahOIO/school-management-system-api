@@ -95,7 +95,6 @@ class AlertRequest extends FormRequest
             ],
             Alert::TYPE_COUNSELING_REQUEST => [
                 'meta.student_name' => ['nullable', 'string'],
-                // تم التعديل هنا لضمان دقة التاريخ
                 'meta.appointment_date' => ['required', 'date_format:Y-m-d'],
             ],
             Alert::TYPE_COUNSELING_RESPONSE => [

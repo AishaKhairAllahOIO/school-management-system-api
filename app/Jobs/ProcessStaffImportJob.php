@@ -34,40 +34,133 @@ class ProcessStaffImportJob implements ShouldQueue
         }
 
         $batch->update([
-            'status' => 'processing'
+            'status' => 'processing',
         ]);
 
-        $disk = config('filesystems.public_disk', 'public');
+        /*
+        |--------------------------------------------------------------------------
+        | Storage Disk
+        |--------------------------------------------------------------------------
+        |
+        | Local:
+        | FILESYSTEM_PUBLIC_DISK=public
+        |
+        | Railway / Tigris:
+        | FILESYSTEM_PUBLIC_DISK=s3
+        |
+        */
+
+        $disk = config('filesystems.public_disk');
+
+        /*
+        |--------------------------------------------------------------------------
+        | File Path
+        |--------------------------------------------------------------------------
+        */
+
+        $filePath = str_replace(
+            '\\',
+            '/',
+            $batch->file_path
+        );
+
+        /*
+        | إزالة public/ إذا كانت موجودة في سجل قديم
+        */
+
+        $filePath = preg_replace(
+            '#^public/#',
+            '',
+            $filePath
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Counters
+        |--------------------------------------------------------------------------
+        */
 
         $processedCount = 0;
         $successCount = 0;
         $failedCount = 0;
 
-        $requiresPassword = in_array($this->role, [
-            'secretary',
-            'adviser',
-            'super_admin'
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Stream
+        |--------------------------------------------------------------------------
+        */
+
+        $stream = null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Password Requirement
+        |--------------------------------------------------------------------------
+        */
+
+        $requiresPassword = in_array(
+            $this->role,
+            [
+                'secretary',
+                'adviser',
+                'super_admin',
+            ],
+            true
+        );
 
         try {
 
-            if (!Storage::disk($disk)->exists($batch->file_path)) {
-                throw new \Exception("Excel file not found at the specified path.");
+            /*
+            |--------------------------------------------------------------------------
+            | Check File
+            |--------------------------------------------------------------------------
+            */
+
+            if (!Storage::disk($disk)->exists($filePath)) {
+                throw new \Exception(
+                    "Excel file not found on disk [{$disk}]: {$filePath}"
+                );
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Read Excel File As Stream
+            |--------------------------------------------------------------------------
+            |
+            | يعمل مع:
+            |
+            | - local
+            | - s3
+            | - Tigris
+            |
+            | ولا يعتمد على Storage::path()
+            |
+            */
 
-            /**
-             * قراءة الملف من Storage
-             * يدعم local + s3 + tigris
-             */
             $stream = Storage::disk($disk)
-                ->readStream($batch->file_path);
-
+                ->readStream($filePath);
 
             if (!$stream) {
-                throw new \Exception("Unable to read excel file.");
+                throw new \Exception(
+                    "Unable to read excel file from disk [{$disk}]: {$filePath}"
+                );
             }
 
+            Log::info(
+                'Staff Excel import started',
+                [
+                    'batch_id' => $batch->id,
+                    'disk' => $disk,
+                    'file_path' => $filePath,
+                    'role' => $this->role,
+                ]
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Import Excel
+            |--------------------------------------------------------------------------
+            */
 
             (new FastExcel)->import(
                 $stream,
@@ -84,12 +177,26 @@ class ProcessStaffImportJob implements ShouldQueue
 
                     try {
 
-                        if ($requiresPassword && empty($row['password'])) {
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Password Validation
+                        |--------------------------------------------------------------------------
+                        */
+
+                        if (
+                            $requiresPassword &&
+                            empty($row['password'])
+                        ) {
                             throw new \Exception(
                                 "The password is required in the Excel file for the role: {$this->role}"
                             );
                         }
 
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Format Staff Data
+                        |--------------------------------------------------------------------------
+                        */
 
                         $formattedData = [
 
@@ -105,101 +212,105 @@ class ProcessStaffImportJob implements ShouldQueue
                             'mother_name' =>
                                 $row['mother_name'] ?? '',
 
-
                             'birth_date' =>
                                 isset($row['birth_date'])
-                                    ? \Carbon\Carbon::parse($row['birth_date'])
-                                        ->format('Y-m-d')
+                                    ? \Carbon\Carbon::parse(
+                                        $row['birth_date']
+                                    )->format('Y-m-d')
                                     : null,
-
 
                             'birth_place' =>
                                 $row['birth_place'] ?? '',
 
-
                             'address' =>
                                 $row['address'] ?? '',
 
-
                             'gender' =>
-                                strtolower($row['gender'] ?? 'male'),
-
+                                strtolower(
+                                    $row['gender'] ?? 'male'
+                                ),
 
                             'nationality' =>
-                                strtolower($row['nationality'] ?? 'syrian'),
-
+                                strtolower(
+                                    $row['nationality'] ?? 'syrian'
+                                ),
 
                             'phone_number' =>
-                                (string) ($row['phone_number'] ?? ''),
-
+                                (string) (
+                                    $row['phone_number'] ?? ''
+                                ),
 
                             'email' =>
                                 !empty($row['email'])
                                     ? trim($row['email'])
                                     : null,
 
+                            /*
+                            | الدور يأتي من الـ API / Job
+                            | وليس من Excel
+                            */
 
-                            // الرول يأتي من الـ API وليس من Excel
                             'role' =>
                                 $this->role,
 
-
                             'password' =>
                                 $row['password'] ?? null,
-
 
                             'degree' =>
                                 !empty($row['degree'])
                                     ? strtolower($row['degree'])
                                     : null,
 
-
                             'specialization' =>
                                 $row['specialization'] ?? null,
-
 
                             'university' =>
                                 $row['university'] ?? null,
 
-
                             'graduation_year' =>
                                 !empty($row['graduation_year'])
-                                    ? (int)$row['graduation_year']
+                                    ? (int) $row['graduation_year']
                                     : null,
-
 
                             'hire_date' =>
                                 isset($row['hire_date'])
-                                    ? \Carbon\Carbon::parse($row['hire_date'])
-                                        ->format('Y-m-d')
+                                    ? \Carbon\Carbon::parse(
+                                        $row['hire_date']
+                                    )->format('Y-m-d')
                                     : now()->format('Y-m-d'),
 
-
                             'experience_years' =>
-                                (int)($row['experience_years'] ?? 0),
-
+                                (int) (
+                                    $row['experience_years'] ?? 0
+                                ),
 
                             'service_type' =>
                                 $row['service_type'] ?? null,
                         ];
 
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Register Staff
+                        |--------------------------------------------------------------------------
+                        */
 
                         $staffService->registerSingleStaff(
                             $formattedData
                         );
 
-
                         $successCount++;
-
 
                     } catch (\Throwable $e) {
 
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Row Failed
+                        |--------------------------------------------------------------------------
+                        */
 
                         $failedCount++;
 
-
                         $errorMessage = $this->translateError($e);
-
 
                         ImportError::create([
 
@@ -222,11 +333,14 @@ class ProcessStaffImportJob implements ShouldQueue
                                     250,
                                     'UTF-8'
                                 ),
-
                         ]);
-
                     }
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Update Progress Every 10 Rows
+                    |--------------------------------------------------------------------------
+                    */
 
                     if ($processedCount % 10 === 0) {
 
@@ -240,18 +354,16 @@ class ProcessStaffImportJob implements ShouldQueue
 
                             'failed_rows' =>
                                 $failedCount,
-
                         ]);
                     }
-
                 }
             );
 
-
-            if (is_resource($stream)) {
-                fclose($stream);
-            }
-
+            /*
+            |--------------------------------------------------------------------------
+            | Import Completed
+            |--------------------------------------------------------------------------
+            */
 
             $batch->update([
 
@@ -269,39 +381,126 @@ class ProcessStaffImportJob implements ShouldQueue
 
                 'failed_rows' =>
                     $failedCount,
-
             ]);
 
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Original Excel File
+            |--------------------------------------------------------------------------
+            */
 
-            // حذف ملف الاكسل بعد انتهاء الاستيراد
-            if (Storage::disk($disk)->exists($batch->file_path)) {
+            if (
+                Storage::disk($disk)
+                    ->exists($filePath)
+            ) {
 
                 Storage::disk($disk)
-                    ->delete($batch->file_path);
-
+                    ->delete($filePath);
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Completed Log
+            |--------------------------------------------------------------------------
+            */
+
+            Log::info(
+                'Staff Excel import completed',
+                [
+                    'batch_id' =>
+                        $batch->id,
+
+                    'disk' =>
+                        $disk,
+
+                    'file_path' =>
+                        $filePath,
+
+                    'role' =>
+                        $this->role,
+
+                    'total_rows' =>
+                        $processedCount,
+
+                    'successful_rows' =>
+                        $successCount,
+
+                    'failed_rows' =>
+                        $failedCount,
+                ]
+            );
 
         } catch (\Throwable $e) {
 
+            /*
+            |--------------------------------------------------------------------------
+            | Job Failed
+            |--------------------------------------------------------------------------
+            */
 
             Log::error(
-                "Staff Import Job Failed: " . $e->getMessage()
+                'Staff Import Job Failed',
+                [
+                    'batch_id' =>
+                        $batch->id,
+
+                    'disk' =>
+                        $disk,
+
+                    'file_path' =>
+                        $filePath,
+
+                    'role' =>
+                        $this->role,
+
+                    'error' =>
+                        $e->getMessage(),
+
+                    'trace' =>
+                        $e->getTraceAsString(),
+                ]
             );
 
-
             $batch->update([
-                'status' => 'failed'
+                'status' => 'failed',
             ]);
 
+            /*
+            | مهم:
+            | إعادة رمي الخطأ تجعل Laravel Queue يعتبر الـ Job فاشلًا
+            */
+
+            throw $e;
+
+        } finally {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Close Storage Stream
+            |--------------------------------------------------------------------------
+            */
+
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
         }
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Translate Error
+    |--------------------------------------------------------------------------
+    */
 
     private function translateError(\Throwable $e): string
     {
         $message = $e->getMessage();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Missing Password
+        |--------------------------------------------------------------------------
+        */
 
         if (
             str_contains(
@@ -312,31 +511,58 @@ class ProcessStaffImportJob implements ShouldQueue
             return $message;
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Duplicate Database Data
+        |--------------------------------------------------------------------------
+        */
 
         if (
             $e instanceof QueryException &&
             $e->getCode() == 23000
         ) {
 
-            if (str_contains($message, 'users_phone_number_unique')) {
+            if (
+                str_contains(
+                    $message,
+                    'users_phone_number_unique'
+                )
+            ) {
                 return 'The phone number is already taken by another staff member.';
             }
 
-
-            if (str_contains($message, 'users_email_unique')) {
+            if (
+                str_contains(
+                    $message,
+                    'users_email_unique'
+                )
+            ) {
                 return 'The email address is already taken by another staff member.';
             }
-
 
             return 'Duplicate or conflicting data exists in this row.';
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Invalid Date
+        |--------------------------------------------------------------------------
+        */
 
-        if (str_contains($message, 'Failed to parse time string')) {
-
+        if (
+            str_contains(
+                $message,
+                'Failed to parse time string'
+            )
+        ) {
             return 'Invalid date format, please use YYYY-MM-DD.';
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Generic Error
+        |--------------------------------------------------------------------------
+        */
 
         return 'Data error: ' .
             mb_substr(

@@ -4,6 +4,7 @@ namespace App\Services\Teacher;
 
 use App\Models\Enrollment;
 use App\Models\User;
+use App\Support\FileUrl;
 use Illuminate\Support\Collection;
 class TeacherDropdownService
 {
@@ -72,9 +73,10 @@ public function getSubjectsTree(User $user, ?int $subjectId = null): Collection
                     'full_name'     => $enrollment->student?->user
                         ? ($enrollment->student->user->first_name . ' ' . $enrollment->student->user->father_name . ' ' . $enrollment->student->user->last_name)
                         : 'طالب غير معرف',
-                    'personal_photo'        => $enrollment->student?->user?->photo_url
-                    ? url('/api/documents/photos/' . ltrim(preg_replace('/^.*?(users\/|defaults\/)/', '$1', $enrollment->student->user->photo_url), '/'))
-                    : null,
+                     'personal_photo' => FileUrl::make(
+                            $enrollment->student?->user->photo_url,
+                            config('filesystems.public_disk')
+                        ),
                 ];
             });
     }

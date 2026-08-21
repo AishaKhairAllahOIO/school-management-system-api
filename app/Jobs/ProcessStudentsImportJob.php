@@ -25,7 +25,8 @@ class ProcessStudentsImportJob implements ShouldQueue
 
     public function __construct(
         protected int $batchId
-    ) {}
+    ) {
+    }
 
 
     public function handle(StudentRegisterService $studentService): void
@@ -59,8 +60,8 @@ class ProcessStudentsImportJob implements ShouldQueue
 
 
         $processedCount = 0;
-        $successCount  = 0;
-        $failedCount   = 0;
+        $successCount = 0;
+        $failedCount = 0;
 
 
 
@@ -75,20 +76,24 @@ class ProcessStudentsImportJob implements ShouldQueue
 
             }
 
+            
+
 
             $fullPath = Storage::disk($disk)->path($filePath);
 
+            
+Log::info('IMPORT FILE DEBUG', [
+    'disk' => $disk,
+    'file_path' => $batch->file_path,
+    'full_path' => $fullPath,
+    'exists' => file_exists($fullPath),
+    'size' => filesize($fullPath),
+]);
 
 
             (new FastExcel)->import(
                 $fullPath,
-                function ($row) use (
-                    $studentService,
-                    $batch,
-                    &$processedCount,
-                    &$successCount,
-                    &$failedCount
-                ) {
+                function ($row) use ($studentService, $batch, &$processedCount, &$successCount, &$failedCount) {
 
 
                     $processedCount++;
@@ -160,9 +165,9 @@ class ProcessStudentsImportJob implements ShouldQueue
 
 
                             $classroom = Classroom::where(
-                                    'academic_year_id',
-                                    $academicYear->id
-                                )
+                                'academic_year_id',
+                                $academicYear->id
+                            )
                                 ->where(
                                     'grade_level_id',
                                     $grade->id
@@ -237,7 +242,7 @@ class ProcessStudentsImportJob implements ShouldQueue
 
 
                                 'phone_number' =>
-                                    (string)(
+                                    (string) (
                                         $row['student_phone_number'] ?? ''
                                     ),
 
@@ -287,7 +292,7 @@ class ProcessStudentsImportJob implements ShouldQueue
 
 
                                 'phone_number' =>
-                                    (string)(
+                                    (string) (
                                         $row['guardian_phone_number'] ?? ''
                                     ),
 

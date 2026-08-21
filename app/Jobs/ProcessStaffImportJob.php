@@ -37,7 +37,7 @@ class ProcessStaffImportJob implements ShouldQueue
             'status' => 'processing'
         ]);
 
-        $disk = config('filesystems.public_disk', 'public');
+        $disk = config('filesystems.public_disk');
 
         $processedCount = 0;
         $successCount = 0;

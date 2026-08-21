@@ -579,50 +579,31 @@ class CounselorAppointmentService
                 'slot_status' => 'booked',
 
             ]);
-
             $selectedAppointment->load([
                 'student.user',
                 'counselor.user'
             ]);
-
-
             if ($selectedAppointment->counselor) {
-
-
                 $studentName = trim(
                     $selectedAppointment->student->user->first_name
                     . ' '
                     .
                     $selectedAppointment->student->user->last_name
                 );
-
-
-
                 $this->alertService->createStaffAlert(
-
                     $selectedAppointment->counselor,
-
                     Alert::TYPE_COUNSELING_REQUEST,
-
                     'New counseling appointment request',
-
                     'A new counseling appointment request has been submitted.',
-
                     [
-
                         'student_name' => $studentName,
-
                         'appointment_date' =>
                             $selectedAppointment
                                 ->appointment_date
                                 ->toDateString(),
-
                     ]
-
                 );
-
             }
-
             return $selectedAppointment;
 
         });
@@ -1175,7 +1156,6 @@ class CounselorAppointmentService
 
             ->get();
     }
-
     public function getAcceptedCounselorAppointments(int $counselorId, ?string $date = null)
     {
         if ($date) {
@@ -1245,30 +1225,5 @@ class CounselorAppointmentService
 
         return null;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

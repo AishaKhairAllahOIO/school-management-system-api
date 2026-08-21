@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Exception;
 use App\Models\FeePlanExtraService;
+use App\Models\Enrollment;
 
 class FinancialContractService
 {
@@ -60,13 +61,23 @@ class FinancialContractService
                 ->firstOrFail();
 
             if ($account->payment_status !== 'draft') {
-throw new Exception(
-    'The contract cannot be finalized because this account has already been contracted.'
-);            }
+                throw new Exception(
+                    'The contract cannot be finalized because this account has already been contracted.'
+                );            }
 
             $feePlan = FeePlan::with('extraServices')->findOrFail($data['feePlanId']);
             $policy = InstallmentPolicy::with('items')->findOrFail($data['installmentPolicyId']);
+            $enrollment = Enrollment::where('student_id', $account->student_id)
+                ->where('academic_year_id', $account->academic_year_id)
+                ->first();
 
+            if (!$enrollment) {
+                throw new Exception('No academic enrollment found for this student in the current year.', 404);
+            }
+
+            if ($feePlan->grade_level_id !== $enrollment->grade_level_id) {
+                throw new Exception('The selected financial plan does not match the student\'s current grade level.', 422);
+            }
             $baseAmount = $feePlan->base_amount;
 
             $extraServicesAmount = 0;
@@ -142,6 +153,13 @@ throw new Exception(
         $feePlan = FeePlan::findOrFail($data['feePlanId']);
         $policy = InstallmentPolicy::with('items')->findOrFail($data['installmentPolicyId']);
 
+        $enrollment = Enrollment::where('student_id', $account->student_id)
+            ->where('academic_year_id', $account->academic_year_id)
+            ->first();
+
+        if ($enrollment && $feePlan->grade_level_id !== $enrollment->grade_level_id) {
+            throw new Exception('The selected financial plan does not match the student\'s current grade level.', 422);
+        }
         $baseAmount = $feePlan->base_amount;
         $extraServicesTotal = 0;
 

@@ -124,6 +124,13 @@ throw new Exception(
     }
     public function createFeePlan(array $data): FeePlan
     {
+        $exists = FeePlan::where('academic_year_id', $data['academicYearId'])
+            ->where('grade_level_id', $data['gradeLevelId'])
+            ->exists();
+
+        if ($exists) {
+            throw new Exception('A fee plan already exists for this grade level in the selected academic year.', 422);
+        }
         return DB::transaction(function () use ($data) {
             $feePlan = FeePlan::create([
                 'academic_year_id'      => $data['academicYearId'],
@@ -139,18 +146,29 @@ throw new Exception(
             return $feePlan->load(['academicYear', 'gradeLevel', 'extraServices']);
         });
     }
-    public function updateFeePlan(int $id, array $data)
+   public function updateFeePlan(int $id, array $data)
     {
-        return DB::transaction(function () use ($id, $data) {
-            $feePlan = FeePlan::findOrFail($id);
+        $feePlan = FeePlan::findOrFail($id);
 
-            $isUsed = FinancialAccount::where('fee_plan_id', $id)->exists();
-            if ($isUsed) {
-throw new Exception(
-    'The financial plan cannot be modified because it is already assigned to students.',
-    409
-);            }
+        $isUsed = FinancialAccount::where('fee_plan_id', $id)->exists();
+        if ($isUsed) {
+            throw new Exception(
+                'The financial plan cannot be modified because it is already assigned to students.',
+                409
+            );            
+        }
 
+        // 💡 درع الحماية: التأكد من عدم التصادم مع خطة أخرى موجودة
+        $exists = FeePlan::where('academic_year_id', $data['academicYearId'])
+            ->where('grade_level_id', $data['gradeLevelId'])
+            ->where('id', '!=', $id) // استثناء الخطة التي نقوم بتعديلها حالياً
+            ->exists();
+
+        if ($exists) {
+            throw new Exception('A fee plan already exists for this grade level in the selected academic year.', 422);
+        }
+
+        return DB::transaction(function () use ($feePlan, $data) {
             $feePlan->update([
                 'academic_year_id'      => $data['academicYearId'],
                 'grade_level_id'        => $data['gradeLevelId'],

@@ -590,23 +590,19 @@ class CounselorAppointmentService
                     .
                     $selectedAppointment->student->user->last_name
                 );
-                $this->alertService->createStaffAlert(
-                    $selectedAppointment->counselor,
-                    Alert::TYPE_COUNSELING_REQUEST,
-                    'New counseling appointment request',
-                    'A new counseling appointment request has been submitted.',
+              SendPushNotification::dispatch(
+                    $selectedAppointment->counselor->id,
+                    'appointment request',
+                    'there is new appointment request please check the pending list',
                     [
-                        'student_name' => $studentName,
-                        'appointment_date' =>
-                            $selectedAppointment
-                                ->appointment_date
-                                ->toDateString(),
+                        'type' => 'material',
+                        'material_type' => (string) $material->type,
                     ]
-                );
+                )->afterCommit();
             }
             return $selectedAppointment;
 
-        });
+        });body
 
     }
     public function approveAppointment(int $counselorId, int $appointmentId)
@@ -632,15 +628,6 @@ class CounselorAppointmentService
             }
 
 
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | منع قبول موعد بدأ أو انتهى
-            |--------------------------------------------------------------------------
-            */
-
-
             $appointmentStart = Carbon::parse(
                 $appointment->appointment_date
                     ->format('Y-m-d')
@@ -660,24 +647,12 @@ class CounselorAppointmentService
             }
 
 
-
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | التأكد من وجود جدول المرشد في هذا اليوم
-            |--------------------------------------------------------------------------
-            */
-
-
             $day = strtolower(
                 Carbon::parse(
                     $appointment->appointment_date
                 )
                     ->englishDayOfWeek
             );
-
-
 
             $availability = CounselorAvailability::query()
 
@@ -698,8 +673,6 @@ class CounselorAppointmentService
 
                 ->first();
 
-
-
             if (!$availability) {
 
                 throw new Exception(
@@ -707,16 +680,6 @@ class CounselorAppointmentService
                 );
 
             }
-
-
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | التحقق من الحد اليومي
-            |--------------------------------------------------------------------------
-            */
-
 
             $acceptedCount = CounselorAppointment::query()
 

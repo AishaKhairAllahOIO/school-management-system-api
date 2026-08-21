@@ -15,9 +15,10 @@ class CounselingSessionService
     ) {
     }
 
-  public function getPendingSessions(int $counselorId)
+ public function getPendingSessions(int $counselorId)
 {
-    $sessions = CounselingSession::query()
+    return CounselingSession::query()
+
         ->whereHas('appointment', function ($query) use ($counselorId) {
 
             $query->where(
@@ -26,18 +27,21 @@ class CounselingSessionService
             );
 
         })
+
         ->where(
             'attendance_status',
             'not_marked'
         )
+
         ->with([
             'appointment.student.user',
         ])
-        ->orderByDesc('created_at')
+
+        ->orderByDesc(
+            'created_at'
+        )
+
         ->get();
-
-
-    return $sessions ?? collect([]);
 }
 
     public function updateSession(int $sessionId, int $counselorId, array $data): CounselingSession

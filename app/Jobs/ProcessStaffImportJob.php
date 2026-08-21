@@ -28,8 +28,8 @@ class ProcessStaffImportJob implements ShouldQueue
         if (!$batch) return;
 
         $batch->update(['status' => 'processing']);
-        $fullPath = Storage::disk('local')->path($batch->file_path);
-
+$disk = config('filesystems.public_disk', 'public');
+        $fullPath = Storage::disk($disk)->path($batch->file_path);
         $processedCount = 0;
         $successCount = 0;
         $failedCount = 0;
@@ -38,8 +38,8 @@ class ProcessStaffImportJob implements ShouldQueue
         $requiresPassword = in_array($this->role, ['secretary', 'adviser']);
 
         try {
-            if (!Storage::disk('local')->exists($batch->file_path)) {
-                throw new \Exception("Exel file nou found");
+           if (!Storage::disk($disk)->exists($batch->file_path)) {
+                throw new \Exception("Excel file not found at the specified path.");
             }
 
             (new FastExcel)->import($fullPath, function ($row) use ($staffService, $batch, $requiresPassword, &$processedCount, &$successCount, &$failedCount) {
@@ -109,8 +109,8 @@ class ProcessStaffImportJob implements ShouldQueue
                 'failed_rows'     => $failedCount,
             ]);
 
-            if (Storage::disk('local')->exists($batch->file_path)) {
-                Storage::disk('local')->delete($batch->file_path);
+           if (Storage::disk($disk)->exists($batch->file_path)) {
+                Storage::disk($disk)->delete($batch->file_path);
             }
         } catch (\Throwable $e) {
             Log::error("Staff Import Job Failed: " . $e->getMessage());

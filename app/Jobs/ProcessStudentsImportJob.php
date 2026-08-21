@@ -30,14 +30,15 @@ class ProcessStudentsImportJob implements ShouldQueue
         if (!$batch) return;
 
         $batch->update(['status' => 'processing']);
-        $fullPath = Storage::disk('local')->path($batch->file_path);
+        $disk = config('filesystems.public_disk', 'public');
+        $fullPath = Storage::disk($disk)->path($batch->file_path);
 
         $processedCount = 0;
         $successCount = 0;
         $failedCount = 0;
 
         try {
-            if (!Storage::disk('local')->exists($batch->file_path)) {
+            if (!Storage::disk($disk)->exists($batch->file_path)) {
                 throw new \Exception("The Excel file does not exist at the specified path: " . $fullPath);
             }
 
@@ -134,8 +135,8 @@ class ProcessStudentsImportJob implements ShouldQueue
                 'failed_rows'     => $failedCount,
             ]);
 
-            if (Storage::disk('local')->exists($batch->file_path)) {
-                Storage::disk('local')->delete($batch->file_path);
+           if (Storage::disk($disk)->exists($batch->file_path)) {
+                Storage::disk($disk)->delete($batch->file_path);
             }
 
         } catch (\Throwable $e) {

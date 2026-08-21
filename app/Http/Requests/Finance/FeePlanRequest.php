@@ -4,6 +4,7 @@ namespace App\Http\Requests\Finance;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class FeePlanRequest extends FormRequest
 {
@@ -24,7 +25,13 @@ class FeePlanRequest extends FormRequest
     {
         return [
             'academicYearId'         => ['required', 'exists:academic_years,id'],
-            'gradeLevelId'           => ['required', 'exists:grade_levels,id'],
+            'gradeLevelId'             => [
+                            'required', 
+                            'exists:grade_levels,id',
+                            Rule::unique('fee_plans', 'grade_level_id')->where(function ($query) {
+                                return $query->where('academic_year_id', $this->input('academicYearId'));
+                            })
+                        ],        
             'name'                   => ['required', 'string', 'max:100'],
             'baseAmount'             => ['required', 'numeric', 'min:0'],
 
@@ -42,7 +49,7 @@ class FeePlanRequest extends FormRequest
             
             'gradeLevelId.required'          => 'The grade level ID field is required.',
             'gradeLevelId.exists'            => 'The selected grade level does not exist.',
-            
+            'gradeLevelId.unique'      => 'A fee plan already exists for this grade level in the selected academic year.',
             'name.required'                  => 'The fee plan name field is required.',
             'name.string'                    => 'The fee plan name must be a string.',
             'name.max'                       => 'The fee plan name must not exceed 100 characters.',

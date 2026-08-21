@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Counselor;
 
+use App\Support\FileUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,7 +18,7 @@ class CounselingSessionResource extends JsonResource
 
                 'date' => $this->appointment
                     ?->appointment_date
-                    ?->toDateString(),
+                        ?->toDateString(),
 
                 'start_time' => $this->appointment?->start_time,
 
@@ -29,9 +30,15 @@ class CounselingSessionResource extends JsonResource
 
                 'name' => $this->appointment->student->user
                     ? $this->appointment->student->user->first_name
-                        . ' '
-                        . $this->appointment->student->user->last_name
+                    . ' '
+                    . $this->appointment->student->user->last_name
                     : null,
+
+                'photoUrl' => FileUrl::make(
+                    $this->student->user->photo_url,
+                    config('filesystems.public_disk')
+
+                ),
             ] : null,
 
             'attendanceStatus' => $this->attendance_status,

@@ -4,6 +4,7 @@ namespace App\Services\Counselor;
 
 use App\Models\CounselorAvailability;
 use App\Models\CounselorAppointment;
+use App\Models\GradeLevel;
 use Exception;
 use App\Services\Counselor\CounselorAppointmentService;
 use Carbon\Carbon;
@@ -221,4 +222,6 @@ class CounselorAvailabilityService
 
         return $today->copy()->addDays($daysUntilTarget);
     }
+
+   
 }

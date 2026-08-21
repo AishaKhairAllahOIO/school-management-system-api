@@ -18,7 +18,7 @@ class ClassStudentEvaluationResource extends JsonResource
 
             'is_read' => (bool) ($this->is_read ?? false),
 
-            'created_at' => $this->created_at?->format('Y-m-d H:i'),
+            'created_at' => $this->updated_at?->format('Y-m-d H:i'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i'),
 
 

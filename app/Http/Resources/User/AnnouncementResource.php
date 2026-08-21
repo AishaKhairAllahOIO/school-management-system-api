@@ -21,7 +21,7 @@ class AnnouncementResource extends JsonResource
             'title' => $this->title,
             'description' => $this->description,
             'is_read' => $user ? $this->readers->contains($user->id) : false,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'created_at' => $this->updated_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d-H-i-s'),
 
         ];

@@ -104,11 +104,6 @@ class ProcessStudentsImportJob implements ShouldQueue
                 );
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Create Temporary File
-            |--------------------------------------------------------------------------
-            */
 
             $tempPath = tempnam(
                 sys_get_temp_dir(),
@@ -136,41 +131,41 @@ class ProcessStudentsImportJob implements ShouldQueue
             |
             */
 
-           $stream = Storage::disk($disk)->readStream($filePath);
+            $stream = Storage::disk($disk)->readStream($filePath);
 
-if ($stream === false) {
-    throw new \Exception(
-        "Excel file could not be read: {$filePath}"
-    );
-}
+            if ($stream === false) {
+                throw new \Exception(
+                    "Excel file could not be read: {$filePath}"
+                );
+            }
 
-$output = fopen($tempPath, 'wb');
+            $output = fopen($tempPath, 'wb');
 
-if ($output === false) {
-    if (is_resource($stream)) {
-        fclose($stream);
-    }
+            if ($output === false) {
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
 
-    throw new \Exception(
-        "Unable to open temporary file for writing: {$tempPath}"
-    );
-}
+                throw new \Exception(
+                    "Unable to open temporary file for writing: {$tempPath}"
+                );
+            }
 
-try {
-    $bytesCopied = stream_copy_to_stream(
-        $stream,
-        $output
-    );
-} finally {
-    fclose($output);
-    fclose($stream);
-}
+            try {
+                $bytesCopied = stream_copy_to_stream(
+                    $stream,
+                    $output
+                );
+            } finally {
+                fclose($output);
+                fclose($stream);
+            }
 
-if ($bytesCopied === false || $bytesCopied === 0) {
-    throw new \Exception(
-        "Excel file is empty or could not be copied: {$filePath}"
-    );
-}
+            if ($bytesCopied === false || $bytesCopied === 0) {
+                throw new \Exception(
+                    "Excel file is empty or could not be copied: {$filePath}"
+                );
+            }
 
             Log::info('Students Excel import started', [
                 'batch_id' => $batch->id,
@@ -186,13 +181,7 @@ if ($bytesCopied === false || $bytesCopied === 0) {
 
             (new FastExcel)->import(
                 $tempPath,
-                function ($row) use (
-                    $studentService,
-                    $batch,
-                    &$processedCount,
-                    &$successCount,
-                    &$failedCount
-                ) {
+                function ($row) use ($studentService, $batch, &$processedCount, &$successCount, &$failedCount) {
 
                     $processedCount++;
 

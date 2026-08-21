@@ -45,8 +45,7 @@ class ProcessStudentsImportJob implements ShouldQueue
 
 
         // كل الملفات من public
-        $disk = 'public';
-
+$disk = config('filesystems.public_disk');
 
         // تنظيف مسار الملف
         $filePath = str_replace('\\', '/', $batch->file_path);

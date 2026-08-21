@@ -40,42 +40,42 @@ class StudentMarkDisplayService
     }
 
 
- public function getMarks(User $user, ?int $studentId = null): LengthAwarePaginator
-{
-    $marks = $this->getBaseMarkQueryForUser($user, $studentId)
-        ->with([
-            'assessmentComponent:id,name,type,max_mark,grade_subject_id',
-            // تأكد أن جدول gradeSubject يجلب الـ id الخاص به والـ subject_id لربط العلاقات بشكل سليم
-            'assessmentComponent.gradeSubject.subject:id,subject_name',
-            'teacher:id,first_name,last_name',
-            'readers' => function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            }
-        ])
-        ->orderBy('updated_at', 'desc')
-        ->paginate(15); // استخدام paginate بدلاً من get
+    public function getMarks(User $user, ?int $studentId = null): LengthAwarePaginator
+    {
+        $marks = $this->getBaseMarkQueryForUser($user, $studentId)
+            ->with([
+                'assessmentComponent:id,name,type,max_mark,grade_subject_id',
+                // تأكد أن جدول gradeSubject يجلب الـ id الخاص به والـ subject_id لربط العلاقات بشكل سليم
+                'assessmentComponent.gradeSubject.subject:id,subject_name',
+                'teacher:id,first_name,last_name',
+                'readers' => function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                }
+            ])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(15); // استخدام paginate بدلاً من get
 
-    // استخدام through بدلاً من map للحفاظ على كائن الـ LengthAwarePaginator
-    $marks->through(function ($mark) {
-        $component = $mark->assessmentComponent;
-        $subject = $component->gradeSubject->subject ?? null;
-        $teacher = $mark->teacher;
+        // استخدام through بدلاً من map للحفاظ على كائن الـ LengthAwarePaginator
+        $marks->through(function ($mark) {
+            $component = $mark->assessmentComponent;
+            $subject = $component->gradeSubject->subject ?? null;
+            $teacher = $mark->teacher;
 
-        return [
-            'id' => $mark->id,
-            'subject_name' => $subject ? $subject->subject_name : 'غير معروف',
-            'assessment_name' => $component->name,
-            'assessment_type' => $component->type,
-            'mark' => (float) $mark->mark,
-            'max_mark' => (float) $component->max_mark,
-            'teacher_name' => $teacher ? trim("{$teacher->first_name} {$teacher->last_name}") : 'غير معروف',
-            'is_read' => $mark->readers->isNotEmpty(),
-            'date' => $mark->updated_at->format('Y-m-d H:i'),
-        ];
-    });
+            return [
+                'id' => $mark->id,
+                'subject_name' => $subject ? $subject->subject_name : 'غير معروف',
+                'assessment_name' => $component->name,
+                'assessment_type' => $component->type,
+                'mark' => (float) $mark->mark,
+                'max_mark' => (float) $component->max_mark,
+                'teacher_name' => $teacher ? trim("{$teacher->first_name} {$teacher->last_name}") : 'غير معروف',
+                'is_read' => $mark->readers->isNotEmpty(),
+                'date' => $mark->updated_at->format('Y-m-d H:i'),
+            ];
+        });
 
-    return $marks;
-}
+        return $marks;
+    }
 
 
     public function unreadCount(User $user, ?int $studentId = null): array

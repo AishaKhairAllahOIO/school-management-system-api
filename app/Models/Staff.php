@@ -51,4 +51,12 @@ class Staff extends Model
     {
         return $this->hasMany(StaffFinancialContract::class);
     }
+
+    public function availabilities()
+    {
+        return $this->hasMany(
+            CounselorAvailability::class,
+            'counselor_id'
+        );
+    }
 }

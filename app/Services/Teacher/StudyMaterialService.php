@@ -57,62 +57,54 @@ class StudyMaterialService
     private function notifyStudentsAboutMaterial(StudyMaterial $material): void
     {
         try {
-            $gradeSubject = GradeSubject::with('subject', 'gradeLevel')->find($material->grade_subject_id);
-            if (!$gradeSubject)
+            $gradeSubject = GradeSubject::with('subject', 'gradeLevel')
+                ->find($material->grade_subject_id);
+
+            if (!$gradeSubject) {
                 return;
+            }
 
             $subjectName = $gradeSubject->subject->subject_name ?? 'Subject';
-            $gradeName = $gradeSubject->gradeLevel->name ?? 'Class';
 
-            $title = "New Study Material!";
-            $body = "A new " . ($material->type === 'file' ? 'file' : 'link') . " has been added for {$subjectName}.";
+            $title = "ملف مساعد جديد: {$subjectName}";
+
+            $materialType = $material->type === 'file' ? 'file' : 'link';
+
+            $body = "A new {$materialType} has been added for {$subjectName}.";
 
             $enrollments = Enrollment::whereHas('classRoom', function ($q) use ($gradeSubject) {
                 $q->where('grade_level_id', $gradeSubject->grade_level_id);
             })
                 ->whereHas('academicYear', fn($q) => $q->where('is_current', true))
-                ->with('student.user')
+                ->with(['student.user:id'])
                 ->get();
 
             $userIdsToPush = [];
-            $alertsToInsert = [];
-            $now = now();
 
             foreach ($enrollments as $enrollment) {
-                $alertsToInsert[] = [
-                    'title' => $title,
-                    'description' => $body,
-                    'audience' => 'student',
-                    'type' => 'study_material',
-                    'notifiable_type' => Enrollment::class,
-                    'notifiable_id' => $enrollment->id,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-
-                if ($enrollment->student && $enrollment->student->user) {
+                if ($enrollment->student?->user) {
                     $userIdsToPush[] = $enrollment->student->user->id;
                 }
             }
 
-            if (!empty($alertsToInsert)) {
-                Alert::insert($alertsToInsert);
-            }
+            $userIdsToPush = array_unique($userIdsToPush);
 
             if (!empty($userIdsToPush)) {
                 SendPushNotification::dispatch(
-                    array_unique($userIdsToPush),
+                    $userIdsToPush,
                     $title,
                     $body,
                     [
-                        'type' => 'new_study_material',
-                        'material_id' => (string) $material->id,
-                        'grade_subject_id' => (string) $gradeSubject->id,
+                        'type' => 'material',
+                        'material_type' => (string) $material->type,
                     ]
-                );
+                )->afterCommit();
             }
+
         } catch (Exception $e) {
-            Log::error('Study Material Notification Error', ['error' => $e->getMessage()]);
+            Log::error('Study Material Push Notification Error', [
+                'error' => $e->getMessage()
+            ]);
         }
     }
 

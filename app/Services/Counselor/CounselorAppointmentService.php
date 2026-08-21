@@ -24,280 +24,279 @@ class CounselorAppointmentService
 
         return $this->generateForDate($date);
     }
-  public function generateForDate(Carbon|string $date): int
-{
-    return DB::transaction(function () use ($date) {
+    public function generateForDate(Carbon|string $date): int
+    {
+        return DB::transaction(function () use ($date) {
 
-        $date = $date instanceof Carbon
-            ? $date->copy()->startOfDay()
-            : Carbon::parse($date)->startOfDay();
-
-
-        $day = strtolower($date->englishDayOfWeek);
+            $date = $date instanceof Carbon
+                ? $date->copy()->startOfDay()
+                : Carbon::parse($date)->startOfDay();
 
 
-        $availabilities = CounselorAvailability::query()
-
-            ->where('day', $day)
-
-            ->where('is_active', true)
-
-            ->get();
+            $day = strtolower($date->englishDayOfWeek);
 
 
-        if ($availabilities->isEmpty()) {
-            return 0;
-        }
+            $availabilities = CounselorAvailability::query()
+
+                ->where('day', $day)
+
+                ->where('is_active', true)
+
+                ->get();
 
 
-        $insertData = [];
-
-        $now = now();
-
-
-
-        foreach ($availabilities as $availability) {
+            if ($availabilities->isEmpty()) {
+                return 0;
+            }
 
 
-            $start = Carbon::createFromFormat(
-                'H:i:s',
-                $availability->start_time
-            );
+            $insertData = [];
+
+            $now = now();
 
 
-            $end = Carbon::createFromFormat(
-                'H:i:s',
-                $availability->end_time
-            );
+
+            foreach ($availabilities as $availability) {
 
 
-            $duration = (int)$availability->session_duration;
+                $start = Carbon::createFromFormat(
+                    'H:i:s',
+                    $availability->start_time
+                );
 
 
-            if ($duration <= 0) {
-                continue;
+                $end = Carbon::createFromFormat(
+                    'H:i:s',
+                    $availability->end_time
+                );
+
+
+                $duration = (int) $availability->session_duration;
+
+
+                if ($duration <= 0) {
+                    continue;
+                }
+
+
+
+                while (
+                    $start->copy()
+                        ->addMinutes($duration)
+                        ->lte($end)
+                ) {
+
+
+                    $insertData[] = [
+
+                        'counselor_id' =>
+                            $availability->counselor_id,
+
+
+                        'student_id' => null,
+
+
+                        'appointment_date' =>
+                            $date->toDateString(),
+
+
+                        'start_time' =>
+                            $start->format('H:i:s'),
+
+
+                        'end_time' =>
+                            $start
+                                ->copy()
+                                ->addMinutes($duration)
+                                ->format('H:i:s'),
+
+
+                        'booking_status' =>
+                            'available',
+
+
+                        'slot_status' =>
+                            'available',
+
+
+                        'created_at' =>
+                            $now,
+
+
+                        'updated_at' =>
+                            $now,
+
+                    ];
+
+
+                    $start->addMinutes($duration);
+
+                }
+
             }
 
 
 
-            while (
-                $start->copy()
-                    ->addMinutes($duration)
-                    ->lte($end)
-            ) {
-
-
-                $insertData[] = [
-
-                    'counselor_id' =>
-                        $availability->counselor_id,
-
-
-                    'student_id' => null,
-
-
-                    'appointment_date' =>
-                        $date->toDateString(),
-
-
-                    'start_time' =>
-                        $start->format('H:i:s'),
-
-
-                    'end_time' =>
-                        $start
-                            ->copy()
-                            ->addMinutes($duration)
-                            ->format('H:i:s'),
-
-
-                    'booking_status' =>
-                        'available',
-
-
-                    'slot_status' =>
-                        'available',
-
-
-                    'created_at' =>
-                        $now,
-
-
-                    'updated_at' =>
-                        $now,
-
-                ];
-
-
-                $start->addMinutes($duration);
-
+            if (empty($insertData)) {
+                return 0;
             }
 
-        }
+
+
+            $existingSlots = CounselorAppointment::query()
+
+                ->whereDate(
+                    'appointment_date',
+                    $date->toDateString()
+                )
+
+                ->whereIn(
+                    'counselor_id',
+                    collect($insertData)
+                        ->pluck('counselor_id')
+                        ->unique()
+                )
+
+                ->get([
+                    'counselor_id',
+                    'appointment_date',
+                    'start_time'
+                ])
+
+                ->map(function ($item) {
+
+                    return implode('|', [
+                        $item->counselor_id,
+                        $item->appointment_date->toDateString(),
+                        $item->start_time
+                    ]);
+
+                })
+
+                ->flip();
 
 
 
-        if (empty($insertData)) {
-            return 0;
-        }
+            $newSlots = collect($insertData)
+
+                ->filter(function ($slot) use ($existingSlots) {
+
+
+                    $key = implode('|', [
+
+                        $slot['counselor_id'],
+
+                        $slot['appointment_date'],
+
+                        $slot['start_time']
+
+                    ]);
+
+
+                    return !$existingSlots->has($key);
+
+                })
+
+                ->values()
+
+                ->toArray();
 
 
 
-        $existingSlots = CounselorAppointment::query()
+            if (empty($newSlots)) {
+                return 0;
+            }
+
+
+
+            CounselorAppointment::insert($newSlots);
+
+
+            return count($newSlots);
+
+        });
+    }
+    public function getAvailableTomorrowSlots()
+    {
+
+        /*
+         * يجلب أقرب يوم دوام فعلي
+         */
+        $date = $this->getNextAvailableWorkingDate();
+
+
+
+        $day = strtolower(
+            $date->englishDayOfWeek
+        );
+
+
+
+        return CounselorAppointment::query()
+
 
             ->whereDate(
                 'appointment_date',
                 $date->toDateString()
             )
 
-            ->whereIn(
-                'counselor_id',
-                collect($insertData)
-                    ->pluck('counselor_id')
-                    ->unique()
+
+            ->where(
+                'booking_status',
+                'available'
             )
 
-            ->get([
-                'counselor_id',
-                'appointment_date',
-                'start_time'
-            ])
 
-            ->map(function ($item){
-
-                return implode('|',[
-                    $item->counselor_id,
-                    $item->appointment_date->toDateString(),
-                    $item->start_time
-                ]);
-
-            })
-
-            ->flip();
+            ->where(
+                'slot_status',
+                'available'
+            )
 
 
+            /*
+             * حماية إضافية:
+             * لا تعرض Slot إذا لم يعد المرشد
+             * لديه دوام في هذا اليوم
+             */
+            ->whereHas(
+                'counselor',
+                function ($query) use ($day) {
 
-        $newSlots = collect($insertData)
+                    $query->whereHas(
+                        'availabilities',
+                        function ($q) use ($day) {
 
-            ->filter(function ($slot) use ($existingSlots){
+                            $q->where('day', $day)
+                                ->where('is_active', true);
 
-
-                $key = implode('|',[
-
-                    $slot['counselor_id'],
-
-                    $slot['appointment_date'],
-
-                    $slot['start_time']
-
-                ]);
-
-
-                return !$existingSlots->has($key);
-
-            })
-
-            ->values()
-
-            ->toArray();
-
-
-
-        if(empty($newSlots)){
-            return 0;
-        }
-
-
-
-        CounselorAppointment::insert($newSlots);
-
-
-        return count($newSlots);
-
-    });
-}
-  public function getAvailableTomorrowSlots()
-{
-
-    /*
-     * يجلب أقرب يوم دوام فعلي
-     */
-    $date = $this->getNextAvailableWorkingDate();
-
-
-
-    $day = strtolower(
-        $date->englishDayOfWeek
-    );
-
-
-
-    return CounselorAppointment::query()
-
-
-        ->whereDate(
-            'appointment_date',
-            $date->toDateString()
-        )
-
-
-        ->where(
-            'booking_status',
-            'available'
-        )
-
-
-        ->where(
-            'slot_status',
-            'available'
-        )
-
-
-        /*
-         * حماية إضافية:
-         * لا تعرض Slot إذا لم يعد المرشد
-         * لديه دوام في هذا اليوم
-         */
-        ->whereHas(
-            'counselor.availabilities',
-            function($query) use ($day){
-
-                $query
-
-                    ->where(
-                        'day',
-                        $day
-                    )
-
-                    ->where(
-                        'is_active',
-                        true
+                        }
                     );
 
-            }
-        )
+                }
+            )
 
 
-        ->orderBy(
-            'start_time'
-        )
+
+            ->orderBy(
+                'start_time'
+            )
 
 
-        ->get([
+            ->get([
 
-            'id',
+                'id',
 
-            'appointment_date',
+                'appointment_date',
 
-            'start_time',
+                'start_time',
 
-            'end_time',
+                'end_time',
 
-            'booking_status'
+                'booking_status'
 
-        ]);
+            ]);
 
-}
+    }
 
     public function bookAppointment(int $studentId, string $appointmentDate, string $startTime, string $endTime): CounselorAppointment
     {
@@ -563,7 +562,7 @@ class CounselorAppointmentService
 
                 }
 
-                $acceptedCount = (int)
+                $acceptedCount = (int) 
                     $acceptedCounts->get(
                         $appointment->counselor_id,
                         0

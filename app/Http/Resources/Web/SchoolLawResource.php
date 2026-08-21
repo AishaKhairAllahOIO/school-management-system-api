@@ -14,6 +14,8 @@ class SchoolLawResource extends JsonResource
             'title' => $this->title,
             'description' => $this->description,
             'createdAt' => $this->created_at->toISOString(),
+            'updated_at' => $this->updated_at->format('Y-m-d-H-i-s'),
+
         ];
     }
 }

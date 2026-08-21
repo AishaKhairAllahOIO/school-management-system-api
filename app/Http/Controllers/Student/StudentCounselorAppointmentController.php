@@ -27,11 +27,12 @@ class StudentCounselorAppointmentController extends Controller
                 200
             );
         } catch (Exception $e) {
-            return $this->errorResponse(
-                'Error:Server',
-                500
-            );
-        }
+
+    return $this->errorResponse(
+        $e->getMessage(),
+        500
+    );
+}
     }
 
     public function store(BookCounselorAppointmentRequest $request)

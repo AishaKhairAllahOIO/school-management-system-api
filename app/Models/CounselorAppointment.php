@@ -24,10 +24,13 @@ class CounselorAppointment extends Model
         'appointment_date' => 'date',
     ];
 
-    public function counselor()
-    {
-        return $this->belongsTo(Staff::class, 'counselor_id');
-    }
+  public function counselor()
+{
+    return $this->belongsTo(
+        Staff::class,
+        'counselor_id'
+    );
+}
 
     public function student()
     {

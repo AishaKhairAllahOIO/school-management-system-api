@@ -583,6 +583,25 @@ class CounselorAppointmentService
                 'student.user',
                 'counselor.user'
             ]);
+
+
+            if ($selectedAppointment->counselor?->user) {
+
+                SendPushNotification::dispatch(
+                    [
+                        $selectedAppointment->counselor->user->id
+                    ],
+                    'New counseling request',
+                    'A student has requested a counseling appointment.',
+                    [
+                        'type' => 'counseling_request',
+                        'appointment_date' => $selectedAppointment->appointment_date->toDateString(),
+                        'start_time' => $selectedAppointment->start_time,
+                        'end_time' => $selectedAppointment->end_time,
+                    ]
+                )->afterCommit();
+
+            }
             if ($selectedAppointment->counselor) {
                 $studentName = trim(
                     $selectedAppointment->student->user->first_name
@@ -590,15 +609,7 @@ class CounselorAppointmentService
                     .
                     $selectedAppointment->student->user->last_name
                 );
-                // SendPushNotification::dispatch(
-                //     $selectedAppointment->counselor->id,
-                //     'appointment request',
-                //     'there is new appointment request please check the pending list',
-                //     [
-                //         'type' => 'material',
-                //         'material_type' => (string) $material->type,
-                //     ]
-                // )->afterCommit();
+
             }
             return $selectedAppointment;
 
@@ -932,12 +943,30 @@ class CounselorAppointmentService
                     'لا يمكن إلغاء الموعد بعد بدء الجلسة.'
                 );
             }
+            $counselor = $appointment->counselor;
 
             $appointment->update([
                 'student_id' => null,
                 'booking_status' => 'available',
                 'slot_status' => 'available',
             ]);
+
+            if ($counselor?->user) {
+
+                SendPushNotification::dispatch(
+                    [
+                        $counselor->user->id
+                    ],
+                    'Appointment cancelled',
+                    'The student cancelled the counseling appointment.',
+                    [
+                        'type' => 'counseling_cancelled_by_student',
+                        'appointment_id' => $appointment->id,
+                        'date' => $appointment->appointment_date->toDateString(),
+                    ]
+                )->afterCommit();
+
+            }
 
             return $appointment->fresh();
         });
@@ -977,6 +1006,7 @@ class CounselorAppointmentService
             }
 
             $student = $appointment->student;
+            $counselor = $appointment->counselor;
 
             $appointment->update([
                 'student_id' => null,
@@ -985,14 +1015,19 @@ class CounselorAppointmentService
             ]);
 
             if ($student?->user) {
+
                 SendPushNotification::dispatch(
-                    [$student->user->id],
+                    [
+                        $student->user->id
+                    ],
                     'Counseling appointment cancelled',
                     'Your counselor has cancelled your counseling appointment.',
                     [
-                        'type' => 'counseling_appointment_cancelled',
+                        'type' => 'counseling_cancelled_by_counselor',
+                        'date' => $appointment->appointment_date->toDateString(),
                     ]
                 )->afterCommit();
+
             }
 
             return $appointment->fresh();

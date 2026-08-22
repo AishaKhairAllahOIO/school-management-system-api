@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Teacher;
 use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teacher\StorePracticeQuizRequest;
+use App\Models\GradeSubject;
 use App\Services\Quiz\PracticeQuizService;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -102,11 +103,15 @@ class PracticeQuizController extends Controller
                 );
             }
 
+            $gradeSubject = GradeSubject::findOrFail($gradeSubjectId);
+
+            $subject = $gradeSubject->subject->id;
+
             $quizzes =
                 $this->quizService
                     ->getTeacherQuizzes(
                         (int) $gradeLevelId,
-                        (int) $gradeSubjectId,
+                        (int) $$subject,
                         (int) $teacher->id
                     );
 

@@ -585,6 +585,9 @@ class CounselorAppointmentService
             ]);
 
 
+
+
+
             if ($selectedAppointment->counselor?->user) {
 
                 SendPushNotification::dispatch(

@@ -85,9 +85,21 @@ class ScheduleService
             $classesMap[$classId]['schedule'][$day][] = [
                 'entry_id' => $entry->id,
                 'period_index' => $entry->period_index,
-                'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
-                'teacher_name' => $entry->teacher->user->first_name ?? null,
-                'is_heavy' => $entry->gradeSubject->difficulty === 'heavy',
+
+                'subject_name' =>
+                    $entry->gradeSubject?->subject?->subject_name
+                    ?? 'Deleted Subject',
+
+                'teacher_name' =>
+                    trim(
+                        ($entry->teacher?->user?->first_name ?? '')
+                        . ' ' .
+                        ($entry->teacher?->user?->last_name ?? '')
+                    ) ?: null,
+
+                'is_heavy' =>
+                    $entry->gradeSubject?->difficulty === 'heavy',
+
                 'start_time' => $times['start_time'],
                 'end_time' => $times['end_time'],
             ];

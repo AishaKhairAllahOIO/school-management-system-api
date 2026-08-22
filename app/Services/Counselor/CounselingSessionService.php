@@ -15,34 +15,34 @@ class CounselingSessionService
     ) {
     }
 
- public function getPendingSessions(int $counselorId)
-{
-    return CounselingSession::query()
+    public function getPendingSessions(int $counselorId)
+    {
+        return CounselingSession::query()
 
-        ->whereHas('appointment', function ($query) use ($counselorId) {
+            ->whereHas('appointment', function ($query) use ($counselorId) {
 
-            $query->where(
-                'counselor_id',
-                $counselorId
-            );
+                $query->where(
+                    'counselor_id',
+                    $counselorId
+                );
 
-        })
+            })
 
-        ->where(
-            'attendance_status',
-            'not_marked'
-        )
+            ->where(
+                'attendance_status',
+                'not_marked'
+            )
 
-        ->with([
-            'appointment.student.user',
-        ])
+            ->with([
+                'appointment.student.user',
+            ])
 
-        ->orderByDesc(
-            'created_at'
-        )
+            ->orderByDesc(
+                'created_at'
+            )
 
-        ->get();
-}
+            ->get();
+    }
 
     public function updateSession(int $sessionId, int $counselorId, array $data): CounselingSession
     {

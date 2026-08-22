@@ -40,24 +40,43 @@ class ClassStudentEvaluationService
         });
     }
 
-    public function updateEvaluation(ClassStudentEvaluation $evaluation, array $data): ClassStudentEvaluation
-    {
-        return DB::transaction(function () use ($evaluation, $data) {
-            $evaluation->update([
-                'grade_subject_id' => $data['grade_subject_id'] ?? $evaluation->grade_subject_id,
-                'enrollment_id'    => $data['enrollment_id'] ?? $evaluation->enrollment_id,
-                'rating'           => $data['rating'] ?? $evaluation->rating,
-                'notes'            => array_key_exists('notes', $data) ? $data['notes'] : $evaluation->notes,
-            ]);
+   public function updateEvaluation(ClassStudentEvaluation $evaluation, array $data): ClassStudentEvaluation
+{
+    return DB::transaction(function () use ($evaluation, $data) {
 
-            $evaluation->load(['gradeSubject.subject', 'enrollment.student.user', 'enrollment.student.guardian.user', 'enrollment.classRoom']);
+        $evaluation->update([
+            'grade_subject_id' => $data['grade_subject_id'] ?? $evaluation->grade_subject_id,
+            'enrollment_id'    => $data['enrollment_id'] ?? $evaluation->enrollment_id,
+            'rating'           => $data['rating'] ?? $evaluation->rating,
+            'notes'            => array_key_exists('notes', $data)
+                ? $data['notes']
+                : $evaluation->notes,
+        ]);
 
-            $this->dispatchEvaluationNotification($evaluation, true);
 
-            return $evaluation->fresh(['gradeSubject.subject', 'enrollment.student.user', 'enrollment.classRoom']);
-        });
-    }
+        $evaluation->load([
+            'gradeSubject.subject',
+            'enrollment.student.user',
+            'enrollment.student.guardian.user',
+            'enrollment.classRoom'
+        ]);
 
+
+        DB::table('evaluation_user_reads')
+            ->where('class_student_evaluation_id', $evaluation->id)
+            ->delete();
+
+
+        $this->dispatchEvaluationNotification($evaluation, true);
+
+
+        return $evaluation->fresh([
+            'gradeSubject.subject',
+            'enrollment.student.user',
+            'enrollment.classRoom'
+        ]);
+    });
+}
     public function deleteEvaluation(ClassStudentEvaluation $evaluation): void
     {
         DB::transaction(function () use ($evaluation) {

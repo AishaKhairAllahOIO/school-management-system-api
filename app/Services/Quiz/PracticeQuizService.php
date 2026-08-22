@@ -96,13 +96,13 @@ class PracticeQuizService
 
 public function getTeacherQuizzes(
     int $gradeLevelId,
-    int $gradeSubjectId,
+    int $subjectId,
     int $teacherId
 ): Collection {
 
     $gradeSubject = GradeSubject::query()
         ->where('grade_level_id', $gradeLevelId)
-        ->where('grade_subject_id', $gradeSubjectId)
+        ->where('subject_id', $subjectId)
         ->whereHas('teacherAssignments', function ($query) use ($teacherId) {
             $query
                 ->where('teacher_id', $teacherId)

@@ -87,7 +87,7 @@ class PracticeQuizController extends Controller
      */
     public function getQuizzesByGradeSubject(
         Request $request,
-        $gradeSubjectId,
+        $subjectId,
         $gradeLevelId
     ) {
         try {
@@ -103,15 +103,10 @@ class PracticeQuizController extends Controller
                 );
             }
 
-            $gradeSubject = GradeSubject::findOrFail($gradeSubjectId);
-
-            $subject = $gradeSubject->subject->id;
-
             $quizzes =
                 $this->quizService
                     ->getTeacherQuizzes(
-                        (int) $gradeLevelId,
-                        (int) $$subject,
+                        (int) $subjectId,
                         (int) $teacher->id
                     );
 

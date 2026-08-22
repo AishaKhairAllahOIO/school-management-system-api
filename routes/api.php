@@ -216,7 +216,7 @@ Route::prefix('auth')->group(function () {
 
             Route::prefix('helper/materials')->controller(TeacherMaterialController::class)->group(function () {
                 Route::post('/upload', 'store');
-                Route::get('/show/by-subject/{gradeSubjectId}', 'index');
+                Route::get('/show/by-subject/{subjectId}', 'index');
                 Route::get('/show/one/{id}', 'show');
                 Route::delete('/delete/{id}', 'destroy');
             });

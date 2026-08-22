@@ -22,119 +22,254 @@ class FinancialScenarioSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            // 1. جلب المتطلبات الأساسية (بدون إنشائها لأنها موجودة مسبقاً)
-            $academicYear = AcademicYear::where('is_current', true)->firstOrFail();
-            $feePlan      = FeePlan::firstOrFail();
-            $policy       = InstallmentPolicy::with('items')->firstOrFail();
-            $accountant   = User::whereHas('roles', fn($q) => $q->where('name', 'super_admin')->orWhere('name', 'secretary'))->first(); // محاكي للمحاسب
 
-            // 2. جلب 3 طلاب من الداتابيز (الذين ليس لديهم حساب مالي بعد)
-            // سنستخدم whereDoesntHave لضمان أننا نختار طلاباً بلا محافظ مالية
-            $students = Student::whereDoesntHave('financialAccount')->take(3)->get();
+            // =========================================================
+            // 1. المتطلبات الأساسية
+            // =========================================================
 
+            $academicYear = AcademicYear::where('is_current', true)
+                ->firstOrFail();
+
+            $feePlan = FeePlan::firstOrFail();
+
+            /*
+             * نستخدم سياسة الثلاث دفعات بشكل صريح.
+             * لا نعتمد على first() لأن ترتيب السجلات غير مضمون.
+             */
+            $policy = InstallmentPolicy::where(
+                'name',
+                'تقسيط على ثلاث دفعات'
+            )
+                ->with('items')
+                ->firstOrFail();
+
+            /*
+             * التأكد من وجود بنود السياسة.
+             * هذا يمنع مشكلة Undefined array key 0.
+             */
+            if ($policy->items->isEmpty()) {
+                throw new \RuntimeException(
+                    'سياسة التقسيط لا تحتوي على أي بنود. تأكد من تشغيل InstallmentPolicySeeder أولاً.'
+                );
+            }
+
+            /*
+             * ترتيب الأقساط حسب رقم القسط.
+             */
+            $policyItems = $policy->items
+                ->sortBy('installment_number')
+                ->values();
+
+            /*
+             * نحتاج على الأقل إلى قسط واحد.
+             */
+            if ($policyItems->isEmpty()) {
+                throw new \RuntimeException(
+                    'لا توجد أقساط صالحة في سياسة التقسيط.'
+                );
+            }
+
+            /*
+             * المستخدم الذي سيقوم بتحصيل الدفعة.
+             */
+            $accountant = User::whereHas('roles', function ($query) {
+                $query
+                    ->where('name', 'super_admin')
+                    ->orWhere('name', 'secretary');
+            })->first();
+
+            // =========================================================
+            // 2. جلب 3 طلاب ليس لديهم حساب مالي
+            // =========================================================
+
+            $students = Student::whereDoesntHave('financialAccount')
+                ->take(3)
+                ->get();
+
+            /*
+             * إذا لم يوجد 3 طلاب، لا ننفذ السيناريو.
+             */
             if ($students->count() < 3) {
-              //  $this->command->warn('تنبيه: لا يوجد 3 طلاب بدون حساب مالي في النظام لتطبيق السيناريو عليهم.');
                 return;
             }
 
-            // 3. تطبيق السيناريوهات على الطلاب الثلاثة
-            $grandTotal = $feePlan->base_amount; // افترضنا عدم وجود خدمات إضافية للتبسيط
-            $startYear  = Carbon::parse($academicYear->start_date)->year;
+            // =========================================================
+            // 3. البيانات العامة
+            // =========================================================
 
-            foreach ($students as $index => $student) {
-                
-                // ==========================================
-                // أ) إنشاء الحساب المالي (المحفظة) للطالب
-                // ==========================================
+            $grandTotal = (float) $feePlan->base_amount;
+
+            $startYear = Carbon::parse(
+                $academicYear->start_date
+            )->year;
+
+            // =========================================================
+            // 4. إنشاء السيناريوهات
+            // =========================================================
+
+            foreach ($students->values() as $index => $student) {
+
+                // =====================================================
+                // أ) إنشاء الحساب المالي
+                // =====================================================
+
                 $account = FinancialAccount::create([
-                    'student_id'            => $student->id,
-                    'academic_year_id'      => $academicYear->id,
-                    'fee_plan_id'           => $feePlan->id,
+                    'student_id' => $student->id,
+                    'academic_year_id' => $academicYear->id,
+                    'fee_plan_id' => $feePlan->id,
                     'installment_policy_id' => $policy->id,
                     'total_required_amount' => $grandTotal,
-                    'remaining_balance'     => $grandTotal,
-                    'payment_status'        => 'unpaid',
+                    'remaining_balance' => $grandTotal,
+                    'payment_status' => 'unpaid',
                 ]);
 
-                // ==========================================
-                // ب) توليد الأقساط المجدولة بناءً على بنود السياسة
-                // ==========================================
-                $installments = [];
-                foreach ($policy->items as $item) {
-                    $amountDue = ($grandTotal * $item->percentage) / 100;
-                    
-                    // حساب سنة الاستحقاق (إذا كان الشهر بين 7 و 12 فهو في نفس سنة البداية، وإلا في السنة التالية)
-                    $calcYear = ($item->due_month >= 7 && $item->due_month <= 12) ? $startYear : $startYear + 1;
-                    $dueDate  = Carbon::createFromDate($calcYear, $item->due_month, $item->due_day)->format('Y-m-d');
+                // =====================================================
+                // ب) إنشاء الأقساط
+                // =====================================================
 
-                    $installments[] = ScheduledInstallment::create([
+                $installments = collect();
+
+                foreach ($policyItems as $item) {
+
+                    $amountDue = round(
+                        ($grandTotal * (float) $item->percentage) / 100,
+                        2
+                    );
+
+                    /*
+                     * إذا كان الشهر من 7 إلى 12:
+                     * يكون في سنة بداية السنة الأكاديمية.
+                     *
+                     * وإذا كان من 1 إلى 6:
+                     * يكون في السنة التالية.
+                     */
+                    $calcYear = (
+                        $item->due_month >= 7 &&
+                        $item->due_month <= 12
+                    )
+                        ? $startYear
+                        : $startYear + 1;
+
+                    $dueDate = Carbon::createFromDate(
+                        $calcYear,
+                        $item->due_month,
+                        $item->due_day
+                    )->format('Y-m-d');
+
+                    $installment = ScheduledInstallment::create([
                         'financial_account_id' => $account->id,
-                        'installment_number'   => $item->installment_number,
-                        'title'                => $item->title,
-                        'amount_due'           => $amountDue,
-                        'amount_paid'          => 0.00,
-                        'due_date'             => $dueDate,
-                        'status'               => 'pending',
+                        'installment_number' => $item->installment_number,
+                        'title' => $item->title,
+                        'amount_due' => $amountDue,
+                        'amount_paid' => 0.00,
+                        'due_date' => $dueDate,
+                        'status' => 'pending',
                     ]);
+
+                    $installments->push($installment);
                 }
 
-                // ==========================================
-                // ج) تطبيق سيناريوهات الدفع (Payment Transactions)
-                // ==========================================
-                
-                // الطالب 0: لن يدفع شيئاً (يبقى Unpaid والأقساط Pending)
-                
-                // الطالب 1: سيدفع مبلغ القسط الأول فقط (Partially Paid)
-                if ($index === 1) {
-                    $paidAmount = $installments[0]->amount_due; // مبلغ القسط الأول
+                // =====================================================
+                // ج) الطالب الأول
+                // Unpaid
+                // =====================================================
 
+                if ($index === 0) {
+
+                    /*
+                     * لا توجد أي عملية دفع.
+                     *
+                     * الحساب:
+                     * unpaid
+                     *
+                     * الأقساط:
+                     * pending
+                     */
+
+                    continue;
+                }
+
+                // =====================================================
+                // د) الطالب الثاني
+                // Partially Paid
+                // =====================================================
+
+                if ($index === 1) {
+
+                    /*
+                     * نأخذ أول قسط بشكل آمن.
+                     * لا يوجد وصول مباشر إلى [0] قبل التأكد من وجوده.
+                     */
+                    $firstInstallment = $installments->first();
+
+                    if (!$firstInstallment) {
+                        throw new \RuntimeException(
+                            'تعذر إنشاء القسط الأول للطالب رقم ' . $student->id
+                        );
+                    }
+
+                    $paidAmount = (float) $firstInstallment->amount_due;
+
+                    // إنشاء عملية الدفع
                     PaymentTransaction::create([
                         'financial_account_id' => $account->id,
-                        'paid_amount'          => $paidAmount,
-                        'payment_method'       => 'cash',
-                        'paper_receipt_no'     => 'RCP-1001',
+                        'paid_amount' => $paidAmount,
+                        'payment_method' => 'cash',
+                        'paper_receipt_no' => 'RCP-1001',
                         'collected_by_user_id' => $accountant?->id ?? 1,
                     ]);
 
-                    // تحديث القسط الأول ليكون مدفوعاً
-                    $installments[0]->update([
+                    // تحديث القسط الأول
+                    $firstInstallment->update([
                         'amount_paid' => $paidAmount,
-                        'status'      => 'paid',
+                        'status' => 'paid',
                     ]);
 
-                    // تحديث محفظة الطالب
+                    // تحديث الحساب المالي
                     $account->update([
-                        'remaining_balance' => $account->total_required_amount - $paidAmount,
-                        'payment_status'    => 'fully_paid',
+                        'remaining_balance' => max(
+                            0,
+                            $grandTotal - $paidAmount
+                        ),
+                        'payment_status' => 'partially_paid',
                     ]);
+
+                    continue;
                 }
 
-                // الطالب 2: سيدفع كامل المبلغ المترتب عليه (Fully Paid)
-                // if ($index === 2) {
-                //     $paidAmount = $grandTotal; // دفع كل شيء
+                // =====================================================
+                // هـ) الطالب الثالث
+                // Fully Paid
+                // =====================================================
 
-                    // PaymentTransaction::create([
-                    //     'financial_account_id' => $account->id,
-                    //     'paid_amount'          => $paidAmount,
-                    //     'payment_method'       => 'bank_transfer',
-                    //     'digital_reference'    => 'TRX-' . rand(1000, 9999),
-                    //     'collected_by_user_id' => $accountant?->id ?? 1,
-                    // ]);
+                if ($index === 2) {
 
-                    // تحديث جميع الأقساط لتكون مدفوعة
-                    // foreach ($installments as $installment) {
-                    //     $installment->update([
-                    //         'amount_paid' => $installment->amount_due,
-                    //         'status'      => 'paid',
-                    //     ]);
-                    // }
+                    $paidAmount = $grandTotal;
 
-                    // تحديث محفظة الطالب وتصفير الديون
-                    // $account->update([
-                    //     'remaining_balance' => 0,
-                    //     'payment_status'    => 'fully_paid',
-                    // ]);
-              //  }
+                    // إنشاء عملية الدفع
+                    PaymentTransaction::create([
+                        'financial_account_id' => $account->id,
+                        'paid_amount' => $paidAmount,
+                        'payment_method' => 'bank_transfer',
+                        'digital_reference' => 'TRX-' . rand(1000, 9999),
+                        'collected_by_user_id' => $accountant?->id ?? 1,
+                    ]);
+
+                    // تحديث جميع الأقساط
+                    foreach ($installments as $installment) {
+
+                        $installment->update([
+                            'amount_paid' => $installment->amount_due,
+                            'status' => 'paid',
+                        ]);
+                    }
+
+                    // تحديث الحساب المالي
+                    $account->update([
+                        'remaining_balance' => 0,
+                        'payment_status' => 'fully_paid',
+                    ]);
+                }
             }
         });
     }

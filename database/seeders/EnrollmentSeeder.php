@@ -37,7 +37,7 @@ class EnrollmentSeeder extends Seeder
             [
                 'grade_level_id' => 1,
                 'class_room_id' => 2,
-                'enrollment_status' => 'enrolled',
+                'enrollment_status' => 'completed',
                 'enrollment_date' => now(),
             ]
         );

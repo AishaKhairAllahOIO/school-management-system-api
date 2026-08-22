@@ -43,7 +43,6 @@ class CounselingSessionService
 
             ->get();
     }
-
     public function updateSession(int $sessionId, int $counselorId, array $data): CounselingSession
     {
 
@@ -148,4 +147,6 @@ class CounselingSessionService
             ]);
         });
     }
+
+
 }

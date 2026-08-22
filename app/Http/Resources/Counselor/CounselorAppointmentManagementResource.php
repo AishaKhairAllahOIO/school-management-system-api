@@ -10,6 +10,9 @@ class CounselorAppointmentManagementResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+
+        $student = $this->student;
+        $user = $student?->user;
         return [
             'id' => $this->id,
 
@@ -31,11 +34,12 @@ class CounselorAppointmentManagementResource extends JsonResource
                     . $this->student->user->last_name
                     : null,
 
-                'photoUrl' => FileUrl::make(
-                    $this->student->user->photo_url,
-                     config('filesystems.public_disk')
-
-                ),
+                'photoUrl' => $user
+                    ? FileUrl::make(
+                        $user->photo_url,
+                        config('filesystems.public_disk')
+                    )
+                    : null,
             ] : null,
         ];
     }

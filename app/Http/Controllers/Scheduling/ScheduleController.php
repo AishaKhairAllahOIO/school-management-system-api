@@ -111,9 +111,6 @@ class ScheduleController extends Controller
                 'Error:Server',
                 500
             );
-
-
-
         }
     }
 

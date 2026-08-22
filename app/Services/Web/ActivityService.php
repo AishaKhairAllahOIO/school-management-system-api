@@ -13,10 +13,11 @@ use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class ActivityService
 {
-    
+
     use ApiResource;
     public function addActivity(array $data)
     {
@@ -96,7 +97,63 @@ class ActivityService
             $activity->classRooms()->sync($classRoomIds);
         }
 
-        return $activity->load(['gradeLevel:id,name', 'classRooms:id,name']);
+
+        $enrollmentsQuery = Enrollment::where(
+            'grade_level_id',
+            $activity->grade_level_id
+        )
+            ->whereHas('academicYear', function ($q) {
+                $q->whereDate('start_date', '<=', now())
+                    ->whereDate('end_date', '>=', now());
+            });
+
+
+        if (!empty($classRoomIds)) {
+            $enrollmentsQuery->whereIn('class_room_id', $classRoomIds);
+        }
+
+
+        $studentIds = $enrollmentsQuery
+            ->pluck('student_id');
+
+
+        $userIds = User::whereHas('student', function ($q) use ($studentIds) {
+            $q->whereIn('id', $studentIds);
+
+        })->orWhereHas('guardian', function ($q) use ($studentIds) {
+
+            $q->whereHas('students', function ($sq) use ($studentIds) {
+                $sq->whereIn('id', $studentIds);
+            });
+
+        })
+            ->pluck('id')
+            ->toArray();
+
+        if (!empty($userIds)) {
+
+            DB::table('activity_user')
+                ->where('activity_id', $activity->id)
+                ->whereIn('user_id', $userIds)
+                ->delete();
+
+
+            SendPushNotification::dispatch(
+                $userIds,
+                'تعديل نشاط مدرسي',
+                'تم تعديل النشاط: ' . $activity->activity_name,
+                [
+                    'activity_id' => (string) $activity->id,
+                    'type' => 'activity_update'
+                ]
+            );
+        }
+
+
+        return $activity->load([
+            'gradeLevel:id,name',
+            'classRooms:id,name'
+        ]);
     }
     public function deleteActivity(int $id): void
     {

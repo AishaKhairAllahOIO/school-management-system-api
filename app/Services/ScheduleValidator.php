@@ -15,6 +15,13 @@ class ScheduleValidator
             'entries.gradeSubject.subject'
         ]);
 
+        $schedule->setRelation(
+            'entries',
+            $schedule->entries
+                ->filter(fn($entry) => $entry->gradeSubject !== null)
+                ->values()
+        );
+
         $errors = [];
 
         $errors = array_merge(

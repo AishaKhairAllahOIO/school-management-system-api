@@ -189,9 +189,8 @@ class AnnouncementService
             return $user;
         }
 
-        if ($user->guardian && $studentId) {
-            $child = $user->guardian->students()->find($studentId);
-            return $child?->user ?? $user;
+        if ($user->guardian) {
+            return $user;
         }
 
         return $user;
@@ -218,17 +217,12 @@ class AnnouncementService
 
     public function markAllAsRead(User $user, ?int $studentId = null): array
     {
-        if ($user->hasRole('guardian') && $user->guardian && !$studentId) {
-            foreach ($user->guardian->students as $child) {
-                $this->markAllAsRead($user, $child->id);
-            }
-            return ['unread_count' => $this->unreadCount($user)];
-        }
-
         $readerUser = $this->resolveReaderUser($user, $studentId);
 
         if (!$readerUser) {
-            return ['unread_count' => 0];
+            return [
+                'unread_count' => 0
+            ];
         }
 
         $announcementIds = $this->getBaseQueryForUser($user, $studentId)
@@ -237,17 +231,25 @@ class AnnouncementService
             })
             ->pluck('id');
 
+
         if ($announcementIds->isNotEmpty()) {
+
             $syncData = [];
-            $now = now();
+
             foreach ($announcementIds as $id) {
-                $syncData[$id] = ['read_at' => $now];
+                $syncData[$id] = [
+                    'read_at' => now()
+                ];
             }
 
-            $readerUser->readAnnouncements()->syncWithoutDetaching($syncData);
+            $readerUser->readAnnouncements()
+                ->syncWithoutDetaching($syncData);
         }
 
-        return ['unread_count' => $this->unreadCount($user, $studentId)];
+
+        return [
+            'unread_count' => $this->unreadCount($user, $studentId)
+        ];
     }
 
 

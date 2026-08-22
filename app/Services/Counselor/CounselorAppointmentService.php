@@ -590,7 +590,7 @@ class CounselorAppointmentService
                     .
                     $selectedAppointment->student->user->last_name
                 );
-              SendPushNotification::dispatch(
+                SendPushNotification::dispatch(
                     $selectedAppointment->counselor->id,
                     'appointment request',
                     'there is new appointment request please check the pending list',
@@ -602,7 +602,8 @@ class CounselorAppointmentService
             }
             return $selectedAppointment;
 
-        });body
+        });
+        body
 
     }
     public function approveAppointment(int $counselorId, int $appointmentId)
@@ -1139,28 +1140,19 @@ class CounselorAppointmentService
 
         return CounselorAppointment::query()
 
-            ->where(
-                'counselor_id',
-                $counselorId
-            )
+            ->where('counselor_id', $counselorId)
 
-            ->whereDate(
-                'appointment_date',
-                $date
-            )
+            ->whereDate('appointment_date', $date)
 
-            ->where(
-                'booking_status',
-                'accepted'
-            )
+            ->where('booking_status', 'accepted')
+
+            ->whereNotNull('student_id')
 
             ->with([
                 'student.user',
             ])
 
-            ->orderBy(
-                'start_time'
-            )
+            ->orderBy('start_time')
 
             ->get();
     }

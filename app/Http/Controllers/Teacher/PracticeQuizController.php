@@ -85,50 +85,46 @@ class PracticeQuizController extends Controller
     /**
      * Get quizzes for a GradeSubject.
      */
-    public function getQuizzesByGradeSubject(
-        Request $request,
-        $subjectId,
-    ) {
-        try {
+  public function getQuizzesByGradeSubject(
+    Request $request,
+    $subjectId,
+    $gradeLevelId
+) {
+    try {
 
-            $teacher =
-                $request->user()->staff;
+        $teacher = $request->user()->staff;
 
-            if (!$teacher) {
-
-                return $this->errorResponse(
-                    'Teacher profile not found.',
-                    403
-                );
-            }
-
-            $quizzes =
-                $this->quizService
-                    ->getTeacherQuizzes(
-                        (int) $subjectId,
-                        (int) $teacher->id
-                    );
-
-            return $this->successResponse(
-                $quizzes,
-                'Quizzes retrieved successfully.',
-                200
-            );
-
-        } catch (Exception $e) {
-
-            $code =
-                $e->getCode() === 403
-                    ? 403
-                    : 500;
-
+        if (!$teacher) {
             return $this->errorResponse(
-                $e->getMessage(),
-                $code
+                'Teacher profile not found.',
+                403
             );
         }
-    }
 
+
+        $quizzes = $this->quizService
+            ->getTeacherQuizzes(
+                (int) $subjectId,
+                (int) $gradeLevelId,
+                (int) $teacher->id
+            );
+
+
+        return $this->successResponse(
+            $quizzes,
+            'Quizzes retrieved successfully.',
+            200
+        );
+
+
+    } catch (Exception $e) {
+
+        return $this->errorResponse(
+            $e->getMessage(),
+            500
+        );
+    }
+}
     /**
      * Show quiz details.
      */

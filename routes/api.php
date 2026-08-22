@@ -207,7 +207,7 @@ Route::prefix('auth')->group(function () {
 
             Route::prefix('practice-quizzes')->controller(PracticeQuizController::class)->group(function () {
                 Route::post('/create/quiz', 'store');
-                Route::get('/show/quiz/by/grade-subject/{gradeSubjectId}', 'getQuizzesByGradeSubject');
+                Route::get('/show/quiz/by/grade-subject/{gradeSubjectId}/{gradeLevelId}', 'getQuizzesByGradeSubject');
                 Route::get('/show/one/quiz/{quizId}', 'show');
                 Route::patch('/toggle-active/quiz/{id}', 'toggleActive');
                 Route::delete('/delete/quiz/{id}', 'destroy');

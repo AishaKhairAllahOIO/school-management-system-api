@@ -94,57 +94,56 @@ class PracticeQuizService
     }
 
 
-    public function getTeacherQuizzes(
-        int $subjectId,
-        int $teacherId
-    ): Collection {
+  public function getTeacherQuizzes(
+    int $subjectId,
+    int $gradeLevelId,
+    int $teacherId
+): Collection {
 
-        $gradeSubjects = GradeSubject::query()
-            ->where('subject_id', $subjectId)
-            ->whereHas('teacherAssignments', function ($query) use ($teacherId) {
-                $query->where('teacher_id', $teacherId)
-                    ->whereHas('academicYear', function ($q) {
-                        $q->where('is_current', true);
-                    });
-            })
-            ->with('gradeLevel')
-            ->get();
+    $gradeSubjects = GradeSubject::query()
+        ->where('subject_id', $subjectId)
+        ->where('grade_level_id', $gradeLevelId)
+        ->whereHas('teacherAssignments', function ($query) use ($teacherId) {
+            $query->where('teacher_id', $teacherId)
+                ->whereHas('academicYear', function ($q) {
+                    $q->where('is_current', true);
+                });
+        })
+        ->with('gradeLevel')
+        ->get();
 
 
-        return $gradeSubjects->map(function ($gradeSubject) use ($teacherId) {
+    return $gradeSubjects->map(function ($gradeSubject) use ($teacherId) {
 
-            return [
-                'grade_subject_id' => $gradeSubject->id,
+        return [
+            'grade_subject_id' => $gradeSubject->id,
 
-                'grade_level' => [
-                    'id' => $gradeSubject->gradeLevel->id,
-                    'name' => $gradeSubject->gradeLevel->name?->value
-                        ?? $gradeSubject->gradeLevel->name,
-                ],
+            'grade_level' => [
+                'id' => $gradeSubject->gradeLevel->id,
+                'name' => $gradeSubject->gradeLevel->name?->value
+                    ?? $gradeSubject->gradeLevel->name,
+            ],
 
-                'quizzes' => PracticeQuiz::query()
-                    ->where('grade_subject_id', $gradeSubject->id)
-                    ->where('teacher_id', $teacherId)
-                    ->withCount('attempts')
-                    ->withSum('questions', 'mark')
-                    ->latest()
-                    ->get()
-                    ->map(function ($quiz) {
+            'quizzes' => PracticeQuiz::query()
+                ->where('grade_subject_id', $gradeSubject->id)
+                ->where('teacher_id', $teacherId)
+                ->withCount('attempts')
+                ->withSum('questions', 'mark')
+                ->latest()
+                ->get()
+                ->map(function ($quiz) {
 
-                        return [
-                            'id' => $quiz->id,
-                            'title' => $quiz->title,
-                            'total_mark' => (float) $quiz->questions_sum_mark,
-                            'attempts_count' => (int) $quiz->attempts_count,
-                            'is_active' => (bool) $quiz->is_active,
-                        ];
-
-                    }),
-            ];
-
-        });
-    }
-
+                    return [
+                        'id' => $quiz->id,
+                        'title' => $quiz->title,
+                        'total_mark' => (float) $quiz->questions_sum_mark,
+                        'attempts_count' => (int) $quiz->attempts_count,
+                        'is_active' => (bool) $quiz->is_active,
+                    ];
+                }),
+        ];
+    });
+}
 
     public function getQuizDetails(
         int $quizId,

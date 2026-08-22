@@ -96,13 +96,13 @@ class PracticeQuizService
 
 public function getTeacherQuizzes(
     int $gradeLevelId,
-    int $subjectId,
+    int $gradeSubjectId,
     int $teacherId
 ): Collection {
 
     $gradeSubject = GradeSubject::query()
         ->where('grade_level_id', $gradeLevelId)
-        ->where('subject_id', $subjectId)
+        ->where('grade_subject_id', $gradeSubjectId)
         ->whereHas('teacherAssignments', function ($query) use ($teacherId) {
             $query
                 ->where('teacher_id', $teacherId)
@@ -458,7 +458,7 @@ public function getTeacherQuizzes(
 public function getStudentQuizForSolving(
         int $quizId,
         int $gradeLevelId
-    ): array { 
+    ): array {
 
         $quiz = PracticeQuiz::query()
             ->where('id', $quizId)

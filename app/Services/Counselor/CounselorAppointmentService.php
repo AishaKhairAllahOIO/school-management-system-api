@@ -590,20 +590,19 @@ class CounselorAppointmentService
                     .
                     $selectedAppointment->student->user->last_name
                 );
-                SendPushNotification::dispatch(
-                    $selectedAppointment->counselor->id,
-                    'appointment request',
-                    'there is new appointment request please check the pending list',
-                    [
-                        'type' => 'material',
-                        'material_type' => (string) $material->type,
-                    ]
-                )->afterCommit();
+                // SendPushNotification::dispatch(
+                //     $selectedAppointment->counselor->id,
+                //     'appointment request',
+                //     'there is new appointment request please check the pending list',
+                //     [
+                //         'type' => 'material',
+                //         'material_type' => (string) $material->type,
+                //     ]
+                // )->afterCommit();
             }
             return $selectedAppointment;
 
         });
-        body
 
     }
     public function approveAppointment(int $counselorId, int $appointmentId)

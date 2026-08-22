@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\CounselorAppointment;
 use App\Models\CounselingSession;
+use App\Services\Counselor\CounselorAppointmentService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -14,67 +15,16 @@ class CompleteExpiredCounselingAppointments extends Command
 
     protected $description = 'Complete counseling appointments after their end time';
 
-    public function handle(): int
-    {
-        $completed = 0;
+   public function handle(
+    CounselorAppointmentService $service
+): int {
 
-        CounselorAppointment::query()
-            ->where('booking_status', 'accepted')
-            ->whereDate(
-                'appointment_date',
-                '<=',
-                now()->toDateString()
-            )
-            ->chunkById(100, function ($appointments) use (&$completed) {
+    $completed = $service->completeExpiredAppointments();
 
-                foreach ($appointments as $appointment) {
+    $this->info(
+        "Completed {$completed} counseling appointments."
+    );
 
-                    // $endDateTime = Carbon::parse(
-                    //     $appointment->appointment_date->format('Y-m-d')
-                    //     . ' '
-                    //     . $appointment->end_time
-                    // );
-
-                    // if (now()->lt($endDateTime)) {
-                    //     continue;
-                    // }
-
-                    $endDateTime = Carbon::parse(
-                        $appointment->appointment_date->format('Y-m-d')
-                        . ' '
-                        . $appointment->start_time
-                    )->addMinutes(2);
-
-
-                    if (now()->lt($endDateTime)) {
-                        continue;
-                    }
-
-                    DB::transaction(function () use ($appointment, &$completed) {
-
-                        $appointment->update([
-                            'booking_status' => 'completed',
-                            'slot_status' => 'booked',
-                        ]);
-
-                        CounselingSession::firstOrCreate(
-                            [
-                                'appointment_id' => $appointment->id,
-                            ],
-                            [
-                                'attendance_status' => 'not_marked',
-                            ]
-                        );
-
-                        $completed++;
-                    });
-                }
-            });
-
-        $this->info(
-            "Completed {$completed} counseling appointments."
-        );
-
-        return self::SUCCESS;
-    }
+    return self::SUCCESS;
+}
 }

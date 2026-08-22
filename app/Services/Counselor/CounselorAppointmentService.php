@@ -5,6 +5,7 @@ namespace App\Services\Counselor;
 use App\Jobs\SendPushNotification;
 use App\Models\AcademicSetting;
 use App\Models\Alert;
+use App\Models\CounselingSession;
 use App\Models\CounselorAppointment;
 use App\Models\CounselorAvailability;
 use App\Models\Student;
@@ -1216,6 +1217,56 @@ class CounselorAppointmentService
         }
 
         return null;
+    }
+
+    public function completeExpiredAppointments(): int
+    {
+        $completed = 0;
+
+        CounselorAppointment::query()
+            ->where('booking_status', 'accepted')
+            ->whereDate('appointment_date', '<=', now()->toDateString())
+            ->chunkById(100, function ($appointments) use (&$completed) {
+
+                foreach ($appointments as $appointment) {
+
+                    $endDateTime = Carbon::parse(
+                        $appointment->appointment_date->format('Y-m-d')
+                        . ' '
+                        . $appointment->start_time
+                    )->addMinutes(2);
+
+
+                    if (now()->lt($endDateTime)) {
+                        continue;
+                    }
+
+
+                    DB::transaction(function () use ($appointment, &$completed) {
+
+                        $appointment->update([
+                            'booking_status' => 'completed',
+                            'slot_status' => 'booked',
+                        ]);
+
+
+                        CounselingSession::firstOrCreate(
+                            [
+                                'appointment_id' => $appointment->id,
+                            ],
+                            [
+                                'attendance_status' => 'not_marked',
+                            ]
+                        );
+
+
+                        $completed++;
+                    });
+                }
+            });
+
+
+        return $completed;
     }
 
 }

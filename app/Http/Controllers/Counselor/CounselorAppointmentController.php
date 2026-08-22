@@ -226,4 +226,28 @@ class CounselorAppointmentController extends Controller
         }
     }
 
+    public function completeExpiredAppointments(
+    CounselorAppointmentService $service
+) {
+    try {
+
+        $count = $service->completeExpiredAppointments();
+
+        return $this->successResponse(
+            [
+                'completed_count' => $count
+            ],
+            'Expired appointments completed successfully.',
+            200
+        );
+
+    } catch (\Exception $e) {
+
+        return $this->errorResponse(
+            $e->getMessage(),
+            500
+        );
+    }
+}
+
 }

@@ -233,6 +233,10 @@ Route::prefix('auth')->group(function () {
             Route::get('/tomorrow/schedule/show', [CounselorAppointmentController::class, 'tomorrowSchedule']);
             Route::get('/get/grade/levels', [CounselorAvailabilityController::class, 'getGradeLevels']);
 
+Route::post(
+    '/counselor/appointments/complete-expired',
+    [CounselorAppointmentController::class, 'completeExpiredAppointments']
+);
 
             Route::prefix('/config')->controller(CounselorAvailabilityController::class)->group(function () {
                 Route::post('/availability', 'store');
@@ -685,3 +689,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/parent/report-cards/top-students', [GuardianReportController::class, 'getTopStudentsForChild']);
 });
 Route::get('/website', [ContentController::class, 'getPublicStats']);
+

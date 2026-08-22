@@ -85,9 +85,9 @@ class PracticeQuizController extends Controller
     /**
      * Get quizzes for a GradeSubject.
      */
-  public function getQuizzesByGradeSubject(
+ public function getQuizzesByGradeSubject(
     Request $request,
-    $subjectId,
+    $gradeSubjectId,
     $gradeLevelId
 ) {
     try {
@@ -104,7 +104,7 @@ class PracticeQuizController extends Controller
 
         $quizzes = $this->quizService
             ->getTeacherQuizzes(
-                (int) $subjectId,
+                (int) $gradeSubjectId,
                 (int) $gradeLevelId,
                 (int) $teacher->id
             );

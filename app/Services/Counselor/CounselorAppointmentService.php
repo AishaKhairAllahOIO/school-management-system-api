@@ -1225,7 +1225,6 @@ class CounselorAppointmentService
 
         CounselorAppointment::query()
             ->where('booking_status', 'accepted')
-            ->whereDate('appointment_date', '<=', now()->toDateString())
             ->chunkById(100, function ($appointments) use (&$completed) {
 
                 foreach ($appointments as $appointment) {

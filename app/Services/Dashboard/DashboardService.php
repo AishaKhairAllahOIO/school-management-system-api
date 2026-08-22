@@ -222,7 +222,7 @@ throw new \Exception(
         return AcademicStage::all()->map(function ($stage) {
             $gradeLevelIds = $stage->gradeLevels()->pluck('id');
             $studentsCount = \App\Models\Enrollment::whereIn('grade_level_id', $gradeLevelIds)
-                ->where('enrollment_status', 'enrolled')
+                ->whereIn('enrollment_status',[ 'enrolled','suspended','completed'])
                 ->count();
 
             return [
@@ -242,7 +242,7 @@ throw new \Exception(
         ->map(function ($stage) use ($gradeLevelIds) {
             $matchedGradeIds = $stage->gradeLevels->whereIn('id', $gradeLevelIds)->pluck('id');
             $studentsCount = \App\Models\Enrollment::whereIn('grade_level_id', $matchedGradeIds)
-                ->where('enrollment_status', 'enrolled')
+                ->whereIn('enrollment_status',[ 'enrolled','suspended','completed'])
                 ->count();
 
             return [

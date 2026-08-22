@@ -29,16 +29,12 @@ class StaffManagementService
 
     public function getStaffRoleCounts(): array
     {
-        $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff'];
+        $roles = ['teacher', 'adviser', 'counselor', 'secretary', 'service_staff', 'student'];
         $counts = [];
 
         foreach ($roles as $role) {
             $counts[$role] = User::withTrashed()->role($role)->count();
         }
-        $counts['student'] = Student::withTrashed()
-            ->whereHas('enrollments', function ($q) {
-                $q->withTrashed()->whereIn('enrollment_status', ['enrolled', 'suspended', 'completed']);
-            })->count();
         $counts['total'] = User::withTrashed()->role($roles)->count();
 
         return $counts;

@@ -6,6 +6,7 @@ use App\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Counselor\UpdateCounselingSessionRequest;
 use App\Http\Resources\Counselor\CounselingSessionResource;
+use App\Models\CounselingSession;
 use App\Services\Counselor\CounselingSessionService;
 use Exception;
 use Illuminate\Http\Request;
@@ -19,28 +20,22 @@ class CounselingSessionController extends Controller
     ) {
     }
 
-    public function pending(Request $request)
-    {
-        try {
+   
+    public function pending(int $counselorId)
+{
+    return CounselingSession::query()
+        ->whereHas('appointment', function ($query) use ($counselorId) {
 
-            $sessions = $this->service->getPendingSessions(
-                $request->user()->id
-            );
+            $query->where('counselor_id', $counselorId)
+                ->where('booking_status', 'completed');
 
-            return $this->successResponse(
-                CounselingSessionResource::collection($sessions),
-                'Pending counseling sessions retrieved successfully.',
-                200
-            );
-
-        } catch (Exception $e) {
-
-            return $this->errorResponse(
-                $e->getMessage(),
-                422
-            );
-        }
-    }
+        })
+        ->with([
+            'appointment.student.user',
+        ])
+        ->orderByDesc('created_at')
+        ->get();
+}
     public function update(UpdateCounselingSessionRequest $request, int $sessionId)
     {
         try {

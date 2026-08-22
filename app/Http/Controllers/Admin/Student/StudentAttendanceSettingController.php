@@ -106,8 +106,8 @@ class StudentAttendanceSettingController extends Controller
         {
             return $this->errorResponse(
                 'Error:Server',
-                500 // 500 Internal Server Error
-            );
+                $e->getCode() // 500 Internal Server Error
+            ,$e->getMessage());
         }
     }
 

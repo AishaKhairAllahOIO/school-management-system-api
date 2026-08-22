@@ -44,31 +44,57 @@ class HomeworkService
         return $homework;
     });
 }
-    public function updateHomework(Homework $homework, array $data): Homework
-    {
-        return DB::transaction(function () use ($homework, $data) {
-            $homework->update([
-                'grade_subject_id' => $data['grade_subject_id'] ?? $homework->grade_subject_id,
-                'title' => $data['title'] ?? $homework->title,
-                'description' => $data['description'] ?? $homework->description,
-                'due_date' => $data['due_date'] ?? $homework->due_date,
-            ]);
+  public function updateHomework(Homework $homework, array $data): Homework
+{
+    return DB::transaction(function () use ($homework, $data) {
 
-            if (isset($data['class_room_ids'])) {
-                $homework->classRooms()->sync($data['class_room_ids']);
-                $classRoomIds = $data['class_room_ids'];
-            } else {
-                $classRoomIds = $homework->classRooms()->allRelatedIds()->toArray();
-            }
+        $homework->update([
+            'grade_subject_id' => $data['grade_subject_id'] ?? $homework->grade_subject_id,
+            'title' => $data['title'] ?? $homework->title,
+            'description' => $data['description'] ?? $homework->description,
+            'due_date' => $data['due_date'] ?? $homework->due_date,
+        ]);
 
-            $homework->load(['gradeSubject.subject']);
 
-            $this->dispatchNotificationToStudentsAndGuardians($homework, $classRoomIds, true);
+        if (isset($data['class_room_ids'])) {
 
-            return $homework->fresh(['gradeSubject.subject', 'gradeSubject.gradeLevel', 'classRooms']);
-        });
-    }
-    public function deleteHomework(Homework $homework): bool
+            $homework->classRooms()->sync($data['class_room_ids']);
+
+            $classRoomIds = $data['class_room_ids'];
+
+        } else {
+
+            $classRoomIds = $homework
+                ->classRooms()
+                ->allRelatedIds()
+                ->toArray();
+        }
+
+
+        $homework->load([
+            'gradeSubject.subject'
+        ]);
+
+        DB::table('homework_user_reads')
+            ->where('homework_id', $homework->id)
+            ->delete();
+
+
+
+        $this->dispatchNotificationToStudentsAndGuardians(
+            $homework,
+            $classRoomIds,
+            true
+        );
+
+
+        return $homework->fresh([
+            'gradeSubject.subject',
+            'gradeSubject.gradeLevel',
+            'classRooms'
+        ]);
+    });
+}    public function deleteHomework(Homework $homework): bool
     {
         return $homework->delete();
     }

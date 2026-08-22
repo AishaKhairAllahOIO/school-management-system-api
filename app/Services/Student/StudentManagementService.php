@@ -287,6 +287,9 @@ class StudentManagementService
 
         $newStatus = ($user->account_status === 'enabled') ? 'disabled' : 'enabled';
         $user->update(['account_status' => $newStatus]);
+        if ($newStatus === 'disabled') {
+            $user->tokens()->delete();
+        }
 
         return $newStatus;
     }

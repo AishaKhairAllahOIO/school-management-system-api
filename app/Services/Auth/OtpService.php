@@ -49,9 +49,18 @@ class OtpService
                 'account_status' => 'This account is disabled. Please contact administration.'
             ]);
         }
-
-        // تمرير كائن المستخدم مباشرة لتجنب استعلام قاعدة البيانات مرة أخرى
+        if (Cache::has('otp_sent_' . $phone_number)) {
+            throw new HttpResponseException(
+                $this->errorResponse('Please wait before requesting another OTP.', 429)
+            );
+        }
         return $this->generateOtp($user);
+
+        Cache::put(
+            'otp_sent_' . $phone_number,
+            true,
+            now()->addSeconds(60)
+        );
     }
 
     // تم تغيير المعامل ليقبل كائن User بدلاً من رقم الهاتف لتحسين الأداء
@@ -83,8 +92,8 @@ class OtpService
 
         return [
             'status' => 'otp_generated',
-            'phone_number'  => $phone_number,
-            'otp'    => $otp,
+            'phone_number' => $phone_number,
+            'otp' => $otp,
             'otp_expires_in' => 20 * 60
         ];
     }
@@ -102,45 +111,45 @@ class OtpService
             $message = "كود التحقق الخاص بك هو: $otp. يرجى عدم مشاركته مع أي شخص.";
 
             Log::channel('single')->info('[SMS][OUTBOUND][attemptSendOtp] Preparing to send OTP SMS.', [
-                'to'      => $phone_number,
+                'to' => $phone_number,
                 'message' => $message,
             ]);
 
             $postData = json_encode([
-                'to'      => $phone_number,
+                'to' => $phone_number,
                 'message' => $message
             ]);
 
             $ch = curl_init();
             curl_setopt_array($ch, [
-                CURLOPT_URL            => $this->apiUrl,
+                CURLOPT_URL => $this->apiUrl,
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST           => true,
-                CURLOPT_POSTFIELDS     => $postData,
-                CURLOPT_HTTPHEADER     => [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $postData,
+                CURLOPT_HTTPHEADER => [
                     'Authorization: ' . $this->apiKey,
                     'Content-Type: application/json',
                     'Accept: application/json',
                 ],
-                CURLOPT_TIMEOUT        => 15,
+                CURLOPT_TIMEOUT => 15,
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_SSL_VERIFYHOST => false,
             ]);
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error    = curl_error($ch);
+            $error = curl_error($ch);
             curl_close($ch);
 
             Log::channel('single')->info('[SMS][OUTBOUND][attemptSendOtp] HTTP Response', [
-                'to'          => $phone_number,
+                'to' => $phone_number,
                 'status_code' => $httpCode,
-                'body'        => $response,
+                'body' => $response,
             ]);
 
             if ($error) {
                 Log::channel('single')->error('[SMS][OUTBOUND][attemptSendOtp] cURL Error', [
-                    'to'    => $phone_number,
+                    'to' => $phone_number,
                     'error' => $error,
                 ]);
                 return false;
@@ -170,7 +179,7 @@ class OtpService
             if (!$cachedOtp || $cachedOtp !== $otp) {
                 Log::channel('single')->warning('[OTP] Invalid or expired OTP verification attempt.', [
                     'phone_number' => $phone_number,
-                    'code'  => $otp,
+                    'code' => $otp,
                 ]);
                 throw new HttpResponseException($this->errorResponse('OTP is invalid or expired', 422));
             }
@@ -183,7 +192,7 @@ class OtpService
 
         Log::channel('single')->info('[OTP] OTP verified successfully.', [
             'phone_number' => $phone_number,
-            'user_id'      => $user->id,
+            'user_id' => $user->id,
         ]);
 
         return [

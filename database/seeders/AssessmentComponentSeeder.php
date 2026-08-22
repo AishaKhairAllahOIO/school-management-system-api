@@ -20,7 +20,7 @@ class AssessmentComponentSeeder extends Seeder
         AssessmentComponent::query()->delete();
 
         foreach ($gradeSubjects as $gs) {
-            $max = $gs->max_mark; 
+            $max = $gs->max_mark;
 
             $components = [
                 ['type' => 'oral',          'name' => 'الشفوي',            'max_mark' => $max * 0.05, 'weight' => 5.00],   // 5%
@@ -32,7 +32,7 @@ class AssessmentComponentSeeder extends Seeder
             ];
 
             foreach ($components as $component) {
-                AssessmentComponent::create([
+                AssessmentComponent::updateOrCreate([
                     'grade_subject_id'  => $gs->id,
                     'type'              => $component['type'],
                     'name'              => $component['name'],

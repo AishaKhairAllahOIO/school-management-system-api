@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
 class GradeSubject extends Model
 {
@@ -51,5 +52,18 @@ class GradeSubject extends Model
     public function reportCardDetails()
     {
         return $this->hasMany(ReportCardDetail::class, 'grade_subject_id');
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($gradeSubject) {
+
+            if ($gradeSubject->scheduleEntries()->exists()) {
+                throw new \Exception(
+                    'Cannot delete this subject because it is used in the schedule.'
+                );
+            }
+
+        });
     }
 }

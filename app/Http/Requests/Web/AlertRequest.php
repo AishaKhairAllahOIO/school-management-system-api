@@ -94,8 +94,8 @@ class AlertRequest extends FormRequest
                 'meta.severity' => ['nullable', 'string', Rule::in(['low', 'medium', 'high'])]
             ],
             Alert::TYPE_COUNSELING_REQUEST => [
-                'meta.student_name' => ['nullable', 'string'],
-                // تم التعديل هنا لضمان دقة التاريخ
+                'meta.student_name'+
+                6 => ['nullable', 'string'],
                 'meta.appointment_date' => ['required', 'date_format:Y-m-d'],
             ],
             Alert::TYPE_COUNSELING_RESPONSE => [

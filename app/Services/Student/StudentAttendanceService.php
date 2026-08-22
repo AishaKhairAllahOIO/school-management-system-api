@@ -148,7 +148,7 @@ public function filterStudentsAttendance(array $filters)
         $allowedAbsenceDays = $setting ? $setting->allowed_absence_days : 0;
 
         // 3. بناء الاستعلام الأساسي
-        $query = Enrollment::whereIn('enrollment_status', ['enrolled', 'confirmed']);
+        $query = Enrollment::whereIn('enrollment_status', ['enrolled', 'completed']);
 
         if ($classroomId) {
             $query->where('class_room_id', $classroomId);

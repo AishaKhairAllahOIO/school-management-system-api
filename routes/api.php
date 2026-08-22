@@ -119,20 +119,20 @@ Route::prefix('auth')->group(function () {
 
 
         Route::prefix('/scheduale')->controller(ScheduleController::class)->group(function () {
-            Route::post('/generate', 'generate');
-            Route::post('/regenerate', 'regenerate');
-            Route::put('/update/{entryId}', 'updateEntry');
+            Route::post('/generate', 'generate')->middleware('role:super_admin');
+            Route::post('/regenerate', 'regenerate')->middleware('role:super_admin');
+            Route::put('/update/{entryId}', 'updateEntry')->middleware('role:super_admin');
             Route::get('/show/all/{academicId}/{semesterId}', 'adminView');
             Route::get('/teacher/show/{academicId}/{semesterId}', 'allTeachersWeekly');
-            Route::post('add/entry', 'addEntry');
+            Route::post('add/entry', 'addEntry')->middleware('role:super_admin');
         });
 
         Route::prefix('/exam/schedule')->controller(ExamScheduleController::class)->group(function () {
             Route::get('/form/setup/{gradeLevelId}', 'getSetupData');
-            Route::post('/store', 'store');
-            Route::delete('/delete/{examId}', 'destroy');
-            Route::delete('/delete/one/subject/{examId}/{gradeSubjectId}', 'destroySubject');
-            Route::put('/update/{examId}', 'update');
+            Route::post('/store', 'store')->middleware('role:super_admin');
+            Route::delete('/delete/{examId}', 'destroy')->middleware('role:super_admin');
+            Route::delete('/delete/one/subject/{examId}/{gradeSubjectId}', 'destroySubject')->middleware('role:super_admin');
+            Route::put('/update/{examId}', 'update')->middleware('role:super_admin');
             Route::get('/show/{academicId}/{semesterId}', 'adminExams');
 
         });
@@ -216,7 +216,7 @@ Route::prefix('auth')->group(function () {
 
             Route::prefix('helper/materials')->controller(TeacherMaterialController::class)->group(function () {
                 Route::post('/upload', 'store');
-                Route::get('/show/by-subject/{gradeSubjectId}', 'index');
+                Route::get('/show/by-subject/{subjectId}', 'index');
                 Route::get('/show/one/{id}', 'show');
                 Route::delete('/delete/{id}', 'destroy');
             });

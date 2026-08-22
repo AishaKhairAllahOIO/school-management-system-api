@@ -75,36 +75,75 @@ class MarkService
     public function saveMarksBulk(array $data, int $staffId)
     {
         return DB::transaction(function () use ($data, $staffId) {
+
             $marksToUpsert = [];
-            $componentIds = collect($data['marks'])->pluck('assessment_component_id')->unique()->toArray();
-            $enrollmentIds = collect($data['marks'])->pluck('enrollment_id')->unique()->toArray();
+
+            $componentIds = collect($data['marks'])
+                ->pluck('assessment_component_id')
+                ->unique()
+                ->toArray();
+
+            $enrollmentIds = collect($data['marks'])
+                ->pluck('enrollment_id')
+                ->unique()
+                ->toArray();
+
 
             $components = AssessmentComponent::with('gradeSubject.subject')
                 ->whereIn('id', $componentIds)
                 ->get()
                 ->keyBy('id');
 
+
             $existingMarks = StudentMark::whereIn('enrollment_id', $enrollmentIds)
                 ->whereIn('assessment_component_id', $componentIds)
                 ->get()
-                ->keyBy(fn($item) => $item->enrollment_id . '_' . $item->assessment_component_id);
+                ->keyBy(
+                    fn($item) =>
+                    $item->enrollment_id . '_' . $item->assessment_component_id
+                );
+
 
             $notificationsToDispatch = [];
 
+            // العلامات التي تم تعديلها
+            $updatedMarkIds = [];
+
+
             foreach ($data['marks'] as $markData) {
+
                 $compId = $markData['assessment_component_id'];
                 $enrollmentId = $markData['enrollment_id'];
                 $providedMark = $markData['mark'] ?? null;
+
                 $component = $components->get($compId);
 
+
                 if ($providedMark !== null && $component) {
+
                     if ($providedMark > $component->max_mark) {
-                        throw new Exception("The entered mark ({$providedMark}) exceeds the maximum limit ({$component->max_mark}).", 422);
+                        throw new Exception(
+                            "The entered mark ({$providedMark}) exceeds the maximum limit ({$component->max_mark}).",
+                            422
+                        );
                     }
 
+
                     if (in_array($component->type, ['quiz1', 'quiz2', 'exam'])) {
+
                         $markKey = $enrollmentId . '_' . $compId;
+
                         $isUpdate = $existingMarks->has($markKey);
+
+
+                        if ($isUpdate) {
+
+                            // حفظ ID العلامة القديمة لمسح قراءتها
+                            $updatedMarkIds[] = $existingMarks
+                                ->get($markKey)
+                                ->id;
+                        }
+
 
                         $notificationsToDispatch[] = [
                             'enrollment_id' => $enrollmentId,
@@ -113,6 +152,7 @@ class MarkService
                         ];
                     }
                 }
+
 
                 $marksToUpsert[] = [
                     'enrollment_id' => $enrollmentId,
@@ -125,15 +165,35 @@ class MarkService
                 ];
             }
 
+
             StudentMark::upsert(
                 $marksToUpsert,
-                ['enrollment_id', 'assessment_component_id'],
-                ['mark', 'notes', 'teacher_id', 'updated_at']
+                [
+                    'enrollment_id',
+                    'assessment_component_id'
+                ],
+                [
+                    'mark',
+                    'notes',
+                    'teacher_id',
+                    'updated_at'
+                ]
             );
 
+            if (!empty($updatedMarkIds)) {
+
+                DB::table('mark_user_reads')
+                    ->whereIn('student_mark_id', $updatedMarkIds)
+                    ->delete();
+            }
+
+
+
             if (!empty($notificationsToDispatch)) {
+
                 $this->dispatchNotifications($notificationsToDispatch);
             }
+
 
             return true;
         });

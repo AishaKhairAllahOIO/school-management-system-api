@@ -33,7 +33,7 @@ class StudentAttendanceSettingsService
         $hasAttendances = StudentAttendance::where('semester_id', $setting->semester_id)->exists();
         if($hasAttendances)
         {
-            throw new Exception("لا يمكن تعديل الإعدادات. يوجد سجلات حضور فعلية للطلاب مرتبطة بهذا الفصل الدراسي.");
+            throw new Exception("can not update setting under using",409);
         }
 
         

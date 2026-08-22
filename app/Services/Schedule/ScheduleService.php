@@ -54,6 +54,7 @@ class ScheduleService
         $schedule = Schedule::with([
             'entries.classRoom.gradeLevel',
             'entries.gradeSubject.subject',
+            'entries.gradeSubject.gradeLevel',
             'entries.teacher.user'
         ])
             ->where('academic_year_id', $academicYearId)
@@ -67,8 +68,8 @@ class ScheduleService
 
         foreach ($schedule->entries as $entry) {
             $classId = $entry->class_room_id;
-            $gradeName = $entry->classRoom->gradeLevel->name->value ?? 'Unknown Grade';
-            $roomName = $entry->classRoom->name;
+            $gradeName = $entry->classRoom?->gradeLevel?->name?->value ?? 'Unknown Grade';
+            $roomName = $entry->classRoom?->name ?? 'Unknown Room';
             $day = strtolower($entry->day);
 
             $times = $this->timeCalculator->calculate($entry->period_index, $settings);
@@ -84,9 +85,21 @@ class ScheduleService
             $classesMap[$classId]['schedule'][$day][] = [
                 'entry_id' => $entry->id,
                 'period_index' => $entry->period_index,
-                'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
-                'teacher_name' => $entry->teacher->user->first_name ?? null,
-                'is_heavy' => $entry->gradeSubject->difficulty === 'heavy',
+
+                'subject_name' =>
+                    $entry->gradeSubject?->subject?->subject_name
+                    ?? 'Deleted Subject',
+
+                'teacher_name' =>
+                    trim(
+                        ($entry->teacher?->user?->first_name ?? '')
+                        . ' ' .
+                        ($entry->teacher?->user?->last_name ?? '')
+                    ) ?: null,
+
+                'is_heavy' =>
+                    $entry->gradeSubject?->difficulty === 'heavy',
+
                 'start_time' => $times['start_time'],
                 'end_time' => $times['end_time'],
             ];
@@ -130,7 +143,12 @@ class ScheduleService
     }
     public function getStudentWeeklySchedule(int $classroomId): array
     {
-        $entries = ScheduleEntry::with(['gradeSubject.subject', 'teacher.user'])
+        $entries = ScheduleEntry::with([
+            'gradeSubject.subject',
+            'gradeSubject.gradeLevel',
+            'teacher.user',
+            'classRoom'
+        ])
             ->where('class_room_id', $classroomId)
             ->get();
 
@@ -139,10 +157,17 @@ class ScheduleService
     public function getStudentTomorrowSchedule(int $classroomId): array
     {
         $tomorrowDayString = $this->getSyrianTomorrowDayString();
-        if (!$tomorrowDayString)
-            return [];
 
-        $entries = ScheduleEntry::with(['gradeSubject.subject', 'teacher.user'])
+        if (!$tomorrowDayString) {
+            return [];
+        }
+
+        $entries = ScheduleEntry::with([
+            'gradeSubject.subject',
+            'gradeSubject.gradeLevel',
+            'classRoom.gradeLevel',
+            'teacher.user'
+        ])
             ->where('class_room_id', $classroomId)
             ->where('day', $tomorrowDayString)
             ->get();
@@ -151,7 +176,12 @@ class ScheduleService
     }
     public function getTeacherWeeklySchedule(int $teacherId): array
     {
-        $entries = ScheduleEntry::with(['gradeSubject.subject', 'classRoom.gradeLevel'])
+        $entries = ScheduleEntry::with([
+            'gradeSubject.subject',
+            'gradeSubject.gradeLevel',
+            'classRoom.gradeLevel',
+            'teacher.user'
+        ])
             ->where('teacher_id', $teacherId)
             ->get();
 
@@ -183,29 +213,64 @@ class ScheduleService
     private function formatEntriesWithTimes($entries): array
     {
         $settings = AcademicSetting::firstOrFail()->schedule_settings;
+
         $formatted = [];
-        $daysOrder = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'];
+        $daysOrder = [
+            'sunday',
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday'
+        ];
 
         foreach ($entries as $entry) {
-            $times = $this->timeCalculator->calculate($entry->period_index, $settings);
+
+            $times = $this->timeCalculator->calculate(
+                $entry->period_index,
+                $settings
+            );
 
             $formatted[strtolower($entry->day)][] = [
                 'period_index' => $entry->period_index,
-                'subject_name' => $entry->gradeSubject->subject->subject_name ?? null,
-                'grade_name' => $entry->gradeSubject->gradeLevel->name,
-                'classroom' => $entry->classRoom->name ?? null,
+
+                'subject_name' =>
+                    $entry->gradeSubject?->subject?->subject_name ?? null,
+
+                'grade_name' =>
+                    $entry->gradeSubject?->gradeLevel?->name?->value ?? null,
+
+                'classroom' =>
+                    $entry->classRoom?->name ?? null,
+
                 'teacher_name' => $entry->teacher
-                    ? $entry->teacher->user->first_name . ' ' . $entry->teacher->user->last_name
+                    ? (
+                        ($entry->teacher->user?->first_name ?? '')
+                        . ' ' .
+                        ($entry->teacher->user?->last_name ?? '')
+                    )
                     : null,
+
                 'start_time' => $times['start_time'],
                 'end_time' => $times['end_time'],
             ];
         }
 
-        uksort($formatted, fn($a, $b) => array_search($a, $daysOrder) <=> array_search($b, $daysOrder));
+
+        uksort(
+            $formatted,
+            fn($a, $b) =>
+            array_search($a, $daysOrder)
+            <=>
+            array_search($b, $daysOrder)
+        );
+
 
         foreach ($formatted as &$periods) {
-            usort($periods, fn($a, $b) => $a['period_index'] <=> $b['period_index']);
+            usort(
+                $periods,
+                fn($a, $b) =>
+                $a['period_index'] <=> $b['period_index']
+            );
         }
 
         return $formatted;
@@ -215,6 +280,7 @@ class ScheduleService
         $schedule = Schedule::with([
             'entries.teacher.user',
             'entries.gradeSubject.subject',
+            'entries.gradeSubject.gradeLevel',
             'entries.classRoom.gradeLevel'
         ])
             ->where('academic_year_id', $academicYearId)
@@ -233,8 +299,8 @@ class ScheduleService
 
             $times = $this->timeCalculator->calculate($entry->period_index, $settings);
 
-            $gradeName = $entry->classRoom->gradeLevel->name->value ?? 'Unknown Grade';
-            $roomName = $entry->classRoom->name ?? 'Unknown Room';
+            $gradeName = $entry->classRoom?->gradeLevel?->name?->value ?? 'Unknown Grade';
+            $roomName = $entry->classRoom?->name ?? 'Unknown Room';
 
             $teachersTree[$teacherName][$day][] = [
                 'entry_id' => $entry->id,

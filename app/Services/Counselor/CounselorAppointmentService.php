@@ -2,6 +2,7 @@
 
 namespace App\Services\Counselor;
 
+use App\Jobs\SendPushNotification;
 use App\Models\AcademicSetting;
 use App\Models\Alert;
 use App\Models\CounselorAppointment;
@@ -578,16 +579,33 @@ class CounselorAppointmentService
                 'slot_status' => 'booked',
 
             ]);
-
             $selectedAppointment->load([
                 'student.user',
                 'counselor.user'
             ]);
 
 
+
+
+
+            if ($selectedAppointment->counselor?->user) {
+
+                SendPushNotification::dispatch(
+                    [
+                        $selectedAppointment->counselor->user->id
+                    ],
+                    'New counseling request',
+                    'A student has requested a counseling appointment.',
+                    [
+                        'type' => 'counseling_request',
+                        'appointment_date' => $selectedAppointment->appointment_date->toDateString(),
+                        'start_time' => $selectedAppointment->start_time,
+                        'end_time' => $selectedAppointment->end_time,
+                    ]
+                )->afterCommit();
+
+            }
             if ($selectedAppointment->counselor) {
-
-
                 $studentName = trim(
                     $selectedAppointment->student->user->first_name
                     . ' '
@@ -595,42 +613,7 @@ class CounselorAppointmentService
                     $selectedAppointment->student->user->last_name
                 );
 
-
-
-                $this->alertService->createStaffAlert(
-
-                    $selectedAppointment->counselor,
-
-                    Alert::TYPE_COUNSELING_REQUEST,
-
-                    'New counseling appointment request',
-
-                    'A new counseling appointment request has been submitted.',
-
-                    [
-
-                        'student_name' => $studentName,
-
-                        'appointment_id' =>
-                            $selectedAppointment->id,
-
-                        'appointment_date' =>
-                            $selectedAppointment
-                                ->appointment_date
-                                ->toDateString(),
-
-                        'start_time' =>
-                            $selectedAppointment->start_time,
-
-                        'end_time' =>
-                            $selectedAppointment->end_time,
-
-                    ]
-
-                );
-
             }
-
             return $selectedAppointment;
 
         });
@@ -659,15 +642,6 @@ class CounselorAppointmentService
             }
 
 
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | منع قبول موعد بدأ أو انتهى
-            |--------------------------------------------------------------------------
-            */
-
-
             $appointmentStart = Carbon::parse(
                 $appointment->appointment_date
                     ->format('Y-m-d')
@@ -687,24 +661,12 @@ class CounselorAppointmentService
             }
 
 
-
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | التأكد من وجود جدول المرشد في هذا اليوم
-            |--------------------------------------------------------------------------
-            */
-
-
             $day = strtolower(
                 Carbon::parse(
                     $appointment->appointment_date
                 )
                     ->englishDayOfWeek
             );
-
-
 
             $availability = CounselorAvailability::query()
 
@@ -725,8 +687,6 @@ class CounselorAppointmentService
 
                 ->first();
 
-
-
             if (!$availability) {
 
                 throw new Exception(
@@ -734,16 +694,6 @@ class CounselorAppointmentService
                 );
 
             }
-
-
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | التحقق من الحد اليومي
-            |--------------------------------------------------------------------------
-            */
-
 
             $acceptedCount = CounselorAppointment::query()
 
@@ -996,6 +946,7 @@ class CounselorAppointmentService
                     'لا يمكن إلغاء الموعد بعد بدء الجلسة.'
                 );
             }
+            $counselor = $appointment->counselor;
 
             $appointment->update([
                 'student_id' => null,
@@ -1003,20 +954,33 @@ class CounselorAppointmentService
                 'slot_status' => 'available',
             ]);
 
+            if ($counselor?->user) {
+
+                SendPushNotification::dispatch(
+                    [
+                        $counselor->user->id
+                    ],
+                    'Appointment cancelled',
+                    'The student cancelled the counseling appointment.',
+                    [
+                        'type' => 'counseling_cancelled_by_student',
+                        'appointment_id' => $appointment->id,
+                        'date' => $appointment->appointment_date->toDateString(),
+                    ]
+                )->afterCommit();
+
+            }
+
             return $appointment->fresh();
         });
     }
     public function cancelByCounselor(int $appointmentId, int $counselorId): CounselorAppointment
     {
-
         return DB::transaction(function () use ($appointmentId, $counselorId) {
 
             $appointment = CounselorAppointment::query()
                 ->where('id', $appointmentId)
-                ->where(
-                    'counselor_id',
-                    $counselorId
-                )
+                ->where('counselor_id', $counselorId)
                 ->lockForUpdate()
                 ->first();
 
@@ -1026,24 +990,14 @@ class CounselorAppointmentService
                 );
             }
 
-            if (
-                !in_array(
-                    $appointment->booking_status,
-                    [
-                        'pending',
-                        'accepted',
-                    ]
-                )
-            ) {
+            if (!in_array($appointment->booking_status, ['pending', 'accepted'])) {
                 throw new Exception(
                     'لا يمكن إلغاء هذا الموعد في حالته الحالية.'
                 );
             }
 
             $appointmentStart = Carbon::parse(
-                $appointment
-                    ->appointment_date
-                    ->format('Y-m-d')
+                $appointment->appointment_date->format('Y-m-d')
                 . ' '
                 . $appointment->start_time
             );
@@ -1054,11 +1008,30 @@ class CounselorAppointmentService
                 );
             }
 
+            $student = $appointment->student;
+            $counselor = $appointment->counselor;
+
             $appointment->update([
                 'student_id' => null,
                 'booking_status' => 'available',
                 'slot_status' => 'available',
             ]);
+
+            if ($student?->user) {
+
+                SendPushNotification::dispatch(
+                    [
+                        $student->user->id
+                    ],
+                    'Counseling appointment cancelled',
+                    'Your counselor has cancelled your counseling appointment.',
+                    [
+                        'type' => 'counseling_cancelled_by_counselor',
+                        'date' => $appointment->appointment_date->toDateString(),
+                    ]
+                )->afterCommit();
+
+            }
 
             return $appointment->fresh();
         });
@@ -1184,7 +1157,6 @@ class CounselorAppointmentService
 
             ->get();
     }
-
     public function getAcceptedCounselorAppointments(int $counselorId, ?string $date = null)
     {
         if ($date) {
@@ -1205,28 +1177,19 @@ class CounselorAppointmentService
 
         return CounselorAppointment::query()
 
-            ->where(
-                'counselor_id',
-                $counselorId
-            )
+            ->where('counselor_id', $counselorId)
 
-            ->whereDate(
-                'appointment_date',
-                $date
-            )
+            ->whereDate('appointment_date', $date)
 
-            ->where(
-                'booking_status',
-                'accepted'
-            )
+            ->where('booking_status', 'accepted')
+
+            ->whereNotNull('student_id')
 
             ->with([
                 'student.user',
             ])
 
-            ->orderBy(
-                'start_time'
-            )
+            ->orderBy('start_time')
 
             ->get();
     }
@@ -1254,30 +1217,5 @@ class CounselorAppointmentService
 
         return null;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

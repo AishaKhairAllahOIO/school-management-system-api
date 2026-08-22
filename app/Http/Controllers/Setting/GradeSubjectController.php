@@ -12,6 +12,7 @@ use App\Services\Setting\GradeSubjectService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
+use Illuminate\Validation\ValidationException;
 
 class GradeSubjectController extends Controller
 {
@@ -113,6 +114,8 @@ class GradeSubjectController extends Controller
             return $this->successResponse(null, 'Grade subject deleted successfully.', 200);
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('The requested grade subject does not exist.', 404);
+        } catch (ValidationException $e) {
+            return $this->errorResponse($e->getMessage(), 404);
         } catch (Exception $e) {
             return $this->errorResponse('Error:Server', 500, ['error' => $e->getMessage()]);
         }

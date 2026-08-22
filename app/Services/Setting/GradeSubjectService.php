@@ -3,7 +3,9 @@
 namespace App\Services\Setting;
 
 use App\Models\GradeSubject;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 
 class GradeSubjectService
 {
@@ -30,6 +32,17 @@ class GradeSubjectService
 
     public function deleteGradeSubject(GradeSubject $gradeSubject): void
     {
+        if (
+            $gradeSubject->assessmentComponents()->exists() ||
+            $gradeSubject->teacherAssignments()->exists() ||
+            $gradeSubject->homeworks()->exists() ||
+            $gradeSubject->reportCardDetails()->exists()
+        ) {
+            throw new ValidationException(
+                'Cannot delete this grade subject because it is linked to other records.'
+            );
+        }
+
         $gradeSubject->delete();
     }
 

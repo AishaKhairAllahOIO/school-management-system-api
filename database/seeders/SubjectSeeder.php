@@ -32,7 +32,7 @@ class SubjectSeeder extends Seeder
         ];
 
         foreach ($defaultSubjects as $name) {
-            Subject::firstOrCreate(['subject_name' => $name]);
+            Subject::updateOrCreate(['subject_name' => $name]);
         }
     }
 }

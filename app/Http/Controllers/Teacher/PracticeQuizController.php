@@ -88,7 +88,6 @@ class PracticeQuizController extends Controller
     public function getQuizzesByGradeSubject(
         Request $request,
         $subjectId,
-        $gradeLevelId
     ) {
         try {
 
